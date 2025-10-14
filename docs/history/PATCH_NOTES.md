@@ -1,5 +1,11 @@
 # Patch Notes
 
+## 2025-10-14 (Quickstart Guide) (8:00 pm)
+
+- Added `docs/user/quickstart.md` with a step-by-step walkthrough covering launch, ingest, unit toggles, and provenance export using the bundled sample spectrum.
+- Updated the Batch 3 workplan to track remaining documentation gaps and recorded the pytest run that validates the smoke workflow.
+- Linked upcoming documentation sprint items back to the inventory for traceability.
+
 ## 2025-10-14 (7:20 pm)
 
 - Logged the latest CI gate outcomes (lint, type-check, pytest) and noted the missing coverage plugin.
