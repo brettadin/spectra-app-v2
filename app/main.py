@@ -6,6 +6,8 @@ import sys
 from pathlib import Path
 from typing import Dict, Iterable, List
 
+import numpy as np
+
 from app.qt_compat import get_qt
 
 QtCore, QtGui, QtWidgets, QT_BINDING = get_qt()
@@ -17,6 +19,7 @@ from .services import (
     OverlayService,
     MathService,
 )
+from .ui.plot_pane import PlotPane, TraceStyle
 
 SAMPLES_DIR = Path(__file__).resolve().parent.parent / "samples"
 
@@ -92,19 +95,10 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.central_split.setOrientation(QtCore.Qt.Orientation.Horizontal)
         self.setCentralWidget(self.central_split)
 
-        self.plot_widget = QtWidgets.QWidget()
-        self.plot_widget.setObjectName("plot-area")
-        plot_layout = QtWidgets.QVBoxLayout(self.plot_widget)
-        plot_layout.setContentsMargins(24, 24, 24, 24)
-        self.plot_placeholder = QtWidgets.QLabel(
-            "Interactive plot preview coming soon. Select spectra to see tabulated data."
-        )
-        self.plot_placeholder.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
-        self.plot_placeholder.setWordWrap(True)
-        plot_layout.addStretch(1)
-        plot_layout.addWidget(self.plot_placeholder)
-        plot_layout.addStretch(2)
-        self.central_split.addWidget(self.plot_widget)
+        self.plot = PlotPane(self)
+        self.plot.setObjectName("plot-area")
+        self.central_split.addWidget(self.plot)
+        self.plot.autoscale()
 
         self.data_table = QtWidgets.QTableWidget()
         self.data_table.setColumnCount(4)
@@ -156,6 +150,11 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
 
         self.status_bar = self.statusBar()
         self.status_bar.showMessage("Ready")
+        self.plot.pointHovered.connect(
+            lambda x, y: self.status_bar.showMessage(
+                f"x={x:.4g} {self.plot_unit()} | y={y:.4g}"
+            )
+        )
 
     def _build_inspector_tabs(self) -> None:
         # Info tab -----------------------------------------------------
@@ -268,6 +267,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.unit_combo = QtWidgets.QComboBox()
         self.unit_combo.addItems(["nm", "Å", "µm", "cm⁻¹"])
         self.unit_combo.currentTextChanged.connect(self.refresh_overlay)
+        self.unit_combo.currentTextChanged.connect(self.plot.set_display_unit)
         toolbar.addWidget(self.unit_combo)
 
         toolbar.addWidget(QtWidgets.QLabel("Normalize:"))
@@ -286,6 +286,9 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.action_export = QtGui.QAction("Export", self)
         self.action_export.triggered.connect(self.export_manifest)
         toolbar.addAction(self.action_export)
+
+    def plot_unit(self) -> str:
+        return self.unit_combo.currentText()
 
     def _create_group_row(self, title: str) -> QtGui.QStandardItem:
         alias_item = QtGui.QStandardItem(title)
@@ -343,9 +346,17 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             "JSON (*.json)",
         )
         if save_path:
-            self.provenance_service.save_manifest(manifest, Path(save_path))
+            save_path = Path(save_path)
+            self.provenance_service.save_manifest(manifest, save_path)
             self.status_bar.showMessage(f"Manifest saved to {save_path}", 5000)
             self._log("Manifest", f"Saved to {save_path}")
+            image_path = save_path.with_suffix('.png')
+            try:
+                self.plot.export_png(image_path)
+            except Exception as exc:  # pragma: no cover - UI feedback
+                self._log("Export", f"Plot export failed: {exc}")
+            else:
+                self._log("Export", f"Plot snapshot saved to {image_path}")
             self.provenance_view.setPlainText(json_pretty(manifest))
             self.provenance_view.show()
             self.prov_tree.show()
@@ -438,6 +449,26 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.dataset_tree.expandAll()
         self._dataset_items[spectrum.id] = alias_item
         self._visibility[spectrum.id] = True
+        self._add_plot_trace(spectrum, color)
+
+    def _add_plot_trace(self, spectrum: 'Spectrum', color: QtGui.QColor) -> None:
+        alias_item = self._dataset_items.get(spectrum.id)
+        alias = alias_item.text() if alias_item else spectrum.name
+        x_nm = self._to_nm(spectrum.x, spectrum.x_unit)
+        style = TraceStyle(
+            color=QtGui.QColor(color),
+            width=1.6,
+            antialias=False,
+            show_in_legend=True,
+        )
+        self.plot.add_trace(
+            key=spectrum.id,
+            alias=alias,
+            x_nm=x_nm,
+            y=spectrum.y,
+            style=style,
+        )
+        self.plot.autoscale()
 
     def _show_metadata(self, spectrum: 'Spectrum | None') -> None:
         if spectrum is None:
@@ -579,6 +610,19 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             return True
         return bool(getattr(spectrum, 'parents', ()))
 
+    def _to_nm(self, x: np.ndarray, unit: str) -> np.ndarray:
+        data = np.asarray(x, dtype=np.float64)
+        if unit == "nm":
+            return data
+        if unit in ("Angstrom", "Å"):
+            return data / 10.0
+        if unit in ("um", "µm"):
+            return data * 1000.0
+        if unit in ("cm^-1", "cm⁻¹"):
+            with np.errstate(divide='ignore'):
+                return 1e7 / data
+        return data
+
     def _selected_dataset_ids(self) -> list[str]:
         selection = self.dataset_tree.selectionModel()
         if not selection:
@@ -617,6 +661,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             if not spec_id or spec_id == "group":
                 continue
             self._visibility[spec_id] = item.checkState() == QtCore.Qt.CheckState.Checked
+            self.plot.set_visible(spec_id, self._visibility[spec_id])
         self.refresh_overlay()
 
     def _toggle_data_table(self, checked: bool) -> None:
@@ -644,6 +689,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self._update_math_selectors()
         spectrum = self.overlay_service.get(spectrum_id)
         self.info_name.setText(spectrum.name)
+        self.plot.update_alias(spectrum_id, alias)
         self._log("Alias", f"{spectrum.name} → {alias}")
 
     def _on_normalize_changed(self, value: str) -> None:
