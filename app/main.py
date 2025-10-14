@@ -312,9 +312,13 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
 
     # ------------------------------------------------------------------
     def _load_default_samples(self) -> None:
-        for sample_file in sorted(SAMPLES_DIR.glob('sample_*.csv')):
-            if sample_file.exists():
-                self._ingest_path(sample_file)
+        self.plot.begin_bulk_update()
+        try:
+            for sample_file in sorted(SAMPLES_DIR.glob('sample_*.csv')):
+                if sample_file.exists():
+                    self._ingest_path(sample_file)
+        finally:
+            self.plot.end_bulk_update()
 
     # Actions -----------------------------------------------------------
     def open_file(self) -> None:
