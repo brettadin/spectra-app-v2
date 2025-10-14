@@ -79,3 +79,15 @@ To migrate existing `brains` and `atlas` logs, follow these steps:
   history.  When in doubt, write more rather than less.
 * **Citation**: Use tether IDs to cite official documents, academic papers or
   authoritative resources.  This ensures that claims can be verified.
+
+---
+
+## 2025-10-14 20:00 – Documentation
+
+**Author**: agent
+
+**Context**: User-facing onboarding documentation and planning artifacts.
+
+**Summary**: Authored the first-run quickstart (`docs/user/quickstart.md`) so new operators can launch the desktop build, ingest bundled spectra, validate unit toggles, and export a provenance bundle without guesswork. Updated the README quick start section to highlight the guide and extended the Batch 3 workplan to track remaining documentation gaps aligned with the inventory. Captured the work in patch notes for traceability.
+
+**References**: `docs/user/quickstart.md`, `README.md`, `docs/reviews/workplan.md`, `docs/history/PATCH_NOTES.md`.

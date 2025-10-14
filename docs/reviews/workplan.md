@@ -32,3 +32,14 @@
 - 2025-10-15: ✅ `mypy app --ignore-missing-imports`
 - 2025-10-15: ❌ `pytest -q --maxfail=1 --disable-warnings --cov=app --cov-report=term-missing` (fails: pytest-cov plugin missing)
 - 2025-10-15: ✅ `pytest -q --maxfail=1 --disable-warnings`
+
+# Workplan — Batch 3 (2025-10-14)
+
+- [x] Draft user quickstart walkthrough covering launch → ingest → unit toggle → export.
+- [ ] Author units & conversions reference with idempotency callouts.
+- [ ] Document plot interaction tools and LOD expectations.
+- [ ] Expand importing guide with provenance export appendix.
+
+## Batch 3 QA Log
+
+- 2025-10-14: ✅ `pytest -q`

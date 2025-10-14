@@ -93,6 +93,8 @@ The launcher script automatically:
 - Installs all dependencies
 - Launches the application
 
+Prefer a guided walkthrough? Follow the step-by-step [Spectra App Quickstart](docs/user/quickstart.md) to launch the app, ingest sample data, toggle units, and export provenance bundles.
+
 ### Manual Installation
 
 1. **Create Virtual Environment**:
