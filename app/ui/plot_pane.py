@@ -21,7 +21,7 @@ class TraceStyle:
 
     color: QtGui.QColor
     width: float = 1.5
-    antialias: bool = False
+    # antialias is not supported per-item in pyqtgraph 0.13.x; use global config
     show_in_legend: bool = True
 
 
@@ -68,7 +68,7 @@ class PlotPane(QtWidgets.QWidget):
             self._rebuild_legend()
             return
 
-        curve = pg.PlotCurveItem(antialias=style.antialias)
+        curve = pg.PlotCurveItem()
         self._plot.addItem(curve)
         self._traces[key] = {
             "alias": alias,
@@ -168,7 +168,6 @@ class PlotPane(QtWidgets.QWidget):
         pen = pg.mkPen(color=style.color, width=style.width)
         item: pg.PlotCurveItem = trace["item"]  # type: ignore[assignment]
         item.setPen(pen)
-        item.setAntialias(style.antialias)
 
     def _x_nm_to_disp(self, x_nm: np.ndarray) -> np.ndarray:
         unit = self._display_unit
