@@ -16,12 +16,6 @@ _CANONICAL_X_UNIT = "nm"
 _CANONICAL_Y_UNIT = "absorbance"
 
 
-def _as_readonly(array: np.ndarray) -> np.ndarray:
-    out = np.array(array, dtype=float, copy=True)
-    out.setflags(write=False)
-    return out
-
-
 @dataclass(frozen=True)
 class Spectrum:
     """Immutable spectral dataset with canonical units and provenance."""

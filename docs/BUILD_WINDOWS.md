@@ -7,10 +7,11 @@ These steps package the Spectra desktop shell into a distributable Windows build
    python -m venv .venv
    .venv\Scripts\Activate.ps1
    ```
-2. **Install dependencies**:
+2. **Install dependencies** (use `python -m pip` to ensure the active
+   interpreter installs the packages):
    ```powershell
-   pip install -r requirements.txt
-   pip install pyinstaller
+   python -m pip install -r requirements.txt
+   python -m pip install pyinstaller
    ```
 3. **Run the PyInstaller build** using the provided spec file:
    ```powershell

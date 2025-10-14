@@ -38,13 +38,11 @@ DO NOT LOSE SIGHT OF OUR TRUE END GOALS; SPECTROSCOPIC ANALYSIS OF CELESTIAL BOD
 
 ## Getting Started
 
-1. Create and activate a virtual environment, then install the pinned dependencies:
+1. Install the Python dependencies listed in `requirements.txt` using the
+   interpreter you plan to run the app with:
 
-   ```
-   python -m venv .venv
-   .\.venv\Scripts\activate
-   pip install --upgrade pip
-   pip install -r requirements.txt
+   ```bash
+   python -m pip install -r requirements.txt
    ```
 
 2. Launch the desktop shell.  The entry point is `app/main.py` and can be run from the repository root:
@@ -54,7 +52,19 @@ DO NOT LOSE SIGHT OF OUR TRUE END GOALS; SPECTROSCOPIC ANALYSIS OF CELESTIAL BOD
    python -m app.main
    ```
 
-   The application opens a window with **Data**, **Compare** and **Provenance** tabs.  Load a spectrum via the **Browse…** button or the `samples/` datasets to exercise the ingest, overlay and math services.
+   > **Tip:** Use dot notation (`app.main`) when launching a module with
+   > `python -m`.  Using a slash (e.g. `python -m app/main.py`) will fail
+   > because Python treats it as an invalid module name.
+
+   This will launch a minimal window that demonstrates the basic
+   application structure.  Future iterations will populate the UI with tabs
+   and controls as described in the specifications.
+
+3. Explore the `samples` folder to see an example dataset (`sample_spectrum.csv`)
+   and its associated provenance manifest (`sample_manifest.json`).  The
+   manifest was generated using the `ProvenanceService` class defined in
+   `app/services/provenance_service.py`.  Use this as a template when
+   ingesting your own data during development.
 
 3. Run the automated test suite to verify conversions, ingestion, provenance and overlay behaviour:
 
