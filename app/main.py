@@ -24,9 +24,6 @@ SAMPLES_DIR = Path(__file__).resolve().parent.parent / 'samples'
 class SpectraMainWindow(QtWidgets.QMainWindow):
     """Minimal yet functional shell that wires UI actions to services."""
 
-class SpectraMainWindow(QtWidgets.QMainWindow):
-    """Minimal yet functional shell that wires UI actions to services."""
-
     def __init__(self, container: ServiceContainer) -> None:
         super().__init__()
         self.setWindowTitle("Spectra Desktop Preview")
@@ -289,8 +286,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
     def _log_math(self, info: dict) -> None:
         existing = self.math_log.toPlainText()
         new_line = json_pretty(info)
-        self.math_log.setPlainText("
-".join(filter(None, [existing, new_line])))
+        self.math_log.setPlainText("\n".join(filter(None, [existing, new_line])))
 
     def _iter_items(self, widget: QtWidgets.QListWidget):
         for index in range(widget.count()):
