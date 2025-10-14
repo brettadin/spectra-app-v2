@@ -7,11 +7,12 @@ from typing import Tuple
 
 import numpy as np
 
-from .base import ImporterResult
+from .base import Importer, ImporterResult
 
+import numpy as np
 
 class CsvImporter(Importer):
-    """Read spectral data from delimited text files."""
+    """Read spectral data from CSV files."""
 
     def read(self, path: Path) -> ImporterResult:
         """Parse the given CSV file and return raw spectral data."""
