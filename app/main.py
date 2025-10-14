@@ -21,7 +21,10 @@ SAMPLES_DIR = Path(__file__).resolve().parent.parent / 'samples'
 class SpectraMainWindow(QtWidgets.QMainWindow):
     """Minimal yet functional shell that wires UI actions to services."""
 
-    def __init__(self) -> None:
+class SpectraMainWindow(QtWidgets.QMainWindow):
+    """Minimal yet functional shell that wires UI actions to services."""
+
+    def __init__(self, container: ServiceContainer) -> None:
         super().__init__()
         self.setWindowTitle("Spectra Desktop Preview")
         self.resize(1024, 720)
