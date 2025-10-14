@@ -26,3 +26,7 @@
   This makes repeat loads instantaneous and ensures provenance is reproducible.
 - Provenance exports call `ProvenanceService.export_bundle`, which writes a
   manifest, a canonical CSV snapshot, and a PNG plot into the selected folder.
+
+## Smoke validation
+
+An automated smoke test (`tests/test_smoke_workflow.py`) spins up the preview shell, ingests the sample CSV and a generated FITS file, toggles units through `UnitsService`, and runs `ProvenanceService.export_bundle`. This guards the end-to-end ingest pipeline and manifest export behaviour without manual UI clicks.
