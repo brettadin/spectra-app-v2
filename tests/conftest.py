@@ -1,3 +1,5 @@
+"""Test configuration for ensuring the application package is importable."""
+
 import sys
 from pathlib import Path
 

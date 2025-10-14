@@ -1,30 +1,29 @@
-"""Shared types for importer implementations."""
+"""Base classes and helpers for data importers."""
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Dict, Protocol, Tuple
+from typing import Dict, Any, Protocol
+
 import numpy as np
 
 
-@dataclass(frozen=True)
+@dataclass
 class ImporterResult:
-    """Raw values returned by an importer before canonical conversion."""
+    """Raw spectral data returned by an importer before unit normalisation."""
 
-    wavelengths: np.ndarray
-    flux: np.ndarray
-    wavelength_unit: str
-    flux_unit: str
-    metadata: Dict[str, object]
-    source_path: Path
+    name: str
+    x: np.ndarray
+    y: np.ndarray
+    x_unit: str
+    y_unit: str
+    metadata: Dict[str, Any] = field(default_factory=dict)
+    source_path: Path | None = None
 
 
-class Importer(Protocol):
-    """Protocol implemented by importer plugins."""
+class SupportsImport(Protocol):
+    """Protocol describing the callable signature of importers."""
 
-    supported_extensions: Tuple[str, ...]
-
-    def description(self) -> str: ...
-
-    def read(self, path: Path) -> ImporterResult: ...
+    def read(self, path: Path) -> ImporterResult:  # pragma: no cover - interface
+        ...

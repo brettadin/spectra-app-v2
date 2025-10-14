@@ -1,53 +1,68 @@
+"""Unit tests for UnitsService."""
+
 import numpy as np
 import pytest
 
 from app.services.units_service import UnitError, UnitsService
 
 
-def test_wavelength_round_trip():
+def test_wavelength_round_trip_nm_um():
     service = UnitsService()
-    wavelengths = np.linspace(400, 800, 5)
-    microns = service.convert_wavelength(wavelengths, "nm", "µm")
-    back_to_nm = service.convert_wavelength(microns, "µm", "nm")
-    assert np.allclose(back_to_nm, wavelengths)
+    x = np.array([500.0, 1000.0])
+    y = np.array([0.1, 0.2])
+    canonical_x, canonical_y, metadata = service.to_canonical(x, y, 'um', 'absorbance')
+    assert np.allclose(canonical_x, np.array([5e5, 1e6]))
+    spectrum = Spectrum.create('test', canonical_x, canonical_y)
+    view, _, _ = service.convert(spectrum, 'µm', 'absorbance')
+    assert np.allclose(view, x)
 
-    wavenumber = service.convert_wavelength(wavelengths, "nm", "cm^-1")
-    restored = service.convert_wavelength(wavenumber, "cm^-1", "nm")
-    assert np.allclose(restored, wavelengths)
 
-
-def test_flux_round_trip_transmittance():
+def test_wavenumber_round_trip():
     service = UnitsService()
-    trans = np.array([0.2, 0.5, 0.9])
-    absorbance = service.convert_flux(trans, "transmittance", "absorbance", context={})
-    restored = service.convert_flux(absorbance, "absorbance", "transmittance", context={})
-    assert np.allclose(restored, trans)
+    x = np.array([2000.0, 1000.0])
+    y = np.array([1.0, 0.5])
+    canonical_x, canonical_y, _ = service.to_canonical(x, y, 'cm^-1', 'absorbance')
+    spectrum = Spectrum.create('wavenumber', canonical_x, canonical_y)
+    view_x, _, _ = service.convert(spectrum, 'cm^-1', 'absorbance')
+    assert np.allclose(view_x, x)
 
 
-def test_percent_transmittance():
+def test_transmittance_conversion_and_round_trip():
     service = UnitsService()
-    percent = np.array([80.0, 50.0])
-    absorbance = service.convert_flux(percent, "percent_transmittance", "absorbance", context={})
-    assert pytest.approx(absorbance[0], rel=1e-6) == -np.log10(0.8)
-    restored = service.convert_flux(absorbance, "absorbance", "percent_transmittance", context={})
-    assert np.allclose(restored, percent)
+    x = np.array([400.0])
+    y = np.array([0.5])  # fractional transmittance
+    canonical_x, canonical_y, metadata = service.to_canonical(x, y, 'nm', 'transmittance')
+    assert np.allclose(canonical_y, np.array([0.30103]), atol=1e-6)
+    spectrum = Spectrum.create('trans', canonical_x, canonical_y)
+    _, y_view, _ = service.convert(spectrum, 'nm', 'transmittance')
+    assert np.allclose(y_view, y)
 
 
-def test_absorption_coefficient_requires_context():
+def test_percent_transmittance_conversion():
     service = UnitsService()
-    alpha = np.array([1.2])
-    with pytest.raises(UnitError):
-        service.convert_flux(alpha, "absorption_coefficient", "absorbance", context={})
-    absorbance = service.convert_flux(
-        alpha,
-        "absorption_coefficient",
-        "absorbance",
-        context={"path_length_m": 0.01, "mole_fraction": 0.5, "absorption_base": "10"},
-    )
-    restored = service.convert_flux(
-        absorbance,
-        "absorbance",
-        "absorption_coefficient",
-        context={"path_length_m": 0.01, "mole_fraction": 0.5, "absorption_base": "10"},
-    )
-    assert np.allclose(restored, alpha)
+    x = np.array([400.0])
+    y = np.array([50.0])  # percent transmittance
+    canonical_x, canonical_y, metadata = service.to_canonical(x, y, 'nm', '%T')
+    assert metadata['intensity_conversion']['transformation'] == '%T→A10'
+    spectrum = Spectrum.create('percent', canonical_x, canonical_y)
+    _, y_view, _ = service.convert(spectrum, 'nm', '%T')
+    assert np.allclose(y_view, y)
+
+
+def test_absorbance_e_conversion():
+    service = UnitsService()
+    x = np.array([400.0])
+    y = np.array([2.303])  # natural log absorbance (Ae)
+    canonical_x, canonical_y, _ = service.to_canonical(x, y, 'nm', 'absorbance_e')
+    assert np.allclose(canonical_y, np.array([1.0]))
+    spectrum = Spectrum.create('ae', canonical_x, canonical_y)
+    _, y_view, _ = service.convert(spectrum, 'nm', 'absorbance_e')
+    assert np.allclose(y_view, y)
+
+
+def test_invalid_units_raise():
+    service = UnitsService()
+    with pytest.raises(ValueError):
+        service.to_canonical(np.array([1.0]), np.array([1.0]), 'foo', 'absorbance')
+    with pytest.raises(ValueError):
+        service.to_canonical(np.array([1.0]), np.array([1.0]), 'nm', 'bar')

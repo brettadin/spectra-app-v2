@@ -1,17 +1,15 @@
 # -*- mode: python ; coding: utf-8 -*-
+"""PyInstaller spec file for building the Spectra desktop app on Windows."""
 
 block_cipher = None
 
-import PySide6.QtCharts  # noqa: F401 - ensure module discovery
-
 a = Analysis(
     ['app/main.py'],
-    pathex=['.'],
+    pathex=[],
     binaries=[],
-    datas=[('samples', 'samples'), ('requirements.txt', '.')],
-    hiddenimports=['PySide6.QtCharts'],
+    datas=[('samples/*.csv', 'samples'), ('docs/history/*', 'docs/history')],
+    hiddenimports=['PySide6.QtCore', 'PySide6.QtGui', 'PySide6.QtWidgets'],
     hookspath=[],
-    hooksconfig={},
     runtime_hooks=[],
     excludes=[],
     win_no_prefer_redirects=False,
@@ -23,22 +21,15 @@ pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
 exe = EXE(
     pyz,
     a.scripts,
-    [],
-    exclude_binaries=True,
+    a.binaries,
+    a.zipfiles,
+    a.datas,
     name='SpectraApp',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
     upx=True,
-    console=False,
-)
-coll = COLLECT(
-    exe,
-    a.binaries,
-    a.zipfiles,
-    a.datas,
-    strip=False,
-    upx=True,
     upx_exclude=[],
-    name='SpectraApp',
+    runtime_tmpdir=None,
+    console=False,
 )

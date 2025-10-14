@@ -1,4 +1,4 @@
-"""Main entry point and UI shell for the Spectra application."""
+"""Application entry point for the Spectra desktop shell."""
 
 from __future__ import annotations
 
@@ -6,439 +6,307 @@ from dataclasses import dataclass
 import json
 import logging
 from pathlib import Path
-from typing import Iterable, List, Optional
+from typing import Iterable
 
-import numpy as np
-from PySide6 import QtCore, QtGui, QtWidgets
-from PySide6.QtCharts import QChart, QChartView, QLineSeries, QValueAxis
+from PySide6 import QtCore, QtWidgets
 
 from .services import (
-    DataIngestService,
-    MathResult,
-    MathService,
-    OverlayService,
-    ProvenanceService,
-    Spectrum,
     UnitsService,
+    ProvenanceService,
+    DataIngestService,
+    OverlayService,
+    MathService,
 )
 
-logger = logging.getLogger(__name__)
-APP_ROOT = Path(__file__).resolve().parent.parent
+SAMPLES_DIR = Path(__file__).resolve().parent.parent / 'samples'
 
 
-@dataclass
-class ServiceContainer:
-    units: UnitsService
-    provenance: ProvenanceService
-    ingest: DataIngestService
-    overlay: OverlayService
-    math: MathService
-
-
-class OverlayChart(QtWidgets.QWidget):
-    """Simple multi-series chart for spectrum overlays."""
-
-    def __init__(self, parent: Optional[QtWidgets.QWidget] = None) -> None:
-        super().__init__(parent)
-        self._chart = QChart()
-        self._chart.legend().setVisible(True)
-        self._chart.legend().setAlignment(QtCore.Qt.AlignBottom)
-        self._chart.setAnimationOptions(QChart.NoAnimation)
-        self._view = QChartView(self._chart)
-        self._view.setRenderHint(QtGui.QPainter.Antialiasing)
-        layout = QtWidgets.QVBoxLayout(self)
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.addWidget(self._view)
-
-    def update_series(self, series_data: Iterable[tuple[str, np.ndarray, np.ndarray]]) -> None:
-        self._chart.removeAllSeries()
-        for axis in list(self._chart.axes()):
-            self._chart.removeAxis(axis)
-        x_min, x_max, y_min, y_max = None, None, None, None
-        for name, x_values, y_values in series_data:
-            series = QLineSeries()
-            series.setName(name)
-            for xv, yv in zip(x_values, y_values):
-                series.append(float(xv), float(yv))
-            self._chart.addSeries(series)
-            if x_min is None:
-                x_min = float(np.min(x_values))
-                x_max = float(np.max(x_values))
-                y_min = float(np.min(y_values))
-                y_max = float(np.max(y_values))
-            else:
-                x_min = min(x_min, float(np.min(x_values)))
-                x_max = max(x_max, float(np.max(x_values)))
-                y_min = min(y_min, float(np.min(y_values)))
-                y_max = max(y_max, float(np.max(y_values)))
-        if self._chart.series():
-            axis_x = QValueAxis()
-            axis_y = QValueAxis()
-            axis_x.setTitleText("Wavelength")
-            axis_y.setTitleText("Flux")
-            if x_min == x_max:
-                x_max = x_min + 1
-            if y_min == y_max:
-                y_max = y_min + 1
-            axis_x.setRange(x_min, x_max)
-            axis_y.setRange(y_min, y_max)
-            self._chart.setAxisX(axis_x)
-            self._chart.setAxisY(axis_y)
-            for series in self._chart.series():
-                series.attachAxis(axis_x)
-                series.attachAxis(axis_y)
-        else:
-            for axis in list(self._chart.axes()):
-                self._chart.removeAxis(axis)
-
-
-class DataTab(QtWidgets.QWidget):
-    """Data ingest and overlay management tab."""
-
-    spectra_changed = QtCore.Signal()
-    status_message = QtCore.Signal(str)
-    error_occurred = QtCore.Signal(str)
-
-    def __init__(self, container: ServiceContainer, parent: Optional[QtWidgets.QWidget] = None) -> None:
-        super().__init__(parent)
-        self.container = container
-        self._build_ui()
-        self.refresh()
-
-    def _build_ui(self) -> None:
-        layout = QtWidgets.QVBoxLayout(self)
-
-        ingest_row = QtWidgets.QHBoxLayout()
-        self.ingest_button = QtWidgets.QPushButton("Browse…")
-        self.ingest_button.setToolTip("Select spectra files to ingest")
-        self.ingest_button.clicked.connect(self._open_files)
-        ingest_row.addWidget(self.ingest_button)
-
-        self.load_sample_button = QtWidgets.QPushButton("Load Sample")
-        self.load_sample_button.clicked.connect(self._load_sample)
-        ingest_row.addWidget(self.load_sample_button)
-
-        ingest_row.addStretch(1)
-
-        layout.addLayout(ingest_row)
-
-        unit_row = QtWidgets.QHBoxLayout()
-        unit_row.addWidget(QtWidgets.QLabel("Wavelength unit:"))
-        self.wavelength_unit = QtWidgets.QComboBox()
-        self.wavelength_unit.addItems(["nm", "µm", "Å", "cm^-1"])
-        self.wavelength_unit.currentTextChanged.connect(self.refresh_chart)
-        unit_row.addWidget(self.wavelength_unit)
-
-        unit_row.addWidget(QtWidgets.QLabel("Flux unit:"))
-        self.flux_unit = QtWidgets.QComboBox()
-        self.flux_unit.addItems(["absorbance", "transmittance", "percent_transmittance"])
-        self.flux_unit.currentTextChanged.connect(self.refresh_chart)
-        unit_row.addStretch(1)
-        layout.addLayout(unit_row)
-
-        self.table = QtWidgets.QTableWidget(0, 4)
-        self.table.setHorizontalHeaderLabels(["Name", "Points", "Source", "Flux Unit"])
-        self.table.horizontalHeader().setStretchLastSection(True)
-        self.table.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
-        self.table.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
-        layout.addWidget(self.table)
-
-        self.chart = OverlayChart()
-        layout.addWidget(self.chart)
-
-    def _open_files(self) -> None:
-        dialog = QtWidgets.QFileDialog(self, "Select spectra")
-        dialog.setFileMode(QtWidgets.QFileDialog.ExistingFiles)
-        dialog.setNameFilters(["Delimited files (*.csv *.txt *.dat)", "All files (*.*)"])
-        if dialog.exec():
-            for file_path in dialog.selectedFiles():
-                self.ingest_path(Path(file_path))
-
-    def _load_sample(self) -> None:
-        sample = APP_ROOT / "samples" / "sample_spectrum.csv"
-        if sample.exists():
-            self.ingest_path(sample)
-        else:
-            self.error_occurred.emit("Sample dataset not found.")
-
-    def ingest_path(self, path: Path) -> None:
-        try:
-            spectrum = self.container.ingest.ingest(path)
-            self.container.overlay.add(spectrum)
-            self.status_message.emit(f"Loaded {path.name}")
-            self.refresh()
-            self.spectra_changed.emit()
-        except Exception as exc:  # noqa: BLE001 - show to user
-            self.error_occurred.emit(str(exc))
-            logger.exception("Failed to ingest %s", path)
-
-    def refresh(self) -> None:
-        spectra = self.container.overlay.spectra()
-        self.table.setRowCount(len(spectra))
-        for idx, spectrum in enumerate(spectra):
-            self.table.setItem(idx, 0, QtWidgets.QTableWidgetItem(spectrum.name))
-            self.table.setItem(idx, 1, QtWidgets.QTableWidgetItem(str(len(spectrum.wavelength_nm))))
-            source = spectrum.metadata.get("source", {})
-            self.table.setItem(idx, 2, QtWidgets.QTableWidgetItem(Path(source.get("path", "")).name))
-            self.table.setItem(idx, 3, QtWidgets.QTableWidgetItem(spectrum.flux_unit))
-        self.refresh_chart()
-
-    def refresh_chart(self) -> None:
-        spectra = self.container.overlay.spectra()
-        data: List[tuple[str, np.ndarray, np.ndarray]] = []
-        for spectrum in spectra:
-            context = spectrum.metadata.get("flux_context", {}) if isinstance(spectrum.metadata, dict) else {}
-            x, y = spectrum.as_units(
-                self.container.units,
-                wavelength_unit=self.wavelength_unit.currentText(),
-                flux_unit=self.flux_unit.currentText(),
-                context=context,
-            )
-            data.append((spectrum.name, x, y))
-        self.chart.update_series(data)
-
-
-class CompareTab(QtWidgets.QWidget):
-    """Tab for differential math operations."""
-
-    status_message = QtCore.Signal(str)
-    error_occurred = QtCore.Signal(str)
-    spectrum_created = QtCore.Signal(Spectrum)
-
-    def __init__(self, container: ServiceContainer, parent: Optional[QtWidgets.QWidget] = None) -> None:
-        super().__init__(parent)
-        self.container = container
-        self._build_ui()
-
-    def _build_ui(self) -> None:
-        layout = QtWidgets.QVBoxLayout(self)
-
-        selector_layout = QtWidgets.QHBoxLayout()
-        selector_layout.addWidget(QtWidgets.QLabel("Spectrum A:"))
-        self.combo_a = QtWidgets.QComboBox()
-        self.combo_a.currentIndexChanged.connect(self._update_chart)
-        selector_layout.addWidget(self.combo_a)
-
-        selector_layout.addWidget(QtWidgets.QLabel("Spectrum B:"))
-        self.combo_b = QtWidgets.QComboBox()
-        self.combo_b.currentIndexChanged.connect(self._update_chart)
-        selector_layout.addWidget(self.combo_b)
-        selector_layout.addStretch(1)
-        layout.addLayout(selector_layout)
-
-        button_row = QtWidgets.QHBoxLayout()
-        self.diff_button = QtWidgets.QPushButton("Subtract (A − B)")
-        self.diff_button.clicked.connect(self._compute_difference)
-        button_row.addWidget(self.diff_button)
-
-        self.ratio_button = QtWidgets.QPushButton("Ratio (A / B)")
-        self.ratio_button.clicked.connect(self._compute_ratio)
-        button_row.addWidget(self.ratio_button)
-
-        button_row.addStretch(1)
-        layout.addLayout(button_row)
-
-        self.chart = OverlayChart()
-        layout.addWidget(self.chart)
-
-        self.result_summary = QtWidgets.QPlainTextEdit()
-        self.result_summary.setReadOnly(True)
-        layout.addWidget(self.result_summary)
-
-    def update_spectra(self) -> None:
-        spectra = self.container.overlay.spectra()
-        self.combo_a.blockSignals(True)
-        self.combo_b.blockSignals(True)
-        self.combo_a.clear()
-        self.combo_b.clear()
-        for spectrum in spectra:
-            self.combo_a.addItem(spectrum.name, spectrum.id)
-            self.combo_b.addItem(spectrum.name, spectrum.id)
-        self.combo_a.blockSignals(False)
-        self.combo_b.blockSignals(False)
-        self._update_chart()
-
-    def _selected_spectra(self) -> Optional[tuple[Spectrum, Spectrum]]:
-        id_a = self.combo_a.currentData()
-        id_b = self.combo_b.currentData()
-        if not id_a or not id_b:
-            return None
-        spec_a = self.container.overlay.get(id_a)
-        spec_b = self.container.overlay.get(id_b)
-        if spec_a is None or spec_b is None:
-            return None
-        return spec_a, spec_b
-
-    def _update_chart(self) -> None:
-        spectra_pair = self._selected_spectra()
-        if spectra_pair is None:
-            self.chart.update_series([])
-            return
-        a, b = spectra_pair
-        data = [
-            (a.name, a.wavelength_nm, a.flux),
-            (b.name, b.wavelength_nm, b.flux),
-        ]
-        self.chart.update_series(data)
-
-    def _compute_difference(self) -> None:
-        self._run_operation(self.container.math.difference)
-
-    def _compute_ratio(self) -> None:
-        self._run_operation(self.container.math.ratio)
-
-    def _run_operation(self, operation) -> None:
-        spectra_pair = self._selected_spectra()
-        if spectra_pair is None:
-            self.error_occurred.emit("Select both spectra before running operations.")
-            return
-        a, b = spectra_pair
-        result: MathResult = operation(a, b)
-        if result.suppressed:
-            self.status_message.emit(f"Operation suppressed: {result.message}")
-            self.result_summary.setPlainText(f"Suppressed: {result.message}")
-            return
-        assert result.spectrum is not None
-        manifest = self.container.provenance.create_manifest([result.spectrum, a, b], operations=result.spectrum.provenance)
-        self.result_summary.setPlainText(json.dumps(manifest, indent=2))
-        self.spectrum_created.emit(result.spectrum)
-        self.status_message.emit(f"Created derived spectrum: {result.spectrum.name}")
-
-
-class ProvenanceTab(QtWidgets.QWidget):
-    """Display provenance manifests for loaded spectra."""
-
-    def __init__(self, container: ServiceContainer, parent: Optional[QtWidgets.QWidget] = None) -> None:
-        super().__init__(parent)
-        self.container = container
-        self._build_ui()
-
-    def _build_ui(self) -> None:
-        layout = QtWidgets.QVBoxLayout(self)
-        selector_layout = QtWidgets.QHBoxLayout()
-        selector_layout.addWidget(QtWidgets.QLabel("Spectrum:"))
-        self.combo = QtWidgets.QComboBox()
-        selector_layout.addWidget(self.combo)
-        self.refresh_button = QtWidgets.QPushButton("Generate Manifest")
-        self.refresh_button.clicked.connect(self._generate_manifest)
-        selector_layout.addWidget(self.refresh_button)
-        selector_layout.addStretch(1)
-        layout.addLayout(selector_layout)
-
-        self.output = QtWidgets.QPlainTextEdit()
-        self.output.setReadOnly(True)
-        layout.addWidget(self.output)
-
-    def update_spectra(self) -> None:
-        self.combo.blockSignals(True)
-        self.combo.clear()
-        for spectrum in self.container.overlay.spectra():
-            self.combo.addItem(spectrum.name, spectrum.id)
-        self.combo.blockSignals(False)
-
-    def _generate_manifest(self) -> None:
-        spectrum_id = self.combo.currentData()
-        if not spectrum_id:
-            self.output.setPlainText("No spectrum selected.")
-            return
-        spectrum = self.container.overlay.get(spectrum_id)
-        if spectrum is None:
-            self.output.setPlainText("Spectrum not found.")
-            return
-        manifest = self.container.provenance.create_manifest([spectrum])
-        self.output.setPlainText(json.dumps(manifest, indent=2))
-
-
-class MainWindow(QtWidgets.QMainWindow):
-    """Main application window containing the minimal UI shell."""
+class SpectraMainWindow(QtWidgets.QMainWindow):
+    """Minimal yet functional shell that wires UI actions to services."""
 
     def __init__(self, container: ServiceContainer) -> None:
         super().__init__()
-        self.container = container
-        self.setWindowTitle("Spectra Application")
-        self.resize(1200, 800)
-        self._build_menu()
-        self.statusBar().showMessage("Ready")
-        self.tabs = QtWidgets.QTabWidget()
-        self.data_tab = DataTab(container)
-        self.compare_tab = CompareTab(container)
-        self.provenance_tab = ProvenanceTab(container)
-        self.tabs.addTab(self.data_tab, "Data")
-        self.tabs.addTab(self.compare_tab, "Compare")
-        self.tabs.addTab(self.provenance_tab, "Provenance")
-        self.setCentralWidget(self.tabs)
+        self.setWindowTitle("Spectra Desktop Preview")
+        self.resize(1024, 720)
 
-        self.data_tab.status_message.connect(self._set_status)
-        self.data_tab.error_occurred.connect(self._show_error)
-        self.data_tab.spectra_changed.connect(self._propagate_spectra_changed)
+        self.units_service = UnitsService()
+        self.provenance_service = ProvenanceService()
+        self.ingest_service = DataIngestService(self.units_service)
+        self.overlay_service = OverlayService(self.units_service)
+        self.math_service = MathService()
 
-        self.compare_tab.status_message.connect(self._set_status)
-        self.compare_tab.error_occurred.connect(self._show_error)
-        self.compare_tab.spectrum_created.connect(self._add_derived_spectrum)
+        self._setup_menu()
+        self._setup_ui()
+        self._load_default_samples()
 
-        self._propagate_spectra_changed()
-
-    def _build_menu(self) -> None:
+    # ------------------------------------------------------------------
+    def _setup_menu(self) -> None:
         menu = self.menuBar()
         file_menu = menu.addMenu("&File")
-        open_action = QtGui.QAction("&Open…", self)
-        open_action.triggered.connect(self.data_tab._open_files)  # type: ignore[attr-defined]
+
+        open_action = QtWidgets.QAction("&Open…", self)
+        open_action.setShortcut("Ctrl+O")
+        open_action.triggered.connect(self.open_file)
         file_menu.addAction(open_action)
 
-        save_manifest = QtGui.QAction("Export Manifest…", self)
-        save_manifest.triggered.connect(self._export_manifest)
-        file_menu.addAction(save_manifest)
+        sample_action = QtWidgets.QAction("Load &Sample", self)
+        sample_action.triggered.connect(self.load_sample_via_menu)
+        file_menu.addAction(sample_action)
 
-        exit_action = QtGui.QAction("E&xit", self)
+        export_action = QtWidgets.QAction("Export &Manifest", self)
+        export_action.triggered.connect(self.export_manifest)
+        file_menu.addAction(export_action)
+
+        file_menu.addSeparator()
+        exit_action = QtWidgets.QAction("E&xit", self)
         exit_action.triggered.connect(self.close)
         file_menu.addAction(exit_action)
 
-    def _set_status(self, message: str) -> None:
-        self.statusBar().showMessage(message, 5000)
+    def _setup_ui(self) -> None:
+        central = QtWidgets.QWidget()
+        layout = QtWidgets.QHBoxLayout(central)
+        layout.setContentsMargins(8, 8, 8, 8)
 
-    def _show_error(self, message: str) -> None:
-        QtWidgets.QMessageBox.critical(self, "Error", message)
+        self.spectra_list = QtWidgets.QListWidget()
+        self.spectra_list.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
+        self.spectra_list.itemSelectionChanged.connect(self._on_selection_changed)
+        layout.addWidget(self.spectra_list, 2)
 
-    def _propagate_spectra_changed(self) -> None:
-        self.compare_tab.update_spectra()
-        self.provenance_tab.update_spectra()
+        self.tabs = QtWidgets.QTabWidget()
+        layout.addWidget(self.tabs, 5)
 
-    def _add_derived_spectrum(self, spectrum: Spectrum) -> None:
-        self.container.overlay.add(spectrum)
-        self.data_tab.refresh()
-        self._propagate_spectra_changed()
+        self.data_view = QtWidgets.QTextEdit(readOnly=True)
+        self.tabs.addTab(self.data_view, "Data")
 
-    def _export_manifest(self) -> None:
-        spectra = self.container.overlay.spectra()
-        if not spectra:
-            self._show_error("No spectra loaded")
-            return
-        manifest = self.container.provenance.create_manifest(spectra)
-        path, _ = QtWidgets.QFileDialog.getSaveFileName(
-            self,
-            "Save manifest",
-            str(APP_ROOT / "reports" / "latest_manifest.json"),
-            "JSON files (*.json)",
-        )
+        self.overlay_widget = self._build_overlay_tab()
+        self.tabs.addTab(self.overlay_widget, "Overlay")
+
+        self.math_widget = self._build_math_tab()
+        self.tabs.addTab(self.math_widget, "Math")
+
+        self.provenance_view = QtWidgets.QTextEdit(readOnly=True)
+        self.tabs.addTab(self.provenance_view, "Provenance")
+
+        self.setCentralWidget(central)
+
+        self.status_bar = self.statusBar()
+
+    def _build_overlay_tab(self) -> QtWidgets.QWidget:
+        widget = QtWidgets.QWidget()
+        layout = QtWidgets.QVBoxLayout(widget)
+
+        controls = QtWidgets.QHBoxLayout()
+        layout.addLayout(controls)
+
+        controls.addWidget(QtWidgets.QLabel("X unit:"))
+        self.overlay_x_unit = QtWidgets.QComboBox()
+        self.overlay_x_unit.addItems(["nm", "µm", "Å", "cm^-1"])
+        self.overlay_x_unit.setCurrentText("nm")
+        controls.addWidget(self.overlay_x_unit)
+
+        controls.addWidget(QtWidgets.QLabel("Y unit:"))
+        self.overlay_y_unit = QtWidgets.QComboBox()
+        self.overlay_y_unit.addItems(["absorbance", "transmittance", "%T", "absorbance_e"])
+        self.overlay_y_unit.setCurrentText("absorbance")
+        controls.addWidget(self.overlay_y_unit)
+
+        update_btn = QtWidgets.QPushButton("Refresh Overlay")
+        update_btn.clicked.connect(self.refresh_overlay)
+        controls.addWidget(update_btn)
+        controls.addStretch(1)
+
+        self.overlay_table = QtWidgets.QTableWidget()
+        self.overlay_table.setColumnCount(4)
+        self.overlay_table.setHorizontalHeaderLabels(["Spectrum", "Point", "X", "Y"])
+        self.overlay_table.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.Stretch)
+        layout.addWidget(self.overlay_table)
+
+        return widget
+
+    def _build_math_tab(self) -> QtWidgets.QWidget:
+        widget = QtWidgets.QWidget()
+        layout = QtWidgets.QVBoxLayout(widget)
+
+        selector_layout = QtWidgets.QHBoxLayout()
+        layout.addLayout(selector_layout)
+
+        self.math_a = QtWidgets.QComboBox()
+        self.math_b = QtWidgets.QComboBox()
+        selector_layout.addWidget(QtWidgets.QLabel("Spectrum A:"))
+        selector_layout.addWidget(self.math_a)
+        selector_layout.addWidget(QtWidgets.QLabel("Spectrum B:"))
+        selector_layout.addWidget(self.math_b)
+
+        btn_layout = QtWidgets.QHBoxLayout()
+        layout.addLayout(btn_layout)
+        subtract_btn = QtWidgets.QPushButton("A − B")
+        subtract_btn.clicked.connect(self.compute_subtract)
+        btn_layout.addWidget(subtract_btn)
+        ratio_btn = QtWidgets.QPushButton("A ÷ B")
+        ratio_btn.clicked.connect(self.compute_ratio)
+        btn_layout.addWidget(ratio_btn)
+        btn_layout.addStretch(1)
+
+        self.math_log = QtWidgets.QTextEdit(readOnly=True)
+        layout.addWidget(self.math_log)
+
+        return widget
+
+    # ------------------------------------------------------------------
+    def _load_default_samples(self) -> None:
+        for sample_file in sorted(SAMPLES_DIR.glob('sample_*.csv')):
+            if sample_file.exists():
+                self._ingest_path(sample_file)
+
+    # Actions -----------------------------------------------------------
+    def open_file(self) -> None:
+        path, _ = QtWidgets.QFileDialog.getOpenFileName(self, "Open Spectrum", str(Path.home()),
+                                                        "Spectra (*.csv *.txt)")
         if path:
-            self.container.provenance.save_manifest(manifest, Path(path))
-            self._set_status(f"Manifest saved to {path}")
+            self._ingest_path(Path(path))
+
+    def load_sample_via_menu(self) -> None:
+        files = list(SAMPLES_DIR.glob('*.csv'))
+        if not files:
+            self.status_bar.showMessage("No samples found", 5000)
+            return
+        self._ingest_path(files[0])
+
+    def export_manifest(self) -> None:
+        if not self.overlay_service.list():
+            QtWidgets.QMessageBox.information(self, "No Data", "Load spectra before exporting provenance.")
+            return
+        manifest = self.provenance_service.create_manifest(self.overlay_service.list())
+        save_path, _ = QtWidgets.QFileDialog.getSaveFileName(self, "Save Manifest", str(Path.home() / 'manifest.json'),
+                                                             "JSON (*.json)")
+        if save_path:
+            self.provenance_service.save_manifest(manifest, Path(save_path))
+            self.status_bar.showMessage(f"Manifest saved to {save_path}", 5000)
+            self.provenance_view.setPlainText(json_pretty(manifest))
+
+    def refresh_overlay(self) -> None:
+        selected_ids = [item.data(QtCore.Qt.UserRole) for item in self.spectra_list.selectedItems()]
+        if not selected_ids:
+            selected_ids = [item.data(QtCore.Qt.UserRole) for item in self._iter_items(self.spectra_list)]
+        if not selected_ids:
+            self.overlay_table.clearContents()
+            self.overlay_table.setRowCount(0)
+            return
+        views = self.overlay_service.overlay(selected_ids, self.overlay_x_unit.currentText(),
+                                             self._normalise_y(self.overlay_y_unit.currentText()))
+        self._populate_overlay_table(views)
+
+    def compute_subtract(self) -> None:
+        ids = self._selected_math_ids()
+        if not ids:
+            return
+        spec_a = self.overlay_service.get(ids[0])
+        spec_b = self.overlay_service.get(ids[1])
+        result, info = self.math_service.subtract(spec_a, spec_b)
+        self._log_math(info)
+        if result:
+            self.overlay_service.add(result)
+            self._add_spectrum_to_list(result)
+
+    def compute_ratio(self) -> None:
+        ids = self._selected_math_ids()
+        if not ids:
+            return
+        spec_a = self.overlay_service.get(ids[0])
+        spec_b = self.overlay_service.get(ids[1])
+        result, info = self.math_service.ratio(spec_a, spec_b)
+        self._log_math(info)
+        self.overlay_service.add(result)
+        self._add_spectrum_to_list(result)
+
+    # Internal helpers --------------------------------------------------
+    def _ingest_path(self, path: Path) -> None:
+        try:
+            spectrum = self.ingest_service.ingest(path)
+        except Exception as exc:  # pragma: no cover - UI feedback
+            QtWidgets.QMessageBox.critical(self, "Import failed", str(exc))
+            return
+        self.overlay_service.add(spectrum)
+        self._add_spectrum_to_list(spectrum)
+        self.status_bar.showMessage(f"Loaded {path.name}", 5000)
+        self._update_math_selectors()
+        self.refresh_overlay()
+        self._show_metadata(spectrum)
+
+    def _add_spectrum_to_list(self, spectrum: 'Spectrum') -> None:
+        item = QtWidgets.QListWidgetItem(spectrum.name)
+        item.setData(QtCore.Qt.UserRole, spectrum.id)
+        self.spectra_list.addItem(item)
+
+    def _show_metadata(self, spectrum: 'Spectrum') -> None:
+        lines = [f"Name: {spectrum.name}", f"Source: {spectrum.source_path or 'N/A'}"]
+        for key, value in spectrum.metadata.items():
+            lines.append(f"{key}: {value}")
+        self.data_view.setPlainText("
+".join(lines))
+
+    def _on_selection_changed(self) -> None:
+        items = self.spectra_list.selectedItems()
+        if items:
+            spectrum_id = items[-1].data(QtCore.Qt.UserRole)
+            spectrum = self.overlay_service.get(spectrum_id)
+            self._show_metadata(spectrum)
+        self.refresh_overlay()
+
+    def _populate_overlay_table(self, views: Iterable[dict]) -> None:
+        rows = sum(min(100, len(view['x'])) for view in views)
+        self.overlay_table.setRowCount(rows)
+        row_index = 0
+        for view in views:
+            x_arr = view['x']
+            y_arr = view['y']
+            for idx, (x, y) in enumerate(zip(x_arr[:100], y_arr[:100])):  # limit to first 100 points for display
+                self.overlay_table.setItem(row_index, 0, QtWidgets.QTableWidgetItem(view['name']))
+                self.overlay_table.setItem(row_index, 1, QtWidgets.QTableWidgetItem(str(idx)))
+                self.overlay_table.setItem(row_index, 2, QtWidgets.QTableWidgetItem(f"{x:.6g}"))
+                self.overlay_table.setItem(row_index, 3, QtWidgets.QTableWidgetItem(f"{y:.6g}"))
+                row_index += 1
+        if rows == 0:
+            self.overlay_table.clearContents()
+            self.overlay_table.setRowCount(0)
+
+    def _update_math_selectors(self) -> None:
+        spectra = self.overlay_service.list()
+        self.math_a.clear()
+        self.math_b.clear()
+        for spec in spectra:
+            self.math_a.addItem(spec.name, spec.id)
+            self.math_b.addItem(spec.name, spec.id)
+
+    def _selected_math_ids(self) -> list[str]:
+        if self.math_a.count() < 2 or self.math_b.count() < 2:
+            QtWidgets.QMessageBox.information(self, "Need more spectra", "Load at least two spectra for math operations.")
+            return []
+        return [self.math_a.currentData(), self.math_b.currentData()]
+
+    def _log_math(self, info: dict) -> None:
+        existing = self.math_log.toPlainText()
+        new_line = json_pretty(info)
+        self.math_log.setPlainText("
+".join(filter(None, [existing, new_line])))
+
+    def _iter_items(self, widget: QtWidgets.QListWidget):
+        for index in range(widget.count()):
+            yield widget.item(index)
+
+    def _normalise_y(self, label: str) -> str:
+        mapping = {"%T": "percent_transmittance"}
+        return mapping.get(label, label)
 
 
-def build_container() -> ServiceContainer:
-    units = UnitsService()
-    provenance = ProvenanceService()
-    ingest = DataIngestService(units_service=units, provenance_service=provenance)
-    overlay = OverlayService()
-    math = MathService()
-    return ServiceContainer(units=units, provenance=provenance, ingest=ingest, overlay=overlay, math=math)
+def json_pretty(data: dict) -> str:
+    import json
+    return json.dumps(data, indent=2, ensure_ascii=False)
 
 
 def main() -> None:
-    logging.basicConfig(level=logging.INFO)
-    app = QtWidgets.QApplication([])
-    container = build_container()
-    window = MainWindow(container)
+    app = QtWidgets.QApplication(sys.argv)
+    window = SpectraMainWindow()
     window.show()
     app.exec()
 

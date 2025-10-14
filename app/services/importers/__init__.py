@@ -1,6 +1,6 @@
-"""Importer registry and built-in implementations."""
+"""Importer classes for different file formats."""
 
-from .base import Importer, ImporterResult
+from .base import ImporterResult, SupportsImport
 from .csv_importer import CsvImporter
 
-__all__ = ["Importer", "ImporterResult", "CsvImporter"]
+__all__ = ["ImporterResult", "SupportsImport", "CsvImporter"]

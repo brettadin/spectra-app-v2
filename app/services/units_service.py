@@ -1,110 +1,169 @@
-"""Unit conversion utilities for spectra."""
+"""Unit conversion utilities for spectra.
+
+This module centralises conversions for wavelength and intensity units as
+specified in ``specs/units_and_conversions.md``.  The application stores
+spectral data internally using the canonical baseline of nanometres for the
+independent axis and base-10 absorbance for the dependent axis.  All derived
+views are generated from the canonical arrays so that round-trips are free of
+numerical drift and the original data is never mutated.
+"""
 
 from __future__ import annotations
 
-from dataclasses import dataclass
-from typing import Dict, Any
+from dataclasses import dataclass, field
+from typing import Dict, Any, Tuple
+
 import numpy as np
 
 
-class UnitError(ValueError):
-    """Raised when an unsupported unit conversion is requested."""
+_CANONICAL_X_UNIT = "nm"
+_CANONICAL_Y_UNIT = "absorbance"  # Base-10 absorbance (A10)
 
 
 @dataclass
 class UnitsService:
-    """Perform conversions between canonical and display units."""
+    """Perform conversions between spectral units.
 
-    canonical_wavelength_unit: str = "nm"
-    canonical_flux_unit: str = "absorbance"
-    epsilon: float = 1e-12
+    The service exposes helpers to convert arbitrary wavelength and intensity
+    units into the canonical representation as well as utilities to derive new
+    views from a canonical :class:`~app.services.spectrum.Spectrum` instance.
+    No method mutates the input arrays; new :class:`numpy.ndarray` instances are
+    returned for every conversion.
+    """
 
-    def convert_wavelength(self, data: np.ndarray, src: str, dst: str) -> np.ndarray:
-        """Convert wavelength arrays using the canonical nm baseline."""
+    float_dtype: np.dtype = field(default=np.float64)
 
-        src_norm = src.lower()
-        dst_norm = dst.lower()
-        nm = self._to_nm(np.asarray(data, dtype=float), src_norm)
-        return self._from_nm(nm, dst_norm)
+    # --- Public API -----------------------------------------------------
+    def convert(self, spectrum: "Spectrum", x_unit: str, y_unit: str) -> Tuple[np.ndarray, np.ndarray, Dict[str, Any]]:
+        """Convert a canonical spectrum to the requested display units.
 
-    def _to_nm(self, data: np.ndarray, unit: str) -> np.ndarray:
-        if unit in {"nm", "nanometre", "nanometer"}:
-            return np.array(data, copy=True)
-        if unit in {"µm", "um", "micrometre", "micrometer"}:
-            return data * 1_000.0
-        if unit in {"å", "angstrom", "angström"}:
+        Args:
+            spectrum: Spectrum stored in canonical units (nm / absorbance).
+            x_unit: Desired display unit for the X axis.
+            y_unit: Desired display unit for the Y axis.
+
+        Returns:
+            Tuple of ``(x_array, y_array, metadata)`` where the arrays are new
+            NumPy arrays in ``float_dtype`` and ``metadata`` captures the
+            conversions performed.
+        """
+
+        from .spectrum import Spectrum  # local import to avoid circular ref
+
+        if spectrum.x_unit != _CANONICAL_X_UNIT:
+            raise ValueError(
+                "Spectrum.x_unit must be canonical 'nm' before conversion; received "
+                f"{spectrum.x_unit!r}"
+            )
+        if spectrum.y_unit != _CANONICAL_Y_UNIT:
+            raise ValueError(
+                "Spectrum.y_unit must be canonical 'absorbance' before conversion; received "
+                f"{spectrum.y_unit!r}"
+            )
+
+        x = self._from_canonical_wavelength(spectrum.x, x_unit)
+        y = self._from_canonical_intensity(spectrum.y, y_unit)
+        metadata: Dict[str, Any] = {}
+        if x_unit != _CANONICAL_X_UNIT:
+            metadata["x_conversion"] = f"{_CANONICAL_X_UNIT}→{x_unit}"
+        if y_unit != _CANONICAL_Y_UNIT:
+            metadata["y_conversion"] = f"{_CANONICAL_Y_UNIT}→{y_unit}"
+        return x, y, metadata
+
+    def to_canonical(self, x: np.ndarray, y: np.ndarray, x_unit: str, y_unit: str,
+                     metadata: Dict[str, Any] | None = None) -> Tuple[np.ndarray, np.ndarray, Dict[str, Any]]:
+        """Convert arbitrary units into the canonical baseline.
+
+        Args:
+            x: Independent-axis values.
+            y: Dependent-axis values.
+            x_unit: Unit describing ``x``.
+            y_unit: Unit describing ``y``.
+            metadata: Optional metadata dictionary to update with provenance.
+
+        Returns:
+            Tuple of ``(canonical_x, canonical_y, metadata)`` where the arrays
+            are in nanometres and base-10 absorbance respectively.
+        """
+
+        canon_metadata: Dict[str, Any] = dict(metadata or {})
+        canon_metadata.setdefault("source_units", {})
+        canon_metadata["source_units"].update({"x": x_unit, "y": y_unit})
+
+        canonical_x = self._to_canonical_wavelength(np.asarray(x, dtype=self.float_dtype), x_unit)
+        canonical_y = self._to_canonical_intensity(np.asarray(y, dtype=self.float_dtype), y_unit, canon_metadata)
+        return canonical_x, canonical_y, canon_metadata
+
+    # --- Wavelength helpers ---------------------------------------------
+    def _to_canonical_wavelength(self, data: np.ndarray, src: str) -> np.ndarray:
+        unit = self._normalise_x_unit(src)
+        if unit == "nm":
+            return data.copy()
+        if unit in {"um", "µm"}:
+            return data * 1e3
+        if unit in {"angstrom", "å", "Å"}:
             return data / 10.0
-        if unit in {"cm^-1", "1/cm", "wavenumber", "cm-1"}:
-            with np.errstate(divide="ignore"):
-                return 1e7 / data
-        raise UnitError(f"Unsupported wavelength unit: {unit}")
+        if unit in {"cm^-1", "1/cm", "wavenumber"}:
+            # ν̅ (cm^-1) → λ (nm): λ_nm = 1e7 / ν̅
+            return 1e7 / data
+        raise ValueError(f"Unsupported source x unit: {src}")
 
-    def _from_nm(self, nm: np.ndarray, unit: str) -> np.ndarray:
-        if unit in {"nm", "nanometre", "nanometer"}:
-            return np.array(nm, copy=True)
-        if unit in {"µm", "um", "micrometre", "micrometer"}:
-            return nm / 1_000.0
-        if unit in {"å", "angstrom", "angström"}:
-            return nm * 10.0
-        if unit in {"cm^-1", "1/cm", "wavenumber", "cm-1"}:
-            with np.errstate(divide="ignore"):
-                return 1e7 / nm
-        raise UnitError(f"Unsupported wavelength unit: {unit}")
+    def _from_canonical_wavelength(self, data_nm: np.ndarray, dst: str) -> np.ndarray:
+        unit = self._normalise_x_unit(dst)
+        if unit == "nm":
+            return np.array(data_nm, dtype=self.float_dtype, copy=True)
+        if unit in {"um", "µm"}:
+            return np.array(data_nm / 1e3, dtype=self.float_dtype)
+        if unit in {"angstrom", "å", "Å"}:
+            return np.array(data_nm * 10.0, dtype=self.float_dtype)
+        if unit in {"cm^-1", "1/cm", "wavenumber"}:
+            return np.array(1e7 / data_nm, dtype=self.float_dtype)
+        raise ValueError(f"Unsupported destination x unit: {dst}")
 
-    def convert_flux(
-        self,
-        data: np.ndarray,
-        src: str,
-        dst: str,
-        *,
-        context: Dict[str, Any],
-    ) -> np.ndarray:
-        """Convert flux/intensity arrays using base-10 absorbance as canonical."""
+    def _normalise_x_unit(self, unit: str) -> str:
+        u = unit.strip().lower()
+        mappings = {
+            "nanometre": "nm",
+            "nanometer": "nm",
+            "micrometre": "um",
+            "micrometer": "um",
+            "angstrom": "angstrom",
+            "ångström": "angstrom",
+            "å": "angstrom",
+        }
+        return mappings.get(u, u)
 
-        src_norm = src.lower()
-        dst_norm = dst.lower()
-        canonical = self._to_absorbance(np.asarray(data, dtype=float), src_norm, context)
-        return self._from_absorbance(canonical, dst_norm, context)
-
-    def _to_absorbance(self, data: np.ndarray, unit: str, context: Dict[str, Any]) -> np.ndarray:
-        if unit in {"absorbance", "a10", "absorbance_base10"}:
-            return np.array(data, copy=True)
+    # --- Intensity helpers ----------------------------------------------
+    def _to_canonical_intensity(self, data: np.ndarray, src: str, metadata: Dict[str, Any]) -> np.ndarray:
+        unit = self._normalise_y_unit(src)
+        if unit in {"absorbance", "a10"}:
+            return data.copy()
         if unit in {"transmittance", "t"}:
-            clipped = np.clip(data, self.epsilon, None)
-            return -np.log10(clipped)
-        if unit in {"percent_transmittance", "%t", "pct_t"}:
-            frac = np.clip(data / 100.0, self.epsilon, None)
-            return -np.log10(frac)
+            metadata.setdefault("intensity_conversion", {})
+            metadata["intensity_conversion"].setdefault("transformation", "T→A10")
+            return -np.log10(np.clip(data, 1e-12, None))
+        if unit in {"percent_transmittance", "%t"}:
+            metadata.setdefault("intensity_conversion", {})
+            metadata["intensity_conversion"].setdefault("transformation", "%T→A10")
+            fraction = data / 100.0
+            return -np.log10(np.clip(fraction, 1e-12, None))
         if unit in {"absorbance_e", "ae"}:
-            return np.array(data, copy=True) / np.log(10.0)
-        if unit in {"absorption_coefficient", "alpha"}:
-            path = context.get("path_length_m")
-            mole_fraction = context.get("mole_fraction")
-            if path is None or mole_fraction is None:
-                raise UnitError("Absorption coefficient conversion requires 'path_length_m' and 'mole_fraction'.")
-            base = context.get("absorption_base", "10").lower()
-            product = np.array(data, copy=True) * float(path) * float(mole_fraction)
-            if base == "e":
-                return product / np.log(10.0)
-            return product
-        raise UnitError(f"Unsupported flux unit: {unit}")
+            metadata.setdefault("intensity_conversion", {})
+            metadata["intensity_conversion"].setdefault("transformation", "Ae→A10")
+            return data / 2.303
+        raise ValueError(f"Unsupported source y unit: {src}")
 
-    def _from_absorbance(self, data: np.ndarray, unit: str, context: Dict[str, Any]) -> np.ndarray:
-        if unit in {"absorbance", "a10", "absorbance_base10"}:
-            return np.array(data, copy=True)
+    def _from_canonical_intensity(self, data: np.ndarray, dst: str) -> np.ndarray:
+        unit = self._normalise_y_unit(dst)
+        if unit in {"absorbance", "a10"}:
+            return np.array(data, dtype=self.float_dtype, copy=True)
         if unit in {"transmittance", "t"}:
-            return np.power(10.0, -data)
-        if unit in {"percent_transmittance", "%t", "pct_t"}:
-            return np.power(10.0, -data) * 100.0
+            return np.array(10 ** (-data), dtype=self.float_dtype)
+        if unit in {"percent_transmittance", "%t"}:
+            return np.array(10 ** (-data) * 100.0, dtype=self.float_dtype)
         if unit in {"absorbance_e", "ae"}:
-            return np.array(data, copy=True) * np.log(10.0)
-        if unit in {"absorption_coefficient", "alpha"}:
-            path = context.get("path_length_m")
-            mole_fraction = context.get("mole_fraction")
-            if path is None or mole_fraction is None:
-                raise UnitError("Absorption coefficient conversion requires 'path_length_m' and 'mole_fraction'.")
-            base = context.get("absorption_base", "10").lower()
-            if base == "e":
-                return data * np.log(10.0) / (float(path) * float(mole_fraction))
-            return data / (float(path) * float(mole_fraction))
-        raise UnitError(f"Unsupported flux unit: {unit}")
+            return np.array(data * 2.303, dtype=self.float_dtype)
+        raise ValueError(f"Unsupported destination y unit: {dst}")
+
+    def _normalise_y_unit(self, unit: str) -> str:
+        return unit.strip().lower()

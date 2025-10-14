@@ -1,19 +1,17 @@
-"""Service layer exports."""
+"""Service layer for the Spectra application."""
 
-from .units_service import UnitsService, UnitError
-from .provenance_service import ProvenanceService
-from .data_ingest import DataIngestService
-from .overlay_service import OverlayService
-from .math_service import MathService, MathResult
 from .spectrum import Spectrum
+from .units_service import UnitsService
+from .provenance_service import ProvenanceService
+from .data_ingest_service import DataIngestService
+from .overlay_service import OverlayService
+from .math_service import MathService
 
 __all__ = [
+    "Spectrum",
     "UnitsService",
-    "UnitError",
     "ProvenanceService",
     "DataIngestService",
     "OverlayService",
     "MathService",
-    "MathResult",
-    "Spectrum",
 ]
