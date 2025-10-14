@@ -6,7 +6,9 @@ import sys
 from pathlib import Path
 from typing import Iterable
 
-from PySide6 import QtCore, QtWidgets
+from app.qt_compat import get_qt
+
+QtCore, QtGui, QtWidgets, QT_BINDING = get_qt()
 
 from .services import (
     UnitsService,
@@ -42,21 +44,21 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         menu = self.menuBar()
         file_menu = menu.addMenu("&File")
 
-        open_action = QtWidgets.QAction("&Open…", self)
+        open_action = QtGui.QAction("&Open…", self)
         open_action.setShortcut("Ctrl+O")
         open_action.triggered.connect(self.open_file)
         file_menu.addAction(open_action)
 
-        sample_action = QtWidgets.QAction("Load &Sample", self)
+        sample_action = QtGui.QAction("Load &Sample", self)
         sample_action.triggered.connect(self.load_sample_via_menu)
         file_menu.addAction(sample_action)
 
-        export_action = QtWidgets.QAction("Export &Manifest", self)
+        export_action = QtGui.QAction("Export &Manifest", self)
         export_action.triggered.connect(self.export_manifest)
         file_menu.addAction(export_action)
 
         file_menu.addSeparator()
-        exit_action = QtWidgets.QAction("E&xit", self)
+        exit_action = QtGui.QAction("E&xit", self)
         exit_action.triggered.connect(self.close)
         file_menu.addAction(exit_action)
 
