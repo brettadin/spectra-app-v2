@@ -15,7 +15,7 @@ from .spectrum import Spectrum
 
 @dataclass
 class ProvenanceService:
-    """Service for creating provenance manifests."""
+    """Service for creating and persisting provenance manifests."""
 
     app_name: str = "SpectraApp"
     app_version: str = "0.1.0"
