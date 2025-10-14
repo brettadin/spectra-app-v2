@@ -1,6 +1,6 @@
 """Importer classes for different file formats."""
 
-from .base import Importer, ImporterResult, SupportsImport
+from .base import ImporterResult, SupportsImport
 from .csv_importer import CsvImporter
 
-__all__ = ["ImporterResult", "SupportsImport", "Importer", "CsvImporter"]
+__all__ = ["ImporterResult", "SupportsImport", "CsvImporter"]

@@ -7,7 +7,7 @@ from typing import Tuple
 
 import numpy as np
 
-from .base import Importer, ImporterResult
+from .base import ImporterResult
 
 import numpy as np
 
