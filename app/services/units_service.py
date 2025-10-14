@@ -1,96 +1,169 @@
 """Unit conversion utilities for spectra.
 
-The `UnitsService` centralises all unit handling in the application.  Its
-methods perform idempotent transformations between canonical internal units
-and various user‑facing representations.  Conversions are always derived
-from the original data; they do not mutate the underlying arrays.  See
-`specs/units_and_conversions.md` for details on supported units and
-conversion formulas.
+This module centralises conversions for wavelength and intensity units as
+specified in ``specs/units_and_conversions.md``.  The application stores
+spectral data internally using the canonical baseline of nanometres for the
+independent axis and base-10 absorbance for the dependent axis.  All derived
+views are generated from the canonical arrays so that round-trips are free of
+numerical drift and the original data is never mutated.
 """
 
 from __future__ import annotations
 
-from dataclasses import dataclass
-from typing import Tuple, Dict, Any
+from dataclasses import dataclass, field
+from typing import Dict, Any, Tuple
+
 import numpy as np
+
+
+_CANONICAL_X_UNIT = "nm"
+_CANONICAL_Y_UNIT = "absorbance"  # Base-10 absorbance (A10)
+
 
 @dataclass
 class UnitsService:
-    """Perform conversions between spectral units."""
+    """Perform conversions between spectral units.
 
+    The service exposes helpers to convert arbitrary wavelength and intensity
+    units into the canonical representation as well as utilities to derive new
+    views from a canonical :class:`~app.services.spectrum.Spectrum` instance.
+    No method mutates the input arrays; new :class:`numpy.ndarray` instances are
+    returned for every conversion.
+    """
+
+    float_dtype: np.dtype = field(default=np.float64)
+
+    # --- Public API -----------------------------------------------------
     def convert(self, spectrum: "Spectrum", x_unit: str, y_unit: str) -> Tuple[np.ndarray, np.ndarray, Dict[str, Any]]:
-        """Convert the given spectrum into the desired units.
-
-        This method returns new arrays and metadata without modifying the
-        input spectrum.  If conversion is not necessary, the original arrays
-        are returned.  Unsupported unit combinations raise a `ValueError`.
+        """Convert a canonical spectrum to the requested display units.
 
         Args:
-            spectrum: The input Spectrum object.
-            x_unit: Requested unit for the x axis.
-            y_unit: Requested unit for the y axis.
+            spectrum: Spectrum stored in canonical units (nm / absorbance).
+            x_unit: Desired display unit for the X axis.
+            y_unit: Desired display unit for the Y axis.
 
         Returns:
-            (new_x, new_y, new_metadata): A tuple containing the converted
-            independent array, dependent array and updated metadata.
+            Tuple of ``(x_array, y_array, metadata)`` where the arrays are new
+            NumPy arrays in ``float_dtype`` and ``metadata`` captures the
+            conversions performed.
         """
-        from .spectrum import Spectrum  # avoid circular import at module level
 
-        x = spectrum.x
-        y = spectrum.y
-        metadata = dict(spectrum.metadata)  # shallow copy
+        from .spectrum import Spectrum  # local import to avoid circular ref
 
-        # Convert x units
-        if spectrum.x_unit != x_unit:
-            x = self._convert_wavelength(x, spectrum.x_unit, x_unit)
-            metadata["x_conversion"] = f"{spectrum.x_unit}→{x_unit}"
+        if spectrum.x_unit != _CANONICAL_X_UNIT:
+            raise ValueError(
+                "Spectrum.x_unit must be canonical 'nm' before conversion; received "
+                f"{spectrum.x_unit!r}"
+            )
+        if spectrum.y_unit != _CANONICAL_Y_UNIT:
+            raise ValueError(
+                "Spectrum.y_unit must be canonical 'absorbance' before conversion; received "
+                f"{spectrum.y_unit!r}"
+            )
 
-        # Convert y units
-        if spectrum.y_unit != y_unit:
-            y = self._convert_intensity(y, spectrum.y_unit, y_unit)
-            metadata["y_conversion"] = f"{spectrum.y_unit}→{y_unit}"
-
+        x = self._from_canonical_wavelength(spectrum.x, x_unit)
+        y = self._from_canonical_intensity(spectrum.y, y_unit)
+        metadata: Dict[str, Any] = {}
+        if x_unit != _CANONICAL_X_UNIT:
+            metadata["x_conversion"] = f"{_CANONICAL_X_UNIT}→{x_unit}"
+        if y_unit != _CANONICAL_Y_UNIT:
+            metadata["y_conversion"] = f"{_CANONICAL_Y_UNIT}→{y_unit}"
         return x, y, metadata
 
-    def _convert_wavelength(self, data: np.ndarray, src: str, dst: str) -> np.ndarray:
-        """Convert wavelengths between nm, um and wavenumber (cm^-1)."""
-        # canonical baseline is nm
-        if src == dst:
-            return data.copy()
-        # convert source to nm
-        if src == "nm":
-            nm = data
-        elif src in ["µm", "um"]:
-            nm = data * 1e3
-        elif src in ["cm^-1", "1/cm", "wavenumber"]:
-            # wavenumber (cm^-1) → nm: λ (nm) = 1e7 / ν~ (cm^-1)
-            nm = 1e7 / data
-        else:
-            raise ValueError(f"Unsupported source x unit: {src}")
-        # convert nm to destination
-        if dst == "nm":
-            return nm
-        elif dst in ["µm", "um"]:
-            return nm / 1e3
-        elif dst in ["cm^-1", "1/cm", "wavenumber"]:
-            return 1e7 / nm
-        else:
-            raise ValueError(f"Unsupported destination x unit: {dst}")
+    def to_canonical(self, x: np.ndarray, y: np.ndarray, x_unit: str, y_unit: str,
+                     metadata: Dict[str, Any] | None = None) -> Tuple[np.ndarray, np.ndarray, Dict[str, Any]]:
+        """Convert arbitrary units into the canonical baseline.
 
-    def _convert_intensity(self, data: np.ndarray, src: str, dst: str) -> np.ndarray:
-        """Convert intensity between absorbance and transmittance.
+        Args:
+            x: Independent-axis values.
+            y: Dependent-axis values.
+            x_unit: Unit describing ``x``.
+            y_unit: Unit describing ``y``.
+            metadata: Optional metadata dictionary to update with provenance.
 
-        For demonstration, assume baseline intensity is absorbance (A), and
-        transmittance (T) is related by T = 10^{-A}.  These formulas follow
-        the logic in the original codebase's `ir_units.py`【328409478188748†L22-L59】.
-        Additional intensity types can be added here.
+        Returns:
+            Tuple of ``(canonical_x, canonical_y, metadata)`` where the arrays
+            are in nanometres and base-10 absorbance respectively.
         """
-        if src == dst:
+
+        canon_metadata: Dict[str, Any] = dict(metadata or {})
+        canon_metadata.setdefault("source_units", {})
+        canon_metadata["source_units"].update({"x": x_unit, "y": y_unit})
+
+        canonical_x = self._to_canonical_wavelength(np.asarray(x, dtype=self.float_dtype), x_unit)
+        canonical_y = self._to_canonical_intensity(np.asarray(y, dtype=self.float_dtype), y_unit, canon_metadata)
+        return canonical_x, canonical_y, canon_metadata
+
+    # --- Wavelength helpers ---------------------------------------------
+    def _to_canonical_wavelength(self, data: np.ndarray, src: str) -> np.ndarray:
+        unit = self._normalise_x_unit(src)
+        if unit == "nm":
             return data.copy()
-        if src == "absorbance" and dst == "transmittance":
-            # T = 10^-A
-            return 10 ** (-data)
-        if src == "transmittance" and dst == "absorbance":
-            # A = -log10(T)
-            return -np.log10(data)
-        raise ValueError(f"Unsupported conversion from {src} to {dst}")
+        if unit in {"um", "µm"}:
+            return data * 1e3
+        if unit in {"angstrom", "å", "Å"}:
+            return data / 10.0
+        if unit in {"cm^-1", "1/cm", "wavenumber"}:
+            # ν̅ (cm^-1) → λ (nm): λ_nm = 1e7 / ν̅
+            return 1e7 / data
+        raise ValueError(f"Unsupported source x unit: {src}")
+
+    def _from_canonical_wavelength(self, data_nm: np.ndarray, dst: str) -> np.ndarray:
+        unit = self._normalise_x_unit(dst)
+        if unit == "nm":
+            return np.array(data_nm, dtype=self.float_dtype, copy=True)
+        if unit in {"um", "µm"}:
+            return np.array(data_nm / 1e3, dtype=self.float_dtype)
+        if unit in {"angstrom", "å", "Å"}:
+            return np.array(data_nm * 10.0, dtype=self.float_dtype)
+        if unit in {"cm^-1", "1/cm", "wavenumber"}:
+            return np.array(1e7 / data_nm, dtype=self.float_dtype)
+        raise ValueError(f"Unsupported destination x unit: {dst}")
+
+    def _normalise_x_unit(self, unit: str) -> str:
+        u = unit.strip().lower()
+        mappings = {
+            "nanometre": "nm",
+            "nanometer": "nm",
+            "micrometre": "um",
+            "micrometer": "um",
+            "angstrom": "angstrom",
+            "ångström": "angstrom",
+            "å": "angstrom",
+        }
+        return mappings.get(u, u)
+
+    # --- Intensity helpers ----------------------------------------------
+    def _to_canonical_intensity(self, data: np.ndarray, src: str, metadata: Dict[str, Any]) -> np.ndarray:
+        unit = self._normalise_y_unit(src)
+        if unit in {"absorbance", "a10"}:
+            return data.copy()
+        if unit in {"transmittance", "t"}:
+            metadata.setdefault("intensity_conversion", {})
+            metadata["intensity_conversion"].setdefault("transformation", "T→A10")
+            return -np.log10(np.clip(data, 1e-12, None))
+        if unit in {"percent_transmittance", "%t"}:
+            metadata.setdefault("intensity_conversion", {})
+            metadata["intensity_conversion"].setdefault("transformation", "%T→A10")
+            fraction = data / 100.0
+            return -np.log10(np.clip(fraction, 1e-12, None))
+        if unit in {"absorbance_e", "ae"}:
+            metadata.setdefault("intensity_conversion", {})
+            metadata["intensity_conversion"].setdefault("transformation", "Ae→A10")
+            return data / 2.303
+        raise ValueError(f"Unsupported source y unit: {src}")
+
+    def _from_canonical_intensity(self, data: np.ndarray, dst: str) -> np.ndarray:
+        unit = self._normalise_y_unit(dst)
+        if unit in {"absorbance", "a10"}:
+            return np.array(data, dtype=self.float_dtype, copy=True)
+        if unit in {"transmittance", "t"}:
+            return np.array(10 ** (-data), dtype=self.float_dtype)
+        if unit in {"percent_transmittance", "%t"}:
+            return np.array(10 ** (-data) * 100.0, dtype=self.float_dtype)
+        if unit in {"absorbance_e", "ae"}:
+            return np.array(data * 2.303, dtype=self.float_dtype)
+        raise ValueError(f"Unsupported destination y unit: {dst}")
+
+    def _normalise_y_unit(self, unit: str) -> str:
+        return unit.strip().lower()

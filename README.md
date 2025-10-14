@@ -38,22 +38,47 @@ DO NOT LOSE SIGHT OF OUR TRUE END GOALS; SPECTROSCOPIC ANALYSIS OF CELESTIAL BOD
 
 ## Getting Started
 
-1. Install the Python dependencies.  A `pyproject.toml` or `requirements.txt`
-   will be added once the implementation phase begins, but to run the
-   skeleton you need at least:
+### Easiest path (Windows quick-launch)
+
+Double-click `RunSpectraApp.cmd` (or run it from a terminal). The helper
+will:
+
+1. Ensure Python is available.
+2. Prefer the Windows `py` launcher with Python 3.12 (falling back to
+   Python 3.11/3.10 if needed) and fail fast with instructions if only
+   unsupported versions such as 3.13 are present.
+3. Create/refresh the local `.venv` virtual environment.
+4. Install dependencies from `requirements.txt`.
+5. Launch the desktop app via `python -m app.main`.
+
+You can pass `-Reinstall` to the script (e.g. `RunSpectraApp.cmd -Reinstall`)
+to rebuild the virtual environment from scratch.
+
+### Manual steps (any platform)
+
+1. Install the Python dependencies listed in `requirements.txt` using the
+   interpreter you plan to run the app with:
 
    ```bash
-   python -m pip install PySide6 numpy
+   python -m pip install -r requirements.txt
    ```
 
-2. Navigate to the `app` directory and run the main module:
+2. Run the main module **from the repository root** (e.g. `C:\Code\spectra-app-beta`).
+   Running from inside `app/` or pointing to `app/main.py` directly will fail
+   because Python expects module paths, not file system paths, when using
+   `-m`:
 
    ```bash
+   cd /path/to/spectra-app-beta
    python -m app.main
    ```
 
+   > **Tip:** Use dot notation (`app.main`) when launching a module with
+   > `python -m`. Using a slash (e.g. `python -m app/main.py`) will fail
+   > because Python treats it as an invalid module name.
+
    This will launch a minimal window that demonstrates the basic
-   application structure.  Future iterations will populate the UI with tabs
+   application structure. Future iterations will populate the UI with tabs
    and controls as described in the specifications.
 
 3. Explore the `samples` folder to see an example dataset (`sample_spectrum.csv`)
