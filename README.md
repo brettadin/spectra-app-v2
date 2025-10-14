@@ -38,12 +38,11 @@ DO NOT LOSE SIGHT OF OUR TRUE END GOALS; SPECTROSCOPIC ANALYSIS OF CELESTIAL BOD
 
 ## Getting Started
 
-1. Install the Python dependencies.  A `pyproject.toml` or `requirements.txt`
-   will be added once the implementation phase begins, but to run the
-   skeleton you need at least:
+1. Install the Python dependencies listed in `requirements.txt` using the
+   interpreter you plan to run the app with:
 
    ```bash
-   python -m pip install PySide6 numpy
+   python -m pip install -r requirements.txt
    ```
 
 2. Navigate to the `app` directory and run the main module:
@@ -51,6 +50,10 @@ DO NOT LOSE SIGHT OF OUR TRUE END GOALS; SPECTROSCOPIC ANALYSIS OF CELESTIAL BOD
    ```bash
    python -m app.main
    ```
+
+   > **Tip:** Use dot notation (`app.main`) when launching a module with
+   > `python -m`.  Using a slash (e.g. `python -m app/main.py`) will fail
+   > because Python treats it as an invalid module name.
 
    This will launch a minimal window that demonstrates the basic
    application structure.  Future iterations will populate the UI with tabs
