@@ -153,6 +153,9 @@ The Spectra App is designed for rigorous spectroscopic analysis with particular 
 - **Testing**: Add tests for all new features in `tests/`
 - **Style Guide**: Follow coding conventions in `docs/dev/coding_standards.md`
 
+### Documentation roadmap
+- Track planned and in-progress documentation work in the [Documentation Inventory](docs/reviews/doc_inventory_2025-10-14.md).
+
 ### Building Distributables
 
 ```bash
