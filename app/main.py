@@ -90,6 +90,11 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         view_menu.addAction(self.inspector_dock.toggleViewAction())
         view_menu.addAction(self.log_dock.toggleViewAction())
         view_menu.addSeparator()
+        self.reset_plot_action = QtGui.QAction("Reset Plot", self)
+        self.reset_plot_action.setShortcut(QtGui.QKeySequence("Ctrl+Shift+A"))
+        self.reset_plot_action.triggered.connect(self.plot.autoscale)
+        view_menu.addAction(self.reset_plot_action)
+        view_menu.addSeparator()
         self.data_table_action = QtGui.QAction("Show Data Table", self, checkable=True)
         self.data_table_action.triggered.connect(self._toggle_data_table)
         view_menu.addAction(self.data_table_action)
@@ -261,6 +266,8 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
 
         self.action_cursor = QtGui.QAction("Cursor", self)
         self.action_cursor.setCheckable(True)
+        self.action_cursor.setChecked(True)
+        self.action_cursor.toggled.connect(self.plot.set_crosshair_visible)
         toolbar.addAction(self.action_cursor)
 
         self.action_peak = QtGui.QAction("Peak", self)

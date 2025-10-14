@@ -48,5 +48,6 @@ This mirrors the automated smoke workflow in `tests/test_smoke_workflow.py`. Run
 
 - Continue exploring the `samples/` directory for additional datasets.
 - Review [docs/user/importing.md](importing.md) for deeper coverage of supported formats.
+- Learn how to pan, zoom, and interpret the legend in [Plot Interaction Tools & LOD Behaviour](plot_tools.md).
 - Consult the [Units & Conversions Reference](units_reference.md) for detailed information on idempotent toggles and canonical storage.
 - Track upcoming documentation deliverables in [docs/reviews/doc_inventory_2025-10-14.md](../reviews/doc_inventory_2025-10-14.md).
