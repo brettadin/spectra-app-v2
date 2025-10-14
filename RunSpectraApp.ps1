@@ -42,7 +42,7 @@ function New-PythonInvoker {
         }
 
         if ($parsed.Major -ne 3 -or $parsed.Minor -lt 10 -or $parsed.Minor -gt 13) {
-            throw "Found Python $versionText, but Spectra currently supports Python 3.10–3.13. Install a supported version and rerun."
+            throw "Found Python $versionText, but Spectra currently supports Python 3.10-3.13. Install a supported version and rerun."
         }
 
         return [PSCustomObject]@{
