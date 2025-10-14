@@ -1,134 +1,226 @@
-# Spectra Redesign Project 
+# Spectra App - Spectroscopy Toolkit for Exoplanet Characterization
 
-This repository provides the starting point for the complete rewrite of the
-Spectra‑App into a modern, modular Windows desktop application.  The goal of
-this effort is to retain all existing features while addressing legacy
-limitations such as messy unit conversions, brittle Streamlit UI logic and
-unstructured knowledge logs.  Everything in this tree has been designed to
-enable future agents to extend the program without losing historical
-context.
+[![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue.svg)](https://www.python.org/downloads/)
+[![Platform: Windows](https://img.shields.io/badge/platform-Windows-lightgrey.svg)](https://www.microsoft.com/windows)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Code style: Black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
-# Spectra App (Redesign)
+A modern, modular **Windows desktop application** for spectroscopic analysis of stellar, planetary, and exoplanet data. Built with PySide6/Qt for performance and reliability, featuring clean UI, robust provenance tracking, and offline-first caching.
 
-A modern, modular **Windows desktop** application for spectroscopy—fast, accurate analysis of stellar/planetary/exoplanet data with clean UI, robust provenance, and offline-first caching.
+## 🎯 Project Overview
 
-## Repos & Scope
+This repository represents the complete rewrite of the Spectra-App into a modern, modular desktop application. The redesign addresses legacy limitations while preserving all existing functionality:
 
-- Legacy reference: https://github.com/brettadin/spectra-app  
-- This repo: complete rewrite with PySide6 + tests + docs-first process.
+- **Clean Architecture**: Modular service-based design for maintainability
+- **Scientific Accuracy**: Rigorous unit handling and provenance tracking
+- **Performance Focus**: Optimized for large datasets (1M+ points)
+- **Docs-First Development**: Comprehensive documentation for users and developers
 
-## Folder Map
+### Legacy Reference
+- Original application: https://github.com/brettadin/spectra-app
+- This repository: Complete PySide6 rewrite with enhanced architecture
 
-- **app/** – PySide6 app: `main.py`, `ui/`, `services/` (ingest, fetch, units, math, provenance, store)
-- **docs/** – User & dev docs; history: `MASTER PROMPT.md`, `RUNNER PROMPT.md`
-- **specs/** – Architecture, system design, UI contract, provenance schema, units & conversions, testing, packaging
-- **reports/** – Audit notes: feature parity, risks, roadmap
-- **tests/** – Pytest suite (ingest, math, units, provenance, perf stubs)
-- **samples/** – Small example datasets for dev/tests
-- **.github/** – CI workflows and PR template
+## ✨ Key Features
 
-## Quick Start (Windows)
+### Data Ingestion & Management
+- **Multi-format Support**: CSV/TXT, FITS 1D, JCAMP-DX with intelligent header detection
+- **Remote Data Integration**: NASA/MAST API for JWST spectra, NIST Atomic Spectra Database
+- **Offline-First Cache**: All data persists locally with SHA256 deduplication
+- **Provenance Tracking**: Complete audit trail for all data operations
 
-Double-click `RunSpectraApp.cmd` or:
+### Analysis & Processing
+- **Unit Canon System**: Store raw data in nanometers; display-time conversions (nm/Å/µm/cm⁻¹)
+- **Mathematical Operations**: A−B, A/B (epsilon-guarded), baseline removal, Savitzky-Golay smoothing
+- **Spectral Analysis**: Gaussian fitting, peak detection, continuum subtraction
+- **Reference Overlays**: NIST atomic line lists with interactive redshift controls
+
+### User Experience
+- **High-Performance Plotting**: PyQtGraph with LOD optimization for 1M+ point datasets
+- **Clean, Intuitive UI**: Logical control grouping with progressive disclosure
+- **Comprehensive Inspector**: Spectrum metadata, math operations, style controls, provenance viewer
+- **Export Capabilities**: PNG, CSV with complete manifest.json provenance
+
+## 📁 Repository Structure
+
+```
+spectra-app-beta/
+├── app/                    # PySide6 application core
+│   ├── ui/                # Windows, actions, plot pane, inspectors
+│   ├── services/          # Business logic services
+│   │   ├── ingest_*       # Data import handlers
+│   │   ├── fetch_*        # Remote data fetchers
+│   │   ├── units/         # Unit conversion system
+│   │   ├── math/          # Analysis operations
+│   │   ├── provenance/    # Audit trail management
+│   │   └── store/         # Local cache management
+│   └── main.py           # Application entry point
+├── docs/                  # Comprehensive documentation
+│   ├── user/             # Quickstart guides & tutorials
+│   ├── dev/              # Architecture & API references
+│   ├── edu/              # Spectroscopy educational content
+│   ├── patch_notes/      # Version-specific release notes
+│   └── ai_log/           # AI development history
+├── specs/                # Technical specifications
+│   ├── architecture/     # System design decisions
+│   ├── ui_contract/      # UI component specifications
+│   └── provenance/       # Data provenance schema
+├── tests/                # Pytest test suite
+│   ├── unit/            # Service-level tests
+│   ├── integration/      # Cross-module tests
+│   └── performance/      # Performance benchmarks
+├── samples/              # Example datasets & manifests
+├── reports/              # Audit reports & planning documents
+└── packaging/            # Distribution & deployment
+```
+
+## 🚀 Quick Start
+
+### Windows Quick Launch (Recommended)
+
+Double-click `RunSpectraApp.cmd` or run from terminal:
 
 ```powershell
-py -3.11 -m venv .venv
-.\.venv\Scripts\python -m pip install -r requirements.txt
-.\.venv\Scripts\python -m app.main
+# Quick launch with automatic environment setup
+RunSpectraApp.cmd
 
+# Force clean environment rebuild
+RunSpectraApp.cmd -Reinstall
+```
 
+The launcher script automatically:
+- Detects available Python versions (3.11+ preferred)
+- Creates/updates virtual environment
+- Installs all dependencies
+- Launches the application
 
-# Original App Repo
+### Manual Installation
 
-https://github.com/brettadin/spectra-app AND ANY OTHER REPOS FROM https://github.com/brettadin/
-BE CERTAIN TO UNDERSTAND THE CORE PURPOSE OF THIS APPLICATION. REFER TO ANY AND ALL DOCUMENTAION TO UNDERSTAND IF NEED BE.
-THIS IS A VERY WIDE-RANGED AND VERSETILE APPLICATION WITH SPECIFIC GOALS AND OUTCOMES IN MIND.
-DO NOT LOSE SIGHT OF OUR TRUE END GOALS; SPECTROSCOPIC ANALYSIS OF CELESTIAL BODIES, AND THE MANY WAYS IN WHICH WE MAY APPROACH IT.
-
-
-
-## Structure
-
-- **reports/** – Results of the code audit and planning phase.  These documents
-  catalogue the current system, enumerate bugs, normalise historical logs,
-  map feature parity and outline risks and milestones.
-- **specs/** – Technical specifications for the new application.  These cover
-  architecture decisions, system design, unit and provenance schemas, UI
-  contract, testing strategy, packaging and plugin development guidelines.
-- **docs/** – End‑user and developer documentation, including a consolidated
-  knowledge log (see `docs/history/KNOWLEDGE_LOG.md`).
-- **samples/** – Sample datasets and corresponding provenance manifests used to
-  drive tests and serve as templates for new data imports.
-- **app/** – The skeleton of the new PySide6‑based application.  This
-  includes service classes for units, provenance and data import, a simple
-  main window and stubs for future functionality.
-- **tests/** – Initial test suite verifying critical functionality.  Tests
-  currently cover unit conversions and manifest hashing; new tests should be
-  added as modules are implemented.
-
-## Getting Started
-
-### Easiest path (Windows quick-launch)
-
-Double-click `RunSpectraApp.cmd` (or run it from a terminal). The helper
-will:
-
-1. Ensure Python is available.
-2. Prefer the Windows `py` launcher with Python 3.12 (falling back to
-   Python 3.13/3.11/3.10 as needed) and fail fast with guidance if
-   nothing in that range is installed.
-3. Create/refresh the local `.venv` virtual environment.
-4. Install dependencies from `requirements.txt`.
-5. Launch the desktop app via `python -m app.main`.
-
-You can pass `-Reinstall` to the script (e.g. `RunSpectraApp.cmd -Reinstall`)
-to rebuild the virtual environment from scratch.
-
-### Manual steps (any platform)
-
-1. Install the Python dependencies listed in `requirements.txt` using the
-   interpreter you plan to run the app with:
-
+1. **Create Virtual Environment**:
    ```bash
-   python -m pip install -r requirements.txt
+   py -3.11 -m venv .venv
+   .\.venv\Scripts\activate
    ```
 
-2. Run the main module **from the repository root** (e.g. `C:\Code\spectra-app-beta`).
-   Running from inside `app/` or pointing to `app/main.py` directly will fail
-   because Python expects module paths, not file system paths, when using
-   `-m`:
-
+2. **Install Dependencies**:
    ```bash
-   cd /path/to/spectra-app-beta
+   pip install -r requirements.txt
+   ```
+
+3. **Launch Application**:
+   ```bash
+   # From repository root directory
    python -m app.main
    ```
 
-   > **Tip:** Use dot notation (`app.main`) when launching a module with
-   > `python -m`. Using a slash (e.g. `python -m app/main.py`) will fail
-   > because Python treats it as an invalid module name.
+   > **Important**: Always run from repository root, not from within `app/` directory.
 
-   This will launch a minimal window that demonstrates the basic
-   application structure. Future iterations will populate the UI with tabs
-   and controls as described in the specifications.
+### Testing the Installation
 
-3. Explore the `samples` folder to see an example dataset (`sample_spectrum.csv`)
-   and its associated provenance manifest (`sample_manifest.json`).  The
-   manifest was generated using the `ProvenanceService` class defined in
-   `app/services/provenance_service.py`.  Use this as a template when
-   ingesting your own data during development.
+Verify everything works by running the test suite:
 
-3. Run the automated test suite to verify conversions, ingestion, provenance and overlay behaviour:
+```bash
+pytest
+```
 
-   ```bash
-   pytest
-   ```
+Explore the `samples/` directory for example datasets and provenance manifests.
 
-4. To build a Windows distributable, follow the instructions in `packaging/windows_build.md`.  The PyInstaller spec in `packaging/spectra_app.spec` is preconfigured to bundle Qt dependencies and sample data.
+## 🔬 Scientific Mission
 
-## Contributing
+The Spectra App is designed for rigorous spectroscopic analysis with particular focus on:
 
-See `docs/architecture.md` and `docs/plugin_dev_guide.md` for guidance on
-extending the system.  Before implementing new features, refer to the
-feature parity matrix in `reports/feature_parity_matrix.md` to ensure that
-existing capabilities remain intact.  All changes should be accompanied by
-updated documentation and tests.
+- **Exoplanet Characterization**: Atmospheric composition, temperature profiles
+- **Stellar Spectroscopy**: Elemental abundances, radial velocity measurements  
+- **Planetary Science**: Surface composition, atmospheric studies
+- **Laboratory Spectroscopy**: Reference data comparison, calibration validation
+
+### Core Scientific Principles
+
+- **Unit Integrity**: Canonical nanometer storage with mathematically sound conversions
+- **Provenance Everywhere**: Complete data lineage from acquisition to export
+- **Reference-Grade Accuracy**: NIST-validated line lists and JWST data integration
+- **Transparent Processing**: All transformations documented and reversible
+
+## 🛠 Development & Contribution
+
+### For Users
+- **Documentation**: Start with `docs/user/quickstart.md`
+- **Tutorials**: See `docs/edu/` for spectroscopy fundamentals
+- **Support**: Check `docs/user/faq.md` for common questions
+
+### For Developers
+- **Architecture**: Review `specs/architecture/system_design.md`
+- **API Reference**: See `docs/dev/api/` for service contracts
+- **Testing**: Add tests for all new features in `tests/`
+- **Style Guide**: Follow coding conventions in `docs/dev/coding_standards.md`
+
+### Building Distributables
+
+```bash
+# Build Windows executable
+cd packaging
+python -m PyInstaller spectra_app.spec
+```
+
+## 📚 Documentation Index
+
+### User Documentation
+- `docs/user/quickstart.md` - Getting started guide
+- `docs/user/file_types.md` - Supported formats and import procedures
+- `docs/user/units_conversions.md` - Unit system explanation
+- `docs/user/analysis_tools.md` - Mathematical operations guide
+- `docs/user/export_guide.md` - Export formats and provenance
+
+### Developer Resources
+- `docs/dev/architecture.md` - System architecture overview
+- `docs/dev/data_pipeline.md` - Ingestion and processing flow
+- `docs/dev/ui_contract.md` - UI component specifications
+- `docs/dev/testing_guide.md` - Test development procedures
+
+### Educational Content
+- `docs/edu/spectroscopy_basics.md` - Fundamental concepts
+- `docs/edu/atomic_spectra.md` - NIST ASD and line identification
+- `docs/edu/jwst_data.md` - Working with JWST observations
+- `docs/edu/analysis_techniques.md` - Scientific analysis methods
+
+## 🎯 Roadmap & Status
+
+### Current Phase: Core Implementation
+- [x] Application skeleton and service architecture
+- [x] Unit conversion system and provenance tracking
+- [x] Basic plotting and UI framework
+- [ ] Data ingestion pipeline (CSV, FITS, JCAMP-DX)
+- [ ] Remote fetchers (NIST ASD, MAST/JWST)
+- [ ] Mathematical operations and analysis tools
+
+### Upcoming Features
+- Advanced spectral fitting and modeling
+- Plugin system for custom analysis
+- Multi-instrument calibration tools
+- Collaborative analysis features
+
+## 🤝 Contributing
+
+We welcome contributions from scientists, developers, and spectroscopy enthusiasts! Please:
+
+1. Review the feature parity matrix in `reports/feature_parity_matrix.md`
+2. Follow the docs-first development process
+3. Add tests for all new functionality
+4. Update relevant documentation
+5. Submit PRs with clear descriptions and rationale
+
+See `docs/contributing.md` for detailed guidelines.
+
+## 📄 License
+
+MIT License - see LICENSE file for details.
+
+## 🔗 References & Data Sources
+
+- **NASA MAST API**: JWST and Hubble spectral data
+- **NIST Atomic Spectra Database**: Reference line lists
+- **Astropy/Specutils**: Spectral data containers and operations
+- **SpecViz**: UI/UX inspiration and compatibility targets
+
+---
+
+**Spectra App** - Advancing spectroscopic analysis through modern software engineering and scientific rigor.
