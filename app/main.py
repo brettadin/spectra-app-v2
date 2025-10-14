@@ -24,6 +24,9 @@ SAMPLES_DIR = Path(__file__).resolve().parent.parent / 'samples'
 class SpectraMainWindow(QtWidgets.QMainWindow):
     """Minimal yet functional shell that wires UI actions to services."""
 
+class SpectraMainWindow(QtWidgets.QMainWindow):
+    """Minimal yet functional shell that wires UI actions to services."""
+
     def __init__(self, container: ServiceContainer) -> None:
         super().__init__()
         self.setWindowTitle("Spectra Desktop Preview")
@@ -242,8 +245,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         lines = [f"Name: {spectrum.name}", f"Source: {spectrum.source_path or 'N/A'}"]
         for key, value in spectrum.metadata.items():
             lines.append(f"{key}: {value}")
-        self.data_view.setPlainText("
-".join(lines))
+        self.data_view.setPlainText("\n".join(lines))
 
     def _on_selection_changed(self) -> None:
         items = self.spectra_list.selectedItems()
