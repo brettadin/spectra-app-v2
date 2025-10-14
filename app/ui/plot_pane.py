@@ -131,7 +131,9 @@ class PlotPane(QtWidgets.QWidget):
     def _build_ui(self) -> None:
         layout = QtWidgets.QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
-        pg.setConfigOptions(antialias=True, background=None, foreground=None)
+        # Use pyqtgraph defaults for foreground/background colours to avoid
+        # invalid colour values being passed to mkColor.
+        pg.setConfigOptions(antialias=True)
 
         self._plot = pg.PlotWidget()
         self._plot.setObjectName("plot-pane")
