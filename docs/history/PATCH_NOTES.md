@@ -1,6 +1,6 @@
 # Patch Notes
 
-## 2025-10-15
+## 2025-10-14 
 
 - Logged the latest CI gate outcomes (lint, type-check, pytest) and noted the missing coverage plugin.
 - Made FITS ingestion optional when `astropy` is absent, providing a clear runtime error instead of import failures.
