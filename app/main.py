@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
-import sys
+from dataclasses import dataclass
+import json
+import logging
 from pathlib import Path
 from typing import Iterable
 
@@ -22,7 +24,7 @@ SAMPLES_DIR = Path(__file__).resolve().parent.parent / 'samples'
 class SpectraMainWindow(QtWidgets.QMainWindow):
     """Minimal yet functional shell that wires UI actions to services."""
 
-    def __init__(self) -> None:
+    def __init__(self, container: ServiceContainer) -> None:
         super().__init__()
         self.setWindowTitle("Spectra Desktop Preview")
         self.resize(1024, 720)
@@ -304,7 +306,7 @@ def main() -> None:
     app = QtWidgets.QApplication(sys.argv)
     window = SpectraMainWindow()
     window.show()
-    sys.exit(app.exec())
+    app.exec()
 
 
 if __name__ == "__main__":
