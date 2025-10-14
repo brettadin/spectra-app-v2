@@ -7,7 +7,7 @@
 - [x] Guard plot performance with LOD cap test.
 - [x] Update user and developer documentation (importing + ingest pipeline).
 - [x] Run lint/type/test suite locally; confirm CI configuration.
-- [ ] Smoke-check app launch, CSV/FITS ingest, unit toggle, export manifest.
+- [x] Smoke-check app launch, CSV/FITS ingest, unit toggle, export manifest (automated in tests/test_smoke_workflow.py).
 
 ## Batch 1 QA Log
 
@@ -22,10 +22,13 @@
 
 # Workplan — Batch 2 (2025-10-14)
 
-- [ ] Close out Batch 1 smoke-check (launch app, ingest CSV/FITS, toggle units, export manifest).
-- [ ] Capture current state of CI gates (ruff, mypy, pytest) on the latest branch.
+- [x] Close out Batch 1 smoke-check (launch app, ingest CSV/FITS, toggle units, export manifest).
+- [x] Capture current state of CI gates (ruff, mypy, pytest) on the latest branch.
 - [ ] Inventory pending documentation deltas required before next feature work.
 
 ## Batch 2 QA Log
 
-- 2025-10-14: _(pending)_
+- 2025-10-15: ✅ `ruff check app tests`
+- 2025-10-15: ✅ `mypy app --ignore-missing-imports`
+- 2025-10-15: ❌ `pytest -q --maxfail=1 --disable-warnings --cov=app --cov-report=term-missing` (fails: pytest-cov plugin missing)
+- 2025-10-15: ✅ `pytest -q --maxfail=1 --disable-warnings`

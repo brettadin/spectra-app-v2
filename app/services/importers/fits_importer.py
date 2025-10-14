@@ -6,7 +6,11 @@ from pathlib import Path
 from typing import Iterable
 
 import numpy as np
-from astropy.io import fits
+
+try:  # pragma: no cover - optional dependency in CI
+    from astropy.io import fits  # type: ignore
+except ModuleNotFoundError:  # pragma: no cover - optional dependency in CI
+    fits = None  # type: ignore[assignment]
 
 from .base import ImporterResult
 
@@ -29,9 +33,17 @@ class FitsImporter:
         "y",
     )
 
+    def _require_fits(self):
+        if fits is None:
+            raise RuntimeError(
+                "FITS support requires the 'astropy' package. Install it to enable FITS ingestion."
+            )
+        return fits
+
     def read(self, path: Path) -> ImporterResult:
         path = Path(path)
-        with fits.open(path, memmap=False) as hdul:
+        fits_mod = self._require_fits()
+        with fits_mod.open(path, memmap=False) as hdul:
             hdu = self._select_hdu(hdul)
             data = hdu.data
             if data is None:
@@ -69,20 +81,21 @@ class FitsImporter:
     def description(self) -> str:
         return "FITS binary table importer"
 
-    def _select_hdu(self, hdulist: fits.HDUList) -> fits.BinTableHDU:
+    def _select_hdu(self, hdulist: "fits.HDUList") -> "fits.BinTableHDU":
+        fits_mod = self._require_fits()
         for hdu in hdulist:
-            if isinstance(hdu, fits.BinTableHDU) and hdu.data is not None:
+            if isinstance(hdu, fits_mod.BinTableHDU) and hdu.data is not None:
                 return hdu
         raise ValueError("No binary table HDU found for spectral data")
 
-    def _find_column(self, hdu: fits.BinTableHDU, candidates: Iterable[str]) -> str:
+    def _find_column(self, hdu: "fits.BinTableHDU", candidates: Iterable[str]) -> str:
         names = {name.lower(): name for name in hdu.columns.names or []}
         for candidate in candidates:
             if candidate.lower() in names:
                 return names[candidate.lower()]
         raise ValueError(f"Required column not found; expected one of {candidates}")
 
-    def _column_unit(self, hdu: fits.BinTableHDU, column: str) -> str | None:
+    def _column_unit(self, hdu: "fits.BinTableHDU", column: str) -> str | None:
         try:
             unit = hdu.columns[column].unit
         except (KeyError, AttributeError):
