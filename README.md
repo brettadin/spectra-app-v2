@@ -48,7 +48,7 @@ DO NOT LOSE SIGHT OF OUR TRUE END GOALS; SPECTROSCOPIC ANALYSIS OF CELESTIAL BOD
 2. Launch the desktop shell.  The entry point is `app/main.py` and can be run from the repository root:
 
    ```
-   cd C:\Code\spectra-app-beta\app\main.py
+   cd C:\Code\spectra-app-beta\app\
    python -m app.main
    ```
 
