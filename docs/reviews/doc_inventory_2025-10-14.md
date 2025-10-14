@@ -2,6 +2,12 @@
 
 This survey captures the documentation gaps that must be closed before the next feature batch. Each item notes the owning doc set, the missing coverage, and the expected deliverable so that the team can schedule writing work alongside feature development.
 
+Quick links:
+
+- [User Quickstart (placeholder)](../user/quickstart.md)
+- [Provenance Schema (placeholder)](../dev/provenance_schema.md)
+- [Documentation roadmap](../../README.md#documentation-roadmap)
+
 ## User Documentation Gaps
 
 1. **Quickstart walkthrough**  
