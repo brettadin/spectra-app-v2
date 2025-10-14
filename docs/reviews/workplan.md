@@ -36,7 +36,7 @@
 # Workplan — Batch 3 (2025-10-14)
 
 - [x] Draft user quickstart walkthrough covering launch → ingest → unit toggle → export.
-- [ ] Author units & conversions reference with idempotency callouts.
+- [x] Author units & conversions reference with idempotency callouts (`docs/user/units_reference.md`).
 - [ ] Document plot interaction tools and LOD expectations.
 - [ ] Expand importing guide with provenance export appendix.
 
