@@ -25,3 +25,7 @@ Imported spectra always appear in canonical units inside the application. Use
  the unit toggle on the toolbar to view alternative axes without mutating the
  underlying data. The raw source file remains untouched in the provenance
  bundle created during export.
+
+## Quick smoke workflow
+
+Run File → Open on `samples/sample_spectrum.csv`, toggle the units toolbar to Ångström/Transmittance, and export a manifest via File → Export Manifest. This mirrors the automated regression in `tests/test_smoke_workflow.py`, ensuring the ingest pipeline and provenance export are healthy.
