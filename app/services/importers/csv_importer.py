@@ -9,8 +9,9 @@ import numpy as np
 
 from .base import ImporterResult
 
+import numpy as np
 
-class CsvImporter:
+class CsvImporter(Importer):
     """Read spectral data from CSV files."""
 
     def read(self, path: Path) -> ImporterResult:
@@ -24,7 +25,7 @@ class CsvImporter:
             if ln.startswith('#'):
                 comments.append(ln[1:].strip())
             else:
-                data_lines.append(ln)
+                data_lines.append(line)
 
         if not data_lines:
             raise ValueError(f"No data found in {path}")
