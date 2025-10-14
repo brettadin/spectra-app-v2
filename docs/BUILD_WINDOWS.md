@@ -3,8 +3,9 @@
 These steps package the Spectra desktop shell into a distributable Windows build using PyInstaller, following the packaging strategy described in `specs/packaging.md`.
 
 1. **Optional quick launch:** To verify the app before packaging, run
-   `RunSpectraApp.cmd`. It will provision `.venv`, install dependencies, and
-   start the UI. Close the app when satisfied, then continue.
+   `RunSpectraApp.cmd`. It will locate a supported Python interpreter (preferring
+   `py -3.12`), provision `.venv`, install dependencies, and start the UI. Close
+   the app when satisfied, then continue.
 
 2. **Create a virtual environment** (recommended):
    ```powershell
