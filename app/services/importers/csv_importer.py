@@ -1,80 +1,93 @@
-"""Import spectra from CSV files.
-
-This importer reads comma‑separated values files with at least two columns
-representing the independent variable (e.g. wavelength) and the dependent
-variable (e.g. absorbance).  Lines beginning with a '#' character are
-treated as comments and skipped.  Units may be specified in the header row
-after the column names in parentheses, e.g. 'wavelength_nm(nm), absorbance'.
-
-The importer produces a Spectrum object with the parsed data and infers
-units when possible.  Additional metadata such as comment lines are
-stored in the Spectrum's metadata.
-"""
+"""Import spectra from CSV or delimited text files."""
 
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Tuple
+from typing import List, Tuple
 import numpy as np
 
-from ..spectrum import Spectrum
+from .base import ImporterResult, Importer
 
 
-class CsvImporter:
-    """Read spectral data from CSV files."""
+class CsvImporter(Importer):
+    """Read spectral data from delimited text files."""
 
-    def read(self, path: Path) -> Spectrum:
-        """Parse the given CSV file and return a Spectrum.
+    supported_extensions: Tuple[str, ...] = (".csv", ".txt", ".dat")
 
-        Args:
-            path: Path to the CSV file.
+    def description(self) -> str:
+        return "Comma- or tab-delimited spectra"
 
-        Returns:
-            A Spectrum instance containing the data and inferred units.
-        """
-        comments = []
-        with path.open('r') as f:
-            lines = [line.strip() for line in f if line.strip()]
+    def read(self, path: Path) -> ImporterResult:
+        comments: List[str] = []
+        with path.open("r", encoding="utf-8") as handle:
+            lines = [line.rstrip("\n") for line in handle if line.strip()]
 
-        # Separate comments and data lines
-        data_lines = []
-        for ln in lines:
-            if ln.startswith('#'):
-                comments.append(ln[1:].strip())
+        data_lines: List[str] = []
+        for line in lines:
+            if line.lstrip().startswith("#"):
+                comments.append(line.lstrip()[1:].strip())
             else:
-                data_lines.append(ln)
+                data_lines.append(line)
 
         if not data_lines:
-            raise ValueError(f"No data found in {path}")
+            raise ValueError(f"No data rows found in {path}")
 
-        header = data_lines[0].split(',')
-        if len(header) < 2:
-            raise ValueError("CSV must have at least two columns")
-        x_name = header[0].strip()
-        y_name = header[1].strip()
+        header_parts = [part.strip() for part in data_lines[0].split(',')]
+        if len(header_parts) < 2:
+            raise ValueError("CSV requires at least two columns")
 
-        # Extract units from names if present e.g. wavelength_nm(nm)
-        def parse_name(name: str) -> Tuple[str, str]:
-            if '(' in name and name.endswith(')'):
-                base, unit = name[:-1].split('(', 1)
-                return base.strip(), unit.strip()
-            return name, ''
+        x_label, x_unit = self._parse_header(header_parts[0])
+        y_label, y_unit = self._parse_header(header_parts[1])
 
-        x_label, x_unit = parse_name(x_name)
-        y_label, y_unit = parse_name(y_name)
+        if not x_unit:
+            lower = x_label.lower()
+            if any(token in lower for token in ("µm", "micron", "micrometre", "micrometer")):
+                x_unit = "µm"
+            elif any(token in lower for token in ("cm^-1", "wavenumber", "1/cm", "cm-1")):
+                x_unit = "cm^-1"
+            elif "ang" in lower:
+                x_unit = "Å"
+            else:
+                x_unit = "nm"
 
-        # Load numeric values
-        data = np.genfromtxt(data_lines[1:], delimiter=',', dtype=float)
-        if data.ndim == 1:
-            # Only one row of data; convert to two‑dimensional
-            data = data.reshape(1, -1)
-        x = data[:, 0]
-        y = data[:, 1]
+        if not y_unit:
+            lower_y = y_label.lower()
+            if "percent_trans" in lower_y or "%t" in lower_y:
+                y_unit = "percent_transmittance"
+            elif "transmittance" in lower_y:
+                y_unit = "transmittance"
+            elif "absorption_coefficient" in lower_y or "alpha" in lower_y:
+                y_unit = "absorption_coefficient"
+            else:
+                y_unit = "absorbance"
+
+        raw_data = np.genfromtxt(data_lines[1:], delimiter=',', dtype=float)
+        if raw_data.ndim == 1:
+            raw_data = raw_data.reshape(1, -1)
+
+        wavelengths = raw_data[:, 0]
+        flux = raw_data[:, 1]
 
         metadata = {
             "comments": comments,
             "x_label": x_label,
-            "y_label": y_label
+            "y_label": y_label,
+            "original_header": data_lines[0],
+            "flux_context": {},
         }
 
-        return Spectrum(x=x, y=y, x_unit=x_unit or 'nm', y_unit=y_unit or 'absorbance', metadata=metadata)
+        return ImporterResult(
+            wavelengths=wavelengths,
+            flux=flux,
+            wavelength_unit=x_unit,
+            flux_unit=y_unit,
+            metadata=metadata,
+            source_path=path,
+        )
+
+    @staticmethod
+    def _parse_header(value: str) -> Tuple[str, str]:
+        if "(" in value and value.endswith(")"):
+            base, unit = value[:-1].split("(", 1)
+            return base.strip(), unit.strip()
+        return value, ""

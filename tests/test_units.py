@@ -1,49 +1,53 @@
-"""Unit tests for the UnitsService."""
-
 import numpy as np
 import pytest
 
-from app.services.units_service import UnitsService
-from app.services.spectrum import Spectrum
+from app.services.units_service import UnitError, UnitsService
 
 
-def test_wavelength_conversion_nm_to_cm_inv():
+def test_wavelength_round_trip():
     service = UnitsService()
-    # create a dummy spectrum with nm units
-    x = np.array([500.0, 1000.0])
-    y = np.array([0.1, 0.2])
-    spec = Spectrum(x=x, y=y, x_unit="nm", y_unit="absorbance")
-    new_x, new_y, metadata = service.convert(spec, "cm^-1", "absorbance")
-    # 1/cm values: 1e7/nm
-    expected = np.array([1e7/500.0, 1e7/1000.0])
-    assert np.allclose(new_x, expected)
-    # y should be unchanged
-    assert np.allclose(new_y, y)
-    assert metadata["x_conversion"] == "nm→cm^-1"
+    wavelengths = np.linspace(400, 800, 5)
+    microns = service.convert_wavelength(wavelengths, "nm", "µm")
+    back_to_nm = service.convert_wavelength(microns, "µm", "nm")
+    assert np.allclose(back_to_nm, wavelengths)
+
+    wavenumber = service.convert_wavelength(wavelengths, "nm", "cm^-1")
+    restored = service.convert_wavelength(wavenumber, "cm^-1", "nm")
+    assert np.allclose(restored, wavelengths)
 
 
-def test_intensity_conversion_absorbance_transmittance():
+def test_flux_round_trip_transmittance():
     service = UnitsService()
-    x = np.array([500.0])
-    y = np.array([1.0])  # A = 1
-    spec = Spectrum(x=x, y=y, x_unit="nm", y_unit="absorbance")
-    # A=1 corresponds to T=10^-1 = 0.1
-    new_x, new_y, metadata = service.convert(spec, "nm", "transmittance")
-    assert np.allclose(new_y, np.array([0.1]))
-    assert metadata["y_conversion"] == "absorbance→transmittance"
-    # Convert back
-    spec2 = Spectrum(x=new_x, y=new_y, x_unit="nm", y_unit="transmittance")
-    new_x2, new_y2, metadata2 = service.convert(spec2, "nm", "absorbance")
-    assert np.allclose(new_y2, y)
+    trans = np.array([0.2, 0.5, 0.9])
+    absorbance = service.convert_flux(trans, "transmittance", "absorbance", context={})
+    restored = service.convert_flux(absorbance, "absorbance", "transmittance", context={})
+    assert np.allclose(restored, trans)
 
 
-def test_no_conversion_returns_copy():
+def test_percent_transmittance():
     service = UnitsService()
-    x = np.array([1.0, 2.0, 3.0])
-    y = np.array([0.1, 0.2, 0.3])
-    spec = Spectrum(x=x, y=y)
-    new_x, new_y, metadata = service.convert(spec, "nm", "absorbance")
-    assert np.allclose(new_x, x)
-    assert np.allclose(new_y, y)
-    # metadata should be empty dict
-    assert metadata == {}
+    percent = np.array([80.0, 50.0])
+    absorbance = service.convert_flux(percent, "percent_transmittance", "absorbance", context={})
+    assert pytest.approx(absorbance[0], rel=1e-6) == -np.log10(0.8)
+    restored = service.convert_flux(absorbance, "absorbance", "percent_transmittance", context={})
+    assert np.allclose(restored, percent)
+
+
+def test_absorption_coefficient_requires_context():
+    service = UnitsService()
+    alpha = np.array([1.2])
+    with pytest.raises(UnitError):
+        service.convert_flux(alpha, "absorption_coefficient", "absorbance", context={})
+    absorbance = service.convert_flux(
+        alpha,
+        "absorption_coefficient",
+        "absorbance",
+        context={"path_length_m": 0.01, "mole_fraction": 0.5, "absorption_base": "10"},
+    )
+    restored = service.convert_flux(
+        absorbance,
+        "absorbance",
+        "absorption_coefficient",
+        context={"path_length_m": 0.01, "mole_fraction": 0.5, "absorption_base": "10"},
+    )
+    assert np.allclose(restored, alpha)

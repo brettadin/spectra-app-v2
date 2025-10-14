@@ -38,37 +38,30 @@ DO NOT LOSE SIGHT OF OUR TRUE END GOALS; SPECTROSCOPIC ANALYSIS OF CELESTIAL BOD
 
 ## Getting Started
 
-1. Install the Python dependencies.  A `pyproject.toml` or `requirements.txt`
-   will be added once the implementation phase begins, but to run the
-   skeleton you need at least:
+1. Create and activate a virtual environment, then install the pinned dependencies:
 
    ```bash
-   python -m pip install PySide6 numpy
+   python -m venv .venv
+   source .venv/bin/activate
+   pip install --upgrade pip
+   pip install -r requirements.txt
    ```
 
-2. Navigate to the `app` directory and run the main module:
+2. Launch the desktop shell.  The entry point is `app/main.py` and can be run from the repository root:
 
    ```bash
    python -m app.main
    ```
 
-   This will launch a minimal window that demonstrates the basic
-   application structure.  Future iterations will populate the UI with tabs
-   and controls as described in the specifications.
+   The application opens a window with **Data**, **Compare** and **Provenance** tabs.  Load a spectrum via the **Browse…** button or the `samples/` datasets to exercise the ingest, overlay and math services.
 
-3. Explore the `samples` folder to see an example dataset (`sample_spectrum.csv`)
-   and its associated provenance manifest (`sample_manifest.json`).  The
-   manifest was generated using the `ProvenanceService` class defined in
-   `app/services/provenance_service.py`.  Use this as a template when
-   ingesting your own data during development.
-
-4. Run the tests using `pytest` to confirm that core services behave as
-   expected:
+3. Run the automated test suite to verify conversions, ingestion, provenance and overlay behaviour:
 
    ```bash
-   python -m pip install pytest
-   pytest -q
+   pytest
    ```
+
+4. To build a Windows distributable, follow the instructions in `packaging/windows_build.md`.  The PyInstaller spec in `packaging/spectra_app.spec` is preconfigured to bundle Qt dependencies and sample data.
 
 ## Contributing
 
