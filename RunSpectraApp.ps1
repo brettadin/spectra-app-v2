@@ -61,7 +61,15 @@ function Invoke-WithPython {
         [string[]]$Args
     )
 
-    & $Invoker.Executable @($Invoker.PrefixArgs + $Args)
+    $allArgs = @()
+    if ($Invoker.PrefixArgs) {
+        $allArgs += $Invoker.PrefixArgs
+    }
+    if ($Args) {
+        $allArgs += $Args
+    }
+
+    & $Invoker.Executable @allArgs
 }
 
 $scriptPath = $MyInvocation.MyCommand.Path
@@ -92,14 +100,14 @@ if (-not (Test-Path $pythonExe)) {
 }
 
 Write-Host "Upgrading pip..." -ForegroundColor Cyan
-& $pythonExe -m pip install --upgrade pip | Out-String | Write-Verbose
+& $pythonExe -m pip install --upgrade pip
 
 Write-Host "Installing dependencies from requirements.txt..." -ForegroundColor Cyan
 & $pythonExe -m pip install -r (Join-Path $repoRoot 'requirements.txt')
 
 $toolPackages = @('pyinstaller')
 Write-Host "Ensuring developer tools ($($toolPackages -join ', ')) are installed..." -ForegroundColor Cyan
-& $pythonExe -m pip install @toolPackages | Out-String | Write-Verbose
+& $pythonExe -m pip install @toolPackages
 
 Write-Host "Launching Spectra app..." -ForegroundColor Cyan
 & $pythonExe -m app.main
