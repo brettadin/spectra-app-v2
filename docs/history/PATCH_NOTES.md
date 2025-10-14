@@ -6,6 +6,11 @@
 - Centralised the reusable FITS fixture under `tests/conftest.py` to support regression suites.
 - Documented the new smoke validation loop for developers and provided a matching user checklist.
 
+## 2025-10-14 (Documentation Inventory)
+
+- Catalogued missing user, developer, and historical documentation deliverables in `docs/reviews/doc_inventory_2025-10-14.md` to prep for the next feature batch.
+- Marked the Batch 2 workplan item complete with a reference to the new inventory document to aid scheduling.
+
 ## 2025-10-15
 
 - Logged the latest CI gate outcomes (lint, type-check, pytest) and noted the missing coverage plugin.
