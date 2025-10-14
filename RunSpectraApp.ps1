@@ -61,14 +61,22 @@ function Invoke-WithPython {
         [string[]]$Args
     )
 
-    & $Invoker.Executable @($Invoker.PrefixArgs + $Args)
+    $allArgs = @()
+    if ($Invoker.PrefixArgs) {
+        $allArgs += $Invoker.PrefixArgs
+    }
+    if ($Args) {
+        $allArgs += $Args
+    }
+
+    & $Invoker.Executable @allArgs
 }
 
 $scriptPath = $MyInvocation.MyCommand.Path
 if (-not $scriptPath) {
     throw 'Unable to determine script path.'
 }
-$repoRoot = Split-Path -Parent $scriptPath
+$repoRoot = (Get-Item -LiteralPath $scriptPath).Directory.FullName
 Set-Location $repoRoot
 
 Write-Host "==> Spectra App quick launcher" -ForegroundColor Cyan
@@ -77,7 +85,9 @@ $pythonInvoker = New-PythonInvoker
 Write-Host "Using Python $($pythonInvoker.DisplayVersion) at $($pythonInvoker.Executable)" -ForegroundColor Green
 
 $venvPath = Join-Path $repoRoot '.venv'
-$pythonExe = Join-Path (Join-Path $venvPath 'Scripts') 'python.exe'
+$scriptsDir = if ($IsWindows) { 'Scripts' } else { 'bin' }
+$pythonExecutableName = if ($IsWindows) { 'python.exe' } else { 'python' }
+$pythonExe = Join-Path (Join-Path $venvPath $scriptsDir) $pythonExecutableName
 
 if ($Reinstall -and (Test-Path $venvPath)) {
     Write-Host "Removing existing virtual environment (.venv) because -Reinstall was specified..." -ForegroundColor Yellow
@@ -90,10 +100,14 @@ if (-not (Test-Path $pythonExe)) {
 }
 
 Write-Host "Upgrading pip..." -ForegroundColor Cyan
-& $pythonExe -m pip install --upgrade pip | Out-String | Write-Verbose
+& $pythonExe -m pip install --upgrade pip
 
 Write-Host "Installing dependencies from requirements.txt..." -ForegroundColor Cyan
 & $pythonExe -m pip install -r (Join-Path $repoRoot 'requirements.txt')
+
+$toolPackages = @('pyinstaller')
+Write-Host "Ensuring developer tools ($($toolPackages -join ', ')) are installed..." -ForegroundColor Cyan
+& $pythonExe -m pip install @toolPackages
 
 Write-Host "Launching Spectra app..." -ForegroundColor Cyan
 & $pythonExe -m app.main

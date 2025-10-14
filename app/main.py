@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import sys
 from pathlib import Path
 from typing import Iterable
 
@@ -15,11 +16,8 @@ from .services import (
     MathService,
 )
 
-SAMPLES_DIR = Path(__file__).resolve().parent.parent / 'samples'
+SAMPLES_DIR = Path(__file__).resolve().parent.parent / "samples"
 
-
-class SpectraMainWindow(QtWidgets.QMainWindow):
-    """Minimal yet functional shell that wires UI actions to services."""
 
 class SpectraMainWindow(QtWidgets.QMainWindow):
     """Minimal yet functional shell that wires UI actions to services."""
@@ -242,8 +240,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         lines = [f"Name: {spectrum.name}", f"Source: {spectrum.source_path or 'N/A'}"]
         for key, value in spectrum.metadata.items():
             lines.append(f"{key}: {value}")
-        self.data_view.setPlainText("
-".join(lines))
+        self.data_view.setPlainText("\n".join(lines))
 
     def _on_selection_changed(self) -> None:
         items = self.spectra_list.selectedItems()
@@ -308,7 +305,7 @@ def main() -> None:
     app = QtWidgets.QApplication(sys.argv)
     window = SpectraMainWindow()
     window.show()
-    _sys.exit(app.exec())
+    sys.exit(app.exec())
 
 
 if __name__ == "__main__":
