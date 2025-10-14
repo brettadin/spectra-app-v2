@@ -1,5 +1,10 @@
 # Patch Notes
 
+## 2025-10-14 (Units Reference) (7:38 pm)
+
+- Authored `docs/user/units_reference.md` to document supported spectral units, idempotent conversions, and provenance guarantees.
+- Linked the quickstart guide to the new reference and marked the Batch 3 workplan item complete.
+
 ## 2025-10-14 (Quickstart Guide) (8:00 pm)
 
 - Added `docs/user/quickstart.md` with a step-by-step walkthrough covering launch, ingest, unit toggles, and provenance export using the bundled sample spectrum.
