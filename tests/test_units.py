@@ -3,8 +3,7 @@
 import numpy as np
 import pytest
 
-from app.services.units_service import UnitsService
-from app.services.spectrum import Spectrum
+from app.services.units_service import UnitError, UnitsService
 
 
 def test_wavelength_round_trip_nm_um():

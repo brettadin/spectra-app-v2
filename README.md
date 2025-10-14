@@ -87,13 +87,13 @@ to rebuild the virtual environment from scratch.
    `app/services/provenance_service.py`.  Use this as a template when
    ingesting your own data during development.
 
-4. Run the tests using `pytest` to confirm that core services behave as
-   expected:
+3. Run the automated test suite to verify conversions, ingestion, provenance and overlay behaviour:
 
    ```bash
-   python -m pip install pytest
-   pytest -q
+   pytest
    ```
+
+4. To build a Windows distributable, follow the instructions in `packaging/windows_build.md`.  The PyInstaller spec in `packaging/spectra_app.spec` is preconfigured to bundle Qt dependencies and sample data.
 
 ## Contributing
 
