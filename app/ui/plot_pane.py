@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict
+from typing import Dict, Any
 
 import numpy as np
 import pyqtgraph as pg
@@ -12,6 +12,10 @@ import pyqtgraph.exporters
 
 from app.qt_compat import get_qt
 
+QtCore: Any
+QtGui: Any
+QtWidgets: Any
+_: Any
 QtCore, QtGui, QtWidgets, _ = get_qt()
 
 

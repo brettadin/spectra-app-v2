@@ -2,5 +2,13 @@
 
 from .base import ImporterResult, SupportsImport
 from .csv_importer import CsvImporter
+from .fits_importer import FitsImporter
+from .jcamp_importer import JcampImporter
 
-__all__ = ["ImporterResult", "SupportsImport", "CsvImporter"]
+__all__ = [
+    "ImporterResult",
+    "SupportsImport",
+    "CsvImporter",
+    "FitsImporter",
+    "JcampImporter",
+]

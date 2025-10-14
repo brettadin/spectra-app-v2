@@ -6,6 +6,7 @@ from .provenance_service import ProvenanceService
 from .data_ingest_service import DataIngestService
 from .overlay_service import OverlayService
 from .math_service import MathService
+from .store import LocalStore
 
 __all__ = [
     "Spectrum",
@@ -15,4 +16,5 @@ __all__ = [
     "DataIngestService",
     "OverlayService",
     "MathService",
+    "LocalStore",
 ]
