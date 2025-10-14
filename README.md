@@ -38,6 +38,21 @@ DO NOT LOSE SIGHT OF OUR TRUE END GOALS; SPECTROSCOPIC ANALYSIS OF CELESTIAL BOD
 
 ## Getting Started
 
+### Easiest path (Windows quick-launch)
+
+Double-click `RunSpectraApp.cmd` (or run it from a terminal). The helper
+will:
+
+1. Ensure Python is available.
+2. Create/refresh the local `.venv` virtual environment.
+3. Install dependencies from `requirements.txt`.
+4. Launch the desktop app via `python -m app.main`.
+
+You can pass `-Reinstall` to the script (e.g. `RunSpectraApp.cmd -Reinstall`)
+to rebuild the virtual environment from scratch.
+
+### Manual steps (any platform)
+
 1. Install the Python dependencies listed in `requirements.txt` using the
    interpreter you plan to run the app with:
 
@@ -45,7 +60,7 @@ DO NOT LOSE SIGHT OF OUR TRUE END GOALS; SPECTROSCOPIC ANALYSIS OF CELESTIAL BOD
    python -m pip install -r requirements.txt
    ```
 
-2. Launch the desktop shell.  The entry point is `app/main.py` and can be run from the repository root:
+2. Run the main module from the repository root:
 
    ```
    cd C:\Code\spectra-app-beta\app\
@@ -53,11 +68,11 @@ DO NOT LOSE SIGHT OF OUR TRUE END GOALS; SPECTROSCOPIC ANALYSIS OF CELESTIAL BOD
    ```
 
    > **Tip:** Use dot notation (`app.main`) when launching a module with
-   > `python -m`.  Using a slash (e.g. `python -m app/main.py`) will fail
+   > `python -m`. Using a slash (e.g. `python -m app/main.py`) will fail
    > because Python treats it as an invalid module name.
 
    This will launch a minimal window that demonstrates the basic
-   application structure.  Future iterations will populate the UI with tabs
+   application structure. Future iterations will populate the UI with tabs
    and controls as described in the specifications.
 
 3. Explore the `samples` folder to see an example dataset (`sample_spectrum.csv`)
