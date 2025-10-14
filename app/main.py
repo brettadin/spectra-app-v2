@@ -2,9 +2,6 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
-import json
-import logging
 from pathlib import Path
 from typing import Iterable
 
@@ -20,6 +17,9 @@ from .services import (
 
 SAMPLES_DIR = Path(__file__).resolve().parent.parent / 'samples'
 
+
+class SpectraMainWindow(QtWidgets.QMainWindow):
+    """Minimal yet functional shell that wires UI actions to services."""
 
 class SpectraMainWindow(QtWidgets.QMainWindow):
     """Minimal yet functional shell that wires UI actions to services."""
@@ -303,10 +303,12 @@ def json_pretty(data: dict) -> str:
 
 
 def main() -> None:
-    app = QtWidgets.QApplication(sys.argv)
+    import sys as _sys
+
+    app = QtWidgets.QApplication(_sys.argv)
     window = SpectraMainWindow()
     window.show()
-    app.exec()
+    _sys.exit(app.exec())
 
 
 if __name__ == "__main__":
