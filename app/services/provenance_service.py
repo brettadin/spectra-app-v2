@@ -1,73 +1,78 @@
-"""Generate and parse provenance manifests.
-
-The ProvenanceService is responsible for constructing JSON manifests that
-capture the lineage of spectra and data transformations.  It records
-metadata such as the application version, the source files and their
-checksums, any transformation operations (e.g. unit conversions or math
-operations), and citations for external knowledge.  See the specification
-in `specs/provenance_schema.md` for details.
-"""
+"""Generate and parse provenance manifests."""
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from typing import List, Dict, Any, Optional
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Iterable, List, Mapping, Optional, Sequence
+import datetime as dt
 import hashlib
 import json
-from pathlib import Path
-import datetime
+
+from .spectrum import Spectrum
 
 
 @dataclass
 class ProvenanceService:
-    """Service for creating provenance manifests."""
+    """Service for creating and persisting provenance manifests."""
 
-    app_name: str = "spectra-redesign"
-    app_version: str = "0.1"
+    app_name: str = "spectra-app-beta"
+    app_version: str = "0.1.0"
 
-    def create_manifest(self, sources: List[Path], transforms: Optional[List[Dict[str, Any]]] = None,
-                        citations: Optional[List[Dict[str, Any]]] = None) -> Dict[str, Any]:
-        """Create a provenance manifest for the given sources.
+    def timestamp(self) -> str:
+        return dt.datetime.now(dt.timezone.utc).isoformat()
 
-        Args:
-            sources: A list of file paths to include in the manifest.  Each file
-                will have its SHA‑256 hash computed.
-            transforms: Optional list of transformation descriptors applied to
-                the data after ingestion.  Each entry should include a name,
-                parameters and a timestamp.
-            citations: Optional list of citation dictionaries for external
-                resources used.
+    def create_manifest(
+        self,
+        spectra: Sequence[Spectrum],
+        *,
+        operations: Optional[Sequence[Mapping[str, object]]] = None,
+        citations: Optional[Sequence[Mapping[str, object]]] = None,
+    ) -> Mapping[str, object]:
+        """Create a machine-readable provenance manifest."""
 
-        Returns:
-            A manifest dictionary ready to be serialised to JSON.
-        """
-        src_entries = []
-        for src in sources:
-            hash_value = self._sha256(src)
-            src_entries.append({
-                "path": src.name,
-                "sha256": hash_value,
-                "units": {},
-                "metadata": {}
-            })
+        entries: List[Mapping[str, object]] = []
+        for spectrum in spectra:
+            entries.append(
+                {
+                    "id": spectrum.id,
+                    "name": spectrum.name,
+                    "checksum": spectrum.checksum(),
+                    "units": {
+                        "wavelength": "nm",
+                        "flux": spectrum.flux_unit,
+                    },
+                    "metadata": dict(spectrum.metadata),
+                    "provenance": [dict(p) for p in spectrum.provenance],
+                }
+            )
+
         manifest = {
             "app": {"name": self.app_name, "version": self.app_version},
-            "timestamp": datetime.datetime.now().isoformat(),
-            "sources": src_entries,
-            "transforms": transforms or [],
-            "citations": citations or []
+            "created": self.timestamp(),
+            "spectra": entries,
+            "operations": [dict(op) for op in (operations or [])],
+            "citations": [dict(c) for c in (citations or [])],
         }
         return manifest
 
-    def save_manifest(self, manifest: Dict[str, Any], path: Path) -> None:
-        """Write the manifest dictionary to disk as formatted JSON."""
-        with path.open('w') as f:
-            json.dump(manifest, f, indent=2)
+    def save_manifest(self, manifest: Mapping[str, object], path: Path) -> None:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        with path.open("w", encoding="utf-8") as handle:
+            json.dump(manifest, handle, indent=2)
 
-    def _sha256(self, path: Path) -> str:
-        """Compute the SHA‑256 digest of a file."""
-        h = hashlib.sha256()
-        with path.open('rb') as f:
-            for chunk in iter(lambda: f.read(8192), b''):
-                h.update(chunk)
-        return h.hexdigest()
+    def manifest_for_operation(
+        self,
+        result: Spectrum,
+        inputs: Iterable[Spectrum],
+        *,
+        operation: Mapping[str, object],
+    ) -> Mapping[str, object]:
+        operations = [dict(operation)]
+        manifest = self.create_manifest([result] + list(inputs), operations=operations)
+        return manifest
+
+    def checksum_bytes(self, data: bytes) -> str:
+        digest = hashlib.sha256()
+        digest.update(data)
+        return digest.hexdigest()

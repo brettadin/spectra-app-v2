@@ -1,14 +1,19 @@
-"""Service layer for the Spectra‑Redesign application.
+"""Service layer exports."""
 
-The service layer provides core functionality that is independent of the user
-interface.  It includes classes for representing spectra, converting units,
-computing provenance manifests and importing various file formats.  By
-separating these concerns from the UI, we make it easier to test and
-maintain the application and to expose new functionality as plugins.
-"""
-
-from .spectrum import Spectrum
-from .units_service import UnitsService
+from .units_service import UnitsService, UnitError
 from .provenance_service import ProvenanceService
+from .data_ingest import DataIngestService
+from .overlay_service import OverlayService
+from .math_service import MathService, MathResult
+from .spectrum import Spectrum
 
-__all__ = ["Spectrum", "UnitsService", "ProvenanceService"]
+__all__ = [
+    "UnitsService",
+    "UnitError",
+    "ProvenanceService",
+    "DataIngestService",
+    "OverlayService",
+    "MathService",
+    "MathResult",
+    "Spectrum",
+]
