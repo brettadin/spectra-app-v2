@@ -40,16 +40,17 @@ DO NOT LOSE SIGHT OF OUR TRUE END GOALS; SPECTROSCOPIC ANALYSIS OF CELESTIAL BOD
 
 1. Create and activate a virtual environment, then install the pinned dependencies:
 
-   ```bash
+   ```
    python -m venv .venv
-   source .venv/bin/activate
+   .\.venv\Scripts\activate
    pip install --upgrade pip
    pip install -r requirements.txt
    ```
 
 2. Launch the desktop shell.  The entry point is `app/main.py` and can be run from the repository root:
 
-   ```bash
+   ```
+   cd C:\Code\spectra-app-beta\app\main.py
    python -m app.main
    ```
 
