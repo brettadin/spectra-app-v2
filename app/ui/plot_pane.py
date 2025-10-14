@@ -21,7 +21,8 @@ class TraceStyle:
 
     color: QtGui.QColor
     width: float = 1.5
-    # antialias is not supported per-item in pyqtgraph 0.13.x; use global config
+    # Accepted for backwards compatibility but ignored by pyqtgraph 0.13.x.
+    antialias: bool = False
     show_in_legend: bool = True
 
 
