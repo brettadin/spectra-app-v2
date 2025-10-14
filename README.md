@@ -45,8 +45,8 @@ will:
 
 1. Ensure Python is available.
 2. Prefer the Windows `py` launcher with Python 3.12 (falling back to
-   Python 3.11/3.10 if needed) and fail fast with instructions if only
-   unsupported versions such as 3.13 are present.
+   Python 3.13/3.11/3.10 as needed) and fail fast with guidance if
+   nothing in that range is installed.
 3. Create/refresh the local `.venv` virtual environment.
 4. Install dependencies from `requirements.txt`.
 5. Launch the desktop app via `python -m app.main`.

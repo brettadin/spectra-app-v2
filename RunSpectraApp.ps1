@@ -7,7 +7,7 @@ $ErrorActionPreference = 'Stop'
 
 function New-PythonInvoker {
     param(
-        [string[]]$PreferredVersions = @('3.12', '3.11', '3.10')
+        [string[]]$PreferredVersions = @('3.12', '3.13', '3.11', '3.10')
     )
 
     $pyLauncher = Get-Command py -ErrorAction SilentlyContinue
@@ -41,8 +41,8 @@ function New-PythonInvoker {
             throw "Unrecognised Python version string: $versionText"
         }
 
-        if ($parsed.Major -ne 3 -or $parsed.Minor -lt 10 -or $parsed.Minor -gt 12) {
-            throw "Found Python $versionText, but Spectra currently supports Python 3.10–3.12. Install Python 3.12 and rerun."
+        if ($parsed.Major -ne 3 -or $parsed.Minor -lt 10 -or $parsed.Minor -gt 13) {
+            throw "Found Python $versionText, but Spectra currently supports Python 3.10–3.13. Install a supported version and rerun."
         }
 
         return [PSCustomObject]@{
