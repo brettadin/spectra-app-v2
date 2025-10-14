@@ -37,6 +37,7 @@ class PlotPane(QtWidgets.QWidget):
         self._display_unit = "nm"
         self._traces: Dict[str, Dict[str, object]] = {}
         self._order: list[str] = []
+        self._max_points = 120_000
         self._build_ui()
 
     # ------------------------------------------------------------------
@@ -69,7 +70,7 @@ class PlotPane(QtWidgets.QWidget):
             self._rebuild_legend()
             return
 
-        curve = pg.PlotCurveItem()
+        curve = pg.PlotDataItem()
         self._plot.addItem(curve)
         self._traces[key] = {
             "alias": alias,
@@ -88,7 +89,7 @@ class PlotPane(QtWidgets.QWidget):
         trace = self._traces.pop(key, None)
         if not trace:
             return
-        item: pg.PlotCurveItem = trace["item"]  # type: ignore[assignment]
+        item: pg.PlotDataItem = trace["item"]  # type: ignore[assignment]
         self._plot.removeItem(item)
         self._order = [k for k in self._order if k != key]
         self._rebuild_legend()
@@ -98,7 +99,7 @@ class PlotPane(QtWidgets.QWidget):
         if not trace:
             return
         trace["visible"] = visible
-        item: pg.PlotCurveItem = trace["item"]  # type: ignore[assignment]
+        item: pg.PlotDataItem = trace["item"]  # type: ignore[assignment]
         item.setVisible(visible)
         self._rebuild_legend()
 
@@ -134,7 +135,7 @@ class PlotPane(QtWidgets.QWidget):
         layout.setContentsMargins(0, 0, 0, 0)
         # Use pyqtgraph defaults for foreground/background colours to avoid
         # invalid colour values being passed to mkColor.
-        pg.setConfigOptions(antialias=True)
+        pg.setConfigOptions(antialias=False)
 
         self._plot = pg.PlotWidget()
         self._plot.setObjectName("plot-pane")
@@ -167,8 +168,12 @@ class PlotPane(QtWidgets.QWidget):
         trace = self._traces[key]
         style: TraceStyle = trace["style"]  # type: ignore[assignment]
         pen = pg.mkPen(color=style.color, width=style.width)
-        item: pg.PlotCurveItem = trace["item"]  # type: ignore[assignment]
+        item: pg.PlotDataItem = trace["item"]  # type: ignore[assignment]
         item.setPen(pen)
+        if hasattr(item, "setFillLevel"):
+            item.setFillLevel(None)
+        if hasattr(item, "setBrush"):
+            item.setBrush(None)
 
     def _x_nm_to_disp(self, x_nm: np.ndarray) -> np.ndarray:
         unit = self._display_unit
@@ -185,12 +190,44 @@ class PlotPane(QtWidgets.QWidget):
 
     def _update_curve(self, key: str) -> None:
         trace = self._traces[key]
-        item: pg.PlotCurveItem = trace["item"]  # type: ignore[assignment]
+        item: pg.PlotDataItem = trace["item"]  # type: ignore[assignment]
         x_nm: np.ndarray = trace["x_nm"]  # type: ignore[assignment]
         y: np.ndarray = trace["y"]  # type: ignore[assignment]
         x_disp = self._x_nm_to_disp(x_nm)
+        x_disp, y = self._downsample_peak(x_disp, y, self._max_points)
         item.setData(x_disp, y, connect="finite")
         item.setVisible(bool(trace.get("visible", True)))
+
+    def _downsample_peak(
+        self, x: np.ndarray, y: np.ndarray, max_points: int
+    ) -> tuple[np.ndarray, np.ndarray]:
+        n = len(x)
+        if n <= max_points:
+            return x, y
+        step = int(np.ceil(n / max_points))
+        if step <= 1:
+            return x, y
+        trim = n - (n % step)
+        if trim <= 0:
+            return x[::step], y[::step]
+        xr = x[:trim].reshape(-1, step)
+        yr = y[:trim].reshape(-1, step)
+        x_bin = xr[:, 0]
+        y_min = yr.min(axis=1)
+        y_max = yr.max(axis=1)
+        out_n = x_bin.size * 2
+        xo = np.empty(out_n, dtype=x.dtype)
+        yo = np.empty(out_n, dtype=y.dtype)
+        xo[0::2] = x_bin
+        xo[1::2] = x_bin
+        yo[0::2] = y_min
+        yo[1::2] = y_max
+        if trim < n:
+            tail_x = x[trim:]
+            tail_y = y[trim:]
+            xo = np.concatenate([xo, tail_x])
+            yo = np.concatenate([yo, tail_y])
+        return xo, yo
 
     def _redraw_units(self) -> None:
         for key in self._traces:
@@ -206,7 +243,7 @@ class PlotPane(QtWidgets.QWidget):
             style: TraceStyle = trace["style"]  # type: ignore[assignment]
             if not bool(trace.get("visible", True)) or not style.show_in_legend:
                 continue
-            item: pg.PlotCurveItem = trace["item"]  # type: ignore[assignment]
+            item: pg.PlotDataItem = trace["item"]  # type: ignore[assignment]
             alias = trace.get("alias", key)
             self._legend.addItem(item, str(alias))
 
@@ -218,3 +255,10 @@ class PlotPane(QtWidgets.QWidget):
         self._vline.setPos(mapped.x())
         self._hline.setPos(mapped.y())
         self.pointHovered.emit(mapped.x(), mapped.y())
+
+    def begin_bulk_update(self) -> None:
+        self._plot.setUpdatesEnabled(False)
+
+    def end_bulk_update(self) -> None:
+        self._plot.setUpdatesEnabled(True)
+        self.autoscale()
