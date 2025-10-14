@@ -1,12 +1,13 @@
-"""Generate and parse provenance manifests."""
+"""Generate and persist provenance manifests and export bundles."""
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from importlib import metadata
 from pathlib import Path
-from typing import Iterable, Dict, Any, List, Optional
+import csv
+from typing import Iterable, Dict, Any, List, Optional, Callable
 import hashlib
 import json
 
@@ -45,7 +46,52 @@ class ProvenanceService:
         with path.open('w', encoding='utf-8') as f:
             json.dump(manifest, f, indent=2, ensure_ascii=False)
 
+    def export_bundle(
+        self,
+        spectra: Iterable[Spectrum],
+        manifest_path: Path,
+        *,
+        transforms: Optional[List[Dict[str, Any]]] = None,
+        citations: Optional[List[Dict[str, Any]]] = None,
+        csv_path: Path | None = None,
+        png_path: Path | None = None,
+        png_writer: Callable[[Path], None] | None = None,
+    ) -> Dict[str, Any]:
+        """Create a provenance bundle containing manifest, data, and plot artefacts."""
+
+        spectra_list = list(spectra)
+        manifest = self.create_manifest(spectra_list, transforms=transforms, citations=citations)
+
+        manifest_path = Path(manifest_path)
+        self.save_manifest(manifest, manifest_path)
+
+        csv_file = Path(csv_path) if csv_path is not None else manifest_path.with_suffix('.csv')
+        self._write_csv(csv_file, spectra_list)
+
+        png_file = Path(png_path) if png_path is not None else manifest_path.with_suffix('.png')
+        png_file.parent.mkdir(parents=True, exist_ok=True)
+        if png_writer is not None:
+            png_writer(png_file)
+        else:
+            png_file.touch(exist_ok=True)
+
+        return {
+            "manifest": manifest,
+            "manifest_path": manifest_path,
+            "csv_path": csv_file,
+            "png_path": png_file,
+        }
+
     # ------------------------------------------------------------------
+    def _write_csv(self, path: Path, spectra: Iterable[Spectrum]) -> None:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        with path.open('w', newline='', encoding='utf-8') as handle:
+            writer = csv.writer(handle)
+            writer.writerow(['spectrum_id', 'name', 'wavelength_nm', 'intensity', 'x_unit', 'y_unit'])
+            for spectrum in spectra:
+                for x_val, y_val in zip(spectrum.x, spectrum.y):
+                    writer.writerow([spectrum.id, spectrum.name, float(x_val), float(y_val), spectrum.x_unit, spectrum.y_unit])
+
     def _source_entry(self, spectrum: Spectrum) -> Dict[str, Any]:
         entry: Dict[str, Any] = {
             "id": spectrum.id,

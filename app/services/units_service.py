@@ -8,12 +8,18 @@ views are generated from the canonical arrays so that round-trips are free of
 numerical drift and the original data is never mutated.
 """
 
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Dict, Any, Tuple
+from typing import Dict, Any, Tuple, TYPE_CHECKING
 
 import numpy as np
+
+if TYPE_CHECKING:
+    from .spectrum import Spectrum
+else:
+    Spectrum = Any
 
 
 _CANONICAL_X_UNIT = "nm"
@@ -35,10 +41,10 @@ class UnitsService:
     returned for every conversion.
     """
 
-    float_dtype: np.dtype = field(default=np.float64)
+    float_dtype: np.dtype = field(default_factory=lambda: np.dtype(np.float64))
 
     # --- Public API -----------------------------------------------------
-    def convert(self, spectrum: "Spectrum", x_unit: str, y_unit: str) -> Tuple[np.ndarray, np.ndarray, Dict[str, Any]]:
+    def convert(self, spectrum: Spectrum, x_unit: str, y_unit: str) -> Tuple[np.ndarray, np.ndarray, Dict[str, Any]]:
         """Convert a canonical spectrum to the requested display units.
 
         Args:
@@ -52,7 +58,6 @@ class UnitsService:
             conversions performed.
         """
 
-        from .spectrum import Spectrum  # local import to avoid circular ref
 
         if spectrum.x_unit != _CANONICAL_X_UNIT:
             raise UnitError(

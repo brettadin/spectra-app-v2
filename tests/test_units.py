@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 
 from app.services.spectrum import Spectrum
-from app.services.units_service import UnitError, UnitsService
+from app.services.units_service import UnitsService
 
 
 def test_wavelength_round_trip_nm_um():

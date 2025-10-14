@@ -4,22 +4,26 @@ from __future__ import annotations
 
 import sys
 from pathlib import Path
-from typing import Dict, Iterable, List
+from typing import Dict, Iterable, List, Any
 
 import numpy as np
 
 from app.qt_compat import get_qt
-
-QtCore, QtGui, QtWidgets, QT_BINDING = get_qt()
-
 from .services import (
     UnitsService,
     ProvenanceService,
     DataIngestService,
     OverlayService,
     MathService,
+    Spectrum,
 )
 from .ui.plot_pane import PlotPane, TraceStyle
+
+QtCore: Any
+QtGui: Any
+QtWidgets: Any
+QT_BINDING: str
+QtCore, QtGui, QtWidgets, QT_BINDING = get_qt()
 
 SAMPLES_DIR = Path(__file__).resolve().parent.parent / "samples"
 
@@ -342,7 +346,6 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         if not self.overlay_service.list():
             QtWidgets.QMessageBox.information(self, "No Data", "Load spectra before exporting provenance.")
             return
-        manifest = self.provenance_service.create_manifest(self.overlay_service.list())
         save_path, _ = QtWidgets.QFileDialog.getSaveFileName(
             self,
             "Save Manifest",
@@ -350,18 +353,22 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             "JSON (*.json)",
         )
         if save_path:
-            save_path = Path(save_path)
-            self.provenance_service.save_manifest(manifest, save_path)
-            self.status_bar.showMessage(f"Manifest saved to {save_path}", 5000)
-            self._log("Manifest", f"Saved to {save_path}")
-            image_path = save_path.with_suffix('.png')
+            manifest_path = Path(save_path)
             try:
-                self.plot.export_png(image_path)
+                export = self.provenance_service.export_bundle(
+                    self.overlay_service.list(),
+                    manifest_path,
+                    png_writer=self.plot.export_png,
+                )
             except Exception as exc:  # pragma: no cover - UI feedback
-                self._log("Export", f"Plot export failed: {exc}")
-            else:
-                self._log("Export", f"Plot snapshot saved to {image_path}")
-            self.provenance_view.setPlainText(json_pretty(manifest))
+                QtWidgets.QMessageBox.warning(self, "Export Failed", str(exc))
+                self._log("Export", f"Bundle export failed: {exc}")
+                return
+            self.status_bar.showMessage(f"Manifest saved to {export['manifest_path']}", 5000)
+            self._log("Manifest", f"Saved to {export['manifest_path']}")
+            self._log("Export", f"CSV saved to {export['csv_path']}")
+            self._log("Export", f"Plot snapshot saved to {export['png_path']}")
+            self.provenance_view.setPlainText(json_pretty(export['manifest']))
             self.provenance_view.show()
             self.prov_tree.show()
             self.prov_placeholder.hide()
@@ -430,7 +437,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self._show_metadata(spectrum)
         self._show_provenance(spectrum)
 
-    def _add_spectrum(self, spectrum: 'Spectrum') -> None:
+    def _add_spectrum(self, spectrum: Spectrum) -> None:
         color = self._assign_color(spectrum)
         group_item = self._derived_item if self._is_derived(spectrum) else self._originals_item
         visible_item = QtGui.QStandardItem()
@@ -455,7 +462,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self._visibility[spectrum.id] = True
         self._add_plot_trace(spectrum, color)
 
-    def _add_plot_trace(self, spectrum: 'Spectrum', color: QtGui.QColor) -> None:
+    def _add_plot_trace(self, spectrum: Spectrum, color: QtGui.QColor) -> None:
         alias_item = self._dataset_items.get(spectrum.id)
         alias = alias_item.text() if alias_item else spectrum.name
         x_nm = self._to_nm(spectrum.x, spectrum.x_unit)
@@ -474,7 +481,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         )
         self.plot.autoscale()
 
-    def _show_metadata(self, spectrum: 'Spectrum | None') -> None:
+    def _show_metadata(self, spectrum: Spectrum | None) -> None:
         if spectrum is None:
             self.info_panel.hide()
             self.info_placeholder.show()
@@ -500,7 +507,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.info_panel.show()
         self.info_placeholder.hide()
 
-    def _show_provenance(self, spectrum: 'Spectrum | None') -> None:
+    def _show_provenance(self, spectrum: Spectrum | None) -> None:
         if spectrum is None:
             self.prov_tree.clear()
             self.provenance_view.clear()
@@ -586,7 +593,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         mapping = {"%T": "percent_transmittance"}
         return mapping.get(label, label)
 
-    def _assign_color(self, spectrum: 'Spectrum') -> QtGui.QColor:
+    def _assign_color(self, spectrum: Spectrum) -> QtGui.QColor:
         if spectrum.id in self._spectrum_colors:
             return self._spectrum_colors[spectrum.id]
 
@@ -608,7 +615,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self._spectrum_colors[spectrum.id] = color
         return color
 
-    def _is_derived(self, spectrum: 'Spectrum') -> bool:
+    def _is_derived(self, spectrum: Spectrum) -> bool:
         metadata = spectrum.metadata
         if isinstance(metadata, dict) and 'operation' in metadata:
             return True

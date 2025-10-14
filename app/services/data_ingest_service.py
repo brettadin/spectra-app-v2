@@ -4,11 +4,11 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Dict, Callable, Iterable
+from typing import Dict, Iterable
 
 from .spectrum import Spectrum
 from .units_service import UnitsService
-from .importers import SupportsImport, CsvImporter
+from .importers import SupportsImport, CsvImporter, FitsImporter
 
 
 @dataclass
@@ -21,6 +21,7 @@ class DataIngestService:
     def __post_init__(self) -> None:
         if not self._registry:
             self.register_importer({'.csv', '.txt'}, CsvImporter())
+            self.register_importer({'.fits', '.fit', '.fts'}, FitsImporter())
 
     # ------------------------------------------------------------------
     def register_importer(self, extensions: Iterable[str], importer: SupportsImport) -> None:

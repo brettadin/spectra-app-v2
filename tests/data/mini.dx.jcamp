@@ -1,0 +1,12 @@
+##TITLE=Mini Spectrum Fixture
+##DATA TYPE=INFRARED SPECTRUM
+##ORIGIN=SpectraApp Tests
+##OWNER=SpectraApp
+##XUNITS=1/CM
+##YUNITS=ABSORBANCE
+##NPOINTS=3
+##XYDATA=(X++(Y..Y))
+4000,0.1,0.2,0.3
+3500,0.15,0.25,0.35
+3000,0.2,0.3,0.4
+##END=

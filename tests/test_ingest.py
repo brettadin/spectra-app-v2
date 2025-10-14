@@ -26,3 +26,14 @@ def test_percent_transmittance_conversion():
     spectrum = service.ingest(sample_path)
     expected = -np.log10(np.array([0.9, 0.8, 0.7, 0.6, 0.5]))
     assert np.allclose(spectrum.y, expected)
+
+
+def test_fits_ingest_fixture():
+    service = build_ingest_service()
+    spectrum = service.ingest(Path("tests/data/mini.fits"))
+    ingest_meta = spectrum.metadata["ingest"]
+    assert ingest_meta["importer"] == "FitsImporter"
+    assert ingest_meta["source_path"].endswith("mini.fits")
+    assert np.isclose(spectrum.x[0], 500.0)
+    assert spectrum.metadata.get("original_flux_unit") == "erg/s/cm2/angstrom"
+

@@ -2,5 +2,6 @@
 
 from .base import ImporterResult, SupportsImport
 from .csv_importer import CsvImporter
+from .fits_importer import FitsImporter
 
-__all__ = ["ImporterResult", "SupportsImport", "CsvImporter"]
+__all__ = ["ImporterResult", "SupportsImport", "CsvImporter", "FitsImporter"]
