@@ -19,3 +19,13 @@
 - 2025-10-15: ✅ `mypy app --ignore-missing-imports`
 - 2025-10-15: ⚠️ `pytest -q --maxfail=1 --disable-warnings --cov=app --cov-report=term-missing` (fails: coverage plugin unavailable in test harness)
 - 2025-10-15: ✅ `pytest -q --maxfail=1 --disable-warnings`
+
+# Workplan — Batch 2 (2025-10-14)
+
+- [ ] Close out Batch 1 smoke-check (launch app, ingest CSV/FITS, toggle units, export manifest).
+- [ ] Capture current state of CI gates (ruff, mypy, pytest) on the latest branch.
+- [ ] Inventory pending documentation deltas required before next feature work.
+
+## Batch 2 QA Log
+
+- 2025-10-14: _(pending)_
