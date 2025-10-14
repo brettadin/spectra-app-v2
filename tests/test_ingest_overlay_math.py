@@ -1,6 +1,7 @@
 """Integration tests covering ingest, overlay and math services."""
 
 from pathlib import Path
+
 import numpy as np
 import pytest
 

@@ -20,6 +20,10 @@ _CANONICAL_X_UNIT = "nm"
 _CANONICAL_Y_UNIT = "absorbance"  # Base-10 absorbance (A10)
 
 
+class UnitError(ValueError):
+    """Raised when an unsupported unit is encountered."""
+
+
 @dataclass
 class UnitsService:
     """Perform conversions between spectral units.
@@ -51,12 +55,12 @@ class UnitsService:
         from .spectrum import Spectrum  # local import to avoid circular ref
 
         if spectrum.x_unit != _CANONICAL_X_UNIT:
-            raise ValueError(
+            raise UnitError(
                 "Spectrum.x_unit must be canonical 'nm' before conversion; received "
                 f"{spectrum.x_unit!r}"
             )
         if spectrum.y_unit != _CANONICAL_Y_UNIT:
-            raise ValueError(
+            raise UnitError(
                 "Spectrum.y_unit must be canonical 'absorbance' before conversion; received "
                 f"{spectrum.y_unit!r}"
             )
@@ -106,7 +110,7 @@ class UnitsService:
         if unit in {"cm^-1", "1/cm", "wavenumber"}:
             # ν̅ (cm^-1) → λ (nm): λ_nm = 1e7 / ν̅
             return 1e7 / data
-        raise ValueError(f"Unsupported source x unit: {src}")
+        raise UnitError(f"Unsupported source x unit: {src}")
 
     def _from_canonical_wavelength(self, data_nm: np.ndarray, dst: str) -> np.ndarray:
         unit = self._normalise_x_unit(dst)
@@ -118,7 +122,7 @@ class UnitsService:
             return np.array(data_nm * 10.0, dtype=self.float_dtype)
         if unit in {"cm^-1", "1/cm", "wavenumber"}:
             return np.array(1e7 / data_nm, dtype=self.float_dtype)
-        raise ValueError(f"Unsupported destination x unit: {dst}")
+        raise UnitError(f"Unsupported destination x unit: {dst}")
 
     def _normalise_x_unit(self, unit: str) -> str:
         u = unit.strip().lower()
@@ -151,7 +155,7 @@ class UnitsService:
             metadata.setdefault("intensity_conversion", {})
             metadata["intensity_conversion"].setdefault("transformation", "Ae→A10")
             return data / 2.303
-        raise ValueError(f"Unsupported source y unit: {src}")
+        raise UnitError(f"Unsupported source y unit: {src}")
 
     def _from_canonical_intensity(self, data: np.ndarray, dst: str) -> np.ndarray:
         unit = self._normalise_y_unit(dst)
@@ -163,7 +167,7 @@ class UnitsService:
             return np.array(10 ** (-data) * 100.0, dtype=self.float_dtype)
         if unit in {"absorbance_e", "ae"}:
             return np.array(data * 2.303, dtype=self.float_dtype)
-        raise ValueError(f"Unsupported destination y unit: {dst}")
+        raise UnitError(f"Unsupported destination y unit: {dst}")
 
     def _normalise_y_unit(self, unit: str) -> str:
         return unit.strip().lower()

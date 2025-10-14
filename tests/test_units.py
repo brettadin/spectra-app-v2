@@ -3,6 +3,7 @@
 import numpy as np
 import pytest
 
+from app.services.spectrum import Spectrum
 from app.services.units_service import UnitError, UnitsService
 
 
