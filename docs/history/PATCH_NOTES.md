@@ -1,5 +1,12 @@
 # Patch Notes
 
+## 2025-10-14 (Plot Interaction Guide) (8:45 pm)
+
+- Added `docs/user/plot_tools.md` covering pan/zoom gestures, crosshair usage, legend management, and the 120k-point LOD cap.
+- Wired the Cursor toolbar toggle and new **View → Reset Plot** action to the plot pane so the documentation matches the UI.
+- Linked the new guide from the quickstart and README documentation index.
+- Extended the plot performance stub tests to exercise the crosshair visibility API.
+
 ## 2025-10-14 (Units Reference) (7:38 pm)
 
 - Authored `docs/user/units_reference.md` to document supported spectral units, idempotent conversions, and provenance guarantees.

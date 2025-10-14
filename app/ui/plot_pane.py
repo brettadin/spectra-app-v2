@@ -42,6 +42,7 @@ class PlotPane(QtWidgets.QWidget):
         self._traces: Dict[str, Dict[str, object]] = {}
         self._order: list[str] = []
         self._max_points = 120_000
+        self._crosshair_visible = True
         self._build_ui()
 
     # ------------------------------------------------------------------
@@ -132,6 +133,18 @@ class PlotPane(QtWidgets.QWidget):
         exporter.parameters()["width"] = width
         exporter.export(str(path))
 
+    def set_crosshair_visible(self, visible: bool) -> None:
+        """Show or hide the crosshair guide."""
+
+        self._crosshair_visible = bool(visible)
+        self._vline.setVisible(self._crosshair_visible)
+        self._hline.setVisible(self._crosshair_visible)
+
+    def is_crosshair_visible(self) -> bool:
+        """Return True when the crosshair guide is visible."""
+
+        return self._crosshair_visible
+
     # ------------------------------------------------------------------
     # Internal helpers
     def _build_ui(self) -> None:
@@ -157,6 +170,7 @@ class PlotPane(QtWidgets.QWidget):
         self._hline = pg.InfiniteLine(angle=0, movable=False, pen=pen)
         self._plot.addItem(self._vline, ignoreBounds=True)
         self._plot.addItem(self._hline, ignoreBounds=True)
+        self.set_crosshair_visible(self._crosshair_visible)
         self._proxy = pg.SignalProxy(
             self._plot.scene().sigMouseMoved,
             rateLimit=60,

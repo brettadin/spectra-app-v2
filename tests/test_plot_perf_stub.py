@@ -32,3 +32,25 @@ def test_plotpane_downsamples_to_point_cap():
     pane.deleteLater()
     if QtWidgets.QApplication.instance() is app and not app.topLevelWidgets():
         app.quit()
+
+
+def test_plotpane_crosshair_toggle():
+    try:
+        _, _, QtWidgets, _ = get_qt()
+    except ImportError:  # pragma: no cover - environment specific
+        pytest.skip("Qt bindings not available")
+
+    app = QtWidgets.QApplication.instance() or QtWidgets.QApplication([])
+    pane = PlotPane()
+
+    assert pane.is_crosshair_visible()
+
+    pane.set_crosshair_visible(False)
+    assert not pane.is_crosshair_visible()
+
+    pane.set_crosshair_visible(True)
+    assert pane.is_crosshair_visible()
+
+    pane.deleteLater()
+    if QtWidgets.QApplication.instance() is app and not app.topLevelWidgets():
+        app.quit()

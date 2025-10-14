@@ -169,11 +169,10 @@ python -m PyInstaller spectra_app.spec
 ## 📚 Documentation Index
 
 ### User Documentation
-- `docs/user/quickstart.md` - Getting started guide
-- `docs/user/file_types.md` - Supported formats and import procedures
-- `docs/user/units_conversions.md` - Unit system explanation
-- `docs/user/analysis_tools.md` - Mathematical operations guide
-- `docs/user/export_guide.md` - Export formats and provenance
+- `docs/user/quickstart.md` - Getting started walkthrough from launch to export
+- `docs/user/importing.md` - Supported formats and ingest workflow details
+- `docs/user/plot_tools.md` - Plot interactions, crosshair usage, and LOD behaviour
+- `docs/user/units_reference.md` - Unit system guarantees and toggle guidance
 
 ### Developer Resources
 - `docs/dev/architecture.md` - System architecture overview
