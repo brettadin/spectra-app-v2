@@ -21,19 +21,21 @@ SAMPLES_DIR = Path(__file__).resolve().parent.parent / 'samples'
 class SpectraMainWindow(QtWidgets.QMainWindow):
     """Minimal yet functional shell that wires UI actions to services."""
 
-class SpectraMainWindow(QtWidgets.QMainWindow):
-    """Minimal yet functional shell that wires UI actions to services."""
-
-    def __init__(self, container: ServiceContainer) -> None:
+    def __init__(self, container: object | None = None) -> None:
         super().__init__()
+        self._container = container
         self.setWindowTitle("Spectra Desktop Preview")
         self.resize(1024, 720)
 
-        self.units_service = UnitsService()
-        self.provenance_service = ProvenanceService()
-        self.ingest_service = DataIngestService(self.units_service)
-        self.overlay_service = OverlayService(self.units_service)
-        self.math_service = MathService()
+        self.units_service = self._resolve_service("units_service", UnitsService)
+        self.provenance_service = self._resolve_service("provenance_service", ProvenanceService)
+        self.ingest_service = self._resolve_service(
+            "ingest_service", lambda: DataIngestService(self.units_service)
+        )
+        self.overlay_service = self._resolve_service(
+            "overlay_service", lambda: OverlayService(self.units_service)
+        )
+        self.math_service = self._resolve_service("math_service", MathService)
 
         self._setup_menu()
         self._setup_ui()
@@ -153,6 +155,47 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         return widget
 
     # ------------------------------------------------------------------
+    def _resolve_service(self, key: str, factory) -> object:
+        if self._container is None:
+            return factory() if callable(factory) else factory
+
+        container = self._container
+
+        if isinstance(container, dict):
+            if key in container:
+                return container[key]
+            if hasattr(container, "get"):
+                value = container.get(key)
+                if value is not None:
+                    return value
+            return factory() if callable(factory) else factory
+
+        attr = getattr(container, key, None)
+        if attr is not None:
+            return attr
+
+        resolver = getattr(container, "resolve", None)
+        if callable(resolver):
+            for candidate in (key, factory):
+                try:
+                    value = resolver(candidate)
+                except Exception:  # pragma: no cover - defensive fallback
+                    value = None
+                if value is not None:
+                    return value
+
+        getter = getattr(container, "get", None)
+        if callable(getter):
+            for candidate in (key, factory):
+                try:
+                    value = getter(candidate)
+                except Exception:  # pragma: no cover - defensive fallback
+                    value = None
+                if value is not None:
+                    return value
+
+        return factory() if callable(factory) else factory
+
     def _load_default_samples(self) -> None:
         for sample_file in sorted(SAMPLES_DIR.glob('sample_*.csv')):
             if sample_file.exists():
