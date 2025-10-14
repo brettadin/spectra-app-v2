@@ -24,7 +24,7 @@
 
 - [x] Close out Batch 1 smoke-check (launch app, ingest CSV/FITS, toggle units, export manifest).
 - [x] Capture current state of CI gates (ruff, mypy, pytest) on the latest branch.
-- [ ] Inventory pending documentation deltas required before next feature work.
+- [x] Inventory pending documentation deltas required before next feature work. (See `docs/reviews/doc_inventory_2025-10-14.md`.)
 
 ## Batch 2 QA Log
 
