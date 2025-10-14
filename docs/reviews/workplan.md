@@ -14,3 +14,8 @@
 - 2025-10-14: ✅ `ruff check app tests`
 - 2025-10-14: ✅ `mypy app --ignore-missing-imports`
 - 2025-10-14: ✅ `pytest -q --maxfail=1 --disable-warnings`
+- 2025-10-15: ✅ `pip install -r requirements.txt`
+- 2025-10-15: ✅ `ruff check app tests`
+- 2025-10-15: ✅ `mypy app --ignore-missing-imports`
+- 2025-10-15: ⚠️ `pytest -q --maxfail=1 --disable-warnings --cov=app --cov-report=term-missing` (fails: coverage plugin unavailable in test harness)
+- 2025-10-15: ✅ `pytest -q --maxfail=1 --disable-warnings`
