@@ -1,57 +1,80 @@
-"""Representation of a single spectrum.
-
-The `Spectrum` class encapsulates the independent variable (e.g. wavelength,
-wavenumber) and dependent variable (e.g. absorbance, transmittance) arrays
-along with associated metadata.  This object is immutable; any operation
-that would alter the data produces a new instance.  Metadata about the
-source file, units and provenance should be preserved at all times.
-
-Attributes:
-    x (numpy.ndarray): The independent variable array (e.g. wavelength in nm).
-    y (numpy.ndarray): The dependent variable array (e.g. absorbance).
-    x_unit (str): Unit of the independent variable.
-    y_unit (str): Unit of the dependent variable.
-    metadata (dict): Arbitrary metadata about the spectrum (instrument
-        information, file headers, etc.).
-
-Note:
-    This is a simple dataclass for demonstration.  In the final application
-    additional attributes may be added (e.g. error bars), and validation
-    logic may be extended.
-"""
+"""Representation of a single spectrum."""
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from typing import Dict, Any
+from dataclasses import dataclass, field, replace
+from pathlib import Path
+from typing import Dict, Any, Tuple, TYPE_CHECKING
+import uuid
+
 import numpy as np
+
+if TYPE_CHECKING:  # pragma: no cover - used only for typing
+    from .units_service import UnitsService
+
+_CANONICAL_X_UNIT = "nm"
+_CANONICAL_Y_UNIT = "absorbance"
 
 
 @dataclass(frozen=True)
 class Spectrum:
-    """A single spectral dataset with units and metadata."""
+    """Immutable spectral dataset with canonical units and provenance."""
 
+    id: str
+    name: str
     x: np.ndarray
     y: np.ndarray
-    x_unit: str = "nm"
-    y_unit: str = "absorbance"
+    x_unit: str = _CANONICAL_X_UNIT
+    y_unit: str = _CANONICAL_Y_UNIT
     metadata: Dict[str, Any] = field(default_factory=dict)
+    source_path: Path | None = None
+    parents: Tuple[str, ...] = field(default_factory=tuple)
+    transforms: Tuple[Dict[str, Any], ...] = field(default_factory=tuple)
 
-    def with_units(self, x_unit: str, y_unit: str, units_service: "UnitsService") -> "Spectrum":
-        """Return a new Spectrum converted into the requested units.
+    @staticmethod
+    def create(name: str, x: np.ndarray, y: np.ndarray, metadata: Dict[str, Any] | None = None,
+               source_path: Path | None = None) -> "Spectrum":
+        """Factory for canonical spectra that assigns a UUID."""
+        return Spectrum(
+            id=str(uuid.uuid4()),
+            name=name,
+            x=np.array(x, dtype=np.float64, copy=True),
+            y=np.array(y, dtype=np.float64, copy=True),
+            metadata=dict(metadata or {}),
+            source_path=source_path,
+        )
 
-        Conversion is delegated to the provided UnitsService instance.  If the
-        requested units are the same as the current units, the same data is
-        returned.  Otherwise the service performs the appropriate
-        transformation and returns a new Spectrum instance.
+    # ------------------------------------------------------------------
+    def view(self, units_service: "UnitsService", x_unit: str, y_unit: str) -> Dict[str, Any]:
+        """Return a view of the spectrum in alternative units."""
+        x_view, y_view, info = units_service.convert(self, x_unit, y_unit)
+        combined_meta = dict(self.metadata)
+        combined_meta.update(info)
+        return {
+            "x": x_view,
+            "y": y_view,
+            "x_unit": x_unit,
+            "y_unit": y_unit,
+            "metadata": combined_meta,
+            "name": self.name,
+            "id": self.id,
+        }
 
-        Args:
-            x_unit: Desired unit for the x axis (e.g. 'cm^-1').
-            y_unit: Desired unit for the y axis (e.g. 'transmittance').
-            units_service: Service used to perform unit conversions.
+    def derive(self, name: str, x: np.ndarray, y: np.ndarray, transform: Dict[str, Any]) -> "Spectrum":
+        """Create a derived spectrum keeping canonical units and provenance."""
+        return Spectrum(
+            id=str(uuid.uuid4()),
+            name=name,
+            x=np.array(x, dtype=np.float64, copy=True),
+            y=np.array(y, dtype=np.float64, copy=True),
+            metadata=dict(self.metadata),
+            source_path=self.source_path,
+            parents=self.parents + (self.id,),
+            transforms=self.transforms + (transform,),
+        )
 
-        Returns:
-            A new Spectrum in the requested units.
-        """
-        new_x, new_y, new_metadata = units_service.convert(self, x_unit, y_unit)
-        return Spectrum(x=new_x, y=new_y, x_unit=x_unit, y_unit=y_unit, metadata=new_metadata)
+    def with_metadata(self, **metadata_updates: Any) -> "Spectrum":
+        """Return a new spectrum with metadata updated in a copy."""
+        new_metadata = dict(self.metadata)
+        new_metadata.update(metadata_updates)
+        return replace(self, metadata=new_metadata)
