@@ -45,9 +45,10 @@ DO NOT LOSE SIGHT OF OUR TRUE END GOALS; SPECTROSCOPIC ANALYSIS OF CELESTIAL BOD
    python -m pip install -r requirements.txt
    ```
 
-2. Navigate to the `app` directory and run the main module:
+2. Launch the desktop shell.  The entry point is `app/main.py` and can be run from the repository root:
 
-   ```bash
+   ```
+   cd C:\Code\spectra-app-beta\app\main.py
    python -m app.main
    ```
 
@@ -65,13 +66,13 @@ DO NOT LOSE SIGHT OF OUR TRUE END GOALS; SPECTROSCOPIC ANALYSIS OF CELESTIAL BOD
    `app/services/provenance_service.py`.  Use this as a template when
    ingesting your own data during development.
 
-4. Run the tests using `pytest` to confirm that core services behave as
-   expected:
+3. Run the automated test suite to verify conversions, ingestion, provenance and overlay behaviour:
 
    ```bash
-   python -m pip install pytest
-   pytest -q
+   pytest
    ```
+
+4. To build a Windows distributable, follow the instructions in `packaging/windows_build.md`.  The PyInstaller spec in `packaging/spectra_app.spec` is preconfigured to bundle Qt dependencies and sample data.
 
 ## Contributing
 
