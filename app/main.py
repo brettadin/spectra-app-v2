@@ -284,8 +284,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
     def _log_math(self, info: dict) -> None:
         existing = self.math_log.toPlainText()
         new_line = json_pretty(info)
-        self.math_log.setPlainText("
-".join(filter(None, [existing, new_line])))
+        self.math_log.setPlainText("\n\n".join(filter(None, [existing, new_line])))
 
     def _iter_items(self, widget: QtWidgets.QListWidget):
         for index in range(widget.count()):
