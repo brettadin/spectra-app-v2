@@ -10,7 +10,10 @@ nanometres while preserving the raw arrays on disk for provenance.
   specified in parentheses (e.g. `wavelength(nm)` or `transmittance`).
 - **FITS** – 1D binary tables with wavelength and flux columns. The importer
   looks for standard names such as `WAVELENGTH`, `WAVE`, or `FLUX`. Original
-  header metadata is preserved in the provenance panel.
+  header metadata is preserved in the provenance panel. Install the optional
+  `astropy` dependency to enable FITS ingest on new machines; without it the
+  menu item remains but attempting to load FITS files will raise a helpful
+  error.
 - **JCAMP-DX** – Compact infrared/UV spectral files using `##XYDATA` blocks.
 
 ## How to import

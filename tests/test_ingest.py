@@ -1,8 +1,12 @@
 from pathlib import Path
 
+import importlib.util
+
 import numpy as np
+import pytest
 
 from app.services import DataIngestService, UnitsService
+from app.services.importers import FitsImporter
 
 
 def build_ingest_service() -> DataIngestService:
@@ -36,3 +40,17 @@ def test_fits_ingest_fixture(mini_fits: Path):
     assert ingest_meta["source_path"].endswith("mini.fits")
     assert np.isclose(spectrum.x[0], 500.0)
     assert spectrum.metadata.get("original_flux_unit") == "erg/s/cm2/angstrom"
+
+
+def test_fits_importer_requires_astropy_when_missing(tmp_path: Path):
+    try:
+        fits_spec = importlib.util.find_spec("astropy.io.fits")
+    except ModuleNotFoundError:  # pragma: no cover - interpreter behaviour
+        fits_spec = None
+
+    if fits_spec is not None:
+        pytest.skip("astropy installed; runtime guard not triggered")
+
+    importer = FitsImporter()
+    with pytest.raises(RuntimeError):
+        importer.read(tmp_path / "dummy.fits")
