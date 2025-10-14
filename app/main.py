@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import sys
 from pathlib import Path
 from typing import Iterable
 
@@ -15,11 +16,8 @@ from .services import (
     MathService,
 )
 
-SAMPLES_DIR = Path(__file__).resolve().parent.parent / 'samples'
+SAMPLES_DIR = Path(__file__).resolve().parent.parent / "samples"
 
-
-class SpectraMainWindow(QtWidgets.QMainWindow):
-    """Minimal yet functional shell that wires UI actions to services."""
 
 class SpectraMainWindow(QtWidgets.QMainWindow):
     """Minimal yet functional shell that wires UI actions to services."""
@@ -308,7 +306,7 @@ def main() -> None:
     app = QtWidgets.QApplication(sys.argv)
     window = SpectraMainWindow()
     window.show()
-    _sys.exit(app.exec())
+    sys.exit(app.exec())
 
 
 if __name__ == "__main__":
