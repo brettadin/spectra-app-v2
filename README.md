@@ -8,6 +8,36 @@ unstructured knowledge logs.  Everything in this tree has been designed to
 enable future agents to extend the program without losing historical
 context.
 
+# Spectra App (Redesign)
+
+A modern, modular **Windows desktop** application for spectroscopy—fast, accurate analysis of stellar/planetary/exoplanet data with clean UI, robust provenance, and offline-first caching.
+
+## Repos & Scope
+
+- Legacy reference: https://github.com/brettadin/spectra-app  
+- This repo: complete rewrite with PySide6 + tests + docs-first process.
+
+## Folder Map
+
+- **app/** – PySide6 app: `main.py`, `ui/`, `services/` (ingest, fetch, units, math, provenance, store)
+- **docs/** – User & dev docs; history: `MASTER PROMPT.md`, `RUNNER PROMPT.md`
+- **specs/** – Architecture, system design, UI contract, provenance schema, units & conversions, testing, packaging
+- **reports/** – Audit notes: feature parity, risks, roadmap
+- **tests/** – Pytest suite (ingest, math, units, provenance, perf stubs)
+- **samples/** – Small example datasets for dev/tests
+- **.github/** – CI workflows and PR template
+
+## Quick Start (Windows)
+
+Double-click `RunSpectraApp.cmd` or:
+
+```powershell
+py -3.11 -m venv .venv
+.\.venv\Scripts\python -m pip install -r requirements.txt
+.\.venv\Scripts\python -m app.main
+
+
+
 # Original App Repo
 
 https://github.com/brettadin/spectra-app AND ANY OTHER REPOS FROM https://github.com/brettadin/

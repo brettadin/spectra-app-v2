@@ -1,7 +1,12 @@
+# Revised `START_HERE.md`
+
+```md
 # Start Here
 
-Read in this order:
-- docs/history/MASTER PROMPT.md  ← Product spec & acceptance criteria
-- docs/history/RUNNER PROMPT.md  ← Working loop (plan → implement → test → doc → PR)
+1. Read:
+   - `docs/history/MASTER PROMPT.md`  ← Product spec & acceptance criteria
+   - `docs/history/RUNNER PROMPT.md`  ← Working loop (plan → implement → test → doc → PR)
 
-Then open a branch and begin the CI Loop. See docs/reviews/workplan.md for current checklist.
+2. Create/refresh `docs/reviews/workplan.md` (checkbox list).  
+3. Open a branch and start the CI Loop.  
+4. See `README.md` for running the app and tests.
