@@ -1,10 +1,6 @@
-"""Importer classes for different file formats.
+"""Importer classes for different file formats."""
 
-Importers read external file formats and produce Spectrum objects.  Each
-importer should be registered via a plugin mechanism; for now, we include
-a basic CSV importer as a reference implementation.
-"""
-
+from .base import Importer, ImporterResult, SupportsImport
 from .csv_importer import CsvImporter
 
-__all__ = ["CsvImporter"]
+__all__ = ["ImporterResult", "SupportsImport", "Importer", "CsvImporter"]
