@@ -5,20 +5,6 @@ entries are stored in `app/data/reference` so they can be browsed without a netw
 future automation. Each dataset advertises a `provenance` status in the metadata pane so you can distinguish
 authoritative NIST assets from digitised JWST placeholders that still need regeneration.
 
-## Plot previews and overlays
-
-- The tab now embeds an interactive **pyqtgraph** preview beneath the data table. Hydrogen datasets draw vertical
-  markers at the stored wavelengths, infrared groups render shaded spans for each wavenumber window, and JWST targets
-  plot a line with error bars when uncertainties are present.
-- Use the **Overlay on main plot** checkbox to project the selected dataset onto the central Plot Pane. Overlays are
-  tagged with a deterministic `reference::…` trace ID and a legend label that cites the original units and, for JWST
-  targets, the stored resolving power. The preview normalises intensities so the reference trace fits alongside
-  arbitrary spectra without rescaling your data, while the legend reminds you which physical units the shape
-  represents.
-- The overlay axis always matches the currently selected display unit (nm, µm, Å, or cm⁻¹). The reference converters
-  reuse the same logic as the Plot Pane, so changing units via the toolbar immediately re-renders markers, spans, and
-  JWST curves in the new frame of reference.
-
 ## NIST hydrogen line list
 
 - Data source: [NIST Atomic Spectra Database (ver. 5.11)](https://physics.nist.gov/asd) — Y. Ralchenko, A.E. Kramida,

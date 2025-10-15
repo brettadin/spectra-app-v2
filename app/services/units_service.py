@@ -134,36 +134,9 @@ class UnitsService:
         raise UnitError(f"Unsupported destination x unit: {dst}")
 
     def _normalise_x_unit(self, unit: str) -> str:
-        raw = unit.strip().lower().replace(" ", "")
-
-        translation_table = str.maketrans(
-            {
-                "⁻": "-",
-                "−": "-",
-                "﹣": "-",
-                "－": "-",
-                "–": "-",
-                "—": "-",
-                "⁰": "0",
-                "¹": "1",
-                "²": "2",
-                "³": "3",
-                "⁴": "4",
-                "⁵": "5",
-                "⁶": "6",
-                "⁷": "7",
-                "⁸": "8",
-                "⁹": "9",
-            }
-        )
-        u = raw.translate(translation_table)
-
-        if re.fullmatch(r"cm\^?-1", u) or re.fullmatch(r"cm\^\(-1\)", u):
-            return "cm^-1"
-
-        if u in {"1/cm", "wavenumber"}:
-            return "cm^-1"
-
+        u = unit.strip().lower()
+        # Normalise common Unicode minus signs (⁻, −) to ASCII '-'.
+        u = u.replace("⁻", "-").replace("−", "-").replace("¹", "1")
         mappings = {
             "nanometre": "nm",
             "nanometer": "nm",
@@ -172,6 +145,7 @@ class UnitsService:
             "angstrom": "angstrom",
             "ångström": "angstrom",
             "å": "angstrom",
+            "cm-1": "cm^-1",
         }
         return mappings.get(u, u)
 

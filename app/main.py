@@ -50,6 +50,9 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self._visibility: Dict[str, bool] = {}
         self._normalization_mode: str = "None"
         self._doc_entries: List[tuple[str, Path]] = []
+        self._reference_plot_items: List[object] = []
+        self._reference_overlay_key: Optional[str] = None
+        self._reference_overlay_payload: Optional[Dict[str, Any]] = None
         self._palette: List[QtGui.QColor] = [
             QtGui.QColor("#4F6D7A"),
             QtGui.QColor("#C0D6DF"),
@@ -160,15 +163,6 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.dataset_dock.setWidget(self.dataset_tree)
         self.addDockWidget(QtCore.Qt.DockWidgetArea.LeftDockWidgetArea, self.dataset_dock)
 
-        self._build_plot_toolbar()
-
-        self.inspector_dock = QtWidgets.QDockWidget("Inspector", self)
-        self.inspector_dock.setObjectName("dock-inspector")
-        self.inspector_tabs = QtWidgets.QTabWidget()
-        self._build_inspector_tabs()
-        self.inspector_dock.setWidget(self.inspector_tabs)
-        self.addDockWidget(QtCore.Qt.DockWidgetArea.RightDockWidgetArea, self.inspector_dock)
-
         self.log_dock = QtWidgets.QDockWidget("Log", self)
         self.log_dock.setObjectName("dock-log")
         self.log_view = QtWidgets.QPlainTextEdit()
@@ -181,6 +175,13 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             for channel, message in self._log_buffer:
                 self.log_view.appendPlainText(f"[{channel}] {message}")
             self._log_buffer.clear()
+
+        self.inspector_dock = QtWidgets.QDockWidget("Inspector", self)
+        self.inspector_dock.setObjectName("dock-inspector")
+        self.inspector_tabs = QtWidgets.QTabWidget()
+        self._build_inspector_tabs()
+        self.inspector_dock.setWidget(self.inspector_tabs)
+        self.addDockWidget(QtCore.Qt.DockWidgetArea.RightDockWidgetArea, self.inspector_dock)
 
         self.status_bar = self.statusBar()
         self.status_bar.showMessage("Ready")
@@ -792,10 +793,11 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.reference_filter.textChanged.connect(self._filter_reference_rows)
         controls.addWidget(self.reference_filter, 1)
 
-        self.reference_overlay_toggle = QtWidgets.QCheckBox("Overlay on main plot")
-        self.reference_overlay_toggle.toggled.connect(self._on_reference_overlay_toggled)
-        controls.addWidget(self.reference_overlay_toggle)
         controls.addStretch(1)
+        self.reference_overlay_checkbox = QtWidgets.QCheckBox("Overlay on plot")
+        self.reference_overlay_checkbox.setEnabled(False)
+        self.reference_overlay_checkbox.toggled.connect(self._on_reference_overlay_toggled)
+        controls.addWidget(self.reference_overlay_checkbox)
 
         self.reference_table = QtWidgets.QTableWidget()
         self.reference_table.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
@@ -806,11 +808,12 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         layout.addWidget(self.reference_table, 1)
 
         self.reference_plot = pg.PlotWidget()
-        self.reference_plot.setObjectName("reference-preview")
+        self.reference_plot.setObjectName("reference-plot")
         self.reference_plot.setMinimumHeight(220)
-        self.reference_plot.showGrid(x=True, y=False, alpha=0.15)
-        self.reference_plot.setLabel("bottom", "Wavelength", units=self.plot_unit())
-        self.reference_plot.setLabel("left", "Normalised amplitude")
+        self.reference_plot.showGrid(x=True, y=True, alpha=0.25)
+        default_unit = self.plot_unit() if hasattr(self, "unit_combo") else "nm"
+        self.reference_plot.setLabel("bottom", "Wavelength", units=default_unit)
+        self.reference_plot.setLabel("left", "Relative Intensity")
         layout.addWidget(self.reference_plot, 1)
 
         self.reference_meta = QtWidgets.QTextBrowser()
@@ -847,15 +850,14 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             self.reference_table.setColumnCount(0)
             self.reference_meta.clear()
             self._clear_reference_plot()
-            self._reference_overlay_payload = None
-            self._remove_reference_overlay()
+            self._update_reference_overlay_state(None)
             return
 
         kind, key = data
         query = self.reference_filter.text().strip().lower()
+        overlay_payload: Optional[Dict[str, Any]] = None
 
         self._clear_reference_plot()
-        overlay_payload: Optional[Dict[str, Any]] = None
 
         if kind == "spectral_lines":
             entries = self.reference_library.spectral_lines()
@@ -925,7 +927,6 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                 if ref_lines
                 else f"<p>{notes}</p>"
             )
-            overlay_payload = None
 
         elif kind == "jwst":
             target = self.reference_library.jwst_target(key)
@@ -933,8 +934,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                 self.reference_table.setRowCount(0)
                 self.reference_table.setColumnCount(0)
                 self.reference_meta.setHtml("<p>Target metadata unavailable.</p>")
-                self._reference_overlay_payload = None
-                self._remove_reference_overlay()
+                self._update_reference_overlay_state(None)
                 return
             data_rows = target.get("data", [])
             status = target.get("status")
@@ -943,8 +943,8 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                 self.reference_table.setColumnCount(0)
                 notes = target.get("source", {}).get("notes", "No public JWST spectrum available.")
                 self._set_reference_meta(target.get("name"), target.get("source", {}).get("url"), notes)
-                self._reference_overlay_payload = None
-                self._remove_reference_overlay()
+                self._render_reference_jwst(target, [], "wavelength", "value", None)
+                self._update_reference_overlay_state(None)
                 return
             filtered = self._filter_reference_entries(data_rows, query)
             wavelength_key = next((k for k in data_rows[0].keys() if "wavelength" in k), "wavelength")
@@ -987,31 +987,17 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                 meta_html += f"<p>Status: {status}</p>"
             self.reference_meta.setHtml(meta_html)
             overlay_payload = self._render_reference_jwst(
-                target,
-                filtered,
-                wavelength_key,
-                value_key,
-                uncertainty_key,
+                target, filtered, wavelength_key, value_key, uncertainty_key
             )
 
         else:
             self.reference_table.setRowCount(0)
             self.reference_table.setColumnCount(0)
             self.reference_meta.clear()
-            overlay_payload = None
+            self._clear_reference_plot()
 
         self.reference_table.resizeColumnsToContents()
-
-        self._reference_overlay_payload = overlay_payload
-        has_overlay = overlay_payload is not None and bool(overlay_payload.get("x_nm"))
-        self.reference_overlay_toggle.setEnabled(has_overlay)
-        if not has_overlay:
-            if self.reference_overlay_toggle.isChecked():
-                self.reference_overlay_toggle.blockSignals(True)
-                self.reference_overlay_toggle.setChecked(False)
-                self.reference_overlay_toggle.blockSignals(False)
-            self._remove_reference_overlay()
-        self._update_reference_overlay()
+        self._update_reference_overlay_state(overlay_payload)
 
     def _filter_reference_entries(
         self, entries: List[Mapping[str, Any]], query: str
@@ -1026,233 +1012,283 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                 filtered.append(entry)
         return filtered
 
-    def _on_reference_overlay_toggled(self, _: bool) -> None:
-        self._update_reference_overlay()
-
     def _clear_reference_plot(self) -> None:
-        if not hasattr(self, "reference_plot"):
-            return
-        plot_item = self.reference_plot.getPlotItem()
-        plot_item.clear()
-        plot_item.enableAutoRange(axis=pg.ViewBox.XYAxes, enable=True)
-        for item in list(self._reference_items):
-            try:
-                self.reference_plot.removeItem(item)
-            except ValueError:
-                pass
-        self._reference_items.clear()
-        self.reference_plot.setLabel("bottom", "Wavelength", units=self.plot_unit())
-        self.reference_plot.setLabel("left", "Normalised amplitude")
-
-    def _reference_trace_key(self, kind: str, key: Optional[str]) -> str:
-        token = (key or kind or "reference").strip().lower().replace(" ", "_")
-        return f"reference::{token}"
+        if hasattr(self, "reference_plot"):
+            self.reference_plot.clear()
+            self.reference_plot.showGrid(x=True, y=True, alpha=0.25)
+        self._reference_plot_items = []
 
     def _render_reference_spectral_lines(
         self, entries: List[Mapping[str, Any]]
     ) -> Optional[Dict[str, Any]]:
-        overlay_x: List[float] = []
-        overlay_y: List[float] = []
-        x_nm_values: List[float] = []
+        wavelengths: List[float] = []
+        intensities: List[float] = []
         for entry in entries:
-            lam = entry.get("vacuum_wavelength_nm")
-            if lam is None:
+            wavelength = self._coerce_float(entry.get("vacuum_wavelength_nm"))
+            if wavelength is None:
                 continue
-            try:
-                lam_nm = float(lam)
-            except (TypeError, ValueError):
-                continue
-            x_nm_values.append(lam_nm)
-            x_disp = self.plot._x_nm_to_disp(np.array([lam_nm], dtype=float))
-            line = pg.InfiniteLine(pos=float(x_disp[0]), angle=90, pen=pg.mkPen("#8E44AD", width=1.4))
-            line.setZValue(5)
-            self.reference_plot.addItem(line)
-            self._reference_items.append(line)
-            intensity = entry.get("relative_intensity")
-            try:
-                rel = float(intensity) if intensity is not None else 1.0
-            except (TypeError, ValueError):
-                rel = 1.0
-            overlay_x.extend([lam_nm, lam_nm, np.nan])
-            overlay_y.extend([0.0, rel, np.nan])
-        if not x_nm_values:
+            wavelengths.append(wavelength)
+            intensity = self._coerce_float(entry.get("relative_intensity"))
+            intensities.append(intensity if intensity is not None else 1.0)
+
+        if not wavelengths:
+            display_unit = self._reference_display_unit()
+            self.reference_plot.setLabel("bottom", "Wavelength", units=display_unit)
+            self.reference_plot.setLabel("left", "Relative Intensity (a.u.)")
             return None
-        disp_values = self.plot._x_nm_to_disp(np.array(x_nm_values, dtype=float))
-        self.reference_plot.setXRange(float(np.min(disp_values)), float(np.max(disp_values)), padding=0.05)
-        self.reference_plot.setYRange(0.0, 1.05)
-        self.reference_plot.setLabel("left", "Relative intensity (normalised)")
-        y_array = np.array(overlay_y, dtype=float)
-        finite = np.isfinite(y_array)
-        if finite.any():
-            max_val = np.max(y_array[finite])
-            if max_val <= 0:
-                max_val = 1.0
-            y_array[finite] = y_array[finite] / max_val
-        x_array = np.array(overlay_x, dtype=float)
-        return {
-            "key": self._reference_trace_key("spectral_lines", None),
-            "alias": "Reference: Hydrogen lines",
-            "x_nm": x_array,
-            "y": y_array,
-            "style": TraceStyle(color=QtGui.QColor("#8E44AD"), width=2.0, show_in_legend=True),
-        }
+
+        wavelengths_nm = np.array(wavelengths, dtype=float)
+        intensities_arr = np.array(intensities, dtype=float)
+        max_intensity = float(np.nanmax(intensities_arr)) if intensities_arr.size else 1.0
+        if not np.isfinite(max_intensity) or max_intensity <= 0:
+            max_intensity = 1.0
+
+        display_unit = self._reference_display_unit()
+        display_wavelengths = self._convert_nm_to_unit(wavelengths_nm, display_unit)
+        pen = pg.mkPen(color="#C72C41", width=2)
+        for x_val, intensity in zip(display_wavelengths, intensities_arr):
+            height = float(intensity) if np.isfinite(intensity) and intensity > 0 else 1.0
+            item = self.reference_plot.plot([x_val, x_val], [0.0, height], pen=pen)
+            self._reference_plot_items.append(item)
+
+        self.reference_plot.setLabel("bottom", "Wavelength", units=display_unit)
+        self.reference_plot.setLabel("left", "Relative Intensity (a.u.)")
+        self.reference_plot.setYRange(0.0, max_intensity * 1.1, padding=0.05)
+        return self._build_overlay_for_lines(wavelengths_nm)
 
     def _render_reference_ir_groups(
         self, entries: List[Mapping[str, Any]]
     ) -> Optional[Dict[str, Any]]:
-        overlay_x: List[float] = []
-        overlay_y: List[float] = []
-        disp_bounds: List[float] = []
-        brush = pg.mkBrush(22, 160, 133, 60)
-        pen = pg.mkPen(22, 160, 133, 120)
-        for entry in entries:
-            wmin = entry.get("wavenumber_cm_1_min")
-            wmax = entry.get("wavenumber_cm_1_max")
-            if wmin in (None, 0) or wmax in (None, 0):
-                continue
-            try:
-                wmin_val = float(wmin)
-                wmax_val = float(wmax)
-            except (TypeError, ValueError):
-                continue
-            nm_a = 1e7 / wmin_val
-            nm_b = 1e7 / wmax_val
-            start_nm, end_nm = sorted([nm_a, nm_b])
-            disp_range = self.plot._x_nm_to_disp(np.array([start_nm, end_nm], dtype=float))
-            region = pg.LinearRegionItem(values=sorted(disp_range.tolist()), brush=brush, pen=pen, movable=False)
-            region.setZValue(-1)
-            self.reference_plot.addItem(region)
-            self._reference_items.append(region)
-            overlay_x.extend([start_nm, start_nm, end_nm, end_nm, np.nan])
-            overlay_y.extend([0.0, 1.0, 1.0, 0.0, np.nan])
-            disp_bounds.extend(disp_range.tolist())
-        if not overlay_x:
+        if not entries:
+            self.reference_plot.setLabel("bottom", "Wavenumber", units="cm⁻¹")
+            self.reference_plot.setLabel("left", "Relative Presence")
             return None
-        if disp_bounds:
-            self.reference_plot.setXRange(float(np.min(disp_bounds)), float(np.max(disp_bounds)), padding=0.05)
-        self.reference_plot.setYRange(0.0, 1.05)
-        self.reference_plot.setLabel("left", "Band occupancy (normalised)")
-        x_array = np.array(overlay_x, dtype=float)
-        y_array = np.array(overlay_y, dtype=float)
-        return {
-            "key": self._reference_trace_key("ir_groups", None),
-            "alias": "Reference: IR functional groups",
-            "x_nm": x_array,
-            "y": y_array,
-            "style": TraceStyle(color=QtGui.QColor("#16A085"), width=1.8, show_in_legend=True),
-        }
+
+        brush = pg.mkBrush(109, 89, 122, 60)
+        pen = pg.mkPen(color="#6D597A", width=1.5)
+        for entry in entries:
+            start = self._coerce_float(entry.get("wavenumber_cm_1_min"))
+            end = self._coerce_float(entry.get("wavenumber_cm_1_max"))
+            if start is None or end is None:
+                continue
+            if not np.isfinite(start) or not np.isfinite(end):
+                continue
+            lower = min(start, end)
+            upper = max(start, end)
+            region = pg.LinearRegionItem(values=(lower, upper), movable=False)
+            region.setBrush(brush)
+            region.setPen(pen)
+            region.setZValue(5)
+            self.reference_plot.addItem(region)
+            self._reference_plot_items.append(region)
+
+        self.reference_plot.setLabel("bottom", "Wavenumber", units="cm⁻¹")
+        self.reference_plot.setLabel("left", "Relative Presence")
+        return self._build_overlay_for_ir(entries)
 
     def _render_reference_jwst(
         self,
         target: Mapping[str, Any],
-        entries: List[Mapping[str, Any]],
+        rows: List[Mapping[str, Any]],
         wavelength_key: str,
         value_key: str,
         uncertainty_key: Optional[str],
     ) -> Optional[Dict[str, Any]]:
-        wavelengths_nm: List[float] = []
-        values: List[float] = []
-        errors: List[float] = []
-        for entry in entries:
-            lam = entry.get(wavelength_key)
-            val = entry.get(value_key)
-            if lam is None or val is None:
-                continue
-            try:
-                lam_val = float(lam)
-                val_val = float(val)
-            except (TypeError, ValueError):
-                continue
-            key_lower = wavelength_key.lower()
-            if "um" in key_lower or "µm" in key_lower:
-                lam_nm = lam_val * 1e3
-            elif "nm" in key_lower:
-                lam_nm = lam_val
-            elif "cm" in key_lower:
-                if lam_val == 0:
-                    continue
-                lam_nm = 1e7 / lam_val
-            else:
-                lam_nm = lam_val
-            wavelengths_nm.append(lam_nm)
-            values.append(val_val)
-            if uncertainty_key:
-                unc = entry.get(uncertainty_key)
-                try:
-                    errors.append(abs(float(unc)))
-                except (TypeError, ValueError):
-                    errors.append(0.0)
-        if not wavelengths_nm:
+        units = target.get("data_units", "Value")
+        self.reference_plot.setLabel("bottom", "Wavelength", units="µm")
+        self.reference_plot.setLabel("left", str(units))
+        if not rows:
             return None
-        x_disp = self.plot._x_nm_to_disp(np.array(wavelengths_nm, dtype=float))
-        curve = pg.PlotDataItem(x_disp, np.array(values, dtype=float), pen=pg.mkPen("#2980B9", width=2.0))
-        self.reference_plot.addItem(curve)
-        self._reference_items.append(curve)
-        if uncertainty_key and any(err > 0 for err in errors):
-            error_item = pg.ErrorBarItem(
-                x=x_disp,
-                y=np.array(values, dtype=float),
-                height=np.array(errors, dtype=float),
-                pen=pg.mkPen("#2980B9", width=1.2),
-            )
-            self.reference_plot.addItem(error_item)
-            self._reference_items.append(error_item)
-        self.reference_plot.setXRange(float(np.min(x_disp)), float(np.max(x_disp)), padding=0.05)
-        self.reference_plot.setLabel("left", str(target.get("data_units", "Measurement")))
-        alias_bits = [f"Reference: {target.get('name', 'JWST target')}" ]
-        instrument = target.get("instrument")
-        if instrument:
-            alias_bits.append(str(instrument))
-        units = target.get("data_units")
-        if units:
-            alias_bits.append(str(units))
-        resolution = target.get("spectral_resolution")
-        if resolution:
-            alias_bits.append(f"R≈{resolution}")
-        alias = " | ".join(alias_bits)
-        overlay_x = np.array(wavelengths_nm, dtype=float)
-        overlay_y = np.array(values, dtype=float)
-        finite = np.isfinite(overlay_y)
-        if finite.any():
-            max_abs = np.max(np.abs(overlay_y[finite]))
-            if max_abs <= 0:
-                max_abs = 1.0
-            overlay_y = overlay_y / max_abs
-        else:
-            overlay_y = np.zeros_like(overlay_y)
+
+        x_vals: List[float] = []
+        y_vals: List[float] = []
+        err_vals: List[float] = []
+        for entry in rows:
+            wavelength = self._coerce_float(entry.get(wavelength_key))
+            value = self._coerce_float(entry.get(value_key))
+            if wavelength is None or value is None:
+                continue
+            if not np.isfinite(wavelength) or not np.isfinite(value):
+                continue
+            x_vals.append(wavelength)
+            y_vals.append(value)
+            if uncertainty_key:
+                err = self._coerce_float(entry.get(uncertainty_key))
+                if err is None:
+                    err = float("nan")
+                err_vals.append(err)
+
+        if not x_vals:
+            return None
+
+        x_array = np.array(x_vals, dtype=float)
+        y_array = np.array(y_vals, dtype=float)
+        plot_item = self.reference_plot.plot(x_array, y_array, pen=pg.mkPen(color="#33658A", width=2))
+        self._reference_plot_items.append(plot_item)
+
+        if uncertainty_key and err_vals:
+            err_array = np.array(err_vals, dtype=float)
+            upper = y_array + err_array
+            lower = y_array - err_array
+            dotted_pen = pg.mkPen(color="#33658A", width=1, style=QtCore.Qt.PenStyle.DotLine)
+            upper_item = self.reference_plot.plot(x_array, upper, pen=dotted_pen)
+            lower_item = self.reference_plot.plot(x_array, lower, pen=dotted_pen)
+            self._reference_plot_items.extend([upper_item, lower_item])
+
+        return None
+
+    def _reference_display_unit(self) -> str:
+        return self.plot_unit() if hasattr(self, "unit_combo") else "nm"
+
+    def _convert_nm_to_unit(self, values_nm: np.ndarray, unit: str) -> np.ndarray:
+        normalised = self.units_service._normalise_x_unit(unit)
+        if normalised == "nm":
+            return values_nm
+        if normalised in {"um", "µm"}:
+            return values_nm / 1e3
+        if normalised == "angstrom":
+            return values_nm * 10.0
+        if normalised == "cm^-1":
+            with np.errstate(divide="ignore"):
+                return np.where(values_nm != 0, 1e7 / values_nm, np.nan)
+        return values_nm
+
+    @staticmethod
+    def _coerce_float(value: Any) -> Optional[float]:
+        try:
+            return float(value)
+        except (TypeError, ValueError):
+            return None
+
+    def _build_overlay_for_lines(self, wavelengths_nm: np.ndarray) -> Optional[Dict[str, Any]]:
+        if wavelengths_nm.size == 0:
+            return None
+
+        y_min, y_max = self._overlay_vertical_bounds()
+        x_segments: List[float] = []
+        y_segments: List[float] = []
+        for value in wavelengths_nm:
+            if not np.isfinite(value):
+                continue
+            x_segments.extend([value, value, np.nan])
+            y_segments.extend([y_min, y_max, np.nan])
+
+        if not x_segments:
+            return None
+
         return {
-            "key": self._reference_trace_key("jwst", str(target.get("id", "jwst"))),
-            "alias": alias,
-            "x_nm": overlay_x,
-            "y": overlay_y,
-            "style": TraceStyle(color=QtGui.QColor("#2980B9"), width=2.0, show_in_legend=True),
+            "key": "reference::hydrogen_lines",
+            "alias": "Reference – NIST Hydrogen",
+            "x_nm": np.array(x_segments, dtype=float),
+            "y": np.array(y_segments, dtype=float),
+            "color": "#C72C41",
+            "width": 1.4,
         }
 
-    def _update_reference_overlay(self) -> None:
-        payload = self._reference_overlay_payload if self.reference_overlay_toggle.isChecked() else None
-        current_key = self._reference_overlay_key
-        if payload is None:
-            if current_key:
-                self.plot.remove_trace(current_key)
-                self._reference_overlay_key = None
+    def _build_overlay_for_ir(self, entries: List[Mapping[str, Any]]) -> Optional[Dict[str, Any]]:
+        x_segments: List[float] = []
+        y_segments: List[float] = []
+        y_low, y_high = self._overlay_band_bounds()
+
+        for entry in entries:
+            start = self._coerce_float(entry.get("wavenumber_cm_1_min"))
+            end = self._coerce_float(entry.get("wavenumber_cm_1_max"))
+            if start is None or end is None:
+                continue
+            if not np.isfinite(start) or not np.isfinite(end):
+                continue
+            nm_bounds = self.units_service._to_canonical_wavelength(np.array([start, end], dtype=float), "cm^-1")
+            nm_low, nm_high = float(np.nanmin(nm_bounds)), float(np.nanmax(nm_bounds))
+            if not np.isfinite(nm_low) or not np.isfinite(nm_high):
+                continue
+            if nm_low == nm_high:
+                continue
+            x_segments.extend([nm_low, nm_low, nm_high, nm_high, nm_low, np.nan])
+            y_segments.extend([y_low, y_high, y_high, y_low, y_low, np.nan])
+
+        if not x_segments:
+            return None
+
+        return {
+            "key": "reference::ir_groups",
+            "alias": "Reference – IR Functional Groups",
+            "x_nm": np.array(x_segments, dtype=float),
+            "y": np.array(y_segments, dtype=float),
+            "color": "#6D597A",
+            "width": 1.2,
+        }
+
+    def _overlay_vertical_bounds(self) -> tuple[float, float]:
+        _, y_range = self.plot.view_range()
+        y_min, y_max = y_range
+        if not np.isfinite(y_min) or not np.isfinite(y_max) or y_min == y_max:
+            y_min, y_max = 0.0, 1.0
+        if y_min == y_max:
+            y_max = y_min + 1.0
+        return y_min, y_max
+
+    def _overlay_band_bounds(self) -> tuple[float, float]:
+        y_min, y_max = self._overlay_vertical_bounds()
+        span = y_max - y_min
+        bottom = y_min + span * 0.7
+        top = y_min + span * 0.9
+        if not np.isfinite(bottom) or not np.isfinite(top) or top <= bottom:
+            bottom = y_min + span * 0.1
+            top = y_min + span * 0.3
+        return bottom, top
+
+    def _on_reference_overlay_toggled(self, checked: bool) -> None:
+        if checked:
+            self._apply_reference_overlay()
+        else:
+            self._clear_reference_overlay()
+
+    def _update_reference_overlay_state(self, payload: Optional[Dict[str, Any]]) -> None:
+        self._reference_overlay_payload = payload
+        x_values = None
+        y_values = None
+        if payload:
+            x_values = payload.get("x_nm")
+            y_values = payload.get("y")
+        overlay_available = False
+        if isinstance(x_values, np.ndarray) and isinstance(y_values, np.ndarray):
+            overlay_available = x_values.size > 0 and y_values.size == x_values.size
+
+        self.reference_overlay_checkbox.blockSignals(True)
+        self.reference_overlay_checkbox.setEnabled(overlay_available)
+        if not overlay_available:
+            self.reference_overlay_checkbox.setChecked(False)
+        self.reference_overlay_checkbox.blockSignals(False)
+
+        if overlay_available and self.reference_overlay_checkbox.isChecked():
+            self._apply_reference_overlay()
+        elif not overlay_available:
+            self._clear_reference_overlay()
+
+    def _apply_reference_overlay(self) -> None:
+        payload = self._reference_overlay_payload
+        if not payload:
+            self._clear_reference_overlay()
             return
-        key = cast(str, payload.get("key", "reference"))
-        if current_key and current_key != key:
-            self.plot.remove_trace(current_key)
-        x_nm = np.asarray(payload.get("x_nm", []), dtype=float)
-        y = np.asarray(payload.get("y", []), dtype=float)
-        style = cast(TraceStyle, payload.get("style", TraceStyle(color=QtGui.QColor("#8E44AD"))))
-        alias = cast(str, payload.get("alias", key))
-        if not x_nm.size:
-            if current_key:
-                self.plot.remove_trace(current_key)
-                self._reference_overlay_key = None
+
+        x_values = payload.get("x_nm")
+        y_values = payload.get("y")
+        if not isinstance(x_values, np.ndarray) or not isinstance(y_values, np.ndarray):
+            self._clear_reference_overlay()
             return
-        self.plot.add_trace(key=key, alias=alias, x_nm=x_nm, y=y, style=style)
-        self.plot.set_visible(key, True)
+
+        key = str(payload.get("key", "reference::overlay"))
+        alias = str(payload.get("alias", key))
+        color = payload.get("color", "#33658A")
+        width = float(payload.get("width", 1.5))
+
+        self._clear_reference_overlay()
+
+        style = TraceStyle(QtGui.QColor(color), width=width, show_in_legend=False)
+        self.plot.add_trace(key, alias, x_values, y_values, style)
         self._reference_overlay_key = key
 
-    def _remove_reference_overlay(self) -> None:
+    def _clear_reference_overlay(self) -> None:
         if self._reference_overlay_key:
             self.plot.remove_trace(self._reference_overlay_key)
             self._reference_overlay_key = None
@@ -1384,6 +1420,8 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.doc_placeholder.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(self.doc_placeholder)
 
+        self._load_documentation_index()
+
     def _load_documentation_index(self) -> None:
         docs_root = Path(__file__).resolve().parent.parent / "docs" / "user"
         entries: list[tuple[str, Path]] = []
@@ -1493,8 +1531,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self._log("Smoothing", f"Mode set to {value}")
 
     def _log(self, channel: str, message: str) -> None:
-        if not self._log_ready or self.log_view is None:
-            self._log_buffer.append((channel, message))
+        if not hasattr(self, "log_view") or self.log_view is None:
             return
         self.log_view.appendPlainText(f"[{channel}] {message}")
 

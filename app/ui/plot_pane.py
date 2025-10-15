@@ -90,6 +90,12 @@ class PlotPane(QtWidgets.QWidget):
         self._update_curve(key)
         self._rebuild_legend()
 
+    def view_range(self) -> tuple[tuple[float, float], tuple[float, float]]:
+        """Return the current (x, y) view ranges."""
+
+        x_range, y_range = self._plot.viewRange()
+        return (tuple(x_range), tuple(y_range))
+
     def remove_trace(self, key: str) -> None:
         trace = self._traces.pop(key, None)
         if not trace:

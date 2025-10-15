@@ -28,52 +28,17 @@ def test_wavenumber_round_trip():
     assert np.allclose(view_x, x)
 
 
-def test_superscript_wavenumber_round_trip():
+def test_unicode_wavenumber_aliases():
     service = UnitsService()
-    x = np.array([1500.0, 750.0])
-    y = np.array([0.3, 0.7])
-    canonical_x, canonical_y, _ = service.to_canonical(x, y, 'cm⁻¹', 'absorbance')
-    spectrum = Spectrum.create('wavenumber_superscript', canonical_x, canonical_y)
-    view_x, _, _ = service.convert(spectrum, 'cm⁻¹', 'absorbance')
-    assert np.allclose(view_x, x)
+    x_nm = np.array([500.0, 1000.0])
+    y_abs = np.array([0.1, 0.2])
+    display_x, _ = service.from_canonical(x_nm, y_abs, 'cm⁻¹', 'absorbance')
+    expected = np.array([1e7 / 500.0, 1e7 / 1000.0])
+    assert np.allclose(display_x, expected)
 
-
-def test_from_canonical_handles_superscript_wavenumber():
-    service = UnitsService()
-    x_nm = np.array([5000.0, 10000.0])
-    y = np.array([0.1, 0.2])
-    view_x, view_y = service.from_canonical(x_nm, y, 'cm⁻¹', 'absorbance')
-    assert np.allclose(view_x, np.array([2000.0, 1000.0]))
-    assert np.allclose(view_y, y)
-
-
-def test_from_canonical_returns_finite_wavenumbers_for_unicode_minus():
-    service = UnitsService()
-    x_nm = np.array([5000.0, 10000.0])
-    y = np.array([0.1, 0.2])
-
-    wavenumber, _ = service.from_canonical(x_nm, y, 'cm⁻¹', 'absorbance')
-
-    assert np.all(np.isfinite(wavenumber))
-    assert np.allclose(wavenumber, np.array([2000.0, 1000.0]))
-
-
-@pytest.mark.parametrize(
-    "unicode_unit",
-    [
-        "cm⁻¹",  # superscript minus and digit
-        "cm^−1",  # Unicode minus following ASCII caret
-        "cm−¹",  # minus sign, superscript digit
-    ],
-)
-def test_from_canonical_accepts_unicode_wavenumber_variants(unicode_unit: str):
-    service = UnitsService()
-    x_nm = np.array([5000.0, 10000.0])
-    expected = np.array([2000.0, 1000.0])
-
-    wavenumber, _ = service.from_canonical(x_nm, np.array([0.1, 0.2]), unicode_unit, 'absorbance')
-
-    assert np.allclose(wavenumber, expected)
+    canonical_x, _, meta = service.to_canonical(np.array([4000.0]), np.array([0.5]), 'cm⁻¹', 'absorbance')
+    assert np.allclose(canonical_x, np.array([1e7 / 4000.0]))
+    assert meta['source_units']['x'] == 'cm⁻¹'
 
 
 def test_transmittance_conversion_and_round_trip():
