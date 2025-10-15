@@ -1,0 +1,2 @@
+id,group,wavenumber_min_cm_1,wavenumber_max_cm_1,intensity,associated_modes,notes,source_id
+oh_hydrogen_bonded,O–H (hydrogen-bonded),3200,3600,"strong, broad",["stretch"],Alcohols and phenols; width increases with hydrogen bonding.,nist_webbook_2024

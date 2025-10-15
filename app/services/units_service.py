@@ -45,19 +45,7 @@ class UnitsService:
 
     # --- Public API -----------------------------------------------------
     def convert(self, spectrum: Spectrum, x_unit: str, y_unit: str) -> Tuple[np.ndarray, np.ndarray, Dict[str, Any]]:
-        """Convert a canonical spectrum to the requested display units.
-
-        Args:
-            spectrum: Spectrum stored in canonical units (nm / absorbance).
-            x_unit: Desired display unit for the X axis.
-            y_unit: Desired display unit for the Y axis.
-
-        Returns:
-            Tuple of ``(x_array, y_array, metadata)`` where the arrays are new
-            NumPy arrays in ``float_dtype`` and ``metadata`` captures the
-            conversions performed.
-        """
-
+        """Convert a canonical spectrum to the requested display units."""
 
         if spectrum.x_unit != _CANONICAL_X_UNIT:
             raise UnitError(
@@ -78,6 +66,21 @@ class UnitsService:
         if y_unit != _CANONICAL_Y_UNIT:
             metadata["y_conversion"] = f"{_CANONICAL_Y_UNIT}→{y_unit}"
         return x, y, metadata
+
+    def from_canonical(
+        self,
+        x_nm: np.ndarray,
+        y_absorbance: np.ndarray,
+        x_unit: str,
+        y_unit: str,
+    ) -> Tuple[np.ndarray, np.ndarray]:
+        """Convert canonical arrays into alternate display units."""
+
+        x_nm = np.asarray(x_nm, dtype=self.float_dtype)
+        y_absorbance = np.asarray(y_absorbance, dtype=self.float_dtype)
+        x = self._from_canonical_wavelength(x_nm, x_unit)
+        y = self._from_canonical_intensity(y_absorbance, y_unit)
+        return x, y
 
     def to_canonical(self, x: np.ndarray, y: np.ndarray, x_unit: str, y_unit: str,
                      metadata: Dict[str, Any] | None = None) -> Tuple[np.ndarray, np.ndarray, Dict[str, Any]]:
@@ -131,6 +134,8 @@ class UnitsService:
 
     def _normalise_x_unit(self, unit: str) -> str:
         u = unit.strip().lower()
+        # Normalise common Unicode minus signs (⁻, −) to ASCII '-'.
+        u = u.replace("⁻", "-").replace("−", "-").replace("¹", "1")
         mappings = {
             "nanometre": "nm",
             "nanometer": "nm",
@@ -139,6 +144,7 @@ class UnitsService:
             "angstrom": "angstrom",
             "ångström": "angstrom",
             "å": "angstrom",
+            "cm-1": "cm^-1",
         }
         return mappings.get(u, u)
 

@@ -1,0 +1,97 @@
+{
+  "metadata": {
+    "source_id": "nist_webbook_2024",
+    "citation": "P.J. Linstrom and W.G. Mallard (eds.), NIST Chemistry WebBook, NIST Standard Reference Database Number 69 (2024 update).",
+    "url": "https://webbook.nist.gov/chemistry/",
+    "supplemental_citation": "D.L. Pavia, G.M. Lampman, G.S. Kriz, and J.R. Vyvyan (2015). Introduction to Spectroscopy, 5th ed., Cengage Learning.",
+    "retrieved_utc": "2025-10-15T04:10:00Z",
+    "notes": "Representative infrared absorption ranges for qualitative functional-group assignment.",
+    "provenance": {
+      "curation_status": "authoritative",
+      "generator": "tools/reference_build/build_ir_bands.py",
+      "source_file": "docs/reference_sources/ir_functional_groups.csv"
+    }
+  },
+  "groups": [
+    {
+      "id": "oh_hydrogen_bonded",
+      "group": "O–H (hydrogen-bonded)",
+      "wavenumber_cm_1_min": 3200,
+      "wavenumber_cm_1_max": 3600,
+      "intensity": "strong, broad",
+      "associated_modes": ["stretch"],
+      "notes": "Alcohols and phenols; width increases with hydrogen bonding.",
+      "source_id": "nist_webbook_2024"
+    },
+    {
+      "id": "nh_primary",
+      "group": "N–H (primary amine)",
+      "wavenumber_cm_1_min": 3300,
+      "wavenumber_cm_1_max": 3500,
+      "intensity": "medium",
+      "associated_modes": ["stretch"],
+      "notes": "Doublet due to symmetric/antisymmetric stretching.",
+      "source_id": "nist_webbook_2024"
+    },
+    {
+      "id": "ch_sp3",
+      "group": "C–H (sp³)",
+      "wavenumber_cm_1_min": 2850,
+      "wavenumber_cm_1_max": 2960,
+      "intensity": "strong",
+      "associated_modes": ["stretch"],
+      "notes": "Aliphatic stretch envelope.",
+      "source_id": "nist_webbook_2024"
+    },
+    {
+      "id": "ch_sp2",
+      "group": "C–H (sp²)",
+      "wavenumber_cm_1_min": 3010,
+      "wavenumber_cm_1_max": 3100,
+      "intensity": "medium",
+      "associated_modes": ["stretch"],
+      "notes": "Aromatic/alkene diagnostic band.",
+      "source_id": "nist_webbook_2024"
+    },
+    {
+      "id": "co_carbonyl",
+      "group": "C=O (ketone/aldehyde)",
+      "wavenumber_cm_1_min": 1680,
+      "wavenumber_cm_1_max": 1740,
+      "intensity": "very strong",
+      "associated_modes": ["stretch"],
+      "notes": "Peak position shifts with conjugation and substituents.",
+      "source_id": "nist_webbook_2024"
+    },
+    {
+      "id": "coo_ester",
+      "group": "C=O (ester)",
+      "wavenumber_cm_1_min": 1735,
+      "wavenumber_cm_1_max": 1755,
+      "intensity": "strong",
+      "associated_modes": ["stretch"],
+      "notes": "Often accompanied by C–O stretches 1050–1300 cm⁻¹.",
+      "source_id": "nist_webbook_2024"
+    },
+    {
+      "id": "cc_triple",
+      "group": "C≡C",
+      "wavenumber_cm_1_min": 2100,
+      "wavenumber_cm_1_max": 2260,
+      "intensity": "variable",
+      "associated_modes": ["stretch"],
+      "notes": "Weak for symmetrical alkynes; stronger for terminal alkynes.",
+      "source_id": "nist_webbook_2024"
+    },
+    {
+      "id": "coo_carboxylate",
+      "group": "COO⁻ (carboxylate)",
+      "wavenumber_cm_1_min": 1540,
+      "wavenumber_cm_1_max": 1610,
+      "intensity": "strong",
+      "associated_modes": ["asymmetric stretch"],
+      "notes": "Pair with symmetric stretch near 1400 cm⁻¹ to confirm deprotonation.",
+      "source_id": "nist_webbook_2024"
+    }
+  ]
+}
