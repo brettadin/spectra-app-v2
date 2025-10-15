@@ -63,6 +63,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
 
         self.log_view: QtWidgets.QPlainTextEdit | None = None
         self._log_buffer: list[tuple[str, str]] = []
+        self._log_ready = False
 
         self._setup_ui()
         self._setup_menu()
@@ -168,6 +169,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.log_dock.setWidget(self.log_view)
         self.addDockWidget(QtCore.Qt.DockWidgetArea.BottomDockWidgetArea, self.log_dock)
 
+        self._log_ready = True
         if self._log_buffer:
             for channel, message in self._log_buffer:
                 self.log_view.appendPlainText(f"[{channel}] {message}")
@@ -1202,7 +1204,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self._log("Smoothing", f"Mode set to {value}")
 
     def _log(self, channel: str, message: str) -> None:
-        if self.log_view is None:
+        if not self._log_ready or self.log_view is None:
             self._log_buffer.append((channel, message))
             return
         self.log_view.appendPlainText(f"[{channel}] {message}")
