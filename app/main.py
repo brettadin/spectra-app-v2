@@ -180,6 +180,9 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                 self.log_view.appendPlainText(f"[{channel}] {message}")
             self._log_buffer.clear()
 
+        # Ensure documentation auto-load happens only after the log view exists
+        self._load_documentation_index()
+
         self._build_plot_toolbar()
 
         self.status_bar = self.statusBar()
@@ -189,8 +192,6 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                 f"x={x:.4g} {self.plot_unit()} | y={y:.4g}"
             )
         )
-
-        self._load_documentation_index()
 
     def _build_inspector_tabs(self) -> None:
         # Info tab -----------------------------------------------------
