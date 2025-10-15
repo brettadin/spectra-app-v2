@@ -1,5 +1,14 @@
 # Patch Notes
 
+## 2025-10-15 (Importer heuristics & embedded docs) (12:37 am UTC)
+
+- Reworked the CSV/TXT importer to scan messy files for contiguous numeric blocks,
+  infer wavelength/intensity units from prose, and normalise descending wavenumber tables.
+- Added regression coverage for heuristic parsing edge cases in `tests/test_csv_importer.py`
+  and extended the Qt smoke test to assert the Docs tab renders repository guides.
+- Introduced an in-app documentation viewer (Help → View Documentation) and documented
+  the workflow in `docs/user/in_app_documentation.md`.
+
 ## 2025-10-15 (Provenance bundle structure hardening) (12:17 am UTC)
 
 - `ProvenanceService.export_bundle` now creates per-spectrum CSVs under `spectra/`, copies original uploads into `sources/`, and records a structured `log.txt` inside each export bundle.

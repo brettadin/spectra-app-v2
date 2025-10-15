@@ -6,8 +6,10 @@ nanometres while preserving the raw arrays on disk for provenance.
 
 ## Supported formats
 
-- **CSV/TXT** – First column is wavelength, second is intensity. Units can be
-  specified in parentheses (e.g. `wavelength(nm)` or `transmittance`).
+- **CSV/TXT** – Flexible parser that scans for numeric columns even when prose
+  surrounds the table. Units can be provided inline (e.g. `wavelength(nm)`), in
+  square brackets, or in the preamble text; otherwise the importer estimates
+  sensible defaults from value ranges (e.g. 400–2500 ≈ nanometres).
 - **FITS** – 1D binary tables with wavelength and flux columns. The importer
   looks for standard names such as `WAVELENGTH`, `WAVE`, or `FLUX`. Original
   header metadata is preserved in the provenance panel. Install the optional
@@ -28,6 +30,34 @@ Imported spectra always appear in canonical units inside the application. Use
  the unit toggle on the toolbar to view alternative axes without mutating the
  underlying data. The raw source file remains untouched in the provenance
  bundle created during export.
+
+## Intelligent parsing of messy tables
+
+Field notebooks and vendor exports rarely follow a pristine two-column layout.
+The CSV/TXT importer now performs several heuristics to recover the intended
+trace:
+
+- **Context-aware unit detection** – The reader inspects headers, inline
+  parentheses, bracketed annotations, and leading prose for hints like
+  “wavenumber (cm⁻¹)” or “Signal: Percent Transmittance”. When absent, it falls
+  back to value ranges (for example, medians above 1000 are treated as
+  wavenumbers).
+- **Numeric block scanning** – Rather than assuming the very first non-comment
+  line is a header, the importer searches for the longest contiguous block of
+  rows containing at least two numbers. This lets it skip introductory text and
+  footnotes while still capturing the core dataset.
+- **Column scoring** – Each numeric column is scored for monotonic behaviour
+  and variance. The most monotonic column becomes the independent axis, while
+  the dependent axis is chosen from the remaining columns with the richest
+  variation. Extra metadata such as temperature or annotations are retained in
+  the provenance notes but excluded from the plotted trace.
+- **Automatic ordering** – Descending wavenumber tables are reversed so the X
+  axis is monotonically increasing, matching the expectations of the plotting
+  stack and unit conversions.
+
+These behaviours are covered by regression tests in
+`tests/test_csv_importer.py` to ensure future tweaks keep messy real-world data
+ingestable.
 
 ## Appendix — Provenance export bundle
 

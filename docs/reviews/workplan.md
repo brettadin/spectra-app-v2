@@ -51,3 +51,15 @@
 ## Batch 4 QA Log
 
 - 2025-10-15: ✅ `pytest -q`
+
+# Workplan — Batch 5 (2025-10-15)
+
+- [x] Teach the CSV/TXT importer to recover wavelength/intensity pairs from messy reports with heuristic unit detection.
+- [x] Surface the user documentation inside the app via a Docs inspector tab and Help menu entry.
+
+## Batch 5 QA Log
+
+- 2025-10-15: ✅ `ruff check app tests`
+- 2025-10-15: ✅ `mypy app --ignore-missing-imports`
+- 2025-10-15: ⚠️ `pytest -q --maxfail=1 --disable-warnings --cov=app --cov-report=term-missing` (fails: pytest-cov plugin unavailable)
+- 2025-10-15: ✅ `pytest -q --maxfail=1 --disable-warnings`
