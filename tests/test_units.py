@@ -38,6 +38,15 @@ def test_superscript_wavenumber_round_trip():
     assert np.allclose(view_x, x)
 
 
+def test_from_canonical_handles_superscript_wavenumber():
+    service = UnitsService()
+    x_nm = np.array([5000.0, 10000.0])
+    y = np.array([0.1, 0.2])
+    view_x, view_y = service.from_canonical(x_nm, y, 'cm⁻¹', 'absorbance')
+    assert np.allclose(view_x, np.array([2000.0, 1000.0]))
+    assert np.allclose(view_y, y)
+
+
 def test_transmittance_conversion_and_round_trip():
     service = UnitsService()
     x = np.array([400.0])
