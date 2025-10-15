@@ -12,6 +12,7 @@ numerical drift and the original data is never mutated.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+import re
 from typing import Dict, Any, Tuple, TYPE_CHECKING
 
 import numpy as np
@@ -157,11 +158,11 @@ class UnitsService:
         )
         u = raw.translate(translation_table)
 
-        if u in {"cm^-1", "1/cm", "wavenumber"}:
+        if re.fullmatch(r"cm\^?-1", u) or re.fullmatch(r"cm\^\(-1\)", u):
             return "cm^-1"
 
-        if u == "cm-1":
-            u = "cm^-1"
+        if u in {"1/cm", "wavenumber"}:
+            return "cm^-1"
 
         mappings = {
             "nanometre": "nm",
