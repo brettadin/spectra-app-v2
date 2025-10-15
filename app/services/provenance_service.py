@@ -7,6 +7,7 @@ from datetime import datetime, timezone
 from importlib import metadata
 from pathlib import Path
 import csv
+import shutil
 from typing import Iterable, Dict, Any, List, Optional, Callable
 import hashlib
 import json
@@ -60,9 +61,20 @@ class ProvenanceService:
         """Create a provenance bundle containing manifest, data, and plot artefacts."""
 
         spectra_list = list(spectra)
+        manifest_path = Path(manifest_path)
+        base_dir = manifest_path.parent
+        base_dir.mkdir(parents=True, exist_ok=True)
+
         manifest = self.create_manifest(spectra_list, transforms=transforms, citations=citations)
 
-        manifest_path = Path(manifest_path)
+        spectra_dir = base_dir / "spectra"
+        per_spectrum_csvs = self._write_per_spectrum_csvs(spectra_dir, spectra_list)
+
+        sources_dir = base_dir / "sources"
+        copied_sources = self._copy_sources(sources_dir, spectra_list)
+
+        self._annotate_manifest_sources(manifest, base_dir, per_spectrum_csvs, copied_sources)
+
         self.save_manifest(manifest, manifest_path)
 
         csv_file = Path(csv_path) if csv_path is not None else manifest_path.with_suffix('.csv')
@@ -75,11 +87,24 @@ class ProvenanceService:
         else:
             png_file.touch(exist_ok=True)
 
+        log_path = base_dir / "log.txt"
+        self._write_log(
+            log_path,
+            manifest_path,
+            csv_file,
+            spectra_list,
+            per_spectrum_csvs,
+            copied_sources,
+        )
+
         return {
             "manifest": manifest,
             "manifest_path": manifest_path,
             "csv_path": csv_file,
             "png_path": png_file,
+            "log_path": log_path,
+            "spectra_dir": spectra_dir if per_spectrum_csvs else None,
+            "sources_dir": sources_dir if copied_sources else None,
         }
 
     # ------------------------------------------------------------------
@@ -91,6 +116,37 @@ class ProvenanceService:
             for spectrum in spectra:
                 for x_val, y_val in zip(spectrum.x, spectrum.y):
                     writer.writerow([spectrum.id, spectrum.name, float(x_val), float(y_val), spectrum.x_unit, spectrum.y_unit])
+
+    def _write_per_spectrum_csvs(self, directory: Path, spectra: Iterable[Spectrum]) -> Dict[str, Path]:
+        mapping: Dict[str, Path] = {}
+        spectra_list = list(spectra)
+        if not spectra_list:
+            return mapping
+        directory.mkdir(parents=True, exist_ok=True)
+        for spectrum in spectra_list:
+            filename = f"{self._slugify(spectrum.name)}-{spectrum.id}.csv"
+            dest = directory / filename
+            with dest.open('w', newline='', encoding='utf-8') as handle:
+                writer = csv.writer(handle)
+                writer.writerow(['wavelength_nm', 'intensity'])
+                for x_val, y_val in zip(spectrum.x, spectrum.y):
+                    writer.writerow([float(x_val), float(y_val)])
+            mapping[spectrum.id] = dest
+        return mapping
+
+    def _copy_sources(self, directory: Path, spectra: Iterable[Spectrum]) -> Dict[str, Path]:
+        mapping: Dict[str, Path] = {}
+        for spectrum in spectra:
+            src = spectrum.source_path
+            if src is None or not src.exists():
+                continue
+            if not directory.exists():
+                directory.mkdir(parents=True, exist_ok=True)
+            filename = f"{self._slugify(spectrum.name)}-{spectrum.id}{src.suffix}"
+            dest = directory / filename
+            shutil.copy2(src, dest)
+            mapping[spectrum.id] = dest
+        return mapping
 
     def _source_entry(self, spectrum: Spectrum) -> Dict[str, Any]:
         entry: Dict[str, Any] = {
@@ -111,6 +167,20 @@ class ProvenanceService:
                 "checksum_sha256": self._sha256(spectrum.source_path),
             })
         return entry
+
+    def _annotate_manifest_sources(
+        self,
+        manifest: Dict[str, Any],
+        base_dir: Path,
+        per_spectrum_csvs: Dict[str, Path],
+        copied_sources: Dict[str, Path],
+    ) -> None:
+        for source in manifest.get("sources", []):
+            spec_id = source.get("id")
+            if spec_id in per_spectrum_csvs:
+                source["canonical_csv"] = str(per_spectrum_csvs[spec_id].relative_to(base_dir))
+            if spec_id in copied_sources:
+                source["exported_copy"] = str(copied_sources[spec_id].relative_to(base_dir))
 
     def _app_metadata(self) -> Dict[str, Any]:
         libraries = {}
@@ -137,3 +207,38 @@ class ProvenanceService:
             for chunk in iter(lambda: f.read(8192), b''):
                 h.update(chunk)
         return h.hexdigest()
+
+    def _write_log(
+        self,
+        log_path: Path,
+        manifest_path: Path,
+        combined_csv: Path,
+        spectra: Iterable[Spectrum],
+        per_spectrum_csvs: Dict[str, Path],
+        copied_sources: Dict[str, Path],
+    ) -> None:
+        timestamp = datetime.now(timezone.utc).isoformat()
+        spectra_list = list(spectra)
+        lines = [f"[{timestamp}] Export started ({len(spectra_list)} spectra)"]
+        for spectrum in spectra_list:
+            spec_id = spectrum.id
+            csv_path = per_spectrum_csvs.get(spec_id)
+            if csv_path is not None:
+                lines.append(
+                    f"[{timestamp}] Canonical CSV written for {spec_id} -> {csv_path.name}"
+                )
+            if spec_id in copied_sources:
+                lines.append(
+                    f"[{timestamp}] Source copied for {spec_id} -> {copied_sources[spec_id].name}"
+                )
+        lines.append(f"[{timestamp}] Manifest saved -> {manifest_path.name}")
+        lines.append(f"[{timestamp}] Aggregate CSV saved -> {combined_csv.name}")
+        log_path.write_text("\n".join(lines) + "\n", encoding='utf-8')
+
+    def _slugify(self, name: str) -> str:
+        cleaned = [ch.lower() if ch.isalnum() else '-' for ch in name]
+        slug = ''.join(cleaned).strip('-')
+        # Collapse duplicate separators
+        while '--' in slug:
+            slug = slug.replace('--', '-')
+        return slug or 'spectrum'
