@@ -188,13 +188,6 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.inspector_dock.setWidget(self.inspector_tabs)
         self.addDockWidget(QtCore.Qt.DockWidgetArea.RightDockWidgetArea, self.inspector_dock)
 
-        self.inspector_dock = QtWidgets.QDockWidget("Inspector", self)
-        self.inspector_dock.setObjectName("dock-inspector")
-        self.inspector_tabs = QtWidgets.QTabWidget()
-        self._build_inspector_tabs()
-        self.inspector_dock.setWidget(self.inspector_tabs)
-        self.addDockWidget(QtCore.Qt.DockWidgetArea.RightDockWidgetArea, self.inspector_dock)
-
         self.status_bar = self.statusBar()
         self.status_bar.showMessage("Ready")
         self.plot.pointHovered.connect(
