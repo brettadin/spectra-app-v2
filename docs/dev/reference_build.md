@@ -50,7 +50,7 @@ The script embeds the source file path within `metadata.provenance.source_file` 
 ## JWST quick-look spectra
 
 ```
-python tools/reference_build/build_jwst_quicklook.py tools/reference_build/jwst_targets.json \
+python tools/reference_build/build_jwst_quicklook.py tools/reference_build/jwst_targets_template.json \
     --output app/data/reference/jwst_targets.json --cache-dir .cache/jwst --bins 64
 ```
 
@@ -63,10 +63,11 @@ Arguments:
 - `--cache-dir`: where downloaded FITS products are stored.
 - `--output`: destination JSON path.
 
-The script downloads the requested calibrated products via `astroquery.mast.Observations.download_products`, performs an
+The script downloads each calibrated product via `astroquery.mast.Observations.download_file`, performs an
 index-based resampling to `bins` points, and writes the final JSON bundle. Each entry receives a `provenance` block with
 `mast_product_uri`, `pipeline_version`, and retrieval timestamp. Downstream UI components render these fields so users can
-judge data quality.
+judge data quality. We currently bundle the Jupiter NIRSpec IFU and MIRI MRS spectra from JWST Program 1022; the remaining
+targets stay in the template with TODO notes until the necessary MAST products are harvested.
 
 ## Verification checklist
 

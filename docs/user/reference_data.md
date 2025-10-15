@@ -35,19 +35,20 @@ authoritative NIST assets from digitised JWST placeholders that still need regen
 
 ## JWST quick-look spectra
 
-The JWST entries currently bundle down-sampled spectra digitised from public NASA/ESA/CSA/STSci releases so the preview can
-illustrate multi-instrument datasets without contacting MAST. The metadata drawer calls out `curation_status:
-digitized_release_graphic` and the planned MAST product URI that will replace the placeholder once the astroquery build
-pipeline is wired into CI. Each record cites its release page and records the approximate resolving power.
+The JWST entries now ship with resampled, calibrated spectra for Jupiter sourced directly from MAST using
+`build_jwst_quicklook.py`. Each record includes the authoritative `mast_product_uri`, the pipeline version reported in the
+FITS header, and an automated retrieval timestamp so you can audit when the cache was last refreshed. Additional planets and
+targets remain on the backlog until their calibrated products are harvested.
 
-| Target | Instrument | Program | Spectral range (µm) | Units | Provenance status | Notes |
-| ------ | ---------- | ------- | ------------------- | ----- | ----------------- | ----- |
-| WASP-96 b transmission | NIRSpec PRISM | ERS 1324 | 0.6–2.8 | Transit depth (ppm) | digitized_release_graphic → mast:JWST/product/jw01324-o001_s00002_nirspec_prism_clear_prism_x1d.fits | Water vapour feature from 2022 release graphic. |
-| Jupiter mid-IR brightness | MIRI MRS | ERS 1373 | 7.6–12.8 | Radiance (MJy·sr⁻¹) | digitized_release_graphic → mast:JWST/product/jw01373-o002_t001_miri_ch1-shortmediumlong_s3d.fits | Auroral emission snapshot from Webb release. |
-| Mars reflectance | NIRSpec PRISM | DD-2759 | 0.7–3.0 | I/F reflectance | digitized_release_graphic → mast:JWST/product/jw02759-o001_t001_nirspec_prism_s1600a3_x1d.fits | Scaled from the 2022 Mars press kit. |
-| Neptune NIRCam brightness | NIRCam F444W/F356W | ERS 2282 | 1.6–4.4 | Radiance (MJy·sr⁻¹) | digitized_release_graphic → mast:JWST/product/jw02282-o001_t001_nircam_f444w_i2d.fits | Photometry from STScI release imagery. |
-| HD 84406 calibration | NIRCam imaging | Commissioning | 0.9–2.2 | Flux density (Jy) | digitized_release_graphic → mast:JWST/product/jw01107-o001_t001_nircam_f200w_calints.fits | Rounded photometry from wavefront sensing docs. |
-| Earth observation | — | — | — | — | operations_restriction | JWST cannot observe Earth; entry retained for completeness. |
+| Target | Instrument | Program | Spectral range (µm) | Units | Provenance |
+| ------ | ---------- | ------- | ------------------- | ----- | ---------- |
+| Jupiter reflectance | NIRSpec IFU (G140H/F100LP) | CAR 1022 | 0.97–1.89 | Flux density (Jy) | Calibrated Level-3 `jw01022-o013_t001_nirspec_g140h-f100lp_x1d.fits` (pipeline 1.19.1). |
+| Jupiter mid-IR brightness | MIRI MRS (Channel 2 Short) | CAR 1022 | 7.5–8.8 | Flux density (Jy) | Calibrated Level-3 `jw01022-o018_t001_miri_ch2-short_x1d.fits` (pipeline 1.19.1). |
+
+Both spectra originate from JWST Program 1022 (PI: J. A. Stansberry) "CAR FGS-017 Straylight for Moving Targets". Their
+metadata panes link to the STScI program description and record the exact MAST product URIs used for regeneration. Remaining
+targets (WASP-96 b, Mars, Neptune, HD 84406, etc.) stay flagged in the workplan until matching calibrated products are
+ingested.
 
 ### Workflow tips
 
