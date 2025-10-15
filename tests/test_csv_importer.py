@@ -182,7 +182,7 @@ def test_csv_importer_reuses_layout_cache_for_repeat_headers(tmp_path: Path) -> 
 
     header = "Channel A, Channel B\n"
     file_one = header + "400,0.10\n410,0.12\n420,0.11\n430,0.15\n"
-    file_two = header + "0.05,400\n0.08,410\n0.12,420\n0.16,430\n"
+    file_two = header + "450,0.08\n460,0.09\n470,0.11\n480,0.14\n"
 
     path_one = tmp_path / "instrument_a.csv"
     path_two = tmp_path / "instrument_b.csv"
@@ -207,3 +207,26 @@ def test_csv_importer_reuses_layout_cache_for_repeat_headers(tmp_path: Path) -> 
     assert column_meta["layout_cache"] == "hit"
     assert column_meta["x_index"] == first.metadata["column_selection"]["x_index"]
     assert column_meta["y_index"] == first.metadata["column_selection"]["y_index"]
+
+
+def test_csv_importer_validates_layout_cache_against_data(tmp_path: Path) -> None:
+    _reset_layout_cache()
+
+    header = "Wavelength (nm),Intensity (a.u.)\n"
+    file_one = header + "400,0.10\n410,0.12\n420,0.11\n430,0.15\n"
+    file_two = header + "0.02,400\n0.03,410\n0.05,420\n0.04,430\n"
+
+    path_one = tmp_path / "aligned.csv"
+    path_two = tmp_path / "swapped.csv"
+    path_one.write_text(file_one, encoding="utf-8")
+    path_two.write_text(file_two, encoding="utf-8")
+
+    importer = CsvImporter()
+    first = importer.read(path_one)
+    assert first.metadata["column_selection"]["layout_cache"] == "miss"
+
+    second = importer.read(path_two)
+
+    column_meta = second.metadata["column_selection"]
+    assert column_meta["layout_cache"] == "miss"
+    assert np.allclose(second.x, np.array([400.0, 410.0, 420.0, 430.0]))

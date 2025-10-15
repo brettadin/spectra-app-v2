@@ -161,11 +161,16 @@ class CsvImporter:
         data = self._rows_to_array(best_block)
         layout_signature = self._layout_signature(header_tokens)
         cached = self._lookup_cached_layout(layout_signature, data.shape[1])
-        cache_hit = cached is not None
+        cache_hit = False
         if cached:
-            x_index_raw, y_index_raw = cached
-            x_reason_raw = y_reason_raw = "layout-cache"
-        else:
+            x_candidate, y_candidate = cached
+            if self._layout_is_valid(data, x_candidate, y_candidate, header_tokens):
+                cache_hit = True
+                x_index_raw, y_index_raw = x_candidate, y_candidate
+                x_reason_raw = y_reason_raw = "layout-cache"
+            else:
+                x_index_raw = y_index_raw = -1
+        if not cache_hit:
             x_index_raw, x_reason_raw = self._select_x_column(data, header_tokens)
             y_index_raw, y_reason_raw = self._select_y_column(data, x_index_raw, header_tokens)
         swap_reason = None
@@ -241,7 +246,7 @@ class CsvImporter:
             column_meta["layout_signature"] = list(layout_signature)
             column_meta["layout_cache"] = "hit" if cache_hit else "miss"
 
-        if layout_signature:
+        if layout_signature and self._layout_is_valid(data, int(x_index), int(y_index), header_tokens):
             self._store_layout(layout_signature, int(x_index), int(y_index))
 
         if x[0] > x[-1]:
@@ -315,6 +320,64 @@ class CsvImporter:
         if not signature:
             return
         _LAYOUT_CACHE[signature] = (x_index, y_index)
+
+    def _layout_is_valid(
+        self,
+        data: np.ndarray,
+        x_index: int,
+        y_index: int,
+        headers: Sequence[_HeaderToken],
+    ) -> bool:
+        if x_index < 0 or y_index < 0:
+            return False
+        _, cols = data.shape
+        if x_index >= cols or y_index >= cols or x_index == y_index:
+            return False
+        x_column = data[:, x_index]
+        y_column = data[:, y_index]
+        x_valid = self._column_looks_like_wavelength(x_column, headers, x_index)
+        y_valid = self._column_looks_like_intensity(y_column, headers, y_index)
+        return x_valid and y_valid
+
+    def _column_looks_like_wavelength(
+        self, column: np.ndarray, headers: Sequence[_HeaderToken], index: int
+    ) -> bool:
+        mask = np.isfinite(column)
+        values = column[mask]
+        if values.size < 3:
+            return False
+        diffs = np.diff(values)
+        monotonic = bool(diffs.size) and (
+            np.all(diffs >= 0) or np.all(diffs <= 0)
+        )
+        looks_wavelength = self._looks_like_wavelength(values)
+        looks_intensity = self._looks_like_intensity(values)
+        header_wavelength = (
+            index < len(headers) and self._token_is_wavelength(headers[index])
+        )
+        if looks_wavelength and not looks_intensity:
+            return True
+        if looks_wavelength and looks_intensity:
+            return header_wavelength and monotonic
+        return header_wavelength and monotonic and not looks_intensity
+
+    def _column_looks_like_intensity(
+        self, column: np.ndarray, headers: Sequence[_HeaderToken], index: int
+    ) -> bool:
+        mask = np.isfinite(column)
+        values = column[mask]
+        if values.size < 3:
+            return False
+        looks_intensity = self._looks_like_intensity(values)
+        looks_wavelength = self._looks_like_wavelength(values)
+        header_intensity = (
+            index < len(headers) and self._token_is_intensity(headers[index])
+        )
+        if looks_wavelength and not looks_intensity:
+            return False
+        if looks_intensity:
+            return True
+        return header_intensity and not looks_wavelength
 
     def _select_x_column(self, data: np.ndarray, headers: Sequence[_HeaderToken]) -> Tuple[int, str]:
         header_unit = self._header_index_by_unit(headers, _WAVELENGTH_UNIT_HINTS)
