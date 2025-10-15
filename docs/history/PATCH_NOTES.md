@@ -1,5 +1,13 @@
 # Patch Notes
 
+## 2025-10-15 (Reference library & JWST quick-look data) (3:24 am UTC)
+
+- Added a reference data service, inspector tab, and local JSON assets covering NIST hydrogen lines, IR functional groups,
+  line-shape placeholders, and digitised JWST spectra for WASP-96 b, Jupiter, Mars, Neptune, and HD 84406.
+- Bundled spectroscopy/JWST primers plus developer documentation so agents can extend the data store and cite sources from the
+  in-app viewer.
+- Logged regression coverage for the reference library to guard bundled IDs, metadata, and bibliographic entries.
+
 ## 2025-10-15 (Importer header conflict safeguards) (1:27 am UTC)
 
 - Extended the CSV/TXT importer to honour unit hints inside headers, swap

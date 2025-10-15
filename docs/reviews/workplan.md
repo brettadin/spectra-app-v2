@@ -88,3 +88,23 @@
 - 2025-10-15: ✅ `mypy app --ignore-missing-imports`
 - 2025-10-15: ⚠️ `pytest -q --maxfail=1 --disable-warnings --cov=app --cov-report=term-missing` (fails: pytest-cov plugin unavailable)
 - 2025-10-15: ✅ `pytest -q --maxfail=1 --disable-warnings`
+
+# Workplan — Batch 8 (2025-10-15)
+
+- [x] Bundle NIST hydrogen spectral lines and IR functional group references into the application data store.
+- [x] Stage JWST quick-look spectra (WASP-96 b, Jupiter, Mars, Neptune, HD 84406) with resolution metadata for offline use.
+- [x] Surface the reference library through a new Inspector tab and publish spectroscopy/JWST documentation for users and agents.
+
+## Batch 8 QA Log
+
+- 2025-10-15: ✅ `ruff check app tests`
+- 2025-10-15: ✅ `mypy app --ignore-missing-imports`
+- 2025-10-15: ⚠️ `pytest -q --maxfail=1 --disable-warnings --cov=app --cov-report=term-missing` (fails: pytest-cov plugin unavailable)
+- 2025-10-15: ✅ `pytest -q --maxfail=1 --disable-warnings`
+
+# Workplan — Batch 9 (Backlog)
+
+- [ ] Wire Doppler/pressure/Stark broadening models into the overlay service using the placeholder parameter scaffolding.
+- [ ] Replace digitised JWST tables with calibrated FITS ingestion and provenance links once the pipeline module is ready.
+- [ ] Expand the spectral line catalogue beyond hydrogen (e.g. He I, O III, Fe II) with citations and regression coverage.
+- [ ] Integrate IR functional group heuristics into importer header parsing for automated axis validation.

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import sys
 from pathlib import Path
-from typing import Dict, Iterable, List, Any, cast
+from typing import Any, Dict, Iterable, List, Mapping, Optional, cast
 
 import numpy as np
 
@@ -15,6 +15,7 @@ from .services import (
     DataIngestService,
     OverlayService,
     MathService,
+    ReferenceLibrary,
     Spectrum,
 )
 from .ui.plot_pane import PlotPane, TraceStyle
@@ -41,6 +42,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.ingest_service = DataIngestService(self.units_service)
         self.overlay_service = OverlayService(self.units_service)
         self.math_service = MathService()
+        self.reference_library = ReferenceLibrary()
 
         self._dataset_items: Dict[str, QtGui.QStandardItem] = {}
         self._spectrum_colors: Dict[str, QtGui.QColor] = {}
@@ -259,6 +261,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.provenance_view.hide()
         prov_layout.addWidget(self.provenance_view)
 
+        self._build_reference_tab()
         self._build_documentation_tab()
 
         for name, tab in [
@@ -266,6 +269,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             ("Math", self.tab_math),
             ("Style", self.tab_style),
             ("Provenance", self.tab_prov),
+            ("Reference", self.tab_reference),
             ("Docs", self.tab_docs),
         ]:
             self.inspector_tabs.addTab(tab, name)
@@ -736,6 +740,261 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             return
         self.math_a.setCurrentIndex(idx_b)
         self.math_b.setCurrentIndex(idx_a)
+
+    # Reference ---------------------------------------------------------
+    def _build_reference_tab(self) -> None:
+        self.tab_reference = QtWidgets.QWidget()
+        layout = QtWidgets.QVBoxLayout(self.tab_reference)
+        layout.setContentsMargins(6, 6, 6, 6)
+
+        intro = QtWidgets.QLabel(
+            "Curated line lists, infrared heuristics, and JWST quick-look spectra are bundled for offline use."
+        )
+        intro.setWordWrap(True)
+        intro.setStyleSheet("color: #555;")
+        layout.addWidget(intro)
+
+        controls = QtWidgets.QHBoxLayout()
+        layout.addLayout(controls)
+
+        controls.addWidget(QtWidgets.QLabel("Dataset:"))
+        self.reference_dataset_combo = QtWidgets.QComboBox()
+        self.reference_dataset_combo.currentIndexChanged.connect(self._refresh_reference_dataset)
+        controls.addWidget(self.reference_dataset_combo, 1)
+
+        self.reference_filter = QtWidgets.QLineEdit()
+        self.reference_filter.setPlaceholderText("Filter rows…")
+        self.reference_filter.textChanged.connect(self._filter_reference_rows)
+        controls.addWidget(self.reference_filter, 1)
+
+        self.reference_table = QtWidgets.QTableWidget()
+        self.reference_table.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
+        self.reference_table.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
+        self.reference_table.setAlternatingRowColors(True)
+        header = self.reference_table.horizontalHeader()
+        header.setStretchLastSection(True)
+        layout.addWidget(self.reference_table, 1)
+
+        self.reference_meta = QtWidgets.QTextBrowser()
+        self.reference_meta.setOpenExternalLinks(True)
+        self.reference_meta.setPlaceholderText("Select a dataset to view its citation and context.")
+        self.reference_meta.setMinimumHeight(160)
+        layout.addWidget(self.reference_meta)
+
+        self._populate_reference_combo()
+
+    def _populate_reference_combo(self) -> None:
+        combo = self.reference_dataset_combo
+        combo.blockSignals(True)
+        combo.clear()
+        combo.addItem("NIST Hydrogen Lines (Balmer & Lyman)", ("spectral_lines", None))
+        combo.addItem("IR Functional Groups", ("ir_groups", None))
+        combo.addItem("Line-shape Placeholders", ("line_shapes", None))
+        for target in self.reference_library.jwst_targets():
+            name = target.get("name", "Unknown")
+            instrument = target.get("instrument") or "—"
+            combo.addItem(f"JWST: {name} ({instrument})", ("jwst", target.get("id")))
+        combo.blockSignals(False)
+        if combo.count():
+            combo.setCurrentIndex(0)
+        self._refresh_reference_dataset()
+
+    def _filter_reference_rows(self, _: str) -> None:
+        self._refresh_reference_dataset()
+
+    def _refresh_reference_dataset(self) -> None:
+        data = self.reference_dataset_combo.currentData()
+        if not data:
+            self.reference_table.setRowCount(0)
+            self.reference_table.setColumnCount(0)
+            self.reference_meta.clear()
+            return
+
+        kind, key = data
+        query = self.reference_filter.text().strip().lower()
+
+        if kind == "spectral_lines":
+            entries = self.reference_library.spectral_lines()
+            filtered = self._filter_reference_entries(entries, query)
+            self.reference_table.setColumnCount(6)
+            self.reference_table.setHorizontalHeaderLabels(
+                ["Series", "Transition", "λ₀ (nm)", "ṽ (cm⁻¹)", "Aₖᵢ (s⁻¹)", "Relative Intensity"]
+            )
+            self.reference_table.setRowCount(len(filtered))
+            for row, entry in enumerate(filtered):
+                self._set_table_item(row, 0, entry.get("series", ""))
+                self._set_table_item(row, 1, entry.get("transition", ""))
+                self._set_table_item(row, 2, self._format_float(entry.get("vacuum_wavelength_nm")))
+                self._set_table_item(row, 3, self._format_float(entry.get("wavenumber_cm_1")))
+                self._set_table_item(row, 4, self._format_scientific(entry.get("einstein_a_s_1")))
+                self._set_table_item(row, 5, self._format_float(entry.get("relative_intensity"), precision=2))
+            meta = self.reference_library.hydrogen_metadata()
+            self._set_reference_meta(meta.get("citation"), meta.get("url"), meta.get("notes"))
+
+        elif kind == "ir_groups":
+            entries = self.reference_library.ir_functional_groups()
+            filtered = self._filter_reference_entries(entries, query)
+            self.reference_table.setColumnCount(5)
+            self.reference_table.setHorizontalHeaderLabels(
+                ["Group", "Range (cm⁻¹)", "Intensity", "Modes", "Notes"]
+            )
+            self.reference_table.setRowCount(len(filtered))
+            for row, entry in enumerate(filtered):
+                self._set_table_item(row, 0, entry.get("group", ""))
+                span = f"{self._format_float(entry.get('wavenumber_cm_1_min'), precision=0)} – {self._format_float(entry.get('wavenumber_cm_1_max'), precision=0)}"
+                self._set_table_item(row, 1, span)
+                self._set_table_item(row, 2, entry.get("intensity", ""))
+                modes = ", ".join(entry.get("associated_modes", []))
+                self._set_table_item(row, 3, modes)
+                self._set_table_item(row, 4, entry.get("notes", ""))
+            meta = self.reference_library.ir_metadata()
+            self._set_reference_meta(meta.get("citation"), meta.get("url"), meta.get("notes"))
+
+        elif kind == "line_shapes":
+            entries = self.reference_library.line_shape_placeholders()
+            filtered = self._filter_reference_entries(entries, query)
+            self.reference_table.setColumnCount(4)
+            self.reference_table.setHorizontalHeaderLabels(
+                ["Model", "Status", "Parameters", "Notes"]
+            )
+            self.reference_table.setRowCount(len(filtered))
+            for row, entry in enumerate(filtered):
+                self._set_table_item(row, 0, entry.get("label", entry.get("id", "")))
+                self._set_table_item(row, 1, entry.get("status", ""))
+                params = ", ".join(entry.get("parameters", []))
+                self._set_table_item(row, 2, params)
+                self._set_table_item(row, 3, entry.get("description", ""))
+            meta = self.reference_library.line_shape_metadata()
+            notes = meta.get("notes", "")
+            references = meta.get("references", [])
+            ref_lines = "".join(
+                f"<li><a href='{ref.get('url')}'>{ref.get('citation')}</a></li>"
+                for ref in references
+                if isinstance(ref, Mapping)
+            )
+            self.reference_meta.setHtml(
+                f"<p><b>{meta.get('notes', 'Line-shape placeholders')}</b></p><ul>{ref_lines}</ul>"
+                if ref_lines
+                else f"<p>{notes}</p>"
+            )
+
+        elif kind == "jwst":
+            target = self.reference_library.jwst_target(key)
+            if not target:
+                self.reference_table.setRowCount(0)
+                self.reference_table.setColumnCount(0)
+                self.reference_meta.setHtml("<p>Target metadata unavailable.</p>")
+                return
+            data_rows = target.get("data", [])
+            status = target.get("status")
+            if not data_rows:
+                self.reference_table.setRowCount(0)
+                self.reference_table.setColumnCount(0)
+                notes = target.get("source", {}).get("notes", "No public JWST spectrum available.")
+                self._set_reference_meta(target.get("name"), target.get("source", {}).get("url"), notes)
+                return
+            filtered = self._filter_reference_entries(data_rows, query)
+            wavelength_key = next((k for k in data_rows[0].keys() if "wavelength" in k), "wavelength")
+            value_key = "value" if "value" in data_rows[0] else next(iter(set(data_rows[0].keys()) - {wavelength_key}), "value")
+            uncertainty_key = next((k for k in data_rows[0].keys() if k.startswith("uncertainty")), None)
+            columns = ["λ (µm)", f"Measurement ({target.get('data_units', 'value')})"]
+            if uncertainty_key:
+                units = uncertainty_key.split("_", 1)[-1].replace("_", " ")
+                columns.append(f"Uncertainty ({units})")
+            self.reference_table.setColumnCount(len(columns))
+            self.reference_table.setHorizontalHeaderLabels(columns)
+            self.reference_table.setRowCount(len(filtered))
+            for row, entry in enumerate(filtered):
+                self._set_table_item(row, 0, self._format_float(entry.get(wavelength_key)))
+                self._set_table_item(row, 1, self._format_float(entry.get(value_key)))
+                if uncertainty_key and len(columns) > 2:
+                    self._set_table_item(row, 2, self._format_float(entry.get(uncertainty_key)))
+            source = target.get("source", {})
+            notes = source.get("notes", "")
+            range_min, range_max = target.get("spectral_range_um", [None, None])
+            range_text = ""
+            if range_min is not None and range_max is not None:
+                range_text = f"Range: {self._format_float(range_min)} – {self._format_float(range_max)} µm"
+            resolution = target.get("spectral_resolution")
+            resolution_text = f"Resolving power ≈ {resolution}" if resolution else "Resolving power pending"
+            meta_html = (
+                f"<p><b>{target.get('name')}</b><br/>"
+                f"Instrument: {target.get('instrument', '—')} | Program: {target.get('program', '—')}<br/>"
+                f"{range_text}<br/>{resolution_text}<br/>"
+                f"Data units: {target.get('data_units', '—')}</p>"
+            )
+            if source.get("url"):
+                meta_html += f"<p><a href='{source['url']}'>Source documentation</a></p>"
+            if notes:
+                meta_html += f"<p>{notes}</p>"
+            if status:
+                meta_html += f"<p>Status: {status}</p>"
+            self.reference_meta.setHtml(meta_html)
+
+        else:
+            self.reference_table.setRowCount(0)
+            self.reference_table.setColumnCount(0)
+            self.reference_meta.clear()
+
+        self.reference_table.resizeColumnsToContents()
+
+    def _filter_reference_entries(
+        self, entries: List[Mapping[str, Any]], query: str
+    ) -> List[Mapping[str, Any]]:
+        if not query:
+            return entries
+        needle = query.lower()
+        filtered: List[Mapping[str, Any]] = []
+        for entry in entries:
+            tokens = " ".join(token.lower() for token in ReferenceLibrary.flatten_entry(entry))
+            if needle in tokens:
+                filtered.append(entry)
+        return filtered
+
+    def _set_reference_meta(self, title: Optional[str], url: Optional[str], notes: Optional[str]) -> None:
+        pieces: List[str] = []
+        if title:
+            pieces.append(f"<b>{title}</b>")
+        if url:
+            pieces.append(f"<a href='{url}'>{url}</a>")
+        if notes:
+            pieces.append(notes)
+        if pieces:
+            self.reference_meta.setHtml("<p>" + "<br/>".join(pieces) + "</p>")
+        else:
+            self.reference_meta.clear()
+
+    @staticmethod
+    def _format_float(value: Any, *, precision: int = 3) -> str:
+        if value is None:
+            return "–"
+        try:
+            return f"{float(value):.{precision}f}"
+        except (TypeError, ValueError):
+            return str(value)
+
+    @staticmethod
+    def _format_scientific(value: Any) -> str:
+        if value is None:
+            return "–"
+        try:
+            return f"{float(value):.3e}"
+        except (TypeError, ValueError):
+            return str(value)
+
+    def _set_table_item(self, row: int, column: int, value: Any) -> None:
+        text = str(value) if value not in (None, "") else "–"
+        item = QtWidgets.QTableWidgetItem(text)
+        item.setFlags(item.flags() & ~QtCore.Qt.ItemFlag.ItemIsEditable)
+        try:
+            float(value)
+        except (TypeError, ValueError):
+            pass
+        else:
+            item.setTextAlignment(
+                QtCore.Qt.AlignmentFlag.AlignRight | QtCore.Qt.AlignmentFlag.AlignVCenter
+            )
+        self.reference_table.setItem(row, column, item)
 
     # Documentation -----------------------------------------------------
     def _build_documentation_tab(self) -> None:

@@ -43,6 +43,15 @@ def test_smoke_ingest_toggle_and_export(tmp_path: Path, mini_fits: Path) -> None
             window.docs_list.setCurrentRow(0)
             app.processEvents()
             assert window.doc_viewer.toPlainText().strip()
+
+        reference_index = window.inspector_tabs.indexOf(window.tab_reference)
+        assert reference_index != -1
+        window.inspector_tabs.setCurrentIndex(reference_index)
+        app.processEvents()
+        assert window.reference_dataset_combo.count() >= 3
+        window.reference_dataset_combo.setCurrentIndex(0)
+        app.processEvents()
+        assert window.reference_table.rowCount() > 0
     finally:
         window.close()
         window.deleteLater()

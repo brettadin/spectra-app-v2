@@ -20,6 +20,9 @@ application so you can reference workflows without leaving the workspace.
   falls back to a plain-text view that preserves all prose for reference.
 - The log panel records which documents were opened to maintain provenance of
   in-app help usage.
+- A dedicated **Reference** tab now lives beside **Docs**. It surfaces the NIST hydrogen line list, IR functional groups,
+  line-shape placeholders, and JWST quick-look spectra described in `docs/user/reference_data.md`. Use the filter bar to
+  slice the tables by wavelength, functional group, or citation keyword while keeping the metadata panel visible.
 
 ## Troubleshooting
 
