@@ -45,6 +45,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self._dataset_items: Dict[str, QtGui.QStandardItem] = {}
         self._spectrum_colors: Dict[str, QtGui.QColor] = {}
         self._visibility: Dict[str, bool] = {}
+        self._doc_entries: List[tuple[str, Path]] = []
         self._palette: List[QtGui.QColor] = [
             QtGui.QColor("#4F6D7A"),
             QtGui.QColor("#C0D6DF"),
@@ -98,6 +99,12 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.data_table_action = QtGui.QAction("Show Data Table", self, checkable=True)
         self.data_table_action.triggered.connect(self._toggle_data_table)
         view_menu.addAction(self.data_table_action)
+
+        help_menu = menu.addMenu("&Help")
+        docs_action = QtGui.QAction("View &Documentation", self)
+        docs_action.setShortcut("F1")
+        docs_action.triggered.connect(self.show_documentation)
+        help_menu.addAction(docs_action)
 
     def _setup_ui(self) -> None:
         self.central_split = QtWidgets.QSplitter(self)
@@ -251,11 +258,14 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.provenance_view.hide()
         prov_layout.addWidget(self.provenance_view)
 
+        self._build_documentation_tab()
+
         for name, tab in [
             ("Info", self.tab_info),
             ("Math", self.tab_math),
             ("Style", self.tab_style),
             ("Provenance", self.tab_prov),
+            ("Docs", self.tab_docs),
         ]:
             self.inspector_tabs.addTab(tab, name)
 
@@ -692,6 +702,122 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             return
         self.math_a.setCurrentIndex(idx_b)
         self.math_b.setCurrentIndex(idx_a)
+
+    # Documentation -----------------------------------------------------
+    def _build_documentation_tab(self) -> None:
+        self.tab_docs = QtWidgets.QWidget()
+        layout = QtWidgets.QVBoxLayout(self.tab_docs)
+        layout.setContentsMargins(6, 6, 6, 6)
+
+        self.docs_filter = QtWidgets.QLineEdit()
+        self.docs_filter.setPlaceholderText("Filter topics…")
+        self.docs_filter.textChanged.connect(self._filter_docs)
+        layout.addWidget(self.docs_filter)
+
+        splitter = QtWidgets.QSplitter(QtCore.Qt.Orientation.Horizontal)
+        layout.addWidget(splitter, 1)
+
+        self.docs_list = QtWidgets.QListWidget()
+        self.docs_list.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
+        self.docs_list.itemSelectionChanged.connect(self._on_doc_selection_changed)
+        splitter.addWidget(self.docs_list)
+
+        self.doc_viewer = QtWidgets.QTextBrowser()
+        self.doc_viewer.setOpenExternalLinks(False)
+        self.doc_viewer.setPlaceholderText("Select a document to view its contents.")
+        splitter.addWidget(self.doc_viewer)
+
+        splitter.setStretchFactor(0, 1)
+        splitter.setStretchFactor(1, 3)
+
+        self.doc_placeholder = QtWidgets.QLabel("No documentation topics found in docs/user.")
+        self.doc_placeholder.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(self.doc_placeholder)
+
+        self._load_documentation_index()
+
+    def _load_documentation_index(self) -> None:
+        docs_root = Path(__file__).resolve().parent.parent / "docs" / "user"
+        entries: list[tuple[str, Path]] = []
+        if docs_root.exists():
+            for path in sorted(docs_root.glob("*.md")):
+                entries.append((self._extract_doc_title(path), path))
+
+        self._doc_entries = entries
+        self.docs_list.clear()
+        for title, path in entries:
+            item = QtWidgets.QListWidgetItem(title)
+            item.setData(QtCore.Qt.ItemDataRole.UserRole, path)
+            item.setData(QtCore.Qt.ItemDataRole.UserRole + 1, title.lower())
+            self.docs_list.addItem(item)
+
+        has_docs = bool(entries)
+        self.doc_placeholder.setVisible(not has_docs)
+        self.doc_viewer.setVisible(has_docs)
+        if has_docs:
+            self.docs_list.setCurrentRow(0)
+        else:
+            self.doc_viewer.clear()
+
+    def _extract_doc_title(self, path: Path) -> str:
+        try:
+            with path.open("r", encoding="utf-8") as handle:
+                for _ in range(40):
+                    line = handle.readline()
+                    if not line:
+                        break
+                    stripped = line.strip()
+                    if stripped.startswith("#"):
+                        return stripped.lstrip("# ")
+        except OSError:
+            return path.stem
+        return path.stem.replace("_", " ").title()
+
+    def _filter_docs(self, text: str) -> None:
+        query = text.strip().lower()
+        for idx in range(self.docs_list.count()):
+            item = self.docs_list.item(idx)
+            if not query:
+                item.setHidden(False)
+                continue
+            haystack = item.data(QtCore.Qt.ItemDataRole.UserRole + 1) or ""
+            item.setHidden(query not in haystack)
+        if query:
+            for idx in range(self.docs_list.count()):
+                item = self.docs_list.item(idx)
+                if not item.isHidden():
+                    self.docs_list.setCurrentItem(item)
+                    break
+
+    def _on_doc_selection_changed(self) -> None:
+        items = self.docs_list.selectedItems()
+        if not items:
+            self.doc_viewer.clear()
+            return
+        item = items[0]
+        path = item.data(QtCore.Qt.ItemDataRole.UserRole)
+        if not isinstance(path, Path):
+            self.doc_viewer.clear()
+            return
+        try:
+            text = path.read_text(encoding="utf-8")
+        except OSError as exc:  # pragma: no cover - filesystem failure feedback
+            self.doc_viewer.setPlainText(f"Failed to load {path.name}: {exc}")
+            self._log("Docs", f"Failed to open {path.name}: {exc}")
+            return
+        if hasattr(self.doc_viewer, "setMarkdown"):
+            self.doc_viewer.setMarkdown(text)
+        else:  # pragma: no cover - Qt fallback
+            self.doc_viewer.setPlainText(text)
+        self._log("Docs", f"Loaded {path.name}")
+
+    def show_documentation(self) -> None:
+        self._load_documentation_index()
+        self.inspector_dock.show()
+        idx = self.inspector_tabs.indexOf(self.tab_docs)
+        if idx != -1:
+            self.inspector_tabs.setCurrentIndex(idx)
+        self.raise_()
 
     def _rename_selected_spectrum(self) -> None:
         ids = self._selected_dataset_ids()
