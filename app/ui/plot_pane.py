@@ -28,6 +28,8 @@ class TraceStyle:
     # Accepted for backwards compatibility but ignored by pyqtgraph 0.13.x.
     antialias: bool = False
     show_in_legend: bool = True
+    fill_brush: QtGui.QBrush | QtGui.QColor | str | None = None
+    fill_level: float | None = None
 
 
 class PlotPane(QtWidgets.QWidget):
@@ -203,10 +205,17 @@ class PlotPane(QtWidgets.QWidget):
         pen = pg.mkPen(color=style.color, width=style.width)
         item: pg.PlotDataItem = trace["item"]  # type: ignore[assignment]
         item.setPen(pen)
-        if hasattr(item, "setFillLevel"):
-            item.setFillLevel(None)
-        if hasattr(item, "setBrush"):
-            item.setBrush(None)
+        if hasattr(item, "setAntialiasing"):
+            item.setAntialiasing(style.antialias)
+        if style.fill_brush is not None and hasattr(item, "setBrush"):
+            item.setBrush(pg.mkBrush(style.fill_brush))
+            if hasattr(item, "setFillLevel"):
+                item.setFillLevel(style.fill_level)
+        else:
+            if hasattr(item, "setBrush"):
+                item.setBrush(None)
+            if hasattr(item, "setFillLevel"):
+                item.setFillLevel(None)
 
     def _x_nm_to_disp(self, x_nm: np.ndarray) -> np.ndarray:
         unit = self._display_unit
@@ -266,6 +275,23 @@ class PlotPane(QtWidgets.QWidget):
         for key in self._traces:
             self._update_curve(key)
         self._plot.setLabel("bottom", "Wavelength", units=self._display_unit)
+
+    def map_nm_to_display(self, value_nm: float) -> float:
+        """Convert a canonical wavelength (nm) to the current display unit."""
+
+        array = np.array([value_nm], dtype=float)
+        display = self._x_nm_to_disp(array)
+        return float(display[0]) if display.size else float("nan")
+
+    def add_graphics_item(self, item: pg.GraphicsObject, *, ignore_bounds: bool = False) -> None:
+        """Attach an arbitrary graphics item to the underlying plot."""
+
+        self._plot.addItem(item, ignoreBounds=ignore_bounds)
+
+    def remove_graphics_item(self, item: pg.GraphicsObject) -> None:
+        """Detach a previously added graphics item."""
+
+        self._plot.removeItem(item)
 
     def _rebuild_legend(self) -> None:
         self._legend.clear()

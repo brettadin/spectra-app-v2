@@ -56,6 +56,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self._reference_plot_items: List[object] = []
         self._reference_overlay_key: Optional[str] = None
         self._reference_overlay_payload: Optional[Dict[str, Any]] = None
+        self._reference_overlay_annotations: List[pg.TextItem] = []
         self._display_y_units: Dict[str, str] = {}
         self._palette: List[QtGui.QColor] = [
             QtGui.QColor("#4F6D7A"),
@@ -1395,6 +1396,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         x_segments: List[float] = []
         y_segments: List[float] = []
         y_low, y_high = self._overlay_band_bounds()
+        labels: List[Dict[str, object]] = []
 
         for entry in entries:
             start = self._coerce_float(entry.get("wavenumber_cm_1_min"))
@@ -1409,8 +1411,15 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                 continue
             if nm_low == nm_high:
                 continue
-            x_segments.extend([nm_low, nm_low, nm_high, nm_high, nm_low, np.nan])
-            y_segments.extend([y_low, y_high, y_high, y_low, y_low, np.nan])
+            x_segments.extend([nm_low, nm_low, nm_high, nm_high, np.nan])
+            y_segments.extend([y_low, y_high, y_high, y_low, np.nan])
+
+            label = entry.get("group") or entry.get("id")
+            if label:
+                labels.append({
+                    "text": str(label),
+                    "centre_nm": float((nm_low + nm_high) / 2.0),
+                })
 
         if not x_segments:
             return None
@@ -1422,6 +1431,10 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             "y": np.array(y_segments, dtype=float),
             "color": "#6D597A",
             "width": 1.2,
+            "fill_color": (109, 89, 122, 70),
+            "fill_level": float(y_low),
+            "band_bounds": (float(y_low), float(y_high)),
+            "labels": labels,
         }
 
     def _build_overlay_for_jwst(
@@ -1516,17 +1529,66 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         alias = str(payload.get("alias", key))
         color = payload.get("color", "#33658A")
         width = float(payload.get("width", 1.5))
+        fill_color = payload.get("fill_color")
+        fill_level = payload.get("fill_level")
 
         self._clear_reference_overlay()
 
-        style = TraceStyle(QtGui.QColor(color), width=width, show_in_legend=False)
+        style = TraceStyle(
+            QtGui.QColor(color),
+            width=width,
+            show_in_legend=False,
+            fill_brush=fill_color,
+            fill_level=float(fill_level) if fill_level is not None else None,
+        )
         self.plot.add_trace(key, alias, x_values, y_values, style)
         self._reference_overlay_key = key
+
+        self._reference_overlay_annotations = []
+        band_bounds = payload.get("band_bounds")
+        labels = payload.get("labels")
+        if (
+            isinstance(labels, list)
+            and isinstance(band_bounds, tuple)
+            and len(band_bounds) == 2
+        ):
+            _, band_top = band_bounds
+            span = float(band_top) - float(band_bounds[0])
+            offset = span * 0.08 if np.isfinite(span) else 0.0
+            label_y = float(band_top) + offset
+            for label in labels:
+                text = label.get("text") if isinstance(label, Mapping) else None
+                centre_nm = label.get("centre_nm") if isinstance(label, Mapping) else None
+                if not text or centre_nm is None:
+                    continue
+                centre_nm = float(centre_nm)
+                if not np.isfinite(centre_nm):
+                    continue
+                x_display = self.plot.map_nm_to_display(centre_nm)
+                if not np.isfinite(x_display):
+                    continue
+                text_item = pg.TextItem(
+                    text,
+                    color=QtGui.QColor("#E6E1EB"),
+                    fill=pg.mkBrush(28, 28, 38, 200),
+                    border=pg.mkPen(color),
+                )
+                text_item.setAnchor((0.5, 1.1))
+                text_item.setPos(x_display, label_y)
+                text_item.setZValue(25)
+                self.plot.add_graphics_item(text_item, ignore_bounds=True)
+                self._reference_overlay_annotations.append(text_item)
 
     def _clear_reference_overlay(self) -> None:
         if self._reference_overlay_key:
             self.plot.remove_trace(self._reference_overlay_key)
             self._reference_overlay_key = None
+        for item in self._reference_overlay_annotations:
+            try:
+                self.plot.remove_graphics_item(item)
+            except Exception:  # pragma: no cover - defensive cleanup
+                continue
+        self._reference_overlay_annotations = []
 
     def _set_reference_meta(self, title: Optional[str], url: Optional[str], notes: Optional[str]) -> None:
         pieces: List[str] = []

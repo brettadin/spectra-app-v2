@@ -526,14 +526,14 @@ class CsvImporter:
             if prefer_monotonic:
                 if monotonic:
                     score += 10
+                    if self._looks_like_wavelength(valid):
+                        score += 12
                 else:
-                    score -= 8
+                    score -= 20
             elif not prefer_monotonic and not monotonic:
                 score += 2
             score += np.log1p(abs(span))
             score += np.log1p(abs(variance))
-            if prefer_monotonic and monotonic and self._looks_like_wavelength(valid):
-                score += 12
             if not prefer_monotonic and self._looks_like_intensity(valid):
                 score += 6
             if prefer_monotonic and span < 1.0 and np.nanmedian(np.abs(valid)) < 2.0:
