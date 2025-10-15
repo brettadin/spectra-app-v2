@@ -16,14 +16,20 @@ import numpy as np
 
 def _download_product(product_uri: str, cache_dir: Path) -> Path:
     cache_dir.mkdir(parents=True, exist_ok=True)
-    manifest = Observations.download_products(product_uri, download_dir=str(cache_dir))
-    if not manifest:
-        raise RuntimeError(f"MAST returned no products for {product_uri}")
-    first = manifest[0]
-    path = Path(first["Local Path"])
-    if not path.exists():
-        raise FileNotFoundError(path)
-    return path
+    filename = product_uri.split("/")[-1]
+    local_path = cache_dir / filename
+    if local_path.exists():
+        return local_path
+    status, _msg, _meta = Observations.download_file(
+        product_uri,
+        local_path=str(local_path),
+        cache=False,
+    )
+    if status != "COMPLETE":
+        raise RuntimeError(f"Download failed for {product_uri}: status={status}")
+    if not local_path.exists():
+        raise FileNotFoundError(local_path)
+    return local_path
 
 
 def _resample_fits(path: Path, *, bins: int) -> List[Dict[str, float]]:

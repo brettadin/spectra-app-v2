@@ -1,4 +1,6 @@
 from __future__ import annotations
+import math
+
 from app.services.reference_library import ReferenceLibrary
 
 
@@ -31,14 +33,21 @@ def test_reference_library_jwst_target_metadata() -> None:
 
     targets = library.jwst_targets()
     ids = {target["id"] for target in targets}
-    assert "jwst_wasp96b_nirspec_prism" in ids
+    assert "jwst_jupiter_nirspec_ifu_g140h_f100lp" in ids
 
-    wasp96 = library.jwst_target("jwst_wasp96b_nirspec_prism")
-    assert wasp96 is not None
-    assert wasp96["spectral_range_um"][0] < wasp96["spectral_range_um"][1]
-    assert len(wasp96["data"]) >= 3
-    assert wasp96["data"][0]["value"] > 0
-    assert wasp96.get("provenance", {}).get("curation_status") == "digitized_release_graphic"
+    for target in targets:
+        data = target["data"]
+        assert data, "expected resampled data rows"
+        wavelengths = [row["wavelength_um"] for row in data]
+        values = [row["value"] for row in data]
+        assert wavelengths == sorted(wavelengths), "wavelength grid should be monotonic"
+        assert all(math.isfinite(w) for w in wavelengths)
+        assert all(math.isfinite(v) for v in values)
+        prov = target.get("provenance", {})
+        assert "mast_product_uri" in prov
+        assert "retrieved_utc" in prov
+        assert prov.get("pipeline_version")
+        assert "digitized_release_graphic" not in prov
 
     bibliography = library.bibliography()
     citations = {entry["citation"] for entry in bibliography}

@@ -1,5 +1,14 @@
 # Patch Notes
 
+## 2025-10-15 (JWST Jupiter quick-look refresh) (05:26 am UTC)
+
+- Regenerated `app/data/reference/jwst_targets.json` using calibrated JWST Program 1022 spectra for Jupiter (NIRSpec IFU
+  G140H/F100LP and MIRI MRS Channel 2 Short) with pipeline v1.19.1 provenance metadata.
+- Patched `tools/reference_build/build_jwst_quicklook.py` to rely on `Observations.download_file`, avoiding the MAST
+  varchar→bigint conversion errors encountered with `download_products`.
+- Documented the new Jupiter coverage, outstanding targets, and regeneration workflow updates across the user reference,
+  developer guide, and workplan.
+
 ## 2025-10-15 (Reference regeneration scaffolding) (4:18 am UTC)
 
 - Added `tools/reference_build` scripts for NIST ASD, IR functional groups, and JWST quick-look spectra, recording build
