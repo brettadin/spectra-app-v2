@@ -38,8 +38,53 @@
 - [x] Draft user quickstart walkthrough covering launch → ingest → unit toggle → export.
 - [x] Author units & conversions reference with idempotency callouts (`docs/user/units_reference.md`).
 - [x] Document plot interaction tools and LOD expectations (`docs/user/plot_tools.md`).
-- [ ] Expand importing guide with provenance export appendix.
+- [x] Expand importing guide with provenance export appendix.
 
 ## Batch 3 QA Log
 
 - 2025-10-14: ✅ `pytest -q`
+
+# Workplan — Batch 4 (2025-10-15)
+
+- [x] Harden provenance export bundle by copying sources and per-spectrum CSVs with regression coverage.
+
+## Batch 4 QA Log
+
+- 2025-10-15: ✅ `pytest -q`
+
+# Workplan — Batch 5 (2025-10-15)
+
+- [x] Teach the CSV/TXT importer to recover wavelength/intensity pairs from messy reports with heuristic unit detection.
+- [x] Surface the user documentation inside the app via a Docs inspector tab and Help menu entry.
+
+## Batch 5 QA Log
+
+- 2025-10-15: ✅ `ruff check app tests`
+- 2025-10-15: ✅ `mypy app --ignore-missing-imports`
+- 2025-10-15: ⚠️ `pytest -q --maxfail=1 --disable-warnings --cov=app --cov-report=term-missing` (fails: pytest-cov plugin unavailable)
+- 2025-10-15: ✅ `pytest -q --maxfail=1 --disable-warnings`
+
+# Workplan — Batch 6 (2025-10-15)
+
+- [x] Correct importer axis selection when intensity columns precede wavelength data, with regression coverage.
+- [x] Wire the Normalize toolbar to overlay scaling (None/Max/Area) and document the behaviour.
+
+## Batch 6 QA Log
+
+- 2025-10-15: ✅ `ruff check app tests`
+- 2025-10-15: ✅ `mypy app --ignore-missing-imports`
+- 2025-10-15: ⚠️ `pytest -q --maxfail=1 --disable-warnings --cov=app --cov-report=term-missing` (fails: pytest-cov plugin unavailable)
+- 2025-10-15: ✅ `pytest -q --maxfail=1 --disable-warnings`
+
+# Workplan — Batch 7 (2025-10-15)
+
+- [x] Honour wavelength/wavenumber units embedded in headers to prevent swapped axes.
+- [x] Record column-selection rationale in importer metadata and add regression coverage for header-driven swaps.
+- [x] Update user documentation and patch notes to describe the new safeguards.
+
+## Batch 7 QA Log
+
+- 2025-10-15: ✅ `ruff check app tests`
+- 2025-10-15: ✅ `mypy app --ignore-missing-imports`
+- 2025-10-15: ⚠️ `pytest -q --maxfail=1 --disable-warnings --cov=app --cov-report=term-missing` (fails: pytest-cov plugin unavailable)
+- 2025-10-15: ✅ `pytest -q --maxfail=1 --disable-warnings`
