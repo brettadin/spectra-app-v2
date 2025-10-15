@@ -1478,11 +1478,11 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
     def _overlay_band_bounds(self) -> tuple[float, float]:
         y_min, y_max = self._overlay_vertical_bounds()
         span = y_max - y_min
-        bottom = y_min + span * 0.7
-        top = y_min + span * 0.9
+        bottom = y_min + span * 0.08
+        top = y_min + span * 0.38
         if not np.isfinite(bottom) or not np.isfinite(top) or top <= bottom:
             bottom = y_min + span * 0.1
-            top = y_min + span * 0.3
+            top = bottom + max(span * 0.3, 1.0)
         return bottom, top
 
     def _on_reference_overlay_toggled(self, checked: bool) -> None:
@@ -1552,13 +1552,29 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             and isinstance(band_bounds, tuple)
             and len(band_bounds) == 2
         ):
-            _, band_top = band_bounds
-            span = float(band_top) - float(band_bounds[0])
-            offset = span * 0.08 if np.isfinite(span) else 0.0
-            label_y = float(band_top) + offset
-            for label in labels:
-                text = label.get("text") if isinstance(label, Mapping) else None
-                centre_nm = label.get("centre_nm") if isinstance(label, Mapping) else None
+            band_bottom = float(band_bounds[0])
+            band_top = float(band_bounds[1])
+            if not (np.isfinite(band_bottom) and np.isfinite(band_top)):
+                return
+            if band_top <= band_bottom:
+                band_top = band_bottom + 1.0
+
+            x_range, _ = self.plot.view_range()
+            x_min, x_max = map(float, x_range)
+            x_span = abs(x_max - x_min)
+            if not np.isfinite(x_span) or x_span == 0.0:
+                x_span = 1.0
+            cluster_threshold = x_span * 0.04
+
+            assigned: List[tuple[str, float, int]] = []
+            row_last_x: List[float] = []
+
+            for label in sorted(
+                (label for label in labels if isinstance(label, Mapping)),
+                key=lambda entry: float(entry.get("centre_nm", float("inf"))),
+            ):
+                text = label.get("text")
+                centre_nm = label.get("centre_nm")
                 if not text or centre_nm is None:
                     continue
                 centre_nm = float(centre_nm)
@@ -1567,14 +1583,46 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                 x_display = self.plot.map_nm_to_display(centre_nm)
                 if not np.isfinite(x_display):
                     continue
+
+                row_index = None
+                for idx, last_x in enumerate(row_last_x):
+                    if abs(x_display - last_x) >= cluster_threshold:
+                        row_index = idx
+                        row_last_x[idx] = x_display
+                        break
+                if row_index is None:
+                    row_index = len(row_last_x)
+                    row_last_x.append(x_display)
+
+                assigned.append((str(text), x_display, row_index))
+
+            if not assigned:
+                return
+
+            row_count = max((row for *_, row in assigned), default=-1) + 1
+            if row_count <= 0:
+                row_count = 1
+
+            band_span = band_top - band_bottom
+            margin = band_span * 0.1
+            if not np.isfinite(margin) or margin < 0.0:
+                margin = 0.0
+            available = band_span - margin * 2.0
+            if available <= 0:
+                available = band_span
+            spacing = available / max(row_count, 1)
+
+            for text, x_display, row_index in assigned:
+                anchor_y = band_top - margin - spacing * (row_index + 0.5)
+                anchor_y = float(np.clip(anchor_y, band_bottom + margin, band_top - margin))
                 text_item = pg.TextItem(
                     text,
                     color=QtGui.QColor("#E6E1EB"),
                     fill=pg.mkBrush(28, 28, 38, 200),
                     border=pg.mkPen(color),
                 )
-                text_item.setAnchor((0.5, 1.1))
-                text_item.setPos(x_display, label_y)
+                text_item.setAnchor((0.5, 0.5))
+                text_item.setPos(x_display, anchor_y)
                 text_item.setZValue(25)
                 self.plot.add_graphics_item(text_item, ignore_bounds=True)
                 self._reference_overlay_annotations.append(text_item)
