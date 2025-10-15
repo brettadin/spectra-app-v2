@@ -797,14 +797,6 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         controls.addWidget(self.reference_overlay_toggle)
         controls.addStretch(1)
 
-        self.reference_plot = pg.PlotWidget()
-        self.reference_plot.setObjectName("reference-preview")
-        self.reference_plot.setMinimumHeight(220)
-        self.reference_plot.showGrid(x=True, y=False, alpha=0.15)
-        self.reference_plot.setLabel("bottom", "Wavelength", units=self.plot_unit())
-        self.reference_plot.setLabel("left", "Normalised amplitude")
-        layout.addWidget(self.reference_plot, 1)
-
         self.reference_table = QtWidgets.QTableWidget()
         self.reference_table.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
         self.reference_table.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
@@ -812,6 +804,14 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         header = self.reference_table.horizontalHeader()
         header.setStretchLastSection(True)
         layout.addWidget(self.reference_table, 1)
+
+        self.reference_plot = pg.PlotWidget()
+        self.reference_plot.setObjectName("reference-preview")
+        self.reference_plot.setMinimumHeight(220)
+        self.reference_plot.showGrid(x=True, y=False, alpha=0.15)
+        self.reference_plot.setLabel("bottom", "Wavelength", units=self.plot_unit())
+        self.reference_plot.setLabel("left", "Normalised amplitude")
+        layout.addWidget(self.reference_plot, 1)
 
         self.reference_meta = QtWidgets.QTextBrowser()
         self.reference_meta.setOpenExternalLinks(True)

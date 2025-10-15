@@ -7,9 +7,9 @@ authoritative NIST assets from digitised JWST placeholders that still need regen
 
 ## Plot previews and overlays
 
-- The tab now embeds an interactive **pyqtgraph** preview above the data table. Hydrogen datasets draw vertical markers
-  at the stored wavelengths, infrared groups render shaded spans for each wavenumber window, and JWST targets plot a
-  line with error bars when uncertainties are present.
+- The tab now embeds an interactive **pyqtgraph** preview beneath the data table. Hydrogen datasets draw vertical
+  markers at the stored wavelengths, infrared groups render shaded spans for each wavenumber window, and JWST targets
+  plot a line with error bars when uncertainties are present.
 - Use the **Overlay on main plot** checkbox to project the selected dataset onto the central Plot Pane. Overlays are
   tagged with a deterministic `reference::…` trace ID and a legend label that cites the original units and, for JWST
   targets, the stored resolving power. The preview normalises intensities so the reference trace fits alongside
