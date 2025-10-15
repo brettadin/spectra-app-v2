@@ -5,7 +5,7 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-pytest.importorskip("pyqtgraph")
+pytest.importorskip("pyqtgraph", exc_type=ImportError)
 
 from app.qt_compat import get_qt
 from app.ui.plot_pane import PlotPane
