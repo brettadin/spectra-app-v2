@@ -28,6 +28,16 @@ def test_wavenumber_round_trip():
     assert np.allclose(view_x, x)
 
 
+def test_superscript_wavenumber_round_trip():
+    service = UnitsService()
+    x = np.array([1500.0, 750.0])
+    y = np.array([0.3, 0.7])
+    canonical_x, canonical_y, _ = service.to_canonical(x, y, 'cm⁻¹', 'absorbance')
+    spectrum = Spectrum.create('wavenumber_superscript', canonical_x, canonical_y)
+    view_x, _, _ = service.convert(spectrum, 'cm⁻¹', 'absorbance')
+    assert np.allclose(view_x, x)
+
+
 def test_transmittance_conversion_and_round_trip():
     service = UnitsService()
     x = np.array([400.0])
