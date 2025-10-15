@@ -1,5 +1,14 @@
 # Patch Notes
 
+## 2025-10-15 (NIST ASD source tagging) (05:46 am UTC)
+
+- Tagged the bundled hydrogen lines with `source_id = nist_asd_2024_20251015`, reflecting the 2024 ASD release retrieved on
+  2025-10-15 (server timestamp) and recorded the header-derived version tag in provenance.
+- Extended `tools/reference_build/build_hydrogen_asd.py` with a `--source-id` flag plus optional header-based version
+  detection so metadata and individual lines remain in lock-step.
+- Documented the new CLI arguments in `docs/dev/reference_build.md` and noted the current ASD pull date/version for future
+  regenerations.
+
 ## 2025-10-15 (JWST Jupiter quick-look refresh) (05:26 am UTC)
 
 - Regenerated `app/data/reference/jwst_targets.json` using calibrated JWST Program 1022 spectra for Jupiter (NIRSpec IFU

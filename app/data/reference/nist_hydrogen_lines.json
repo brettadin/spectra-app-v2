@@ -1,6 +1,6 @@
 {
   "metadata": {
-    "source_id": "nist_asd_2024",
+    "source_id": "nist_asd_2024_20251015",
     "citation": "Y. Ralchenko, A.E. Kramida, J. Reader, and NIST ASD Team (2024). NIST Atomic Spectra Database (ver. 5.11), National Institute of Standards and Technology, Gaithersburg, MD.",
     "url": "https://physics.nist.gov/asd",
     "retrieved_utc": "2025-10-15T04:10:00Z",
@@ -13,7 +13,8 @@
         "wmin_nm": 90.0,
         "wmax_nm": 1000.0
       },
-      "retrieved_via": "astroquery.nist"
+      "retrieved_via": "astroquery.nist",
+      "asd_version_tag": "20251015"
     }
   },
   "lines": [
@@ -31,7 +32,7 @@
       "einstein_a_s_1": 6.265e8,
       "relative_intensity": 1.00,
       "uncertainty_nm": 0.00002,
-      "source_id": "nist_asd_2024",
+      "source_id": "nist_asd_2024_20251015",
       "notes": "Dominant ultraviolet resonance line; natural broadening placeholder recorded in line_shapes.json."
     },
     {
@@ -48,7 +49,7 @@
       "einstein_a_s_1": 1.672e8,
       "relative_intensity": 0.26,
       "uncertainty_nm": 0.00003,
-      "source_id": "nist_asd_2024",
+      "source_id": "nist_asd_2024_20251015",
       "notes": "Line strength derived from weighted gf = 0.0791."
     },
     {
@@ -65,7 +66,7 @@
       "einstein_a_s_1": 7.615e7,
       "relative_intensity": 0.12,
       "uncertainty_nm": 0.00003,
-      "source_id": "nist_asd_2024",
+      "source_id": "nist_asd_2024_20251015",
       "notes": "Transition probability averaged from NIST ASD literature values."
     },
     {
@@ -82,7 +83,7 @@
       "einstein_a_s_1": 4.410e7,
       "relative_intensity": 1.00,
       "uncertainty_nm": 0.002,
-      "source_id": "nist_asd_2024",
+      "source_id": "nist_asd_2024_20251015",
       "notes": "Hα red line; vacuum wavelength accounts for dispersion correction."
     },
     {
@@ -99,7 +100,7 @@
       "einstein_a_s_1": 8.410e6,
       "relative_intensity": 0.35,
       "uncertainty_nm": 0.002,
-      "source_id": "nist_asd_2024",
+      "source_id": "nist_asd_2024_20251015",
       "notes": "Hβ cyan line; oscillator strength f = 0.119."
     },
     {
@@ -116,7 +117,7 @@
       "einstein_a_s_1": 3.180e6,
       "relative_intensity": 0.16,
       "uncertainty_nm": 0.003,
-      "source_id": "nist_asd_2024",
+      "source_id": "nist_asd_2024_20251015",
       "notes": "Hγ blue-violet transition."
     },
     {
@@ -133,7 +134,7 @@
       "einstein_a_s_1": 1.500e6,
       "relative_intensity": 0.08,
       "uncertainty_nm": 0.004,
-      "source_id": "nist_asd_2024",
+      "source_id": "nist_asd_2024_20251015",
       "notes": "Hδ violet transition; intensity normalized to Hα." 
     }
   ]

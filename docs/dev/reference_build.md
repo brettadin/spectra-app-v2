@@ -28,9 +28,14 @@ Arguments:
 
 - `--wmin` / `--wmax`: wavelength window in nanometres (defaults 90–1000 nm).
 - `--output`: destination JSON path.
+- `--source-id`: identifier stamped on both the bundle metadata and each individual line (defaults to `nist_asd_2024`).
+- `--no-detect-source-version`: skip auto-appending the ASD version tag inferred from the response headers.
 
-The script calls `astroquery.nist.Nist.query`, converts the table to the Spectra schema, records the retrieval timestamp,
-and embeds the wavelength window inside `metadata.provenance.query` for auditability.
+The script calls `astroquery.nist` to retrieve the hydrogen lines, converts the table to the Spectra schema, records the
+retrieval timestamp, and embeds the wavelength window inside `metadata.provenance.query` for auditability. When
+`--no-detect-source-version` is not supplied the HTTP response headers are inspected for an ASD release tag (or fall back
+to the server timestamp); the detected value is appended to the provided `--source-id` so the metadata and line entries
+share the same version tag.
 
 ## IR functional groups
 
