@@ -33,6 +33,8 @@ def test_smoke_ingest_toggle_and_export(tmp_path: Path, mini_fits: Path) -> None
     if SpectraMainWindow is None or QtWidgets is None:
         pytest.skip(f"Qt stack unavailable: {_qt_import_error}")
 
+    pg = pytest.importorskip("pyqtgraph")
+
     app = _ensure_app()
     window = SpectraMainWindow()
     try:
