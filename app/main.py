@@ -173,19 +173,6 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.log_dock.setWidget(self.log_view)
         self.addDockWidget(QtCore.Qt.DockWidgetArea.BottomDockWidgetArea, self.log_dock)
 
-        self._log_ready = True
-        if self._log_buffer:
-            for channel, message in self._log_buffer:
-                self.log_view.appendPlainText(f"[{channel}] {message}")
-            self._log_buffer.clear()
-
-        self.inspector_dock = QtWidgets.QDockWidget("Inspector", self)
-        self.inspector_dock.setObjectName("dock-inspector")
-        self.inspector_tabs = QtWidgets.QTabWidget()
-        self._build_inspector_tabs()
-        self.inspector_dock.setWidget(self.inspector_tabs)
-        self.addDockWidget(QtCore.Qt.DockWidgetArea.RightDockWidgetArea, self.inspector_dock)
-
         self.inspector_dock = QtWidgets.QDockWidget("Inspector", self)
         self.inspector_dock.setObjectName("dock-inspector")
         self.inspector_tabs = QtWidgets.QTabWidget()
@@ -1122,7 +1109,9 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             upper = max(start, end)
             region = pg.LinearRegionItem(values=(lower, upper), movable=False)
             region.setBrush(brush)
-            region.setPen(pen)
+            # LinearRegionItem does not expose setPen; update the endpoint lines directly
+            for line in getattr(region, "lines", []):
+                line.setPen(pen)
             region.setZValue(5)
             self.reference_plot.addItem(region)
             self._reference_plot_items.append(region)
