@@ -97,3 +97,23 @@ def test_smoke_ingest_toggle_and_export(tmp_path: Path, mini_fits: Path) -> None
     assert str(csv_spec.x[0]) in csv_contents
 
     assert bundle["png_path"].read_bytes() == png_bytes
+
+
+def test_show_documentation_no_attribute_error() -> None:
+    """Opening the documentation view should not raise AttributeError during startup."""
+
+    if SpectraMainWindow is None or QtWidgets is None:
+        pytest.skip(f"Qt stack unavailable: {_qt_import_error}")
+
+    app = _ensure_app()
+    window = SpectraMainWindow()
+    try:
+        window.show_documentation()
+        app.processEvents()
+        docs_index = window.inspector_tabs.indexOf(window.tab_docs)
+        assert docs_index != -1
+        assert window.inspector_tabs.currentIndex() == docs_index
+    finally:
+        window.close()
+        window.deleteLater()
+        app.processEvents()
