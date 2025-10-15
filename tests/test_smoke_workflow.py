@@ -57,12 +57,27 @@ def test_smoke_ingest_toggle_and_export(tmp_path: Path, mini_fits: Path) -> None
         assert hasattr(window, "reference_plot")
         assert window.reference_plot.listDataItems()
         assert window.reference_overlay_checkbox.isEnabled()
+        payload = window._reference_overlay_payload
+        assert payload is not None
+        y_values = payload.get("y")
+        assert isinstance(y_values, np.ndarray)
+        assert np.nanmax(y_values) > np.nanmin(y_values)
         window.reference_overlay_checkbox.setChecked(True)
         app.processEvents()
         assert window._reference_overlay_key is not None
         window.reference_overlay_checkbox.setChecked(False)
         app.processEvents()
         assert window._reference_overlay_key is None
+
+        # Switch datasets to ensure combo selection updates correctly
+        initial_key = payload.get("key") if payload else None
+        window.reference_dataset_combo.setCurrentIndex(1)
+        app.processEvents()
+        assert window.reference_dataset_combo.currentIndex() == 1
+        assert window.reference_table.rowCount() > 0
+        next_payload = window._reference_overlay_payload
+        if next_payload:
+            assert next_payload.get("key") != initial_key
     finally:
         window.close()
         window.deleteLater()

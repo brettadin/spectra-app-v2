@@ -55,6 +55,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self._reference_plot_items: List[object] = []
         self._reference_overlay_key: Optional[str] = None
         self._reference_overlay_payload: Optional[Dict[str, Any]] = None
+        self._reference_options: List[tuple[str, Optional[str]]] = []
         self._palette: List[QtGui.QColor] = [
             QtGui.QColor("#4F6D7A"),
             QtGui.QColor("#C0D6DF"),
@@ -177,6 +178,13 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             for channel, message in self._log_buffer:
                 self.log_view.appendPlainText(f"[{channel}] {message}")
             self._log_buffer.clear()
+
+        self.inspector_dock = QtWidgets.QDockWidget("Inspector", self)
+        self.inspector_dock.setObjectName("dock-inspector")
+        self.inspector_tabs = QtWidgets.QTabWidget()
+        self._build_inspector_tabs()
+        self.inspector_dock.setWidget(self.inspector_tabs)
+        self.addDockWidget(QtCore.Qt.DockWidgetArea.RightDockWidgetArea, self.inspector_dock)
 
         self.inspector_dock = QtWidgets.QDockWidget("Inspector", self)
         self.inspector_dock.setObjectName("dock-inspector")
@@ -388,14 +396,23 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
 
     # Actions -----------------------------------------------------------
     def open_file(self) -> None:
-        path, _ = QtWidgets.QFileDialog.getOpenFileName(
+        paths, _ = QtWidgets.QFileDialog.getOpenFileNames(
             self,
-            "Open Spectrum",
+            "Open Spectra",
             str(Path.home()),
             "Spectra (*.csv *.txt)",
         )
-        if path:
-            self._ingest_path(Path(path))
+        if not paths:
+            return
+
+        self.plot.begin_bulk_update()
+        try:
+            for raw in paths:
+                if not raw:
+                    continue
+                self._ingest_path(Path(raw))
+        finally:
+            self.plot.end_bulk_update()
 
     def load_sample_via_menu(self) -> None:
         files = list(SAMPLES_DIR.glob('*.csv'))
@@ -798,7 +815,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
 
         controls.addWidget(QtWidgets.QLabel("Dataset:"))
         self.reference_dataset_combo = QtWidgets.QComboBox()
-        self.reference_dataset_combo.currentIndexChanged.connect(self._refresh_reference_dataset)
+        self.reference_dataset_combo.currentIndexChanged.connect(self._on_reference_dataset_changed)
         controls.addWidget(self.reference_dataset_combo, 1)
 
         self.reference_filter = QtWidgets.QLineEdit()
@@ -837,17 +854,29 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
 
         self._populate_reference_combo()
 
+    def _on_reference_dataset_changed(self, index: int) -> None:
+        if index < 0:
+            return
+        self._refresh_reference_dataset()
+
     def _populate_reference_combo(self) -> None:
         combo = self.reference_dataset_combo
         combo.blockSignals(True)
         combo.clear()
-        combo.addItem("NIST Hydrogen Lines (Balmer & Lyman)", ("spectral_lines", None))
-        combo.addItem("IR Functional Groups", ("ir_groups", None))
-        combo.addItem("Line-shape Placeholders", ("line_shapes", None))
+        self._reference_options = []
+
+        def add_option(label: str, kind: str, key: Optional[str] = None) -> None:
+            self._reference_options.append((kind, key))
+            combo.addItem(label)
+
+        add_option("NIST Hydrogen Lines (Balmer & Lyman)", "spectral_lines")
+        add_option("IR Functional Groups", "ir_groups")
+        add_option("Line-shape Placeholders", "line_shapes")
+
         for target in self.reference_library.jwst_targets():
             name = target.get("name", "Unknown")
             instrument = target.get("instrument") or "—"
-            combo.addItem(f"JWST: {name} ({instrument})", ("jwst", target.get("id")))
+            add_option(f"JWST: {name} ({instrument})", "jwst", target.get("id"))
         combo.blockSignals(False)
         if combo.count():
             combo.setCurrentIndex(0)
@@ -857,8 +886,8 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self._refresh_reference_dataset()
 
     def _refresh_reference_dataset(self) -> None:
-        data = self.reference_dataset_combo.currentData()
-        if not data:
+        index = self.reference_dataset_combo.currentIndex()
+        if index < 0:
             self.reference_table.setRowCount(0)
             self.reference_table.setColumnCount(0)
             self.reference_meta.clear()
@@ -866,7 +895,10 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             self._update_reference_overlay_state(None)
             return
 
-        kind, key = data
+        if index >= len(getattr(self, "_reference_options", [])):
+            return
+
+        kind, key = self._reference_options[index]
         query = self.reference_filter.text().strip().lower()
         overlay_payload: Optional[Dict[str, Any]] = None
 
@@ -1067,7 +1099,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.reference_plot.setLabel("bottom", "Wavelength", units=display_unit)
         self.reference_plot.setLabel("left", "Relative Intensity (a.u.)")
         self.reference_plot.setYRange(0.0, max_intensity * 1.1, padding=0.05)
-        return self._build_overlay_for_lines(wavelengths_nm)
+        return self._build_overlay_for_lines(wavelengths_nm, intensities_arr)
 
     def _render_reference_ir_groups(
         self, entries: List[Mapping[str, Any]]
@@ -1173,18 +1205,35 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         except (TypeError, ValueError):
             return None
 
-    def _build_overlay_for_lines(self, wavelengths_nm: np.ndarray) -> Optional[Dict[str, Any]]:
+    def _build_overlay_for_lines(
+        self, wavelengths_nm: np.ndarray, intensities: np.ndarray
+    ) -> Optional[Dict[str, Any]]:
         if wavelengths_nm.size == 0:
             return None
 
+        if intensities.size != wavelengths_nm.size:
+            intensities = np.full_like(wavelengths_nm, 1.0)
+
         y_min, y_max = self._overlay_vertical_bounds()
+        span = y_max - y_min if np.isfinite(y_max - y_min) else 1.0
+        baseline = y_min + span * 0.05
+        cap = y_min + span * 0.35
+        if not np.isfinite(baseline) or not np.isfinite(cap) or cap <= baseline:
+            baseline = y_min
+            cap = y_min + max(span, 1.0)
+        max_intensity = float(np.nanmax(intensities)) if intensities.size else 1.0
+        if not np.isfinite(max_intensity) or max_intensity <= 0:
+            max_intensity = 1.0
+
         x_segments: List[float] = []
         y_segments: List[float] = []
-        for value in wavelengths_nm:
+        for value, raw_intensity in zip(wavelengths_nm, intensities):
             if not np.isfinite(value):
                 continue
+            intensity = float(raw_intensity) if np.isfinite(raw_intensity) and raw_intensity >= 0 else 0.0
+            scaled_top = baseline + (cap - baseline) * (intensity / max_intensity)
             x_segments.extend([value, value, np.nan])
-            y_segments.extend([y_min, y_max, np.nan])
+            y_segments.extend([baseline, scaled_top, np.nan])
 
         if not x_segments:
             return None

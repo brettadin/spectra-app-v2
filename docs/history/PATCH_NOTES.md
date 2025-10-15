@@ -52,6 +52,12 @@
 - Updated the overlay refresh flow to tolerate Unicode wavenumber tokens and keep the main plot responsive during default sample ingestion.
 - Confirmed the fix with linting, typing, and the pytest smoke suite so the app launches cleanly before the next feature pass.
 
+## 2025-10-15 (Reference plotting & multi-import) (7:05 pm)
+
+- Fixed the Reference inspector so dataset selections persist, the plot canvas renders Balmer intensities faithfully, and the overlay toggle mirrors hydrogen/IR/JWST datasets into the main graph.
+- Normalised Unicode wavenumber aliases, guarded documentation logging during startup, and restored the normalization toolbar at launch.
+- Switched **File → Open** to accept multi-select batches and updated smoke tests/docs to cover the new reference plotting workflow.
+
 ## 2025-10-15 (Importing Guide Provenance Appendix) (9:10 am)
 
 - Expanded `docs/user/importing.md` with a provenance export appendix covering the structure of the manifest bundle.

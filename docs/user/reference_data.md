@@ -13,7 +13,9 @@ authoritative NIST assets from digitised JWST placeholders that still need regen
 - Fields: series, upper/lower quantum numbers, vacuum/air wavelength, wavenumber, Einstein *A* coefficients, relative
   intensity, uncertainty, and notes describing the Rydberg–Ritz connection.
 - Usage: select **NIST Hydrogen Lines (Balmer & Lyman)**, optionally filter by series (e.g. “Balmer”) and copy values for
-  overlay markers or import sanity checks. The metadata drawer lists the astroquery build script and retrieval timestamp.
+  overlay markers or import sanity checks. The plot canvas renders each transition with its relative intensity and the
+  **Overlay on plot** toggle projects those bars into the main workspace without normalising them against active traces.
+  The metadata drawer lists the astroquery build script and retrieval timestamp.
 
 ## Infrared functional groups
 
@@ -51,12 +53,13 @@ pipeline is wired into CI. Each record cites its release page and records the ap
 
 ### Workflow tips
 
-1. Select a JWST dataset to preview the stored values. The measurement column adapts to the stored units and displays
-   per-point uncertainties when available.
-2. Use the Inspector filter bar to narrow down to wavelength windows (e.g. enter `1.4` to isolate WASP-96 b’s water
-   absorption peak).
-3. Click the citation link in the metadata pane to open the original release or follow the planned MAST URI when the
-   mission archive can be accessed.
+1. Select a dataset from the combo box; the Reference plot updates immediately without forcing the selection back to the
+   first entry.
+2. Enable **Overlay on plot** to add the previewed dataset to the main graph. Hydrogen lines respect their relative
+   intensities, IR bands occupy a shaded lane near the top of the axis, and JWST spectra draw as standard curves with
+   optional uncertainty envelopes.
+3. Use the Inspector filter bar to narrow down to wavelength windows (e.g. enter `1.4` to isolate WASP-96 b’s water
+   absorption peak) and click citation links in the metadata pane to open the underlying source documentation.
 
 ## Roadmap hooks
 
