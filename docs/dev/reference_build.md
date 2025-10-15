@@ -68,6 +68,15 @@ Arguments:
 - `--cache-dir`: where downloaded FITS products are stored.
 - `--output`: destination JSON path.
 
+Start by copying the template manifest to a working file that you can edit without clobbering the documented scaffold:
+
+```bash
+cp tools/reference_build/jwst_targets_template.json tools/reference_build/jwst_targets_manifest.json
+```
+
+Update the copy with the MAST product URIs, metadata, and any additional targets you plan to harvest, then supply the
+new manifest path as the positional `config` argument when invoking the builder.
+
 The script downloads each calibrated product via `astroquery.mast.Observations.download_file`, performs an
 index-based resampling to `bins` points, and writes the final JSON bundle. Each entry receives a `provenance` block with
 `mast_product_uri`, `pipeline_version`, and retrieval timestamp. Downstream UI components render these fields so users can
