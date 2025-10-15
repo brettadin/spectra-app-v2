@@ -64,6 +64,11 @@ trace:
   double-checks the headers. If the tentative X column looks intensity-like and
   the Y column looks wavelength-like, the importer swaps them and records the
   correction in the provenance metadata so you can audit the decision.
+- **Profile-based axis swap** – Even when headers are absent, the importer now
+  inspects the numeric profiles. If the provisional X column behaves like an
+  intensity series while the Y column sits in a typical wavelength/wavenumber
+  range, the axes are swapped and the rationale (`profile-swap`) is written to
+  `metadata.column_selection`.
 - **Automatic ordering** – Descending wavenumber tables are reversed so the X
   axis is monotonically increasing, matching the expectations of the plotting
   stack and unit conversions.

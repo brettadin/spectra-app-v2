@@ -1,5 +1,14 @@
 # Patch Notes
 
+## 2025-10-15 (Reference plotting + importer profile swap) (7:45 pm UTC)
+
+- Fixed the Reference inspector so dataset selection persists across sessions, JWST targets render in the preview canvas,
+  and IR functional-group bands display labelled regions with optional overlays tied to the active combo-box choice.
+- Normalised Unicode wavenumber symbols, guarded the documentation logger until the log dock exists, and exposed the Plot
+  toolbar toggle through the View menu so manual normalization controls stay discoverable.
+- Added a profile-based safeguard to the CSV/TXT importer so monotonic intensity columns no longer replace jittery
+  wavenumber exports, with regression coverage capturing the new swap rationale.
+
 ## 2025-10-15 (Reference regeneration scaffolding) (4:18 am UTC)
 
 - Added `tools/reference_build` scripts for NIST ASD, IR functional groups, and JWST quick-look spectra, recording build

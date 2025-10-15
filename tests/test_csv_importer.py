@@ -140,3 +140,37 @@ def test_csv_importer_swaps_axes_when_headers_conflict(tmp_path: Path) -> None:
     assert column_meta["original"] == {"x_index": 0, "y_index": 1}
     assert column_meta["x_reason"].endswith("header-swap")
     assert column_meta["y_reason"].endswith("header-swap")
+
+
+def test_csv_importer_profile_swap_for_monotonic_intensity(tmp_path: Path) -> None:
+    class ProfileSwapImporter(CsvImporter):
+        def _select_x_column(self, data, headers):  # type: ignore[override]
+            return 0, "score"
+
+        def _select_y_column(self, data, x_index, headers):  # type: ignore[override]
+            return 1, "score"
+
+    raw = """
+    # Intensity column is monotonic; wavelength column jitters and would be mis-scored without profile swap
+    0.05, 5000
+    0.07, 4992
+    0.09, 5001
+    0.12, 4988
+    0.15, 4995
+    0.18, 4989
+    """.strip()
+
+    path = tmp_path / "profile_swap.txt"
+    path.write_text(raw, encoding="utf-8")
+
+    importer = ProfileSwapImporter()
+    result = importer.read(path)
+
+    expected_wavenumbers = np.array([5000, 4992, 5001, 4988, 4995, 4989], dtype=float)
+    assert result.x_unit in {"cm^-1", "cm⁻¹"}
+    assert np.allclose(np.sort(result.x), np.sort(expected_wavenumbers))
+    column_meta = result.metadata["column_selection"]
+    assert column_meta["swap"] == "profile-swap"
+    assert column_meta["x_reason"].endswith("profile-swap")
+    assert column_meta["y_reason"].endswith("profile-swap")
+    assert np.isclose(result.y.max(), 0.18)

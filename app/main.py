@@ -46,6 +46,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.reference_library = ReferenceLibrary()
 
         self.unit_combo: Optional[QtWidgets.QComboBox] = None
+        self.plot_toolbar: Optional[QtWidgets.QToolBar] = None
 
         self._dataset_items: Dict[str, QtGui.QStandardItem] = {}
         self._spectrum_colors: Dict[str, QtGui.QColor] = {}
@@ -108,6 +109,9 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         view_menu.addAction(self.dataset_dock.toggleViewAction())
         view_menu.addAction(self.inspector_dock.toggleViewAction())
         view_menu.addAction(self.log_dock.toggleViewAction())
+        if self.plot_toolbar is not None:
+            view_menu.addAction(self.plot_toolbar.toggleViewAction())
+
         view_menu.addSeparator()
         self.reset_plot_action = QtGui.QAction("Reset Plot", self)
         self.reset_plot_action.setShortcut(QtGui.QKeySequence("Ctrl+Shift+A"))
@@ -172,13 +176,6 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.log_view.setReadOnly(True)
         self.log_dock.setWidget(self.log_view)
         self.addDockWidget(QtCore.Qt.DockWidgetArea.BottomDockWidgetArea, self.log_dock)
-
-        self.inspector_dock = QtWidgets.QDockWidget("Inspector", self)
-        self.inspector_dock.setObjectName("dock-inspector")
-        self.inspector_tabs = QtWidgets.QTabWidget()
-        self._build_inspector_tabs()
-        self.inspector_dock.setWidget(self.inspector_tabs)
-        self.addDockWidget(QtCore.Qt.DockWidgetArea.RightDockWidgetArea, self.inspector_dock)
 
         self.inspector_dock = QtWidgets.QDockWidget("Inspector", self)
         self.inspector_dock.setObjectName("dock-inspector")
@@ -309,6 +306,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         toolbar = QtWidgets.QToolBar("Plot")
         toolbar.setMovable(False)
         self.addToolBar(QtCore.Qt.ToolBarArea.TopToolBarArea, toolbar)
+        self.plot_toolbar = toolbar
 
         self.action_cursor = QtGui.QAction("Cursor", self)
         self.action_cursor.setCheckable(True)
@@ -869,14 +867,19 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
     def _on_reference_dataset_changed(self, index: int) -> None:
         if index < 0:
             return
+        if hasattr(self, "reference_dataset_combo"):
+            label = self.reference_dataset_combo.itemText(index)
+            self._log("Reference", f"Dataset → {label}")
         self._refresh_reference_dataset()
 
     def _populate_reference_combo(self) -> None:
         combo = self.reference_dataset_combo
         combo.blockSignals(True)
         combo.clear()
+        self._reference_options = []
 
         def add_option(label: str, kind: str, key: Optional[str] = None) -> None:
+            self._reference_options.append((kind, key if key is None else str(key)))
             combo.addItem(label)
             idx = combo.count() - 1
             combo.setItemData(idx, {"kind": kind, "key": key}, QtCore.Qt.ItemDataRole.UserRole)
@@ -893,6 +896,9 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         combo.blockSignals(False)
         if combo.count():
             combo.setCurrentIndex(0)
+        self.reference_overlay_checkbox.blockSignals(True)
+        self.reference_overlay_checkbox.setChecked(False)
+        self.reference_overlay_checkbox.blockSignals(False)
         self._refresh_reference_dataset()
 
     def _filter_reference_rows(self, _: str) -> None:
@@ -900,21 +906,13 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
 
     def _current_reference_option(self) -> Optional[tuple[str, Optional[str]]]:
         combo = getattr(self, "reference_dataset_combo", None)
-        if combo is None:
+        options = getattr(self, "_reference_options", [])
+        if combo is None or not options:
             return None
         index = combo.currentIndex()
-        if index < 0:
+        if index < 0 or index >= len(options):
             return None
-        data = combo.itemData(index, QtCore.Qt.ItemDataRole.UserRole)
-        if isinstance(data, dict):
-            kind = data.get("kind")
-            if kind:
-                return str(kind), data.get("key") if data.get("key") is None else str(data.get("key"))
-        # Fallback for legacy state where we populated _reference_options list
-        options = getattr(self, "_reference_options", None)
-        if options and 0 <= index < len(options):
-            return options[index]
-        return None
+        return options[index]
 
     def _refresh_reference_dataset(self) -> None:
         option = self._current_reference_option()
@@ -1094,6 +1092,11 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
 
     def _clear_reference_plot(self) -> None:
         if hasattr(self, "reference_plot"):
+            for item in getattr(self, "_reference_plot_items", []):
+                try:
+                    self.reference_plot.removeItem(item)
+                except Exception:  # pragma: no cover - defensive against pyqtgraph internals
+                    pass
             self.reference_plot.clear()
             self.reference_plot.showGrid(x=True, y=True, alpha=0.25)
         self._reference_plot_items = []
@@ -1144,8 +1147,8 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             self.reference_plot.setLabel("left", "Relative Presence")
             return None
 
-        brush = pg.mkBrush(109, 89, 122, 60)
-        pen = pg.mkPen(color="#6D597A", width=1.5)
+        brush = pg.mkBrush(109, 89, 122, 45)
+        pen = pg.mkPen(color="#6D597A", width=1.2)
         for entry in entries:
             start = self._coerce_float(entry.get("wavenumber_cm_1_min"))
             end = self._coerce_float(entry.get("wavenumber_cm_1_max"))
@@ -1163,6 +1166,18 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             region.setZValue(5)
             self.reference_plot.addItem(region)
             self._reference_plot_items.append(region)
+
+            label = entry.get("group") or entry.get("id")
+            if label:
+                centre = (lower + upper) / 2.0
+                y_low, y_high = self._overlay_band_bounds()
+                label_y = y_low + (y_high - y_low) * 0.5
+                text_item = pg.TextItem(label, color="#6D597A")
+                text_item.setAnchor((0.5, 0.5))
+                text_item.setPos(centre, label_y)
+                text_item.setZValue(6)
+                self.reference_plot.addItem(text_item)
+                self._reference_plot_items.append(text_item)
 
         self.reference_plot.setLabel("bottom", "Wavenumber", units="cm⁻¹")
         self.reference_plot.setLabel("left", "Relative Presence")

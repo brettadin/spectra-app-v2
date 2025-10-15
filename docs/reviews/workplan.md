@@ -1,3 +1,17 @@
+# Workplan — Batch 12 (2025-10-15)
+
+- [x] Keep the Reference inspector combo in sync with the preview plot and overlay toggle, including JWST quick-look curves and labelled IR regions.
+- [x] Restore normalization controls by adding a View-menu toggle for the plot toolbar and accepting Unicode `cm⁻¹` inputs in unit conversions.
+- [x] Add profile-based axis swapping so monotonic intensity columns no longer displace jittery wavenumber exports.
+- [ ] Investigate duplicate Inspector dock panes reported on Windows after multiple launches (unable to reproduce headless; needs manual QA).
+- [ ] Verify reference overlays respect filter text persistence when switching datasets (ensure overlay availability matches filtered rows).
+
+## Batch 12 QA Log
+
+- 2025-10-15: ✅ `ruff check app tests`
+- 2025-10-15: ✅ `mypy app --ignore-missing-imports`
+- 2025-10-15: ✅ `pytest -q --maxfail=1 --disable-warnings`
+
 # Workplan — Batch 1 (2025-10-14)
 
 - [x] Seed tiny fixtures for tests (`tests/data/mini.*`).

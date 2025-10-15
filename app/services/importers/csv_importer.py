@@ -167,6 +167,21 @@ class CsvImporter:
         x = x_raw[mask]
         y = y_raw[mask]
 
+        profile_swap_reason: str | None = None
+        if swap_reason is None and self._should_swap_by_profile(x, y):
+            profile_swap_reason = "profile-swap"
+            x_index, y_index = y_index, x_index
+            x_raw, y_raw = y_raw, x_raw
+            x_select_reason, y_select_reason = y_select_reason, x_select_reason
+            x_select_reason = f"{x_select_reason}|{profile_swap_reason}"
+            y_select_reason = f"{y_select_reason}|{profile_swap_reason}"
+            mask = np.isfinite(x_raw) & np.isfinite(y_raw)
+            x = x_raw[mask]
+            y = y_raw[mask]
+
+        if profile_swap_reason:
+            swap_reason = profile_swap_reason
+
         metadata_context = "\n".join(preface + comments + [tok.label for tok in header_tokens])
 
         x_label = header_tokens[x_index].label if x_index < len(header_tokens) else f"Column {x_index + 1}"
@@ -330,6 +345,20 @@ class CsvImporter:
             if not self._token_is_intensity(y_token):
                 return "header-swap"
         return None
+
+    def _should_swap_by_profile(self, x_values: np.ndarray, y_values: np.ndarray) -> bool:
+        if x_values.size < 3 or y_values.size < 3:
+            return False
+        x_is_intensity = self._looks_like_intensity(x_values)
+        y_is_intensity = self._looks_like_intensity(y_values)
+        y_is_wavelength = self._looks_like_wavelength(y_values)
+        x_is_wavelength = self._looks_like_wavelength(x_values)
+
+        if x_is_intensity and not y_is_intensity and y_is_wavelength:
+            return True
+        if x_is_wavelength and y_is_intensity:
+            return False
+        return False
 
     def _token_is_wavelength(self, token: _HeaderToken) -> bool:
         label = token.normalised_label

@@ -27,7 +27,9 @@ Every trace that remains visible has a matching entry in the floating legend anc
 
 ## Normalisation toolbar modes
 
-The top-of-window plot toolbar hosts the **Normalize** combo box alongside the unit selector. Use it to adjust every visible trace without mutating the underlying data:
+The top-of-window plot toolbar hosts the **Normalize** combo box alongside the unit selector. If the toolbar is hidden, restore it via **View → Plot Toolbar**—Spectra always loads traces in their raw scale with **Normalize = None** so you can inspect absolute intensities before opting into Max or Area scaling.
+
+Use the control to adjust every visible trace without mutating the underlying data:
 
 - **None** leaves the canonical absorbance scale untouched.
 - **Max** divides each series by its maximum absolute absorbance so peaks share a common height of 1.0.

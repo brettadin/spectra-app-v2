@@ -80,9 +80,8 @@ def test_smoke_ingest_toggle_and_export(tmp_path: Path, mini_fits: Path) -> None
             assert next_payload.get("key") != initial_key
 
         jwst_index = None
-        for idx in range(window.reference_dataset_combo.count()):
-            data = window.reference_dataset_combo.itemData(idx, QtCore.Qt.ItemDataRole.UserRole)
-            if isinstance(data, dict) and data.get("kind") == "jwst":
+        for idx, (kind, _key) in enumerate(window._reference_options):
+            if kind == "jwst":
                 jwst_index = idx
                 break
         if jwst_index is not None:
