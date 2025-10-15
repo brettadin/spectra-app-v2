@@ -38,8 +38,16 @@
 - [x] Draft user quickstart walkthrough covering launch → ingest → unit toggle → export.
 - [x] Author units & conversions reference with idempotency callouts (`docs/user/units_reference.md`).
 - [x] Document plot interaction tools and LOD expectations (`docs/user/plot_tools.md`).
-- [ ] Expand importing guide with provenance export appendix.
+- [x] Expand importing guide with provenance export appendix.
 
 ## Batch 3 QA Log
 
 - 2025-10-14: ✅ `pytest -q`
+
+# Workplan — Batch 4 (2025-10-15)
+
+- [x] Harden provenance export bundle by copying sources and per-spectrum CSVs with regression coverage.
+
+## Batch 4 QA Log
+
+- 2025-10-15: ✅ `pytest -q`
