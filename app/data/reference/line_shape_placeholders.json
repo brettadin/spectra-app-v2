@@ -1,0 +1,74 @@
+{
+  "metadata": {
+    "compiled_utc": "2025-10-15T03:22:30Z",
+    "notes": "Placeholder catalogue for future line-shape modelling, referencing standard spectroscopy texts for implementation guidance.",
+    "references": [
+      {
+        "citation": "B.W. Mangum and S. Shirley (2015). An Introduction to Spectral Line Broadening, Publications of the Astronomical Society of the Pacific 127, 266-298.",
+        "url": "https://doi.org/10.1086/680323"
+      },
+      {
+        "citation": "G. Herzberg (1950). Spectra of Diatomic Molecules, Van Nostrand Reinhold.",
+        "url": "https://doi.org/10.1002/9780470142109"
+      }
+    ]
+  },
+  "placeholders": [
+    {
+      "id": "doppler_shift",
+      "label": "Doppler shift",
+      "status": "todo",
+      "description": "Implement relativistic Doppler shift corrections using rest wavelength reference and radial velocity inputs.",
+      "parameters": ["rest_wavelength_nm", "radial_velocity_kms"],
+      "notes": "Wire into plotting overlays once velocity metadata is stored alongside spectra."
+    },
+    {
+      "id": "pressure_broadening",
+      "label": "Pressure broadening",
+      "status": "todo",
+      "description": "Integrate Lorentzian pressure broadening profiles using collisional half-widths from reference literature.",
+      "parameters": ["gamma_L", "perturber_density"],
+      "notes": "Requires gas composition metadata and temperature-dependent coefficients."
+    },
+    {
+      "id": "stark_broadening",
+      "label": "Stark broadening",
+      "status": "todo",
+      "description": "Placeholder for hydrogen Stark profiles relevant to Balmer line wings.",
+      "parameters": ["electron_density", "temperature_K"],
+      "notes": "Targeting Vidal–Cooper–Smith tables as baseline values."
+    },
+    {
+      "id": "zeeman_splitting",
+      "label": "Zeeman splitting",
+      "status": "todo",
+      "description": "Model wavelength splitting under magnetic fields using Landé g-factors.",
+      "parameters": ["lande_g", "magnetic_field_gauss"],
+      "notes": "Requires integration with magnetohydrodynamic metadata for stellar targets."
+    },
+    {
+      "id": "collisional_shift",
+      "label": "Collisional line shift",
+      "status": "todo",
+      "description": "Track centre-of-line shifts from pressure-induced perturbations.",
+      "parameters": ["shift_coefficient", "perturber_density"],
+      "notes": "Complement to pressure broadening for dense atmospheres."
+    },
+    {
+      "id": "turbulent_broadening",
+      "label": "Micro/macro turbulence",
+      "status": "todo",
+      "description": "Placeholder for Gaussian broadening derived from turbulent velocity fields.",
+      "parameters": ["velocity_dispersion_kms"],
+      "notes": "Will leverage line-of-sight velocity dispersions once stored in provenance."
+    },
+    {
+      "id": "instrumental_resolution",
+      "label": "Instrumental resolution",
+      "status": "todo",
+      "description": "Track resolving power (R = λ/Δλ) and convolve spectra with instrument LSFs when available.",
+      "parameters": ["resolving_power", "lsf_kernel"],
+      "notes": "Populate once instrument reference files are curated under app/data/reference/instruments." 
+    }
+  ]
+}
