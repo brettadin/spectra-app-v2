@@ -133,7 +133,38 @@ class UnitsService:
         raise UnitError(f"Unsupported destination x unit: {dst}")
 
     def _normalise_x_unit(self, unit: str) -> str:
-        u = unit.strip().lower()
+        raw = unit.strip().lower().replace(" ", "")
+
+        wavenumber_aliases = {
+            "cm^-1",
+            "cm-1",
+            "cm^−1",
+            "cm^–1",
+            "cm^﹣1",
+            "cm^－1",
+            "cm^⁻1",
+            "cm−1",
+            "cm–1",
+            "cm﹣1",
+            "cm－1",
+            "cm⁻1",
+            "cm^-¹",
+            "cm^−¹",
+            "cm^–¹",
+            "cm^﹣¹",
+            "cm^－¹",
+            "cm^⁻¹",
+            "cm-¹",
+            "cm−¹",
+            "cm–¹",
+            "cm﹣¹",
+            "cm－¹",
+            "cm⁻¹",
+        }
+        if raw in wavenumber_aliases:
+            return "cm^-1"
+
+        u = raw
 
         # Normalise Unicode minus/superscript characters that commonly appear in
         # wavenumber annotations (e.g. ``cm⁻¹``) so they map onto the ASCII token
@@ -154,7 +185,6 @@ class UnitsService:
         }
         for superscript, digit in superscript_digits.items():
             u = u.replace(superscript, digit)
-        u = u.replace(" ", "")
         if u == "cm-1":
             u = "cm^-1"
 
@@ -166,7 +196,6 @@ class UnitsService:
             "angstrom": "angstrom",
             "ångström": "angstrom",
             "å": "angstrom",
-            "cm⁻¹": "cm^-1",
         }
         return mappings.get(u, u)
 
