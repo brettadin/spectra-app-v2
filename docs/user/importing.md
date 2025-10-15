@@ -29,6 +29,27 @@ Imported spectra always appear in canonical units inside the application. Use
  underlying data. The raw source file remains untouched in the provenance
  bundle created during export.
 
+## Appendix — Provenance export bundle
+
+Every export initiated from **File → Export Manifest** writes a timestamped
+directory that preserves both the processed spectrum and its origin story. The
+bundle contains:
+
+- `manifest.json` — human-readable metadata describing the session, import
+  source, applied unit conversions, and any math operations performed.
+- `spectra/` — canonicalised arrays in CSV format (`wavelength_nm`,
+  `intensity`) for each trace present in the workspace at export time.
+- `sources/` — verbatim copies of the original uploads alongside their SHA256
+  hashes so you can independently verify integrity.
+- `log.txt` — a chronological history of ingest, analysis, and export actions
+  captured by the provenance service.
+
+Because the manifest records the units detected during import, round-tripping
+through Ångström, micrometre, or wavenumber views does not alter the stored
+values. When sharing data with collaborators, distribute the entire export
+folder so downstream users can inspect both the canonicalised spectra and the
+raw files referenced in the manifest.
+
 ## Quick smoke workflow
 
 Run File → Open on `samples/sample_spectrum.csv`, toggle the units toolbar to Ångström/Transmittance, and export a manifest via File → Export Manifest. This mirrors the automated regression in `tests/test_smoke_workflow.py`, ensuring the ingest pipeline and provenance export are healthy.
