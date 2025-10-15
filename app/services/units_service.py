@@ -135,56 +135,31 @@ class UnitsService:
     def _normalise_x_unit(self, unit: str) -> str:
         raw = unit.strip().lower().replace(" ", "")
 
-        wavenumber_aliases = {
-            "cm^-1",
-            "cm-1",
-            "cm^−1",
-            "cm^–1",
-            "cm^﹣1",
-            "cm^－1",
-            "cm^⁻1",
-            "cm−1",
-            "cm–1",
-            "cm﹣1",
-            "cm－1",
-            "cm⁻1",
-            "cm^-¹",
-            "cm^−¹",
-            "cm^–¹",
-            "cm^﹣¹",
-            "cm^－¹",
-            "cm^⁻¹",
-            "cm-¹",
-            "cm−¹",
-            "cm–¹",
-            "cm﹣¹",
-            "cm－¹",
-            "cm⁻¹",
-        }
-        if raw in wavenumber_aliases:
+        translation_table = str.maketrans(
+            {
+                "⁻": "-",
+                "−": "-",
+                "﹣": "-",
+                "－": "-",
+                "–": "-",
+                "—": "-",
+                "⁰": "0",
+                "¹": "1",
+                "²": "2",
+                "³": "3",
+                "⁴": "4",
+                "⁵": "5",
+                "⁶": "6",
+                "⁷": "7",
+                "⁸": "8",
+                "⁹": "9",
+            }
+        )
+        u = raw.translate(translation_table)
+
+        if u in {"cm^-1", "1/cm", "wavenumber"}:
             return "cm^-1"
 
-        u = raw
-
-        # Normalise Unicode minus/superscript characters that commonly appear in
-        # wavenumber annotations (e.g. ``cm⁻¹``) so they map onto the ASCII token
-        # handled by the conversion logic.
-        for minus_variant in ("⁻", "−", "﹣", "－", "–", "—"):
-            u = u.replace(minus_variant, "-")
-        superscript_digits = {
-            "⁰": "0",
-            "¹": "1",
-            "²": "2",
-            "³": "3",
-            "⁴": "4",
-            "⁵": "5",
-            "⁶": "6",
-            "⁷": "7",
-            "⁸": "8",
-            "⁹": "9",
-        }
-        for superscript, digit in superscript_digits.items():
-            u = u.replace(superscript, digit)
         if u == "cm-1":
             u = "cm^-1"
 

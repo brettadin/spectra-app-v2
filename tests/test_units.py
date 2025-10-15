@@ -47,6 +47,17 @@ def test_from_canonical_handles_superscript_wavenumber():
     assert np.allclose(view_y, y)
 
 
+def test_from_canonical_returns_finite_wavenumbers_for_unicode_minus():
+    service = UnitsService()
+    x_nm = np.array([5000.0, 10000.0])
+    y = np.array([0.1, 0.2])
+
+    wavenumber, _ = service.from_canonical(x_nm, y, 'cm⁻¹', 'absorbance')
+
+    assert np.all(np.isfinite(wavenumber))
+    assert np.allclose(wavenumber, np.array([2000.0, 1000.0]))
+
+
 @pytest.mark.parametrize(
     "unicode_unit",
     [
