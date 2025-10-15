@@ -120,6 +120,7 @@
 - [ ] Wire Doppler/pressure/Stark broadening models into the overlay service using the placeholder parameter scaffolding.
 - [ ] Replace digitised JWST tables with calibrated FITS ingestion and provenance links once the pipeline module is ready.
 - [ ] Harvest remaining JWST quick-look targets (WASP-96 b, Mars, Neptune, HD 84406) — Jupiter NIRSpec IFU + MIRI MRS
-      completed 2025-10-15 via Program 1022 download_file workaround.
+      completed 2025-10-15 via Program 1022 download_file workaround. See the
+      [JWST quick-look regeneration notes](../dev/reference_build.md#jwst-quick-look-spectra) for the manifest workflow.
 - [ ] Expand the spectral line catalogue beyond hydrogen (e.g. He I, O III, Fe II) with citations and regression coverage.
 - [ ] Integrate IR functional group heuristics into importer header parsing for automated axis validation.
