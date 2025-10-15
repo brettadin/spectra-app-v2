@@ -2,7 +2,8 @@
 
 The **Reference** tab in the Inspector exposes curated spectroscopy datasets that ship with the preview shell. All
 entries are stored in `app/data/reference` so they can be browsed without a network connection and reused by agents or
-future automation.
+future automation. Each dataset advertises a `provenance` status in the metadata pane so you can distinguish
+authoritative NIST assets from digitised JWST placeholders that still need regeneration.
 
 ## NIST hydrogen line list
 
@@ -12,7 +13,7 @@ future automation.
 - Fields: series, upper/lower quantum numbers, vacuum/air wavelength, wavenumber, Einstein *A* coefficients, relative
   intensity, uncertainty, and notes describing the Rydberg–Ritz connection.
 - Usage: select **NIST Hydrogen Lines (Balmer & Lyman)**, optionally filter by series (e.g. “Balmer”) and copy values for
-  overlay markers or import sanity checks.
+  overlay markers or import sanity checks. The metadata drawer lists the astroquery build script and retrieval timestamp.
 
 ## Infrared functional groups
 
@@ -21,7 +22,8 @@ future automation.
 - Contents: characteristic absorption windows (cm⁻¹) for O–H, N–H, aliphatic/aromatic C–H, carbonyl variants, alkynes,
   and carboxylates. Each range is annotated with intensity heuristics and vibrational modes.
 - Usage: load **IR Functional Groups**, then filter by mode (“stretch”), functional class (“carbonyl”), or a wavenumber
-  value to shortlist plausible assignments during import QA.
+  value to shortlist plausible assignments during import QA. The dataset provenance links back to the staging CSV stored
+  under `docs/reference_sources/`.
 
 ## Line-shape placeholders
 
@@ -33,18 +35,19 @@ future automation.
 
 ## JWST quick-look spectra
 
-The JWST entries bundle down-sampled spectra digitised from public NASA/ESA/CSA/STSci releases so the preview can
-illustrate multi-instrument datasets without contacting MAST. Each record cites its release page and records the
-approximate resolving power.
+The JWST entries currently bundle down-sampled spectra digitised from public NASA/ESA/CSA/STSci releases so the preview can
+illustrate multi-instrument datasets without contacting MAST. The metadata drawer calls out `curation_status:
+digitized_release_graphic` and the planned MAST product URI that will replace the placeholder once the astroquery build
+pipeline is wired into CI. Each record cites its release page and records the approximate resolving power.
 
-| Target | Instrument | Program | Spectral range (µm) | Units | Notes |
-| ------ | ---------- | ------- | ------------------- | ----- | ----- |
-| WASP-96 b transmission | NIRSpec PRISM | ERS 1324 | 0.6–2.8 | Transit depth (ppm) | Water vapour feature from 2022 release graphic. |
-| Jupiter mid-IR brightness | MIRI MRS | ERS 1373 | 7.6–12.8 | Radiance (MJy·sr⁻¹) | Auroral emission snapshot, digitised from Webb release. |
-| Mars reflectance | NIRSpec PRISM | DD-2759 | 0.7–3.0 | I/F reflectance | Scaled from the 2022 Webb Mars press kit. |
-| Neptune NIRCam brightness | NIRCam F444W/F356W | ERS 2282 | 1.6–4.4 | Radiance (MJy·sr⁻¹) | Photometry from STScI release imagery. |
-| HD 84406 calibration | NIRCam imaging | Commissioning | 0.9–2.2 | Flux density (Jy) | Rounded photometry from wavefront sensing docs. |
-| Earth observation | — | — | — | — | JWST cannot observe Earth; entry retained for completeness. |
+| Target | Instrument | Program | Spectral range (µm) | Units | Provenance status | Notes |
+| ------ | ---------- | ------- | ------------------- | ----- | ----------------- | ----- |
+| WASP-96 b transmission | NIRSpec PRISM | ERS 1324 | 0.6–2.8 | Transit depth (ppm) | digitized_release_graphic → mast:JWST/product/jw01324-o001_s00002_nirspec_prism_clear_prism_x1d.fits | Water vapour feature from 2022 release graphic. |
+| Jupiter mid-IR brightness | MIRI MRS | ERS 1373 | 7.6–12.8 | Radiance (MJy·sr⁻¹) | digitized_release_graphic → mast:JWST/product/jw01373-o002_t001_miri_ch1-shortmediumlong_s3d.fits | Auroral emission snapshot from Webb release. |
+| Mars reflectance | NIRSpec PRISM | DD-2759 | 0.7–3.0 | I/F reflectance | digitized_release_graphic → mast:JWST/product/jw02759-o001_t001_nirspec_prism_s1600a3_x1d.fits | Scaled from the 2022 Mars press kit. |
+| Neptune NIRCam brightness | NIRCam F444W/F356W | ERS 2282 | 1.6–4.4 | Radiance (MJy·sr⁻¹) | digitized_release_graphic → mast:JWST/product/jw02282-o001_t001_nircam_f444w_i2d.fits | Photometry from STScI release imagery. |
+| HD 84406 calibration | NIRCam imaging | Commissioning | 0.9–2.2 | Flux density (Jy) | digitized_release_graphic → mast:JWST/product/jw01107-o001_t001_nircam_f200w_calints.fits | Rounded photometry from wavefront sensing docs. |
+| Earth observation | — | — | — | — | operations_restriction | JWST cannot observe Earth; entry retained for completeness. |
 
 ### Workflow tips
 
@@ -52,8 +55,8 @@ approximate resolving power.
    per-point uncertainties when available.
 2. Use the Inspector filter bar to narrow down to wavelength windows (e.g. enter `1.4` to isolate WASP-96 b’s water
    absorption peak).
-3. Click the citation link in the metadata pane to open the original release for deeper context or to pull the full FITS
-   data products when the mission archive can be accessed.
+3. Click the citation link in the metadata pane to open the original release or follow the planned MAST URI when the
+   mission archive can be accessed.
 
 ## Roadmap hooks
 
@@ -61,4 +64,5 @@ approximate resolving power.
 - JWST records include spectral resolution fields so future convolution or instrument-matching steps can pick up the
   stored resolving power.
 - Additional species (He I, O III, Fe II, etc.) can extend the NIST catalogue by dropping JSON manifests into
-  `app/data/reference` — the Reference tab will ingest any new files after service refresh.
+  `app/data/reference` — regenerate via a companion build script and the Reference tab will ingest the new files after
+  service refresh.

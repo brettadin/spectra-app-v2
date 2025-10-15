@@ -3,8 +3,18 @@
     "source_id": "nist_asd_2024",
     "citation": "Y. Ralchenko, A.E. Kramida, J. Reader, and NIST ASD Team (2024). NIST Atomic Spectra Database (ver. 5.11), National Institute of Standards and Technology, Gaithersburg, MD.",
     "url": "https://physics.nist.gov/asd",
-    "retrieved_utc": "2025-10-15T03:22:00Z",
-    "notes": "Hydrogen I vacuum wavelengths computed from Ritz values. Wavenumbers follow the Rydberg–Ritz combination principle with R∞ = 10973731.568160 m⁻¹."
+    "retrieved_utc": "2025-10-15T04:10:00Z",
+    "notes": "Hydrogen I vacuum wavelengths computed from Ritz values. Wavenumbers follow the Rydberg–Ritz combination principle with R∞ = 10973731.568160 m⁻¹.",
+    "provenance": {
+      "curation_status": "authoritative",
+      "generator": "tools/reference_build/build_hydrogen_asd.py",
+      "query": {
+        "element": "H I",
+        "wmin_nm": 90.0,
+        "wmax_nm": 1000.0
+      },
+      "retrieved_via": "astroquery.nist"
+    }
   },
   "lines": [
     {

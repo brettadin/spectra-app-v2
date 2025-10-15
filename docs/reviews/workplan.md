@@ -102,7 +102,20 @@
 - 2025-10-15: ⚠️ `pytest -q --maxfail=1 --disable-warnings --cov=app --cov-report=term-missing` (fails: pytest-cov plugin unavailable)
 - 2025-10-15: ✅ `pytest -q --maxfail=1 --disable-warnings`
 
-# Workplan — Batch 9 (Backlog)
+# Workplan — Batch 9 (2025-10-15)
+
+- [x] Add reproducible build scripts for NIST hydrogen lines, IR functional groups, and JWST quick-look spectra.
+- [x] Propagate provenance (generator, retrieval timestamps, planned MAST URIs) into the reference JSON assets and inspector UI.
+- [x] Expand spectroscopy documentation (primer, reference guide) to explain the new provenance metadata and regeneration flow.
+
+## Batch 9 QA Log
+
+- 2025-10-15: ✅ `ruff check app tests`
+- 2025-10-15: ✅ `mypy app --ignore-missing-imports`
+- 2025-10-15: ⚠️ `pytest -q --maxfail=1 --disable-warnings --cov=app --cov-report=term-missing` (fails: pytest-cov plugin unavailable)
+- 2025-10-15: ✅ `pytest -q --maxfail=1 --disable-warnings`
+
+# Workplan — Batch 10 (Backlog)
 
 - [ ] Wire Doppler/pressure/Stark broadening models into the overlay service using the placeholder parameter scaffolding.
 - [ ] Replace digitised JWST tables with calibrated FITS ingestion and provenance links once the pipeline module is ready.

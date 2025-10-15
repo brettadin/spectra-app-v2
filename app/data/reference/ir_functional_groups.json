@@ -4,8 +4,13 @@
     "citation": "P.J. Linstrom and W.G. Mallard (eds.), NIST Chemistry WebBook, NIST Standard Reference Database Number 69 (2024 update).",
     "url": "https://webbook.nist.gov/chemistry/",
     "supplemental_citation": "D.L. Pavia, G.M. Lampman, G.S. Kriz, and J.R. Vyvyan (2015). Introduction to Spectroscopy, 5th ed., Cengage Learning.",
-    "retrieved_utc": "2025-10-15T03:22:30Z",
-    "notes": "Representative infrared absorption ranges for qualitative functional-group assignment."
+    "retrieved_utc": "2025-10-15T04:10:00Z",
+    "notes": "Representative infrared absorption ranges for qualitative functional-group assignment.",
+    "provenance": {
+      "curation_status": "authoritative",
+      "generator": "tools/reference_build/build_ir_bands.py",
+      "source_file": "docs/reference_sources/ir_functional_groups.csv"
+    }
   },
   "groups": [
     {

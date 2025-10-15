@@ -829,7 +829,8 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                 self._set_table_item(row, 4, self._format_scientific(entry.get("einstein_a_s_1")))
                 self._set_table_item(row, 5, self._format_float(entry.get("relative_intensity"), precision=2))
             meta = self.reference_library.hydrogen_metadata()
-            self._set_reference_meta(meta.get("citation"), meta.get("url"), meta.get("notes"))
+            notes = self._merge_provenance(meta)
+            self._set_reference_meta(meta.get("citation"), meta.get("url"), notes)
 
         elif kind == "ir_groups":
             entries = self.reference_library.ir_functional_groups()
@@ -848,7 +849,8 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                 self._set_table_item(row, 3, modes)
                 self._set_table_item(row, 4, entry.get("notes", ""))
             meta = self.reference_library.ir_metadata()
-            self._set_reference_meta(meta.get("citation"), meta.get("url"), meta.get("notes"))
+            notes = self._merge_provenance(meta)
+            self._set_reference_meta(meta.get("citation"), meta.get("url"), notes)
 
         elif kind == "line_shapes":
             entries = self.reference_library.line_shape_placeholders()
@@ -927,6 +929,9 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                 meta_html += f"<p><a href='{source['url']}'>Source documentation</a></p>"
             if notes:
                 meta_html += f"<p>{notes}</p>"
+            provenance_html = self._format_target_provenance(target.get("provenance"))
+            if provenance_html:
+                meta_html += provenance_html
             if status:
                 meta_html += f"<p>Status: {status}</p>"
             self.reference_meta.setHtml(meta_html)
@@ -963,6 +968,57 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             self.reference_meta.setHtml("<p>" + "<br/>".join(pieces) + "</p>")
         else:
             self.reference_meta.clear()
+
+    @staticmethod
+    def _merge_provenance(meta: Mapping[str, Any]) -> Optional[str]:
+        notes = str(meta.get("notes", "")) if meta.get("notes") else ""
+        retrieved = meta.get("retrieved_utc")
+        provenance = meta.get("provenance") if isinstance(meta.get("provenance"), Mapping) else None
+        details: List[str] = []
+        if retrieved:
+            details.append(f"Retrieved: {retrieved}")
+        if provenance:
+            status = provenance.get("curation_status")
+            if status:
+                details.append(f"Curation status: {status}")
+            generator = provenance.get("generator")
+            if generator:
+                details.append(f"Generator: {generator}")
+            replacement = provenance.get("replacement_plan") or provenance.get("planned_regeneration_uri")
+            if replacement:
+                details.append(f"Next steps: {replacement}")
+        segments: List[str] = []
+        if notes:
+            segments.append(notes)
+        if details:
+            segments.append("; ".join(details))
+        if not segments:
+            return None
+        return "<br/>".join(segments)
+
+    @staticmethod
+    def _format_target_provenance(provenance: Optional[Mapping[str, Any]]) -> str:
+        if not isinstance(provenance, Mapping):
+            return ""
+        bits: List[str] = []
+        status = provenance.get("curation_status")
+        if status:
+            bits.append(f"Status: {status}")
+        if provenance.get("pipeline_version"):
+            bits.append(f"Pipeline: {provenance['pipeline_version']}")
+        if provenance.get("mast_product_uri"):
+            bits.append(f"MAST URI: {provenance['mast_product_uri']}")
+        if provenance.get("planned_regeneration_uri"):
+            bits.append(f"Planned URI: {provenance['planned_regeneration_uri']}")
+        if provenance.get("retrieved_utc"):
+            bits.append(f"Retrieved: {provenance['retrieved_utc']}")
+        if provenance.get("notes"):
+            bits.append(provenance["notes"])
+        if provenance.get("reference"):
+            bits.append(f"Reference: {provenance['reference']}")
+        if not bits:
+            return ""
+        return "<p><i>" + " | ".join(bits) + "</i></p>"
 
     @staticmethod
     def _format_float(value: Any, *, precision: int = 3) -> str:

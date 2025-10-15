@@ -1,5 +1,14 @@
 # Patch Notes
 
+## 2025-10-15 (Reference regeneration scaffolding) (4:18 am UTC)
+
+- Added `tools/reference_build` scripts for NIST ASD, IR functional groups, and JWST quick-look spectra, recording build
+  provenance inside each JSON asset and documenting usage in `docs/dev/reference_build.md`.
+- Enriched the bundled reference datasets with per-target provenance (curation status, planned MAST URIs, retrieval
+  timestamps) and expanded line-shape placeholders for Zeeman, collisional shift, and turbulence scaffolding.
+- Updated the inspector UI to surface provenance details, refreshed user primers with the new workflow, and extended
+  regression tests to assert the generator metadata for hydrogen, IR, and JWST entries.
+
 ## 2025-10-15 (Reference library & JWST quick-look data) (3:24 am UTC)
 
 - Added a reference data service, inspector tab, and local JSON assets covering NIST hydrogen lines, IR functional groups,

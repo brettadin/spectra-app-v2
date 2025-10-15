@@ -39,6 +39,30 @@
       "notes": "Targeting Vidal–Cooper–Smith tables as baseline values."
     },
     {
+      "id": "zeeman_splitting",
+      "label": "Zeeman splitting",
+      "status": "todo",
+      "description": "Model wavelength splitting under magnetic fields using Landé g-factors.",
+      "parameters": ["lande_g", "magnetic_field_gauss"],
+      "notes": "Requires integration with magnetohydrodynamic metadata for stellar targets."
+    },
+    {
+      "id": "collisional_shift",
+      "label": "Collisional line shift",
+      "status": "todo",
+      "description": "Track centre-of-line shifts from pressure-induced perturbations.",
+      "parameters": ["shift_coefficient", "perturber_density"],
+      "notes": "Complement to pressure broadening for dense atmospheres."
+    },
+    {
+      "id": "turbulent_broadening",
+      "label": "Micro/macro turbulence",
+      "status": "todo",
+      "description": "Placeholder for Gaussian broadening derived from turbulent velocity fields.",
+      "parameters": ["velocity_dispersion_kms"],
+      "notes": "Will leverage line-of-sight velocity dispersions once stored in provenance."
+    },
+    {
       "id": "instrumental_resolution",
       "label": "Instrumental resolution",
       "status": "todo",

@@ -12,10 +12,14 @@ def test_reference_library_hydrogen_and_ir_catalogues() -> None:
     meta = library.hydrogen_metadata()
     assert meta["source_id"] == "nist_asd_2024"
     assert "Rydberg" in meta.get("notes", "")
+    provenance = meta.get("provenance", {})
+    assert provenance.get("generator") == "tools/reference_build/build_hydrogen_asd.py"
 
     ir_groups = library.ir_functional_groups()
     group_names = {entry["group"] for entry in ir_groups}
     assert "C=O (ketone/aldehyde)" in group_names
+    ir_meta = library.ir_metadata()
+    assert ir_meta.get("provenance", {}).get("generator") == "tools/reference_build/build_ir_bands.py"
 
     placeholders = library.line_shape_placeholders()
     placeholder_ids = {entry["id"] for entry in placeholders}
@@ -34,6 +38,7 @@ def test_reference_library_jwst_target_metadata() -> None:
     assert wasp96["spectral_range_um"][0] < wasp96["spectral_range_um"][1]
     assert len(wasp96["data"]) >= 3
     assert wasp96["data"][0]["value"] > 0
+    assert wasp96.get("provenance", {}).get("curation_status") == "digitized_release_graphic"
 
     bibliography = library.bibliography()
     citations = {entry["citation"] for entry in bibliography}
