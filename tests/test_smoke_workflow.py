@@ -79,6 +79,16 @@ def test_smoke_ingest_toggle_and_export(tmp_path: Path, mini_fits: Path) -> None
         assert ir_regions, "Expected shaded regions for IR functional groups"
         assert window._reference_overlay_key in window.plot._traces
 
+        placeholder_index = next(
+            idx
+            for idx in range(window.reference_dataset_combo.count())
+            if window.reference_dataset_combo.itemData(idx)[0] == "line_shapes"
+        )
+        window.reference_dataset_combo.setCurrentIndex(placeholder_index)
+        app.processEvents()
+        assert window.reference_overlay_toggle.isEnabled() is False
+        assert window._reference_overlay_key is None
+
         jwst_index = next(
             idx
             for idx in range(window.reference_dataset_combo.count())
