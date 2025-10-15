@@ -1,5 +1,11 @@
 # Patch Notes
 
+## 2025-10-15 (Reference selection + importer layout cache) (8:42 pm UTC)
+
+- Fixed the Reference inspector so combo-box changes always drive the preview plot and overlay payloads, preventing the first dataset from lingering when toggling between hydrogen, IR, and JWST entries.
+- Added a session layout cache to the CSV/TXT importer so once a header layout has been classified the same column order is reused for future files from the same instrument, with regression coverage for the cache hit path.
+- Hardened wavenumber conversions by normalising Unicode tokens and mapping zero values to `inf` without runtime warnings; documented the toolbar visibility and reference-overlay workflow for the updated UI.
+
 ## 2025-10-15 (Raw intensity defaults & overlay label fixes) (8:18 pm UTC)
 
 - Converted plot traces and overlays back into their source intensity units by default, updating the y-axis label and data table headers so `%T`, transmittance, or absorbance values remain untouched until you opt into normalization.

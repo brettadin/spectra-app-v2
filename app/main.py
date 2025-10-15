@@ -56,7 +56,6 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self._reference_plot_items: List[object] = []
         self._reference_overlay_key: Optional[str] = None
         self._reference_overlay_payload: Optional[Dict[str, Any]] = None
-        self._reference_options: List[tuple[str, Optional[str]]] = []
         self._display_y_units: Dict[str, str] = {}
         self._palette: List[QtGui.QColor] = [
             QtGui.QColor("#4F6D7A"),
@@ -192,13 +191,6 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.inspector_dock.setWidget(self.inspector_tabs)
         self.addDockWidget(QtCore.Qt.DockWidgetArea.RightDockWidgetArea, self.inspector_dock)
 
-        self.inspector_dock = QtWidgets.QDockWidget("Inspector", self)
-        self.inspector_dock.setObjectName("dock-inspector")
-        self.inspector_tabs = QtWidgets.QTabWidget()
-        self._build_inspector_tabs()
-        self.inspector_dock.setWidget(self.inspector_tabs)
-        self.addDockWidget(QtCore.Qt.DockWidgetArea.RightDockWidgetArea, self.inspector_dock)
-
         self.status_bar = self.statusBar()
         self.status_bar.showMessage("Ready")
         self.plot.pointHovered.connect(
@@ -212,6 +204,8 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self._load_documentation_index()
 
     def _build_inspector_tabs(self) -> None:
+        self.inspector_tabs.clear()
+
         # Info tab -----------------------------------------------------
         self.tab_info = QtWidgets.QWidget()
         info_layout = QtWidgets.QVBoxLayout(self.tab_info)
@@ -314,6 +308,8 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         toolbar = QtWidgets.QToolBar("Plot")
         toolbar.setMovable(False)
         self.addToolBar(QtCore.Qt.ToolBarArea.TopToolBarArea, toolbar)
+        toolbar.show()
+        toolbar.toggleViewAction().setChecked(True)
         self.plot_toolbar = toolbar
 
         self.action_cursor = QtGui.QAction("Cursor", self)
@@ -966,13 +962,12 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         combo = self.reference_dataset_combo
         combo.blockSignals(True)
         combo.clear()
-        self._reference_options = []
 
         def add_option(label: str, kind: str, key: Optional[str] = None) -> None:
-            self._reference_options.append((kind, key if key is None else str(key)))
             combo.addItem(label)
             idx = combo.count() - 1
-            combo.setItemData(idx, {"kind": kind, "key": key}, QtCore.Qt.ItemDataRole.UserRole)
+            payload: Dict[str, Optional[str]] = {"kind": kind, "key": key if key is None else str(key)}
+            combo.setItemData(idx, payload, QtCore.Qt.ItemDataRole.UserRole)
 
         add_option("NIST Hydrogen Lines (Balmer & Lyman)", "spectral_lines")
         add_option("IR Functional Groups", "ir_groups")
@@ -996,13 +991,18 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
 
     def _current_reference_option(self) -> Optional[tuple[str, Optional[str]]]:
         combo = getattr(self, "reference_dataset_combo", None)
-        options = getattr(self, "_reference_options", [])
-        if combo is None or not options:
+        if combo is None:
             return None
         index = combo.currentIndex()
-        if index < 0 or index >= len(options):
+        if index < 0:
             return None
-        return options[index]
+        payload = combo.itemData(index, QtCore.Qt.ItemDataRole.UserRole)
+        if isinstance(payload, Mapping):
+            kind = str(payload.get("kind", ""))
+            key_obj = payload.get("key")
+            key = None if key_obj is None else str(key_obj)
+            return (kind, key)
+        return None
 
     def _refresh_reference_dataset(self) -> None:
         option = self._current_reference_option()
@@ -1483,14 +1483,14 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
 
     def _update_reference_overlay_state(self, payload: Optional[Dict[str, Any]]) -> None:
         self._reference_overlay_payload = payload
-        x_values = None
-        y_values = None
-        if payload:
-            x_values = payload.get("x_nm")
-            y_values = payload.get("y")
-        overlay_available = False
-        if isinstance(x_values, np.ndarray) and isinstance(y_values, np.ndarray):
-            overlay_available = x_values.size > 0 and y_values.size == x_values.size
+        x_values = payload.get("x_nm") if payload else None
+        y_values = payload.get("y") if payload else None
+        overlay_available = (
+            isinstance(x_values, np.ndarray)
+            and isinstance(y_values, np.ndarray)
+            and x_values.size > 0
+            and y_values.size == x_values.size
+        )
 
         self.reference_overlay_checkbox.blockSignals(True)
         self.reference_overlay_checkbox.setEnabled(overlay_available)

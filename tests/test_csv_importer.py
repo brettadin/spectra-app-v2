@@ -5,6 +5,7 @@ from pathlib import Path
 import numpy as np
 
 from app.services.importers import CsvImporter
+from app.services.importers.csv_importer import _reset_layout_cache
 
 
 def test_csv_importer_detects_wavenumber_from_preface(tmp_path: Path) -> None:
@@ -174,3 +175,35 @@ def test_csv_importer_profile_swap_for_monotonic_intensity(tmp_path: Path) -> No
     assert column_meta["x_reason"].endswith("profile-swap")
     assert column_meta["y_reason"].endswith("profile-swap")
     assert np.isclose(result.y.max(), 0.18)
+
+
+def test_csv_importer_reuses_layout_cache_for_repeat_headers(tmp_path: Path) -> None:
+    _reset_layout_cache()
+
+    header = "Channel A, Channel B\n"
+    file_one = header + "400,0.10\n410,0.12\n420,0.11\n430,0.15\n"
+    file_two = header + "0.05,400\n0.08,410\n0.12,420\n0.16,430\n"
+
+    path_one = tmp_path / "instrument_a.csv"
+    path_two = tmp_path / "instrument_b.csv"
+    path_one.write_text(file_one, encoding="utf-8")
+    path_two.write_text(file_two, encoding="utf-8")
+
+    importer = CsvImporter()
+    first = importer.read(path_one)
+    assert first.metadata["column_selection"]["layout_cache"] == "miss"
+
+    class CacheProbeImporter(CsvImporter):
+        def _select_x_column(self, data, headers):  # type: ignore[override]
+            raise AssertionError("layout cache not applied")
+
+        def _select_y_column(self, data, x_index, headers):  # type: ignore[override]
+            raise AssertionError("layout cache not applied")
+
+    probe = CacheProbeImporter()
+    second = probe.read(path_two)
+
+    column_meta = second.metadata["column_selection"]
+    assert column_meta["layout_cache"] == "hit"
+    assert column_meta["x_index"] == first.metadata["column_selection"]["x_index"]
+    assert column_meta["y_index"] == first.metadata["column_selection"]["y_index"]

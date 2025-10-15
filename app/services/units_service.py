@@ -118,7 +118,14 @@ class UnitsService:
             return data / 10.0
         if unit in {"cm^-1", "1/cm", "wavenumber"}:
             # ν̅ (cm^-1) → λ (nm): λ_nm = 1e7 / ν̅
-            return 1e7 / data
+            data = np.asarray(data, dtype=self.float_dtype)
+            result = np.empty_like(data)
+            with np.errstate(divide="ignore", invalid="ignore"):
+                np.divide(1e7, data, out=result, where=data != 0)
+            if np.any(data == 0):
+                result = result.astype(self.float_dtype, copy=False)
+                result[data == 0] = np.inf
+            return result
         raise UnitError(f"Unsupported source x unit: {src}")
 
     def _from_canonical_wavelength(self, data_nm: np.ndarray, dst: str) -> np.ndarray:
@@ -130,7 +137,14 @@ class UnitsService:
         if unit in {"angstrom", "å", "Å"}:
             return np.array(data_nm * 10.0, dtype=self.float_dtype)
         if unit in {"cm^-1", "1/cm", "wavenumber"}:
-            return np.array(1e7 / data_nm, dtype=self.float_dtype)
+            data_nm = np.asarray(data_nm, dtype=self.float_dtype)
+            result = np.empty_like(data_nm)
+            with np.errstate(divide="ignore", invalid="ignore"):
+                np.divide(1e7, data_nm, out=result, where=data_nm != 0)
+            if np.any(data_nm == 0):
+                result = result.astype(self.float_dtype, copy=False)
+                result[data_nm == 0] = np.inf
+            return result
         raise UnitError(f"Unsupported destination x unit: {dst}")
 
     def _normalise_x_unit(self, unit: str) -> str:

@@ -1,9 +1,10 @@
 # Workplan — Batch 13 (2025-10-15)
 
-- [ ] Capture the QA-provided background spectra that still swap X/Y axes and extend `CsvImporter` heuristics plus tests to cover the regression.
+- [ ] Capture the QA-provided background spectra that still swap X/Y axes and extend `CsvImporter` heuristics, fixtures, and cache coverage to eliminate the regression.
 - [ ] Improve IR functional-group overlay readability (legend or tooltip callouts) so shaded bands remain legible on dark themes.
-- [ ] Investigate duplicate Inspector dock panes reported on Windows startup (carry-over) and document reproduction steps.
+- [ ] Investigate duplicate Inspector dock panes reported on Windows startup and deduplicate repeated documentation log events.
 - [ ] Verify reference overlays respect combo changes after multi-file ingest so hydrogen/IR/JWST traces never reuse the first dataset payload.
+- [ ] Confirm normalization/unit toolbar visibility persists across sessions and document the manual re-normalization workflow for QA operators.
 
 # Workplan — Batch 12 (2025-10-15)
 

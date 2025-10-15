@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 import re
-from typing import Iterable, List, Sequence, Tuple, cast
+from typing import Dict, Iterable, List, Sequence, Tuple, cast
 
 import numpy as np
 
@@ -90,6 +90,15 @@ _WAVELENGTH_UNIT_HINTS_NORMALISED = {unit.strip().lower().replace(" ", "") for u
 _INTENSITY_UNIT_HINTS_NORMALISED = {unit.strip().lower().replace(" ", "") for unit in _INTENSITY_UNIT_HINTS}
 
 
+_LAYOUT_CACHE: Dict[Tuple[str, ...], Tuple[int, int]] = {}
+
+
+def _reset_layout_cache() -> None:
+    """Testing helper to clear the in-process layout cache."""
+
+    _LAYOUT_CACHE.clear()
+
+
 class CsvImporter:
     """Read spectral data from loosely formatted delimited text files."""
 
@@ -150,9 +159,18 @@ class CsvImporter:
         header_tokens = self._extract_header_tokens(lines, best_start, delimiter)
 
         data = self._rows_to_array(best_block)
-        x_index_raw, x_reason_raw = self._select_x_column(data, header_tokens)
-        y_index_raw, y_reason_raw = self._select_y_column(data, x_index_raw, header_tokens)
-        swap_reason = self._axis_conflict_resolution(x_index_raw, y_index_raw, header_tokens)
+        layout_signature = self._layout_signature(header_tokens)
+        cached = self._lookup_cached_layout(layout_signature, data.shape[1])
+        cache_hit = cached is not None
+        if cached:
+            x_index_raw, y_index_raw = cached
+            x_reason_raw = y_reason_raw = "layout-cache"
+        else:
+            x_index_raw, x_reason_raw = self._select_x_column(data, header_tokens)
+            y_index_raw, y_reason_raw = self._select_y_column(data, x_index_raw, header_tokens)
+        swap_reason = None
+        if not cache_hit:
+            swap_reason = self._axis_conflict_resolution(x_index_raw, y_index_raw, header_tokens)
         if swap_reason:
             x_index, y_index = y_index_raw, x_index_raw
             x_select_reason = f"{y_reason_raw}|{swap_reason}"
@@ -168,7 +186,7 @@ class CsvImporter:
         y = y_raw[mask]
 
         profile_swap_reason: str | None = None
-        if swap_reason is None and self._should_swap_by_profile(x, y):
+        if not cache_hit and swap_reason is None and self._should_swap_by_profile(x, y):
             profile_swap_reason = "profile-swap"
             x_index, y_index = y_index, x_index
             x_raw, y_raw = y_raw, x_raw
@@ -218,6 +236,13 @@ class CsvImporter:
                 "x_index": int(x_index_raw),
                 "y_index": int(y_index_raw),
             }
+        column_meta = cast(dict[str, object], metadata["column_selection"])
+        if layout_signature:
+            column_meta["layout_signature"] = list(layout_signature)
+            column_meta["layout_cache"] = "hit" if cache_hit else "miss"
+
+        if layout_signature:
+            self._store_layout(layout_signature, int(x_index), int(y_index))
 
         if x[0] > x[-1]:
             # Preserve monotonic increase expected by downstream consumers.
@@ -265,6 +290,31 @@ class CsvImporter:
             length = min(len(numbers), max_columns)
             data[idx, :length] = numbers[:length]
         return data
+
+    def _layout_signature(self, headers: Sequence[_HeaderToken]) -> Tuple[str, ...]:
+        if not headers:
+            return tuple()
+        signature: List[str] = []
+        for token in headers:
+            label = token.normalised_label
+            unit = self._normalise_unit_string(token.unit)
+            signature.append(f"{label}|{unit}")
+        return tuple(signature)
+
+    def _lookup_cached_layout(
+        self, signature: Tuple[str, ...], column_count: int
+    ) -> Tuple[int, int] | None:
+        if not signature or signature not in _LAYOUT_CACHE:
+            return None
+        cached_x, cached_y = _LAYOUT_CACHE[signature]
+        if cached_x >= column_count or cached_y >= column_count:
+            return None
+        return cached_x, cached_y
+
+    def _store_layout(self, signature: Tuple[str, ...], x_index: int, y_index: int) -> None:
+        if not signature:
+            return
+        _LAYOUT_CACHE[signature] = (x_index, y_index)
 
     def _select_x_column(self, data: np.ndarray, headers: Sequence[_HeaderToken]) -> Tuple[int, str]:
         header_unit = self._header_index_by_unit(headers, _WAVELENGTH_UNIT_HINTS)

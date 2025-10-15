@@ -41,6 +41,17 @@ def test_unicode_wavenumber_aliases():
     assert meta['source_units']['x'] == 'cm⁻¹'
 
 
+def test_wavenumber_zero_maps_to_infinity_without_warning():
+    service = UnitsService()
+    x_nm = np.array([0.0, 500.0])
+    y_abs = np.array([0.0, 0.1])
+    converted, _ = service.from_canonical(x_nm, y_abs, 'cm⁻¹', 'absorbance')
+    assert np.isinf(converted[0])
+    assert np.isclose(converted[1], 1e7 / 500.0)
+    back, _, _ = service.to_canonical(np.array([np.inf, 2000.0]), np.array([0.2, 0.3]), 'cm^-1', 'absorbance')
+    assert np.isclose(back[0], 0.0)
+
+
 def test_transmittance_conversion_and_round_trip():
     service = UnitsService()
     x = np.array([400.0])

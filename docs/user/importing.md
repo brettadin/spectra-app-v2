@@ -69,6 +69,12 @@ trace:
   intensity series while the Y column sits in a typical wavelength/wavenumber
   range, the axes are swapped and the rationale (`profile-swap`) is written to
   `metadata.column_selection`.
+- **Layout memory** – When a particular header/units layout has been seen
+  before in the current session, the importer reuses the previously confirmed
+  X/Y column order before re-running the heuristics. The cache key and whether
+  it was a cache hit appear in `metadata.column_selection.layout_signature`
+  and `layout_cache` so you can audit how recurring vendor exports were
+  interpreted.
 - **Automatic ordering** – Descending wavenumber tables are reversed so the X
   axis is monotonically increasing, matching the expectations of the plotting
   stack and unit conversions.
