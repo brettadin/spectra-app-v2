@@ -165,6 +165,8 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.log_dock.setWidget(self.log_view)
         self.addDockWidget(QtCore.Qt.DockWidgetArea.BottomDockWidgetArea, self.log_dock)
 
+        self._load_documentation_index()
+
         self._build_plot_toolbar()
 
         self.status_bar = self.statusBar()
@@ -1082,8 +1084,6 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.doc_placeholder = QtWidgets.QLabel("No documentation topics found in docs/user.")
         self.doc_placeholder.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(self.doc_placeholder)
-
-        self._load_documentation_index()
 
     def _load_documentation_index(self) -> None:
         docs_root = Path(__file__).resolve().parent.parent / "docs" / "user"
