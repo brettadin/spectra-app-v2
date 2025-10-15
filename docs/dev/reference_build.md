@@ -28,14 +28,9 @@ Arguments:
 
 - `--wmin` / `--wmax`: wavelength window in nanometres (defaults 90–1000 nm).
 - `--output`: destination JSON path.
-- `--source-id`: identifier stamped on both the bundle metadata and each individual line (defaults to `nist_asd_2024`).
-- `--no-detect-source-version`: skip auto-appending the ASD version tag inferred from the response headers.
 
-The script calls `astroquery.nist` to retrieve the hydrogen lines, converts the table to the Spectra schema, records the
-retrieval timestamp, and embeds the wavelength window inside `metadata.provenance.query` for auditability. When
-`--no-detect-source-version` is not supplied the HTTP response headers are inspected for an ASD release tag (or fall back
-to the server timestamp); the detected value is appended to the provided `--source-id` so the metadata and line entries
-share the same version tag.
+The script calls `astroquery.nist.Nist.query`, converts the table to the Spectra schema, records the retrieval timestamp,
+and embeds the wavelength window inside `metadata.provenance.query` for auditability.
 
 ## IR functional groups
 
@@ -55,7 +50,7 @@ The script embeds the source file path within `metadata.provenance.source_file` 
 ## JWST quick-look spectra
 
 ```
-python tools/reference_build/build_jwst_quicklook.py tools/reference_build/jwst_targets_template.json \
+python tools/reference_build/build_jwst_quicklook.py tools/reference_build/jwst_targets.json \
     --output app/data/reference/jwst_targets.json --cache-dir .cache/jwst --bins 64
 ```
 
@@ -68,20 +63,10 @@ Arguments:
 - `--cache-dir`: where downloaded FITS products are stored.
 - `--output`: destination JSON path.
 
-Start by copying the template manifest to a working file that you can edit without clobbering the documented scaffold:
-
-```bash
-cp tools/reference_build/jwst_targets_template.json tools/reference_build/jwst_targets_manifest.json
-```
-
-Update the copy with the MAST product URIs, metadata, and any additional targets you plan to harvest, then supply the
-new manifest path as the positional `config` argument when invoking the builder.
-
-The script downloads each calibrated product via `astroquery.mast.Observations.download_file`, performs an
+The script downloads the requested calibrated products via `astroquery.mast.Observations.download_products`, performs an
 index-based resampling to `bins` points, and writes the final JSON bundle. Each entry receives a `provenance` block with
 `mast_product_uri`, `pipeline_version`, and retrieval timestamp. Downstream UI components render these fields so users can
-judge data quality. We currently bundle the Jupiter NIRSpec IFU and MIRI MRS spectra from JWST Program 1022; the remaining
-targets stay in the template with TODO notes until the necessary MAST products are harvested.
+judge data quality.
 
 ## Verification checklist
 

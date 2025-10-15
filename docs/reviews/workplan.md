@@ -119,8 +119,9 @@
 
 - [ ] Wire Doppler/pressure/Stark broadening models into the overlay service using the placeholder parameter scaffolding.
 - [ ] Replace digitised JWST tables with calibrated FITS ingestion and provenance links once the pipeline module is ready.
-- [ ] Harvest remaining JWST quick-look targets (WASP-96 b, Mars, Neptune, HD 84406) — Jupiter NIRSpec IFU + MIRI MRS
-      completed 2025-10-15 via Program 1022 download_file workaround. See the
-      [JWST quick-look regeneration notes](../dev/reference_build.md#jwst-quick-look-spectra) for the manifest workflow.
 - [ ] Expand the spectral line catalogue beyond hydrogen (e.g. He I, O III, Fe II) with citations and regression coverage.
 - [ ] Integrate IR functional group heuristics into importer header parsing for automated axis validation.
+- [ ] Plot bundled reference datasets inside the Reference tab so users can preview hydrogen lines, IR bands, and JWST spectra.
+  - Add a `pyqtgraph.PlotWidget` beneath the reference table, rendering vertical markers for hydrogen transitions, shaded spans for IR bands, and line/error-bar plots for JWST targets.
+  - Provide a toggle to overlay the selected reference dataset on the main plot pane using a deterministic `reference::` trace prefix and clean up overlays when deselected.
+  - Extend `tests/test_smoke_workflow.py` (plus targeted unit tests) to assert plot rendering, and document the workflow in `docs/user/reference_data.md`.

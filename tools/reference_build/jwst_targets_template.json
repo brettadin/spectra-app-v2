@@ -1,33 +1,18 @@
 {
   "targets": [
     {
-      "id": "jwst_jupiter_nirspec_ifu_g140h_f100lp",
-      "name": "Jupiter Reflectance",
-      "object_type": "Planet",
-      "instrument": "NIRSpec IFU (G140H/F100LP)",
-      "program": "CAR 1022",
-      "spectral_resolution": 2700,
-      "data_units": "flux density (Jy)",
-      "mast_product_uri": "mast:JWST/product/jw01022-o013_t001_nirspec_g140h-f100lp_x1d.fits",
-      "pipeline_version": "1.19.1",
+      "id": "jwst_wasp96b_nirspec_prism",
+      "name": "WASP-96 b Transmission",
+      "object_type": "Exoplanet",
+      "instrument": "NIRSpec PRISM",
+      "program": "ERS 1324",
+      "spectral_resolution": 100,
+      "data_units": "transit depth (ppm)",
+      "mast_product_uri": "mast:JWST/product/jw01324-o001_s00002_nirspec_prism_clear_prism_x1d.fits",
+      "pipeline_version": "1.8.4",
       "source": {
-        "citation": "JWST Program 1022 CAR FGS-017 Straylight for Moving Targets (PI: J. A. Stansberry)",
-        "url": "https://www.stsci.edu/jwst/science-execution/program-information?id=01022"
-      }
-    },
-    {
-      "id": "jwst_jupiter_miri_ifu_ch2_short",
-      "name": "Jupiter Mid-IR Brightness",
-      "object_type": "Planet",
-      "instrument": "MIRI MRS (Channel 2 Short)",
-      "program": "CAR 1022",
-      "spectral_resolution": 1500,
-      "data_units": "flux density (Jy)",
-      "mast_product_uri": "mast:JWST/product/jw01022-o018_t001_miri_ch2-short_x1d.fits",
-      "pipeline_version": "1.19.1",
-      "source": {
-        "citation": "JWST Program 1022 CAR FGS-017 Straylight for Moving Targets (PI: J. A. Stansberry)",
-        "url": "https://www.stsci.edu/jwst/science-execution/program-information?id=01022"
+        "citation": "A. Feinstein et al. (2022). JWST ERS 1324 Transmission Spectroscopy of WASP-96 b.",
+        "url": "https://doi.org/10.17909/96c3-4c08"
       }
     }
   ]
