@@ -4,9 +4,10 @@ from __future__ import annotations
 
 import sys
 from pathlib import Path
-from typing import Dict, Iterable, List, Any
+from typing import Any, Dict, Iterable, List, Mapping, Optional, cast
 
 import numpy as np
+import pyqtgraph as pg
 
 from app.qt_compat import get_qt
 from .services import (
@@ -15,6 +16,7 @@ from .services import (
     DataIngestService,
     OverlayService,
     MathService,
+    ReferenceLibrary,
     Spectrum,
 )
 from .ui.plot_pane import PlotPane, TraceStyle
@@ -41,10 +43,19 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.ingest_service = DataIngestService(self.units_service)
         self.overlay_service = OverlayService(self.units_service)
         self.math_service = MathService()
+        self.reference_library = ReferenceLibrary()
+
+        self.unit_combo: Optional[QtWidgets.QComboBox] = None
 
         self._dataset_items: Dict[str, QtGui.QStandardItem] = {}
         self._spectrum_colors: Dict[str, QtGui.QColor] = {}
         self._visibility: Dict[str, bool] = {}
+        self._normalization_mode: str = "None"
+        self._doc_entries: List[tuple[str, Path]] = []
+        self._reference_plot_items: List[object] = []
+        self._reference_overlay_key: Optional[str] = None
+        self._reference_overlay_payload: Optional[Dict[str, Any]] = None
+        self._reference_options: List[tuple[str, Optional[str]]] = []
         self._palette: List[QtGui.QColor] = [
             QtGui.QColor("#4F6D7A"),
             QtGui.QColor("#C0D6DF"),
@@ -99,6 +110,12 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.data_table_action.triggered.connect(self._toggle_data_table)
         view_menu.addAction(self.data_table_action)
 
+        help_menu = menu.addMenu("&Help")
+        docs_action = QtGui.QAction("View &Documentation", self)
+        docs_action.setShortcut("F1")
+        docs_action.triggered.connect(self.show_documentation)
+        help_menu.addAction(docs_action)
+
     def _setup_ui(self) -> None:
         self.central_split = QtWidgets.QSplitter(self)
         self.central_split.setOrientation(QtCore.Qt.Orientation.Horizontal)
@@ -141,13 +158,6 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.dataset_dock.setWidget(self.dataset_tree)
         self.addDockWidget(QtCore.Qt.DockWidgetArea.LeftDockWidgetArea, self.dataset_dock)
 
-        self.inspector_dock = QtWidgets.QDockWidget("Inspector", self)
-        self.inspector_dock.setObjectName("dock-inspector")
-        self.inspector_tabs = QtWidgets.QTabWidget()
-        self._build_inspector_tabs()
-        self.inspector_dock.setWidget(self.inspector_tabs)
-        self.addDockWidget(QtCore.Qt.DockWidgetArea.RightDockWidgetArea, self.inspector_dock)
-
         self.log_dock = QtWidgets.QDockWidget("Log", self)
         self.log_dock.setObjectName("dock-log")
         self.log_view = QtWidgets.QPlainTextEdit()
@@ -156,6 +166,13 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.addDockWidget(QtCore.Qt.DockWidgetArea.BottomDockWidgetArea, self.log_dock)
 
         self._build_plot_toolbar()
+
+        self.inspector_dock = QtWidgets.QDockWidget("Inspector", self)
+        self.inspector_dock.setObjectName("dock-inspector")
+        self.inspector_tabs = QtWidgets.QTabWidget()
+        self._build_inspector_tabs()
+        self.inspector_dock.setWidget(self.inspector_tabs)
+        self.addDockWidget(QtCore.Qt.DockWidgetArea.RightDockWidgetArea, self.inspector_dock)
 
         self.status_bar = self.statusBar()
         self.status_bar.showMessage("Ready")
@@ -251,11 +268,16 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.provenance_view.hide()
         prov_layout.addWidget(self.provenance_view)
 
+        self._build_reference_tab()
+        self._build_documentation_tab()
+
         for name, tab in [
             ("Info", self.tab_info),
             ("Math", self.tab_math),
             ("Style", self.tab_style),
             ("Provenance", self.tab_prov),
+            ("Reference", self.tab_reference),
+            ("Docs", self.tab_docs),
         ]:
             self.inspector_tabs.addTab(tab, name)
 
@@ -285,6 +307,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.norm_combo = QtWidgets.QComboBox()
         self.norm_combo.addItems(["None", "Max", "Area"])
         self.norm_combo.currentTextChanged.connect(self._on_normalize_changed)
+        self._normalization_mode = self.norm_combo.currentText()
         toolbar.addWidget(self.norm_combo)
 
         toolbar.addWidget(QtWidgets.QLabel("Smoothing:"))
@@ -299,6 +322,8 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         toolbar.addAction(self.action_export)
 
     def plot_unit(self) -> str:
+        if self.unit_combo is None:
+            return "nm"
         return self.unit_combo.currentText()
 
     def _create_group_row(self, title: str) -> QtGui.QStandardItem:
@@ -318,6 +343,8 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         QtGui.QShortcut(QtGui.QKeySequence("U"), self, activated=self._cycle_units)
 
     def _cycle_units(self) -> None:
+        if self.unit_combo is None or self.unit_combo.count() == 0:
+            return
         idx = (self.unit_combo.currentIndex() + 1) % self.unit_combo.count()
         self.unit_combo.setCurrentIndex(idx)
 
@@ -333,21 +360,48 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
 
     # Actions -----------------------------------------------------------
     def open_file(self) -> None:
-        path, _ = QtWidgets.QFileDialog.getOpenFileName(
+        paths, _ = QtWidgets.QFileDialog.getOpenFileNames(
             self,
-            "Open Spectrum",
+            "Open Spectra",
             str(Path.home()),
             "Spectra (*.csv *.txt)",
         )
-        if path:
-            self._ingest_path(Path(path))
+        if not paths:
+            return
+
+        self.plot.begin_bulk_update()
+        try:
+            for raw in paths:
+                if not raw:
+                    continue
+                self._ingest_path(Path(raw))
+        finally:
+            self.plot.end_bulk_update()
 
     def load_sample_via_menu(self) -> None:
-        files = list(SAMPLES_DIR.glob('*.csv'))
+        files = list(SAMPLES_DIR.glob("*.csv"))
         if not files:
             self.status_bar.showMessage("No samples found", 5000)
             return
-        self._ingest_path(files[0])
+
+        dialog = QtWidgets.QFileDialog(self, "Load Sample", str(SAMPLES_DIR))
+        dialog.setNameFilter("Spectra (*.csv *.txt)")
+        dialog.setFileMode(QtWidgets.QFileDialog.FileMode.ExistingFiles)
+        if not dialog.exec():
+            return
+
+        selected = dialog.selectedFiles()
+        if not selected:
+            return
+
+        self.plot.begin_bulk_update()
+        try:
+            for raw in selected:
+                path = Path(raw)
+                if path.exists():
+                    self._ingest_path(path)
+        finally:
+            self.plot.end_bulk_update()
 
     def export_manifest(self) -> None:
         if not self.overlay_service.list():
@@ -396,13 +450,45 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             return
         views = self.overlay_service.overlay(
             selected_ids,
-            self.unit_combo.currentText(),
+            self.plot_unit(),
             self._normalise_y("absorbance"),
+            normalization=self._normalization_mode,
         )
         self._populate_data_table(views)
         if not self.data_table.isVisible():
             self.data_table.show()
             self.data_table_action.setChecked(True)
+
+        all_ids = [spec.id for spec in self.overlay_service.list()]
+        if not all_ids:
+            return
+        canonical_views = self.overlay_service.overlay(
+            all_ids,
+            "nm",
+            "absorbance",
+            normalization=self._normalization_mode,
+        )
+        for view in canonical_views:
+            spec_id = cast(str, view["id"])
+            alias_item = self._dataset_items.get(spec_id)
+            alias = alias_item.text() if alias_item else cast(str, view["name"])
+            color = self._spectrum_colors.get(spec_id)
+            if color is None:
+                color = QtGui.QColor("#4F6D7A")
+            style = TraceStyle(
+                color=QtGui.QColor(color),
+                width=1.6,
+                antialias=False,
+                show_in_legend=True,
+            )
+            self.plot.add_trace(
+                key=spec_id,
+                alias=alias,
+                x_nm=cast(np.ndarray, view["x_canonical"]),
+                y=cast(np.ndarray, view["y_canonical"]),
+                style=style,
+            )
+            self.plot.set_visible(spec_id, self._visibility.get(spec_id, True))
 
     def compute_subtract(self) -> None:
         ids = self._selected_math_ids()
@@ -693,6 +779,835 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.math_a.setCurrentIndex(idx_b)
         self.math_b.setCurrentIndex(idx_a)
 
+    # Reference ---------------------------------------------------------
+    def _build_reference_tab(self) -> None:
+        self.tab_reference = QtWidgets.QWidget()
+        layout = QtWidgets.QVBoxLayout(self.tab_reference)
+        layout.setContentsMargins(6, 6, 6, 6)
+
+        intro = QtWidgets.QLabel(
+            "Curated line lists, infrared heuristics, and JWST quick-look spectra are bundled for offline use."
+        )
+        intro.setWordWrap(True)
+        intro.setStyleSheet("color: #555;")
+        layout.addWidget(intro)
+
+        controls = QtWidgets.QHBoxLayout()
+        layout.addLayout(controls)
+
+        controls.addWidget(QtWidgets.QLabel("Dataset:"))
+        self.reference_dataset_combo = QtWidgets.QComboBox()
+        self.reference_dataset_combo.currentIndexChanged.connect(self._on_reference_dataset_changed)
+        controls.addWidget(self.reference_dataset_combo, 1)
+
+        self.reference_filter = QtWidgets.QLineEdit()
+        self.reference_filter.setPlaceholderText("Filter rows…")
+        self.reference_filter.textChanged.connect(self._filter_reference_rows)
+        controls.addWidget(self.reference_filter, 1)
+
+        controls.addStretch(1)
+        self.reference_overlay_checkbox = QtWidgets.QCheckBox("Overlay on plot")
+        self.reference_overlay_checkbox.setEnabled(False)
+        self.reference_overlay_checkbox.toggled.connect(self._on_reference_overlay_toggled)
+        controls.addWidget(self.reference_overlay_checkbox)
+
+        self.reference_table = QtWidgets.QTableWidget()
+        self.reference_table.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
+        self.reference_table.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
+        self.reference_table.setAlternatingRowColors(True)
+        header = self.reference_table.horizontalHeader()
+        header.setStretchLastSection(True)
+        layout.addWidget(self.reference_table, 1)
+
+        self.reference_plot = pg.PlotWidget()
+        self.reference_plot.setObjectName("reference-plot")
+        self.reference_plot.setMinimumHeight(220)
+        self.reference_plot.showGrid(x=True, y=True, alpha=0.25)
+        default_unit = self.plot_unit()
+        self.reference_plot.setLabel("bottom", "Wavelength", units=default_unit)
+        self.reference_plot.setLabel("left", "Relative Intensity")
+        layout.addWidget(self.reference_plot, 1)
+
+        self.reference_meta = QtWidgets.QTextBrowser()
+        self.reference_meta.setOpenExternalLinks(True)
+        self.reference_meta.setPlaceholderText("Select a dataset to view its citation and context.")
+        self.reference_meta.setMinimumHeight(160)
+        layout.addWidget(self.reference_meta)
+
+        self._populate_reference_combo()
+
+    def _on_reference_dataset_changed(self, index: int) -> None:
+        if index < 0:
+            return
+        self._refresh_reference_dataset()
+
+    def _populate_reference_combo(self) -> None:
+        combo = self.reference_dataset_combo
+        combo.blockSignals(True)
+        combo.clear()
+
+        def add_option(label: str, kind: str, key: Optional[str] = None) -> None:
+            combo.addItem(label)
+            idx = combo.count() - 1
+            combo.setItemData(idx, {"kind": kind, "key": key}, QtCore.Qt.ItemDataRole.UserRole)
+
+        add_option("NIST Hydrogen Lines (Balmer & Lyman)", "spectral_lines")
+        add_option("IR Functional Groups", "ir_groups")
+        add_option("Line-shape Placeholders", "line_shapes")
+
+        for target in self.reference_library.jwst_targets():
+            name = target.get("name", "Unknown")
+            instrument = target.get("instrument") or "—"
+            add_option(f"JWST: {name} ({instrument})", "jwst", target.get("id"))
+
+        combo.blockSignals(False)
+        if combo.count():
+            combo.setCurrentIndex(0)
+        self._refresh_reference_dataset()
+
+    def _filter_reference_rows(self, _: str) -> None:
+        self._refresh_reference_dataset()
+
+    def _current_reference_option(self) -> Optional[tuple[str, Optional[str]]]:
+        combo = getattr(self, "reference_dataset_combo", None)
+        if combo is None:
+            return None
+        index = combo.currentIndex()
+        if index < 0:
+            return None
+        data = combo.itemData(index, QtCore.Qt.ItemDataRole.UserRole)
+        if isinstance(data, dict):
+            kind = data.get("kind")
+            if kind:
+                return str(kind), data.get("key") if data.get("key") is None else str(data.get("key"))
+        # Fallback for legacy state where we populated _reference_options list
+        options = getattr(self, "_reference_options", None)
+        if options and 0 <= index < len(options):
+            return options[index]
+        return None
+
+    def _refresh_reference_dataset(self) -> None:
+        option = self._current_reference_option()
+        if option is None:
+            self.reference_table.setRowCount(0)
+            self.reference_table.setColumnCount(0)
+            self.reference_meta.clear()
+            self._clear_reference_plot()
+            self._update_reference_overlay_state(None)
+            return
+
+        kind, key = option
+        query = self.reference_filter.text().strip().lower()
+        overlay_payload: Optional[Dict[str, Any]] = None
+
+        self._clear_reference_plot()
+
+        if kind == "spectral_lines":
+            entries = self.reference_library.spectral_lines()
+            filtered = self._filter_reference_entries(entries, query)
+            self.reference_table.setColumnCount(6)
+            self.reference_table.setHorizontalHeaderLabels(
+                ["Series", "Transition", "λ₀ (nm)", "ṽ (cm⁻¹)", "Aₖᵢ (s⁻¹)", "Relative Intensity"]
+            )
+            self.reference_table.setRowCount(len(filtered))
+            for row, entry in enumerate(filtered):
+                self._set_table_item(row, 0, entry.get("series", ""))
+                self._set_table_item(row, 1, entry.get("transition", ""))
+                self._set_table_item(row, 2, self._format_float(entry.get("vacuum_wavelength_nm")))
+                self._set_table_item(row, 3, self._format_float(entry.get("wavenumber_cm_1")))
+                self._set_table_item(row, 4, self._format_scientific(entry.get("einstein_a_s_1")))
+                self._set_table_item(row, 5, self._format_float(entry.get("relative_intensity"), precision=2))
+            meta = self.reference_library.hydrogen_metadata()
+            notes = self._merge_provenance(meta)
+            self._set_reference_meta(meta.get("citation"), meta.get("url"), notes)
+            overlay_payload = self._render_reference_spectral_lines(filtered)
+
+        elif kind == "ir_groups":
+            entries = self.reference_library.ir_functional_groups()
+            filtered = self._filter_reference_entries(entries, query)
+            self.reference_table.setColumnCount(5)
+            self.reference_table.setHorizontalHeaderLabels(
+                ["Group", "Range (cm⁻¹)", "Intensity", "Modes", "Notes"]
+            )
+            self.reference_table.setRowCount(len(filtered))
+            for row, entry in enumerate(filtered):
+                self._set_table_item(row, 0, entry.get("group", ""))
+                span = f"{self._format_float(entry.get('wavenumber_cm_1_min'), precision=0)} – {self._format_float(entry.get('wavenumber_cm_1_max'), precision=0)}"
+                self._set_table_item(row, 1, span)
+                self._set_table_item(row, 2, entry.get("intensity", ""))
+                modes = ", ".join(entry.get("associated_modes", []))
+                self._set_table_item(row, 3, modes)
+                self._set_table_item(row, 4, entry.get("notes", ""))
+            meta = self.reference_library.ir_metadata()
+            notes = self._merge_provenance(meta)
+            self._set_reference_meta(meta.get("citation"), meta.get("url"), notes)
+            overlay_payload = self._render_reference_ir_groups(filtered)
+
+        elif kind == "line_shapes":
+            entries = self.reference_library.line_shape_placeholders()
+            filtered = self._filter_reference_entries(entries, query)
+            self.reference_table.setColumnCount(4)
+            self.reference_table.setHorizontalHeaderLabels(
+                ["Model", "Status", "Parameters", "Notes"]
+            )
+            self.reference_table.setRowCount(len(filtered))
+            for row, entry in enumerate(filtered):
+                self._set_table_item(row, 0, entry.get("label", entry.get("id", "")))
+                self._set_table_item(row, 1, entry.get("status", ""))
+                params = ", ".join(entry.get("parameters", []))
+                self._set_table_item(row, 2, params)
+                self._set_table_item(row, 3, entry.get("description", ""))
+            meta = self.reference_library.line_shape_metadata()
+            notes = meta.get("notes", "")
+            references = meta.get("references", [])
+            ref_lines = "".join(
+                f"<li><a href='{ref.get('url')}'>{ref.get('citation')}</a></li>"
+                for ref in references
+                if isinstance(ref, Mapping)
+            )
+            self.reference_meta.setHtml(
+                f"<p><b>{meta.get('notes', 'Line-shape placeholders')}</b></p><ul>{ref_lines}</ul>"
+                if ref_lines
+                else f"<p>{notes}</p>"
+            )
+
+        elif kind == "jwst":
+            if key is None:
+                self.reference_table.setRowCount(0)
+                self.reference_table.setColumnCount(0)
+                self.reference_meta.clear()
+                self._clear_reference_plot()
+                self._update_reference_overlay_state(None)
+                return
+            target = self.reference_library.jwst_target(str(key))
+            if not target:
+                self.reference_table.setRowCount(0)
+                self.reference_table.setColumnCount(0)
+                self.reference_meta.setHtml("<p>Target metadata unavailable.</p>")
+                self._update_reference_overlay_state(None)
+                return
+            data_rows = target.get("data", [])
+            status = target.get("status")
+            if not data_rows:
+                self.reference_table.setRowCount(0)
+                self.reference_table.setColumnCount(0)
+                notes = target.get("source", {}).get("notes", "No public JWST spectrum available.")
+                self._set_reference_meta(target.get("name"), target.get("source", {}).get("url"), notes)
+                self._render_reference_jwst(target, [], "wavelength", "value", None)
+                self._update_reference_overlay_state(None)
+                return
+            filtered = self._filter_reference_entries(data_rows, query)
+            wavelength_key = next((k for k in data_rows[0].keys() if "wavelength" in k), "wavelength")
+            value_key = "value" if "value" in data_rows[0] else next(iter(set(data_rows[0].keys()) - {wavelength_key}), "value")
+            uncertainty_key = next((k for k in data_rows[0].keys() if k.startswith("uncertainty")), None)
+            columns = ["λ (µm)", f"Measurement ({target.get('data_units', 'value')})"]
+            if uncertainty_key:
+                units = uncertainty_key.split("_", 1)[-1].replace("_", " ")
+                columns.append(f"Uncertainty ({units})")
+            self.reference_table.setColumnCount(len(columns))
+            self.reference_table.setHorizontalHeaderLabels(columns)
+            self.reference_table.setRowCount(len(filtered))
+            for row, entry in enumerate(filtered):
+                self._set_table_item(row, 0, self._format_float(entry.get(wavelength_key)))
+                self._set_table_item(row, 1, self._format_float(entry.get(value_key)))
+                if uncertainty_key and len(columns) > 2:
+                    self._set_table_item(row, 2, self._format_float(entry.get(uncertainty_key)))
+            source = target.get("source", {})
+            notes = source.get("notes", "")
+            range_min, range_max = target.get("spectral_range_um", [None, None])
+            range_text = ""
+            if range_min is not None and range_max is not None:
+                range_text = f"Range: {self._format_float(range_min)} – {self._format_float(range_max)} µm"
+            resolution = target.get("spectral_resolution")
+            resolution_text = f"Resolving power ≈ {resolution}" if resolution else "Resolving power pending"
+            meta_html = (
+                f"<p><b>{target.get('name')}</b><br/>"
+                f"Instrument: {target.get('instrument', '—')} | Program: {target.get('program', '—')}<br/>"
+                f"{range_text}<br/>{resolution_text}<br/>"
+                f"Data units: {target.get('data_units', '—')}</p>"
+            )
+            if source.get("url"):
+                meta_html += f"<p><a href='{source['url']}'>Source documentation</a></p>"
+            if notes:
+                meta_html += f"<p>{notes}</p>"
+            provenance_html = self._format_target_provenance(target.get("provenance"))
+            if provenance_html:
+                meta_html += provenance_html
+            if status:
+                meta_html += f"<p>Status: {status}</p>"
+            self.reference_meta.setHtml(meta_html)
+            overlay_payload = self._render_reference_jwst(
+                target, filtered, wavelength_key, value_key, uncertainty_key
+            )
+
+        else:
+            self.reference_table.setRowCount(0)
+            self.reference_table.setColumnCount(0)
+            self.reference_meta.clear()
+            self._clear_reference_plot()
+
+        self.reference_table.resizeColumnsToContents()
+        self._update_reference_overlay_state(overlay_payload)
+
+    def _filter_reference_entries(
+        self, entries: List[Mapping[str, Any]], query: str
+    ) -> List[Mapping[str, Any]]:
+        if not query:
+            return entries
+        needle = query.lower()
+        filtered: List[Mapping[str, Any]] = []
+        for entry in entries:
+            tokens = " ".join(token.lower() for token in ReferenceLibrary.flatten_entry(entry))
+            if needle in tokens:
+                filtered.append(entry)
+        return filtered
+
+    def _clear_reference_plot(self) -> None:
+        if hasattr(self, "reference_plot"):
+            self.reference_plot.clear()
+            self.reference_plot.showGrid(x=True, y=True, alpha=0.25)
+        self._reference_plot_items = []
+
+    def _render_reference_spectral_lines(
+        self, entries: List[Mapping[str, Any]]
+    ) -> Optional[Dict[str, Any]]:
+        wavelengths: List[float] = []
+        intensities: List[float] = []
+        for entry in entries:
+            wavelength = self._coerce_float(entry.get("vacuum_wavelength_nm"))
+            if wavelength is None:
+                continue
+            wavelengths.append(wavelength)
+            intensity = self._coerce_float(entry.get("relative_intensity"))
+            intensities.append(intensity if intensity is not None else 1.0)
+
+        if not wavelengths:
+            display_unit = self._reference_display_unit()
+            self.reference_plot.setLabel("bottom", "Wavelength", units=display_unit)
+            self.reference_plot.setLabel("left", "Relative Intensity (a.u.)")
+            return None
+
+        wavelengths_nm = np.array(wavelengths, dtype=float)
+        intensities_arr = np.array(intensities, dtype=float)
+        max_intensity = float(np.nanmax(intensities_arr)) if intensities_arr.size else 1.0
+        if not np.isfinite(max_intensity) or max_intensity <= 0:
+            max_intensity = 1.0
+
+        display_unit = self._reference_display_unit()
+        display_wavelengths = self._convert_nm_to_unit(wavelengths_nm, display_unit)
+        pen = pg.mkPen(color="#C72C41", width=2)
+        for x_val, intensity in zip(display_wavelengths, intensities_arr):
+            height = float(intensity) if np.isfinite(intensity) and intensity > 0 else 1.0
+            item = self.reference_plot.plot([x_val, x_val], [0.0, height], pen=pen)
+            self._reference_plot_items.append(item)
+
+        self.reference_plot.setLabel("bottom", "Wavelength", units=display_unit)
+        self.reference_plot.setLabel("left", "Relative Intensity (a.u.)")
+        self.reference_plot.setYRange(0.0, max_intensity * 1.1, padding=0.05)
+        return self._build_overlay_for_lines(wavelengths_nm, intensities_arr)
+
+    def _render_reference_ir_groups(
+        self, entries: List[Mapping[str, Any]]
+    ) -> Optional[Dict[str, Any]]:
+        if not entries:
+            self.reference_plot.setLabel("bottom", "Wavenumber", units="cm⁻¹")
+            self.reference_plot.setLabel("left", "Relative Presence")
+            return None
+
+        brush = pg.mkBrush(109, 89, 122, 60)
+        pen = pg.mkPen(color="#6D597A", width=1.5)
+        for entry in entries:
+            start = self._coerce_float(entry.get("wavenumber_cm_1_min"))
+            end = self._coerce_float(entry.get("wavenumber_cm_1_max"))
+            if start is None or end is None:
+                continue
+            if not np.isfinite(start) or not np.isfinite(end):
+                continue
+            lower = min(start, end)
+            upper = max(start, end)
+            region = pg.LinearRegionItem(values=(lower, upper), movable=False)
+            region.setBrush(brush)
+            # LinearRegionItem does not expose setPen; update the endpoint lines directly
+            for line in getattr(region, "lines", []):
+                line.setPen(pen)
+            region.setZValue(5)
+            self.reference_plot.addItem(region)
+            self._reference_plot_items.append(region)
+
+        self.reference_plot.setLabel("bottom", "Wavenumber", units="cm⁻¹")
+        self.reference_plot.setLabel("left", "Relative Presence")
+        return self._build_overlay_for_ir(entries)
+
+    def _render_reference_jwst(
+        self,
+        target: Mapping[str, Any],
+        rows: List[Mapping[str, Any]],
+        wavelength_key: str,
+        value_key: str,
+        uncertainty_key: Optional[str],
+    ) -> Optional[Dict[str, Any]]:
+        units = target.get("data_units", "Value")
+        self.reference_plot.setLabel("bottom", "Wavelength", units="µm")
+        self.reference_plot.setLabel("left", str(units))
+        if not rows:
+            return None
+
+        x_vals: List[float] = []
+        y_vals: List[float] = []
+        err_vals: List[float] = []
+        for entry in rows:
+            wavelength = self._coerce_float(entry.get(wavelength_key))
+            value = self._coerce_float(entry.get(value_key))
+            if wavelength is None or value is None:
+                continue
+            if not np.isfinite(wavelength) or not np.isfinite(value):
+                continue
+            x_vals.append(wavelength)
+            y_vals.append(value)
+            if uncertainty_key:
+                err = self._coerce_float(entry.get(uncertainty_key))
+                if err is None:
+                    err = float("nan")
+                err_vals.append(err)
+
+        if not x_vals:
+            return None
+
+        x_array = np.array(x_vals, dtype=float)
+        y_array = np.array(y_vals, dtype=float)
+        plot_item = self.reference_plot.plot(x_array, y_array, pen=pg.mkPen(color="#33658A", width=2))
+        self._reference_plot_items.append(plot_item)
+
+        if uncertainty_key and err_vals:
+            err_array = np.array(err_vals, dtype=float)
+            upper = y_array + err_array
+            lower = y_array - err_array
+            dotted_pen = pg.mkPen(color="#33658A", width=1, style=QtCore.Qt.PenStyle.DotLine)
+            upper_item = self.reference_plot.plot(x_array, upper, pen=dotted_pen)
+            lower_item = self.reference_plot.plot(x_array, lower, pen=dotted_pen)
+            self._reference_plot_items.extend([upper_item, lower_item])
+
+        nm_values = self._convert_um_to_nm(x_array)
+        return self._build_overlay_for_jwst(target, nm_values, y_array)
+
+    def _reference_display_unit(self) -> str:
+        return self.plot_unit()
+
+    def _convert_nm_to_unit(self, values_nm: np.ndarray, unit: str) -> np.ndarray:
+        normalised = self.units_service._normalise_x_unit(unit)
+        if normalised == "nm":
+            return values_nm
+        if normalised in {"um", "µm"}:
+            return values_nm / 1e3
+        if normalised == "angstrom":
+            return values_nm * 10.0
+        if normalised == "cm^-1":
+            with np.errstate(divide="ignore"):
+                return np.where(values_nm != 0, 1e7 / values_nm, np.nan)
+        return values_nm
+
+    @staticmethod
+    def _convert_um_to_nm(values_um: np.ndarray) -> np.ndarray:
+        return values_um * 1e3
+
+    @staticmethod
+    def _coerce_float(value: Any) -> Optional[float]:
+        try:
+            return float(value)
+        except (TypeError, ValueError):
+            return None
+
+    def _build_overlay_for_lines(
+        self, wavelengths_nm: np.ndarray, intensities: np.ndarray
+    ) -> Optional[Dict[str, Any]]:
+        if wavelengths_nm.size == 0:
+            return None
+
+        if intensities.size != wavelengths_nm.size:
+            intensities = np.full_like(wavelengths_nm, 1.0)
+
+        y_min, y_max = self._overlay_vertical_bounds()
+        span = y_max - y_min if np.isfinite(y_max - y_min) else 1.0
+        baseline = y_min + span * 0.05
+        cap = y_min + span * 0.35
+        if not np.isfinite(baseline) or not np.isfinite(cap) or cap <= baseline:
+            baseline = y_min
+            cap = y_min + max(span, 1.0)
+        max_intensity = float(np.nanmax(intensities)) if intensities.size else 1.0
+        if not np.isfinite(max_intensity) or max_intensity <= 0:
+            max_intensity = 1.0
+
+        x_segments: List[float] = []
+        y_segments: List[float] = []
+        for value, raw_intensity in zip(wavelengths_nm, intensities):
+            if not np.isfinite(value):
+                continue
+            intensity = float(raw_intensity) if np.isfinite(raw_intensity) and raw_intensity >= 0 else 0.0
+            scaled_top = baseline + (cap - baseline) * (intensity / max_intensity)
+            x_segments.extend([value, value, np.nan])
+            y_segments.extend([baseline, scaled_top, np.nan])
+
+        if not x_segments:
+            return None
+
+        return {
+            "key": "reference::hydrogen_lines",
+            "alias": "Reference – NIST Hydrogen",
+            "x_nm": np.array(x_segments, dtype=float),
+            "y": np.array(y_segments, dtype=float),
+            "color": "#C72C41",
+            "width": 1.4,
+        }
+
+    def _build_overlay_for_ir(self, entries: List[Mapping[str, Any]]) -> Optional[Dict[str, Any]]:
+        x_segments: List[float] = []
+        y_segments: List[float] = []
+        y_low, y_high = self._overlay_band_bounds()
+
+        for entry in entries:
+            start = self._coerce_float(entry.get("wavenumber_cm_1_min"))
+            end = self._coerce_float(entry.get("wavenumber_cm_1_max"))
+            if start is None or end is None:
+                continue
+            if not np.isfinite(start) or not np.isfinite(end):
+                continue
+            nm_bounds = self.units_service._to_canonical_wavelength(np.array([start, end], dtype=float), "cm^-1")
+            nm_low, nm_high = float(np.nanmin(nm_bounds)), float(np.nanmax(nm_bounds))
+            if not np.isfinite(nm_low) or not np.isfinite(nm_high):
+                continue
+            if nm_low == nm_high:
+                continue
+            x_segments.extend([nm_low, nm_low, nm_high, nm_high, nm_low, np.nan])
+            y_segments.extend([y_low, y_high, y_high, y_low, y_low, np.nan])
+
+        if not x_segments:
+            return None
+
+        return {
+            "key": "reference::ir_groups",
+            "alias": "Reference – IR Functional Groups",
+            "x_nm": np.array(x_segments, dtype=float),
+            "y": np.array(y_segments, dtype=float),
+            "color": "#6D597A",
+            "width": 1.2,
+        }
+
+    def _build_overlay_for_jwst(
+        self,
+        target: Mapping[str, Any],
+        wavelengths_nm: np.ndarray,
+        values: np.ndarray,
+    ) -> Optional[Dict[str, Any]]:
+        if wavelengths_nm.size == 0 or values.size == 0:
+            return None
+
+        if values.size != wavelengths_nm.size:
+            min_size = min(values.size, wavelengths_nm.size)
+            wavelengths_nm = wavelengths_nm[:min_size]
+            values = values[:min_size]
+
+        key_suffix = target.get("id") or target.get("name") or "jwst"
+        key = f"reference::jwst::{key_suffix}"
+        alias = f"Reference – JWST {target.get('name', key_suffix)}"
+        color = target.get("plot_color", "#33658A")
+        width = float(target.get("plot_width", 1.6))
+
+        return {
+            "key": key,
+            "alias": alias,
+            "x_nm": np.array(wavelengths_nm, dtype=float),
+            "y": np.array(values, dtype=float),
+            "color": color,
+            "width": width,
+        }
+
+    def _overlay_vertical_bounds(self) -> tuple[float, float]:
+        _, y_range = self.plot.view_range()
+        y_min, y_max = y_range
+        if not np.isfinite(y_min) or not np.isfinite(y_max) or y_min == y_max:
+            y_min, y_max = 0.0, 1.0
+        if y_min == y_max:
+            y_max = y_min + 1.0
+        return y_min, y_max
+
+    def _overlay_band_bounds(self) -> tuple[float, float]:
+        y_min, y_max = self._overlay_vertical_bounds()
+        span = y_max - y_min
+        bottom = y_min + span * 0.7
+        top = y_min + span * 0.9
+        if not np.isfinite(bottom) or not np.isfinite(top) or top <= bottom:
+            bottom = y_min + span * 0.1
+            top = y_min + span * 0.3
+        return bottom, top
+
+    def _on_reference_overlay_toggled(self, checked: bool) -> None:
+        if checked:
+            self._apply_reference_overlay()
+        else:
+            self._clear_reference_overlay()
+
+    def _update_reference_overlay_state(self, payload: Optional[Dict[str, Any]]) -> None:
+        self._reference_overlay_payload = payload
+        x_values = None
+        y_values = None
+        if payload:
+            x_values = payload.get("x_nm")
+            y_values = payload.get("y")
+        overlay_available = False
+        if isinstance(x_values, np.ndarray) and isinstance(y_values, np.ndarray):
+            overlay_available = x_values.size > 0 and y_values.size == x_values.size
+
+        self.reference_overlay_checkbox.blockSignals(True)
+        self.reference_overlay_checkbox.setEnabled(overlay_available)
+        if not overlay_available:
+            self.reference_overlay_checkbox.setChecked(False)
+        self.reference_overlay_checkbox.blockSignals(False)
+
+        if overlay_available and self.reference_overlay_checkbox.isChecked():
+            self._apply_reference_overlay()
+        elif not overlay_available:
+            self._clear_reference_overlay()
+
+    def _apply_reference_overlay(self) -> None:
+        payload = self._reference_overlay_payload
+        if not payload:
+            self._clear_reference_overlay()
+            return
+
+        x_values = payload.get("x_nm")
+        y_values = payload.get("y")
+        if not isinstance(x_values, np.ndarray) or not isinstance(y_values, np.ndarray):
+            self._clear_reference_overlay()
+            return
+
+        key = str(payload.get("key", "reference::overlay"))
+        alias = str(payload.get("alias", key))
+        color = payload.get("color", "#33658A")
+        width = float(payload.get("width", 1.5))
+
+        self._clear_reference_overlay()
+
+        style = TraceStyle(QtGui.QColor(color), width=width, show_in_legend=False)
+        self.plot.add_trace(key, alias, x_values, y_values, style)
+        self._reference_overlay_key = key
+
+    def _clear_reference_overlay(self) -> None:
+        if self._reference_overlay_key:
+            self.plot.remove_trace(self._reference_overlay_key)
+            self._reference_overlay_key = None
+
+    def _set_reference_meta(self, title: Optional[str], url: Optional[str], notes: Optional[str]) -> None:
+        pieces: List[str] = []
+        if title:
+            pieces.append(f"<b>{title}</b>")
+        if url:
+            pieces.append(f"<a href='{url}'>{url}</a>")
+        if notes:
+            pieces.append(notes)
+        if pieces:
+            self.reference_meta.setHtml("<p>" + "<br/>".join(pieces) + "</p>")
+        else:
+            self.reference_meta.clear()
+
+    @staticmethod
+    def _merge_provenance(meta: Mapping[str, Any]) -> Optional[str]:
+        notes = str(meta.get("notes", "")) if meta.get("notes") else ""
+        retrieved = meta.get("retrieved_utc")
+        provenance = meta.get("provenance") if isinstance(meta.get("provenance"), Mapping) else None
+        details: List[str] = []
+        if retrieved:
+            details.append(f"Retrieved: {retrieved}")
+        if provenance:
+            status = provenance.get("curation_status")
+            if status:
+                details.append(f"Curation status: {status}")
+            generator = provenance.get("generator")
+            if generator:
+                details.append(f"Generator: {generator}")
+            replacement = provenance.get("replacement_plan") or provenance.get("planned_regeneration_uri")
+            if replacement:
+                details.append(f"Next steps: {replacement}")
+        segments: List[str] = []
+        if notes:
+            segments.append(notes)
+        if details:
+            segments.append("; ".join(details))
+        if not segments:
+            return None
+        return "<br/>".join(segments)
+
+    @staticmethod
+    def _format_target_provenance(provenance: Optional[Mapping[str, Any]]) -> str:
+        if not isinstance(provenance, Mapping):
+            return ""
+        bits: List[str] = []
+        status = provenance.get("curation_status")
+        if status:
+            bits.append(f"Status: {status}")
+        if provenance.get("pipeline_version"):
+            bits.append(f"Pipeline: {provenance['pipeline_version']}")
+        if provenance.get("mast_product_uri"):
+            bits.append(f"MAST URI: {provenance['mast_product_uri']}")
+        if provenance.get("planned_regeneration_uri"):
+            bits.append(f"Planned URI: {provenance['planned_regeneration_uri']}")
+        if provenance.get("retrieved_utc"):
+            bits.append(f"Retrieved: {provenance['retrieved_utc']}")
+        if provenance.get("notes"):
+            bits.append(provenance["notes"])
+        if provenance.get("reference"):
+            bits.append(f"Reference: {provenance['reference']}")
+        if not bits:
+            return ""
+        return "<p><i>" + " | ".join(bits) + "</i></p>"
+
+    @staticmethod
+    def _format_float(value: Any, *, precision: int = 3) -> str:
+        if value is None:
+            return "–"
+        try:
+            return f"{float(value):.{precision}f}"
+        except (TypeError, ValueError):
+            return str(value)
+
+    @staticmethod
+    def _format_scientific(value: Any) -> str:
+        if value is None:
+            return "–"
+        try:
+            return f"{float(value):.3e}"
+        except (TypeError, ValueError):
+            return str(value)
+
+    def _set_table_item(self, row: int, column: int, value: Any) -> None:
+        text = str(value) if value not in (None, "") else "–"
+        item = QtWidgets.QTableWidgetItem(text)
+        item.setFlags(item.flags() & ~QtCore.Qt.ItemFlag.ItemIsEditable)
+        try:
+            float(value)
+        except (TypeError, ValueError):
+            pass
+        else:
+            item.setTextAlignment(
+                QtCore.Qt.AlignmentFlag.AlignRight | QtCore.Qt.AlignmentFlag.AlignVCenter
+            )
+        self.reference_table.setItem(row, column, item)
+
+    # Documentation -----------------------------------------------------
+    def _build_documentation_tab(self) -> None:
+        self.tab_docs = QtWidgets.QWidget()
+        layout = QtWidgets.QVBoxLayout(self.tab_docs)
+        layout.setContentsMargins(6, 6, 6, 6)
+
+        self.docs_filter = QtWidgets.QLineEdit()
+        self.docs_filter.setPlaceholderText("Filter topics…")
+        self.docs_filter.textChanged.connect(self._filter_docs)
+        layout.addWidget(self.docs_filter)
+
+        splitter = QtWidgets.QSplitter(QtCore.Qt.Orientation.Horizontal)
+        layout.addWidget(splitter, 1)
+
+        self.docs_list = QtWidgets.QListWidget()
+        self.docs_list.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
+        self.docs_list.itemSelectionChanged.connect(self._on_doc_selection_changed)
+        splitter.addWidget(self.docs_list)
+
+        self.doc_viewer = QtWidgets.QTextBrowser()
+        self.doc_viewer.setOpenExternalLinks(False)
+        self.doc_viewer.setPlaceholderText("Select a document to view its contents.")
+        splitter.addWidget(self.doc_viewer)
+
+        splitter.setStretchFactor(0, 1)
+        splitter.setStretchFactor(1, 3)
+
+        self.doc_placeholder = QtWidgets.QLabel("No documentation topics found in docs/user.")
+        self.doc_placeholder.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(self.doc_placeholder)
+
+        self._load_documentation_index()
+
+    def _load_documentation_index(self) -> None:
+        docs_root = Path(__file__).resolve().parent.parent / "docs" / "user"
+        entries: list[tuple[str, Path]] = []
+        if docs_root.exists():
+            for path in sorted(docs_root.glob("*.md")):
+                entries.append((self._extract_doc_title(path), path))
+
+        self._doc_entries = entries
+        self.docs_list.clear()
+        for title, path in entries:
+            item = QtWidgets.QListWidgetItem(title)
+            item.setData(QtCore.Qt.ItemDataRole.UserRole, path)
+            item.setData(QtCore.Qt.ItemDataRole.UserRole + 1, title.lower())
+            self.docs_list.addItem(item)
+
+        has_docs = bool(entries)
+        self.doc_placeholder.setVisible(not has_docs)
+        self.doc_viewer.setVisible(has_docs)
+        if has_docs:
+            self.docs_list.setCurrentRow(0)
+        else:
+            self.doc_viewer.clear()
+
+    def _extract_doc_title(self, path: Path) -> str:
+        try:
+            with path.open("r", encoding="utf-8") as handle:
+                for _ in range(40):
+                    line = handle.readline()
+                    if not line:
+                        break
+                    stripped = line.strip()
+                    if stripped.startswith("#"):
+                        return stripped.lstrip("# ")
+        except OSError:
+            return path.stem
+        return path.stem.replace("_", " ").title()
+
+    def _filter_docs(self, text: str) -> None:
+        query = text.strip().lower()
+        for idx in range(self.docs_list.count()):
+            item = self.docs_list.item(idx)
+            if not query:
+                item.setHidden(False)
+                continue
+            haystack = item.data(QtCore.Qt.ItemDataRole.UserRole + 1) or ""
+            item.setHidden(query not in haystack)
+        if query:
+            for idx in range(self.docs_list.count()):
+                item = self.docs_list.item(idx)
+                if not item.isHidden():
+                    self.docs_list.setCurrentItem(item)
+                    break
+
+    def _on_doc_selection_changed(self) -> None:
+        items = self.docs_list.selectedItems()
+        if not items:
+            self.doc_viewer.clear()
+            return
+        item = items[0]
+        path = item.data(QtCore.Qt.ItemDataRole.UserRole)
+        if not isinstance(path, Path):
+            self.doc_viewer.clear()
+            return
+        try:
+            text = path.read_text(encoding="utf-8")
+        except OSError as exc:  # pragma: no cover - filesystem failure feedback
+            self.doc_viewer.setPlainText(f"Failed to load {path.name}: {exc}")
+            self._log("Docs", f"Failed to open {path.name}: {exc}")
+            return
+        if hasattr(self.doc_viewer, "setMarkdown"):
+            self.doc_viewer.setMarkdown(text)
+        else:  # pragma: no cover - Qt fallback
+            self.doc_viewer.setPlainText(text)
+        self._log("Docs", f"Loaded {path.name}")
+
+    def show_documentation(self) -> None:
+        self._load_documentation_index()
+        self.inspector_dock.show()
+        idx = self.inspector_tabs.indexOf(self.tab_docs)
+        if idx != -1:
+            self.inspector_tabs.setCurrentIndex(idx)
+        self.raise_()
+
     def _rename_selected_spectrum(self) -> None:
         ids = self._selected_dataset_ids()
         if not ids:
@@ -711,12 +1626,16 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self._log("Alias", f"{spectrum.name} → {alias}")
 
     def _on_normalize_changed(self, value: str) -> None:
-        self._log("Normalize", f"Mode set to {value}")
+        self._normalization_mode = value or "None"
+        self.refresh_overlay()
+        self._log("Normalize", f"Mode set to {self._normalization_mode}")
 
     def _on_smoothing_changed(self, value: str) -> None:
         self._log("Smoothing", f"Mode set to {value}")
 
     def _log(self, channel: str, message: str) -> None:
+        if not hasattr(self, "log_view") or self.log_view is None:
+            return
         self.log_view.appendPlainText(f"[{channel}] {message}")
 
 
