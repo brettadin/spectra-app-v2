@@ -47,6 +47,24 @@ def test_from_canonical_handles_superscript_wavenumber():
     assert np.allclose(view_y, y)
 
 
+@pytest.mark.parametrize(
+    "unicode_unit",
+    [
+        "cm⁻¹",  # superscript minus and digit
+        "cm^−1",  # Unicode minus following ASCII caret
+        "cm−¹",  # minus sign, superscript digit
+    ],
+)
+def test_from_canonical_accepts_unicode_wavenumber_variants(unicode_unit: str):
+    service = UnitsService()
+    x_nm = np.array([5000.0, 10000.0])
+    expected = np.array([2000.0, 1000.0])
+
+    wavenumber, _ = service.from_canonical(x_nm, np.array([0.1, 0.2]), unicode_unit, 'absorbance')
+
+    assert np.allclose(wavenumber, expected)
+
+
 def test_transmittance_conversion_and_round_trip():
     service = UnitsService()
     x = np.array([400.0])
