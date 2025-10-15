@@ -12,6 +12,7 @@ numerical drift and the original data is never mutated.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+import re
 from typing import Dict, Any, Tuple, TYPE_CHECKING
 
 import numpy as np

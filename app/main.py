@@ -69,6 +69,14 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         ]
         self._palette_index = 0
 
+        self.log_view: QtWidgets.QPlainTextEdit | None = None
+        self._log_buffer: list[tuple[str, str]] = []
+        self._log_ready = False
+
+        self._reference_items: list[pg.GraphicsObject] = []
+        self._reference_overlay_payload: Optional[Dict[str, Any]] = None
+        self._reference_overlay_key: Optional[str] = None
+
         self._setup_ui()
         self._setup_menu()
         self._wire_shortcuts()
@@ -169,7 +177,12 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.log_dock.setWidget(self.log_view)
         self.addDockWidget(QtCore.Qt.DockWidgetArea.BottomDockWidgetArea, self.log_dock)
 
-        self._build_plot_toolbar()
+        self.inspector_dock = QtWidgets.QDockWidget("Inspector", self)
+        self.inspector_dock.setObjectName("dock-inspector")
+        self.inspector_tabs = QtWidgets.QTabWidget()
+        self._build_inspector_tabs()
+        self.inspector_dock.setWidget(self.inspector_tabs)
+        self.addDockWidget(QtCore.Qt.DockWidgetArea.RightDockWidgetArea, self.inspector_dock)
 
         self.inspector_dock = QtWidgets.QDockWidget("Inspector", self)
         self.inspector_dock.setObjectName("dock-inspector")
@@ -185,6 +198,10 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                 f"x={x:.4g} {self.plot_unit()} | y={y:.4g}"
             )
         )
+
+        # Load documentation entries after all dock widgets (including the log view)
+        # have been initialised so that the initial selection can log status safely.
+        self._load_documentation_index()
 
     def _build_inspector_tabs(self) -> None:
         # Info tab -----------------------------------------------------
@@ -304,8 +321,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         toolbar.addWidget(QtWidgets.QLabel("Units:"))
         self.unit_combo = QtWidgets.QComboBox()
         self.unit_combo.addItems(["nm", "Å", "µm", "cm⁻¹"])
-        self.unit_combo.currentTextChanged.connect(self.refresh_overlay)
-        self.unit_combo.currentTextChanged.connect(self.plot.set_display_unit)
+        self.unit_combo.currentTextChanged.connect(self._on_display_unit_changed)
         toolbar.addWidget(self.unit_combo)
 
         toolbar.addWidget(QtWidgets.QLabel("Normalize:"))
@@ -330,6 +346,13 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         if self.unit_combo is None:
             return "nm"
         return self.unit_combo.currentText()
+
+    def _on_display_unit_changed(self, unit: str) -> None:
+        self.plot.set_display_unit(unit)
+        self.refresh_overlay()
+        # Reference previews share the same display axis so update them as well.
+        if hasattr(self, "reference_dataset_combo"):
+            self._refresh_reference_dataset()
 
     def _create_group_row(self, title: str) -> QtGui.QStandardItem:
         alias_item = QtGui.QStandardItem(title)
