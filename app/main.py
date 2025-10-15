@@ -45,6 +45,8 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.math_service = MathService()
         self.reference_library = ReferenceLibrary()
 
+        self.unit_combo: Optional[QtWidgets.QComboBox] = None
+
         self._dataset_items: Dict[str, QtGui.QStandardItem] = {}
         self._spectrum_colors: Dict[str, QtGui.QColor] = {}
         self._visibility: Dict[str, bool] = {}
@@ -175,6 +177,13 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             for channel, message in self._log_buffer:
                 self.log_view.appendPlainText(f"[{channel}] {message}")
             self._log_buffer.clear()
+
+        self.inspector_dock = QtWidgets.QDockWidget("Inspector", self)
+        self.inspector_dock.setObjectName("dock-inspector")
+        self.inspector_tabs = QtWidgets.QTabWidget()
+        self._build_inspector_tabs()
+        self.inspector_dock.setWidget(self.inspector_tabs)
+        self.addDockWidget(QtCore.Qt.DockWidgetArea.RightDockWidgetArea, self.inspector_dock)
 
         self.inspector_dock = QtWidgets.QDockWidget("Inspector", self)
         self.inspector_dock.setObjectName("dock-inspector")
@@ -334,6 +343,8 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         toolbar.addAction(self.action_export)
 
     def plot_unit(self) -> str:
+        if self.unit_combo is None:
+            return "nm"
         return self.unit_combo.currentText()
 
     def _on_display_unit_changed(self, unit: str) -> None:
@@ -360,6 +371,8 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         QtGui.QShortcut(QtGui.QKeySequence("U"), self, activated=self._cycle_units)
 
     def _cycle_units(self) -> None:
+        if self.unit_combo is None or self.unit_combo.count() == 0:
+            return
         idx = (self.unit_combo.currentIndex() + 1) % self.unit_combo.count()
         self.unit_combo.setCurrentIndex(idx)
 
@@ -438,7 +451,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             return
         views = self.overlay_service.overlay(
             selected_ids,
-            self.unit_combo.currentText(),
+            self.plot_unit(),
             self._normalise_y("absorbance"),
             normalization=self._normalization_mode,
         )
@@ -811,7 +824,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.reference_plot.setObjectName("reference-plot")
         self.reference_plot.setMinimumHeight(220)
         self.reference_plot.showGrid(x=True, y=True, alpha=0.25)
-        default_unit = self.plot_unit() if hasattr(self, "unit_combo") else "nm"
+        default_unit = self.plot_unit()
         self.reference_plot.setLabel("bottom", "Wavelength", units=default_unit)
         self.reference_plot.setLabel("left", "Relative Intensity")
         layout.addWidget(self.reference_plot, 1)
@@ -1138,7 +1151,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         return None
 
     def _reference_display_unit(self) -> str:
-        return self.plot_unit() if hasattr(self, "unit_combo") else "nm"
+        return self.plot_unit()
 
     def _convert_nm_to_unit(self, values_nm: np.ndarray, unit: str) -> np.ndarray:
         normalised = self.units_service._normalise_x_unit(unit)
