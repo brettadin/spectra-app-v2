@@ -28,6 +28,19 @@ def test_wavenumber_round_trip():
     assert np.allclose(view_x, x)
 
 
+def test_unicode_wavenumber_aliases():
+    service = UnitsService()
+    x_nm = np.array([500.0, 1000.0])
+    y_abs = np.array([0.1, 0.2])
+    display_x, _ = service.from_canonical(x_nm, y_abs, 'cm⁻¹', 'absorbance')
+    expected = np.array([1e7 / 500.0, 1e7 / 1000.0])
+    assert np.allclose(display_x, expected)
+
+    canonical_x, _, meta = service.to_canonical(np.array([4000.0]), np.array([0.5]), 'cm⁻¹', 'absorbance')
+    assert np.allclose(canonical_x, np.array([1e7 / 4000.0]))
+    assert meta['source_units']['x'] == 'cm⁻¹'
+
+
 def test_transmittance_conversion_and_round_trip():
     service = UnitsService()
     x = np.array([400.0])

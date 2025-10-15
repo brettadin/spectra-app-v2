@@ -37,6 +37,61 @@ def test_smoke_ingest_toggle_and_export(tmp_path: Path, mini_fits: Path) -> None
     window = SpectraMainWindow()
     try:
         assert window.windowTitle().startswith("Spectra")
+        docs_tab_index = window.inspector_tabs.indexOf(window.tab_docs)
+        assert docs_tab_index != -1
+        if window.docs_list.count():
+            window.docs_list.setCurrentRow(0)
+            app.processEvents()
+            assert window.doc_viewer.toPlainText().strip()
+
+        reference_index = window.inspector_tabs.indexOf(window.tab_reference)
+        assert reference_index != -1
+        window.inspector_tabs.setCurrentIndex(reference_index)
+        app.processEvents()
+        assert window.reference_dataset_combo.count() >= 3
+        window.reference_dataset_combo.setCurrentIndex(0)
+        app.processEvents()
+        assert window.reference_table.rowCount() > 0
+        assert hasattr(window, "reference_plot")
+        assert window.reference_plot.listDataItems()
+        assert window.reference_overlay_checkbox.isEnabled()
+        payload = window._reference_overlay_payload
+        assert payload is not None
+        y_values = payload.get("y")
+        assert isinstance(y_values, np.ndarray)
+        assert np.nanmax(y_values) > np.nanmin(y_values)
+        window.reference_overlay_checkbox.setChecked(True)
+        app.processEvents()
+        assert window._reference_overlay_key is not None
+        window.reference_overlay_checkbox.setChecked(False)
+        app.processEvents()
+        assert window._reference_overlay_key is None
+
+        # Switch datasets to ensure combo selection updates correctly
+        initial_key = payload.get("key") if payload else None
+        window.reference_dataset_combo.setCurrentIndex(1)
+        app.processEvents()
+        assert window.reference_dataset_combo.currentIndex() == 1
+        assert window.reference_table.rowCount() > 0
+        next_payload = window._reference_overlay_payload
+        if next_payload:
+            assert next_payload.get("key") != initial_key
+
+        jwst_index = None
+        for idx, (kind, _key) in enumerate(window._reference_options):
+            if kind == "jwst":
+                jwst_index = idx
+                break
+        if jwst_index is not None:
+            window.reference_dataset_combo.setCurrentIndex(jwst_index)
+            app.processEvents()
+            jwst_payload = window._reference_overlay_payload
+            assert jwst_payload is not None
+            assert str(jwst_payload.get("key", "")).startswith("reference::jwst::")
+            x_vals = jwst_payload.get("x_nm")
+            y_vals = jwst_payload.get("y")
+            assert isinstance(x_vals, np.ndarray) and x_vals.size > 0
+            assert isinstance(y_vals, np.ndarray) and y_vals.size == x_vals.size
     finally:
         window.close()
         window.deleteLater()
@@ -82,3 +137,29 @@ def test_smoke_ingest_toggle_and_export(tmp_path: Path, mini_fits: Path) -> None
     assert str(csv_spec.x[0]) in csv_contents
 
     assert bundle["png_path"].read_bytes() == png_bytes
+
+
+def test_plot_preserves_source_intensity_units(tmp_path: Path) -> None:
+    if SpectraMainWindow is None or QtWidgets is None:
+        pytest.skip(f"Qt stack unavailable: {_qt_import_error}")
+
+    csv_path = tmp_path / "transmittance.csv"
+    csv_path.write_text("wavelength_nm,%T\n400,50\n410,75\n420,100\n", encoding="utf-8")
+
+    app = _ensure_app()
+    window = SpectraMainWindow()
+    try:
+        spectrum = window.ingest_service.ingest(csv_path)
+        window.overlay_service.add(spectrum)
+        window._add_spectrum(spectrum)
+        window._update_math_selectors()
+        window.refresh_overlay()
+        trace = window.plot._traces[spectrum.id]
+        y_values = trace["y"]  # type: ignore[index]
+        assert isinstance(y_values, np.ndarray)
+        assert np.allclose(y_values[:3], np.array([50.0, 75.0, 100.0]))
+        assert "%T" in window.plot._y_label  # type: ignore[attr-defined]
+    finally:
+        window.close()
+        window.deleteLater()
+        app.processEvents()
