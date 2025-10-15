@@ -56,3 +56,31 @@ def test_reference_tab_builds_without_error() -> None:
         window.close()
         window.deleteLater()
         app.processEvents()
+
+
+def test_ir_overlay_payload_includes_fill_and_labels() -> None:
+    if SpectraMainWindow is None or QtWidgets is None:
+        pytest.skip(f"Qt stack unavailable: {_qt_import_error}")
+
+    pytest.importorskip("pyqtgraph")
+
+    app = _ensure_app()
+    window = SpectraMainWindow()
+    try:
+        sample = [{
+            "wavenumber_cm_1_min": 1600.0,
+            "wavenumber_cm_1_max": 1500.0,
+            "group": "Carbonyl",
+        }]
+        payload = window._build_overlay_for_ir(sample)
+        assert payload is not None
+        assert payload["fill_color"]
+        assert payload["fill_level"] == pytest.approx(payload["band_bounds"][0])
+        labels = payload.get("labels")
+        assert isinstance(labels, list)
+        assert labels and labels[0]["text"] == "Carbonyl"
+        assert labels[0]["centre_nm"] > 0
+    finally:
+        window.close()
+        window.deleteLater()
+        app.processEvents()
