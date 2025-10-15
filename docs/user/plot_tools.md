@@ -25,6 +25,18 @@ The **Cursor** toolbar toggle controls whether the crosshair guides are visible.
 
 Every trace that remains visible has a matching entry in the floating legend anchored to the top-left corner of the plot. Rename a dataset from the Inspector's alias field to update the legend label in real time. To declutter dense overlays, uncheck the visibility toggle in the Datasets dock—the trace disappears from the canvas and the legend until you re-enable it.
 
+## Normalisation toolbar modes
+
+The top-of-window plot toolbar hosts the **Normalize** combo box alongside the unit selector. If the toolbar is hidden, restore it via **View → Plot Toolbar**—Spectra always loads traces in their raw scale with **Normalize = None** so you can inspect absolute intensities before opting into Max or Area scaling.
+
+Use the control to adjust every visible trace without mutating the underlying data:
+
+- **None** leaves the canonical absorbance scale untouched.
+- **Max** divides each series by its maximum absolute absorbance so peaks share a common height of 1.0.
+- **Area** scales the curve so the absolute area under the absorbance–wavelength graph equals 1.0, making it easier to compare broad features.
+
+The data table mirrors the active normalisation, and the provenance metadata records whether a scale factor was applied for downstream auditing.
+
 ## Level-of-detail safeguards
 
 High-resolution spectra can contain millions of samples. Rendering every point would make panning and zooming sluggish, so the plot pane automatically enforces a peak-envelope LOD cap:
