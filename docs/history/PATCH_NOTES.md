@@ -1,5 +1,11 @@
 # Patch Notes
 
+## 2025-10-15 (Raw intensity defaults & overlay label fixes) (8:18 pm UTC)
+
+- Converted plot traces and overlays back into their source intensity units by default, updating the y-axis label and data table headers so `%T`, transmittance, or absorbance values remain untouched until you opt into normalization.
+- Ensured Reference overlays reuse the active dataset’s payload when swapping combos and added a regression smoke test that locks in `%T` rendering to prevent accidental pre-normalization.
+- Documented the raw-intensity workflow in the plotting and importing guides so users know where the source-unit metadata originates.
+
 ## 2025-10-15 (Reference plotting + importer profile swap) (7:45 pm UTC)
 
 - Fixed the Reference inspector so dataset selection persists across sessions, JWST targets render in the preview canvas,

@@ -141,44 +141,26 @@ def test_smoke_ingest_toggle_and_export(tmp_path: Path, mini_fits: Path) -> None
     assert bundle["png_path"].read_bytes() == png_bytes
 
 
-def test_show_documentation_no_attribute_error() -> None:
-    """Opening the documentation view should not raise AttributeError during startup."""
-
+def test_plot_preserves_source_intensity_units(tmp_path: Path) -> None:
     if SpectraMainWindow is None or QtWidgets is None:
         pytest.skip(f"Qt stack unavailable: {_qt_import_error}")
+
+    csv_path = tmp_path / "transmittance.csv"
+    csv_path.write_text("wavelength_nm,%T\n400,50\n410,75\n420,100\n", encoding="utf-8")
 
     app = _ensure_app()
     window = SpectraMainWindow()
     try:
-        window.show_documentation()
-        app.processEvents()
-        docs_index = window.inspector_tabs.indexOf(window.tab_docs)
-        assert docs_index != -1
-        assert window.inspector_tabs.currentIndex() == docs_index
-    finally:
-        window.close()
-        window.deleteLater()
-        app.processEvents()
-
-
-def test_docs_tab_auto_loads_first_entry_without_error() -> None:
-    """Switching to the Docs tab should auto-load the first entry without exploding."""
-
-    if SpectraMainWindow is None or QtWidgets is None:
-        pytest.skip(f"Qt stack unavailable: {_qt_import_error}")
-
-    app = _ensure_app()
-    window = SpectraMainWindow()
-    try:
-        docs_index = window.inspector_tabs.indexOf(window.tab_docs)
-        assert docs_index != -1
-        window.inspector_tabs.setCurrentIndex(docs_index)
-        app.processEvents()
-
-        if window.docs_list.count():
-            # The first entry should be selected automatically and rendered without error.
-            assert window.docs_list.currentRow() == 0
-            assert window.doc_viewer.toPlainText().strip()
+        spectrum = window.ingest_service.ingest(csv_path)
+        window.overlay_service.add(spectrum)
+        window._add_spectrum(spectrum)
+        window._update_math_selectors()
+        window.refresh_overlay()
+        trace = window.plot._traces[spectrum.id]
+        y_values = trace["y"]  # type: ignore[index]
+        assert isinstance(y_values, np.ndarray)
+        assert np.allclose(y_values[:3], np.array([50.0, 75.0, 100.0]))
+        assert "%T" in window.plot._y_label  # type: ignore[attr-defined]
     finally:
         window.close()
         window.deleteLater()

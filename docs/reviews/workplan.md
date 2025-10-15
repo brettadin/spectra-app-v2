@@ -1,10 +1,15 @@
+# Workplan — Batch 13 (2025-10-15)
+
+- [ ] Capture the QA-provided background spectra that still swap X/Y axes and extend `CsvImporter` heuristics plus tests to cover the regression.
+- [ ] Improve IR functional-group overlay readability (legend or tooltip callouts) so shaded bands remain legible on dark themes.
+- [ ] Investigate duplicate Inspector dock panes reported on Windows startup (carry-over) and document reproduction steps.
+- [ ] Verify reference overlays respect combo changes after multi-file ingest so hydrogen/IR/JWST traces never reuse the first dataset payload.
+
 # Workplan — Batch 12 (2025-10-15)
 
 - [x] Keep the Reference inspector combo in sync with the preview plot and overlay toggle, including JWST quick-look curves and labelled IR regions.
 - [x] Restore normalization controls by adding a View-menu toggle for the plot toolbar and accepting Unicode `cm⁻¹` inputs in unit conversions.
 - [x] Add profile-based axis swapping so monotonic intensity columns no longer displace jittery wavenumber exports.
-- [ ] Investigate duplicate Inspector dock panes reported on Windows after multiple launches (unable to reproduce headless; needs manual QA).
-- [ ] Verify reference overlays respect filter text persistence when switching datasets (ensure overlay availability matches filtered rows).
 
 ## Batch 12 QA Log
 

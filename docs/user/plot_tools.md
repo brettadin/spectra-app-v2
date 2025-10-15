@@ -27,15 +27,15 @@ Every trace that remains visible has a matching entry in the floating legend anc
 
 ## Normalisation toolbar modes
 
-The top-of-window plot toolbar hosts the **Normalize** combo box alongside the unit selector. If the toolbar is hidden, restore it via **View → Plot Toolbar**—Spectra always loads traces in their raw scale with **Normalize = None** so you can inspect absolute intensities before opting into Max or Area scaling.
+The top-of-window plot toolbar hosts the **Normalize** combo box alongside the unit selector. If the toolbar is hidden, restore it via **View → Plot Toolbar**—Spectra now draws every trace in the source intensity units reported by the importer (for example `%T` for percent transmittance). The y-axis label and data table adapt to those units so you see raw amplitudes first, then optionally apply scaling.
 
 Use the control to adjust every visible trace without mutating the underlying data:
 
-- **None** leaves the canonical absorbance scale untouched.
-- **Max** divides each series by its maximum absolute absorbance so peaks share a common height of 1.0.
-- **Area** scales the curve so the absolute area under the absorbance–wavelength graph equals 1.0, making it easier to compare broad features.
+- **None** keeps the source-unit scale exactly as ingested.
+- **Max** divides each series by its maximum absolute value, preserving relative peak heights while pinning the tallest feature to 1.0 in the current units.
+- **Area** scales the curve so the absolute area under the graph equals 1.0, helping you compare broad features without flattening local structure.
 
-The data table mirrors the active normalisation, and the provenance metadata records whether a scale factor was applied for downstream auditing.
+The data table and provenance metadata mirror the active normalisation, and the plot toolbar’s left-axis label calls out both the unit (e.g. `%T`) and the selected normalisation mode for downstream auditing.
 
 ## Level-of-detail safeguards
 

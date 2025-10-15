@@ -77,7 +77,11 @@ These behaviours are covered by regression tests in
 `tests/test_csv_importer.py` to ensure future tweaks keep messy real-world data
 ingestable. The importer also records the selected column indices and the
 heuristics it used under `metadata.column_selection` for every ingest so you
-can confirm how a particular file was interpreted.
+can confirm how a particular file was interpreted. The same metadata block now
+stores the original X/Y units under `metadata.source_units`; the plot pane reads
+those values so newly imported traces appear in the exact scale they were
+captured (for example percent transmittance) before you opt into additional
+normalisation.
 
 ## Appendix — Provenance export bundle
 

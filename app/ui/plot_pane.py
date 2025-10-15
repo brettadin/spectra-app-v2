@@ -39,6 +39,7 @@ class PlotPane(QtWidgets.QWidget):
     def __init__(self, parent: QtWidgets.QWidget | None = None) -> None:
         super().__init__(parent)
         self._display_unit = "nm"
+        self._y_label = "Intensity"
         self._traces: Dict[str, Dict[str, object]] = {}
         self._order: list[str] = []
         self._max_points = 120_000
@@ -95,6 +96,14 @@ class PlotPane(QtWidgets.QWidget):
 
         x_range, y_range = self._plot.viewRange()
         return (tuple(x_range), tuple(y_range))
+
+    def set_y_label(self, label: str) -> None:
+        """Update the left-axis label text."""
+
+        if label == self._y_label:
+            return
+        self._y_label = label
+        self._plot.setLabel("left", label)
 
     def remove_trace(self, key: str) -> None:
         trace = self._traces.pop(key, None)
@@ -186,7 +195,7 @@ class PlotPane(QtWidgets.QWidget):
         layout.addWidget(self._plot)
 
         self._plot.setLabel("bottom", "Wavelength", units=self._display_unit)
-        self._plot.setLabel("left", "Intensity")
+        self._plot.setLabel("left", self._y_label)
 
     def _apply_style(self, key: str) -> None:
         trace = self._traces[key]

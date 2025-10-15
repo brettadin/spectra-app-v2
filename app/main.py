@@ -57,6 +57,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self._reference_overlay_key: Optional[str] = None
         self._reference_overlay_payload: Optional[Dict[str, Any]] = None
         self._reference_options: List[tuple[str, Optional[str]]] = []
+        self._display_y_units: Dict[str, str] = {}
         self._palette: List[QtGui.QColor] = [
             QtGui.QColor("#4F6D7A"),
             QtGui.QColor("#C0D6DF"),
@@ -176,6 +177,13 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.log_view.setReadOnly(True)
         self.log_dock.setWidget(self.log_view)
         self.addDockWidget(QtCore.Qt.DockWidgetArea.BottomDockWidgetArea, self.log_dock)
+
+        self.inspector_dock = QtWidgets.QDockWidget("Inspector", self)
+        self.inspector_dock.setObjectName("dock-inspector")
+        self.inspector_tabs = QtWidgets.QTabWidget()
+        self._build_inspector_tabs()
+        self.inspector_dock.setWidget(self.inspector_tabs)
+        self.addDockWidget(QtCore.Qt.DockWidgetArea.RightDockWidgetArea, self.inspector_dock)
 
         self.inspector_dock = QtWidgets.QDockWidget("Inspector", self)
         self.inspector_dock.setObjectName("dock-inspector")
@@ -476,13 +484,28 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         selected_ids = [sid for sid in selected_ids if self._visibility.get(sid, True)]
         if not selected_ids:
             return
-        views = self.overlay_service.overlay(
+        raw_views = self.overlay_service.overlay(
             selected_ids,
             self.plot_unit(),
             self._normalise_y("absorbance"),
             normalization=self._normalization_mode,
         )
-        self._populate_data_table(views)
+        display_views: List[Dict[str, object]] = []
+        for view in raw_views:
+            spec_id = cast(str, view["id"])
+            display_unit = self._display_y_units.get(spec_id, "absorbance")
+            _, y_display = self.units_service.from_canonical(
+                cast(np.ndarray, view["x_canonical"]),
+                cast(np.ndarray, view["y_canonical"]),
+                "nm",
+                display_unit,
+            )
+            updated = dict(view)
+            updated["y"] = y_display
+            updated["y_unit"] = display_unit
+            display_views.append(updated)
+
+        self._populate_data_table(display_views)
         if not self.data_table.isVisible():
             self.data_table.show()
             self.data_table_action.setChecked(True)
@@ -496,6 +519,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             "absorbance",
             normalization=self._normalization_mode,
         )
+        y_units_in_view: List[str] = []
         for view in canonical_views:
             spec_id = cast(str, view["id"])
             alias_item = self._dataset_items.get(spec_id)
@@ -503,6 +527,14 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             color = self._spectrum_colors.get(spec_id)
             if color is None:
                 color = QtGui.QColor("#4F6D7A")
+            display_unit = self._display_y_units.get(spec_id, "absorbance")
+            _, y_display = self.units_service.from_canonical(
+                cast(np.ndarray, view["x_canonical"]),
+                cast(np.ndarray, view["y_canonical"]),
+                "nm",
+                display_unit,
+            )
+            y_units_in_view.append(display_unit)
             style = TraceStyle(
                 color=QtGui.QColor(color),
                 width=1.6,
@@ -513,10 +545,13 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                 key=spec_id,
                 alias=alias,
                 x_nm=cast(np.ndarray, view["x_canonical"]),
-                y=cast(np.ndarray, view["y_canonical"]),
+                y=y_display,
                 style=style,
             )
             self.plot.set_visible(spec_id, self._visibility.get(spec_id, True))
+
+        if y_units_in_view:
+            self.plot.set_y_label(self._format_y_axis_label(y_units_in_view[0]))
 
     def compute_subtract(self) -> None:
         ids = self._selected_math_ids()
@@ -581,12 +616,21 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.dataset_tree.expandAll()
         self._dataset_items[spectrum.id] = alias_item
         self._visibility[spectrum.id] = True
+        _source_x, source_y = self._source_units(spectrum)
+        self._display_y_units[spectrum.id] = source_y
         self._add_plot_trace(spectrum, color)
 
     def _add_plot_trace(self, spectrum: Spectrum, color: QtGui.QColor) -> None:
         alias_item = self._dataset_items.get(spectrum.id)
         alias = alias_item.text() if alias_item else spectrum.name
         x_nm = self._to_nm(spectrum.x, spectrum.x_unit)
+        display_y_unit = self._display_y_units.get(spectrum.id, spectrum.y_unit)
+        _, y_display = self.units_service.from_canonical(
+            spectrum.x,
+            spectrum.y,
+            spectrum.x_unit,
+            display_y_unit,
+        )
         style = TraceStyle(
             color=QtGui.QColor(color),
             width=1.6,
@@ -597,9 +641,10 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             key=spectrum.id,
             alias=alias,
             x_nm=x_nm,
-            y=spectrum.y,
+            y=y_display,
             style=style,
         )
+        self.plot.set_y_label(self._format_y_axis_label(display_y_unit))
         self.plot.autoscale()
 
     def _show_metadata(self, spectrum: Spectrum | None) -> None:
@@ -614,7 +659,9 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.info_alias.setText(alias_text)
         source = spectrum.source_path.name if spectrum.source_path else "N/A"
         self.info_source.setText(source)
-        self.info_units.setText(f"x: {spectrum.x_unit} | y: {spectrum.y_unit}")
+        source_x, source_y = self._source_units(spectrum)
+        self.info_units.setText(f"x: {source_x} | y: {source_y}")
+        self.info_units.setToolTip("Canonical units: x=nm | y=A₁₀")
         if spectrum.x.size:
             self.info_range_x.setText(f"{float(spectrum.x.min()):.4g} – {float(spectrum.x.max()):.4g} {spectrum.x_unit}")
             self.info_points.setText(str(int(spectrum.x.size)))
@@ -673,6 +720,23 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.provenance_view.show()
 
     def _populate_data_table(self, views: Iterable[dict]) -> None:
+        views = list(views)
+        if not views:
+            self.data_table.clearContents()
+            self.data_table.setRowCount(0)
+            return
+
+        x_header = f"X ({self.plot_unit()})"
+        y_units = {self._format_display_unit(str(view.get("y_unit", ""))) for view in views if view.get("y_unit")}
+        if not y_units:
+            y_header = "Y"
+        elif len(y_units) == 1:
+            unit = next(iter(y_units))
+            y_header = f"Y ({unit})"
+        else:
+            y_header = "Y (mixed)"
+        self.data_table.setHorizontalHeaderLabels(["Spectrum", "Point", x_header, y_header])
+
         rows = sum(min(100, len(view['x'])) for view in views)
         self.data_table.setRowCount(rows)
         row_index = 0
@@ -713,6 +777,32 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
     def _normalise_y(self, label: str) -> str:
         mapping = {"%T": "percent_transmittance"}
         return mapping.get(label, label)
+
+    def _source_units(self, spectrum: Spectrum) -> tuple[str, str]:
+        metadata = spectrum.metadata if isinstance(spectrum.metadata, Mapping) else {}
+        source_units = metadata.get("source_units") if isinstance(metadata, Mapping) else None
+        if not isinstance(source_units, Mapping):
+            return spectrum.x_unit, spectrum.y_unit
+        x_unit = str(source_units.get("x", spectrum.x_unit))
+        y_unit = str(source_units.get("y", spectrum.y_unit))
+        return x_unit, y_unit
+
+    def _format_display_unit(self, unit: str) -> str:
+        normalised = unit.strip().lower()
+        pretty = {
+            "absorbance": "A₁₀",
+            "absorbance_e": "Aᴇ",
+            "transmittance": "T",
+            "percent_transmittance": "%T",
+        }.get(normalised, unit)
+        return pretty
+
+    def _format_y_axis_label(self, unit: str) -> str:
+        unit_label = self._format_display_unit(unit)
+        normalised = self._normalization_mode.strip()
+        if normalised.lower() not in {"", "none", "identity"}:
+            return f"Intensity ({unit_label}, normalized: {normalised})"
+        return f"Intensity ({unit_label})"
 
     def _assign_color(self, spectrum: Spectrum) -> QtGui.QColor:
         if spectrum.id in self._spectrum_colors:
