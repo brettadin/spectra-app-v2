@@ -75,3 +75,16 @@
 - 2025-10-15: ✅ `mypy app --ignore-missing-imports`
 - 2025-10-15: ⚠️ `pytest -q --maxfail=1 --disable-warnings --cov=app --cov-report=term-missing` (fails: pytest-cov plugin unavailable)
 - 2025-10-15: ✅ `pytest -q --maxfail=1 --disable-warnings`
+
+# Workplan — Batch 7 (2025-10-15)
+
+- [x] Honour wavelength/wavenumber units embedded in headers to prevent swapped axes.
+- [x] Record column-selection rationale in importer metadata and add regression coverage for header-driven swaps.
+- [x] Update user documentation and patch notes to describe the new safeguards.
+
+## Batch 7 QA Log
+
+- 2025-10-15: ✅ `ruff check app tests`
+- 2025-10-15: ✅ `mypy app --ignore-missing-imports`
+- 2025-10-15: ⚠️ `pytest -q --maxfail=1 --disable-warnings --cov=app --cov-report=term-missing` (fails: pytest-cov plugin unavailable)
+- 2025-10-15: ✅ `pytest -q --maxfail=1 --disable-warnings`

@@ -51,17 +51,28 @@ trace:
   the dependent axis is chosen from the remaining columns with the richest
   variation. Extra metadata such as temperature or annotations are retained in
   the provenance notes but excluded from the plotted trace.
+- **Header-unit enforcement** – If column headers only advertise units (for
+  example `Value [cm⁻¹]`), the importer trusts those annotations even when the
+  labels are generic. Recognised wavelength/wavenumber units always win the X
+  axis, while intensity units such as `%`, `a.u.`, or `counts` are kept on the
+  Y axis.
 - **Value-range awareness** – When the first numeric column is an intensity
   channel (common in vendor exports), the importer checks medians/spans against
   typical wavelength and wavenumber ranges so the axes are not flipped by
   absorbance-first layouts.
+- **Header conflict resolution** – After selecting candidate axes, the parser
+  double-checks the headers. If the tentative X column looks intensity-like and
+  the Y column looks wavelength-like, the importer swaps them and records the
+  correction in the provenance metadata so you can audit the decision.
 - **Automatic ordering** – Descending wavenumber tables are reversed so the X
   axis is monotonically increasing, matching the expectations of the plotting
   stack and unit conversions.
 
 These behaviours are covered by regression tests in
 `tests/test_csv_importer.py` to ensure future tweaks keep messy real-world data
-ingestable.
+ingestable. The importer also records the selected column indices and the
+heuristics it used under `metadata.column_selection` for every ingest so you
+can confirm how a particular file was interpreted.
 
 ## Appendix — Provenance export bundle
 

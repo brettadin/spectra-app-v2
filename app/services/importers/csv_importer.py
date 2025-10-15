@@ -24,6 +24,72 @@ class _HeaderToken:
         return self.label.strip().lower()
 
 
+_WAVELENGTH_LABEL_HINTS = {"wavelength", "wavenumber", "lambda", "λ", "ν̅", "nu", "wn", "kmax"}
+_INTENSITY_LABEL_HINTS = {
+    "intensity",
+    "absorbance",
+    "transmittance",
+    "reflectance",
+    "signal",
+    "counts",
+    "flux",
+    "radiance",
+    "emission",
+    "brightness",
+    "optical density",
+    "density",
+    "power",
+    "y",
+}
+_WAVELENGTH_UNIT_HINTS = {
+    "nm",
+    "nanometer",
+    "nanometre",
+    "nanometers",
+    "nanometres",
+    "µm",
+    "um",
+    "micrometer",
+    "micrometre",
+    "angstrom",
+    "ångström",
+    "å",
+    "cm^-1",
+    "cm⁻¹",
+    "cm-1",
+    "1/cm",
+    "1cm^-1",
+}
+_INTENSITY_UNIT_HINTS = {
+    "%",
+    "percent",
+    "percentt",
+    "percenttransmittance",
+    "a.u.",
+    "a.u",
+    "au",
+    "arb",
+    "arb.units",
+    "arbunits",
+    "counts",
+    "cts",
+    "flux",
+    "w/m2",
+    "w/m^2",
+    "absorbance",
+    "transmittance",
+    "reflectance",
+    "radiance",
+    "od",
+    "opticaldensity",
+    "emission",
+    "power",
+}
+
+_WAVELENGTH_UNIT_HINTS_NORMALISED = {unit.strip().lower().replace(" ", "") for unit in _WAVELENGTH_UNIT_HINTS}
+_INTENSITY_UNIT_HINTS_NORMALISED = {unit.strip().lower().replace(" ", "") for unit in _INTENSITY_UNIT_HINTS}
+
+
 class CsvImporter:
     """Read spectral data from loosely formatted delimited text files."""
 
@@ -84,8 +150,16 @@ class CsvImporter:
         header_tokens = self._extract_header_tokens(lines, best_start, delimiter)
 
         data = self._rows_to_array(best_block)
-        x_index = self._select_x_column(data, header_tokens)
-        y_index = self._select_y_column(data, x_index, header_tokens)
+        x_index_raw, x_reason_raw = self._select_x_column(data, header_tokens)
+        y_index_raw, y_reason_raw = self._select_y_column(data, x_index_raw, header_tokens)
+        swap_reason = self._axis_conflict_resolution(x_index_raw, y_index_raw, header_tokens)
+        if swap_reason:
+            x_index, y_index = y_index_raw, x_index_raw
+            x_select_reason = f"{y_reason_raw}|{swap_reason}"
+            y_select_reason = f"{x_reason_raw}|{swap_reason}"
+        else:
+            x_index, y_index = x_index_raw, y_index_raw
+            x_select_reason, y_select_reason = x_reason_raw, y_reason_raw
 
         x_raw = data[:, x_index]
         y_raw = data[:, y_index]
@@ -98,8 +172,8 @@ class CsvImporter:
         x_label = header_tokens[x_index].label if x_index < len(header_tokens) else f"Column {x_index + 1}"
         y_label = header_tokens[y_index].label if y_index < len(header_tokens) else f"Column {y_index + 1}"
 
-        x_unit, x_reason = self._infer_x_unit(x, header_tokens, metadata_context, x_index)
-        y_unit, y_reason = self._infer_y_unit(y, header_tokens, metadata_context, y_index)
+        x_unit, x_unit_reason = self._infer_x_unit(x, header_tokens, metadata_context, x_index)
+        y_unit, y_unit_reason = self._infer_y_unit(y, header_tokens, metadata_context, y_index)
 
         if x.size == 0 or y.size == 0:
             raise ValueError(f"Unable to extract numeric data from {path}")
@@ -111,10 +185,24 @@ class CsvImporter:
             "y_label": y_label,
             "header_tokens": [token.label for token in header_tokens],
             "detected_units": {
-                "x": {"unit": x_unit, "reason": x_reason},
-                "y": {"unit": y_unit, "reason": y_reason},
+                "x": {"unit": x_unit, "reason": x_unit_reason},
+                "y": {"unit": y_unit, "reason": y_unit_reason},
+            },
+            "column_selection": {
+                "x_index": int(x_index),
+                "y_index": int(y_index),
+                "x_reason": x_select_reason,
+                "y_reason": y_select_reason,
             },
         }
+
+        if swap_reason:
+            column_meta = cast(dict[str, object], metadata["column_selection"])
+            column_meta["swap"] = swap_reason
+            column_meta["original"] = {
+                "x_index": int(x_index_raw),
+                "y_index": int(y_index_raw),
+            }
 
         if x[0] > x[-1]:
             # Preserve monotonic increase expected by downstream consumers.
@@ -163,21 +251,31 @@ class CsvImporter:
             data[idx, :length] = numbers[:length]
         return data
 
-    def _select_x_column(self, data: np.ndarray, headers: Sequence[_HeaderToken]) -> int:
-        header_index = self._header_index(headers, {"wavelength", "wavenumber", "lambda", "ν̅", "wn"})
+    def _select_x_column(self, data: np.ndarray, headers: Sequence[_HeaderToken]) -> Tuple[int, str]:
+        header_unit = self._header_index_by_unit(headers, _WAVELENGTH_UNIT_HINTS)
+        if header_unit is not None:
+            return header_unit, "header-unit"
+        header_index = self._header_index(headers, _WAVELENGTH_LABEL_HINTS)
         if header_index is not None:
-            return header_index
-        return self._score_columns_for_axis(data, prefer_monotonic=True)
+            return header_index, "header-label"
+        scored = self._score_columns_for_axis(data, prefer_monotonic=True)
+        return scored, "score"
 
-    def _select_y_column(self, data: np.ndarray, x_index: int, headers: Sequence[_HeaderToken]) -> int:
+    def _select_y_column(
+        self, data: np.ndarray, x_index: int, headers: Sequence[_HeaderToken]
+    ) -> Tuple[int, str]:
+        header_unit = self._header_index_by_unit(headers, _INTENSITY_UNIT_HINTS, exclude={x_index})
+        if header_unit is not None:
+            return header_unit, "header-unit"
         header_index = self._header_index(
             headers,
-            {"intensity", "absorbance", "transmittance", "reflectance", "signal", "counts", "y"},
+            _INTENSITY_LABEL_HINTS,
             exclude={x_index},
         )
         if header_index is not None:
-            return header_index
-        return self._score_columns_for_axis(data, prefer_monotonic=False, exclude={x_index})
+            return header_index, "header-label"
+        scored = self._score_columns_for_axis(data, prefer_monotonic=False, exclude={x_index})
+        return scored, "score"
 
     def _header_index(
         self,
@@ -196,6 +294,59 @@ class CsvImporter:
             if any(keyword in token.normalised_label for keyword in keywords_lower):
                 return idx
         return None
+
+    def _header_index_by_unit(
+        self,
+        headers: Sequence[_HeaderToken],
+        units: Iterable[str],
+        *,
+        exclude: set[int] | None = None,
+    ) -> int | None:
+        if not headers:
+            return None
+        exclude = exclude or set()
+        unit_set = {self._normalise_unit_string(unit) for unit in units}
+        for idx, token in enumerate(headers):
+            if idx in exclude:
+                continue
+            unit = self._normalise_unit_string(token.unit)
+            if unit and unit in unit_set:
+                return idx
+        return None
+
+    def _axis_conflict_resolution(
+        self,
+        x_index: int,
+        y_index: int,
+        headers: Sequence[_HeaderToken],
+    ) -> str | None:
+        if not headers:
+            return None
+        if x_index >= len(headers) or y_index >= len(headers):
+            return None
+        x_token = headers[x_index]
+        y_token = headers[y_index]
+        if self._token_is_intensity(x_token) and self._token_is_wavelength(y_token):
+            if not self._token_is_intensity(y_token):
+                return "header-swap"
+        return None
+
+    def _token_is_wavelength(self, token: _HeaderToken) -> bool:
+        label = token.normalised_label
+        if any(keyword in label for keyword in _WAVELENGTH_LABEL_HINTS):
+            return True
+        unit = self._normalise_unit_string(token.unit)
+        return bool(unit) and unit in _WAVELENGTH_UNIT_HINTS_NORMALISED
+
+    def _token_is_intensity(self, token: _HeaderToken) -> bool:
+        label = token.normalised_label
+        if any(keyword in label for keyword in _INTENSITY_LABEL_HINTS):
+            return True
+        unit = self._normalise_unit_string(token.unit)
+        return bool(unit) and unit in _INTENSITY_UNIT_HINTS_NORMALISED
+
+    def _normalise_unit_string(self, unit: str) -> str:
+        return unit.strip().lower().replace(" ", "")
 
     def _score_columns_for_axis(
         self,
@@ -337,6 +488,20 @@ class CsvImporter:
             "%": "percent_transmittance",
             "transmittance": "transmittance",
             "absorbance": "absorbance",
+            "optical density": "absorbance",
+            "density": "absorbance",
+            "a.u.": "absorbance",
+            "a.u": "absorbance",
+            "au": "absorbance",
+            "arb": "absorbance",
+            "arb.units": "absorbance",
+            "arbunits": "absorbance",
+            "counts": "absorbance",
+            "cts": "absorbance",
+            "flux": "absorbance",
+            "reflectance": "transmittance",
+            "radiance": "absorbance",
+            "od": "absorbance",
         }.items():
             if keyword in token.normalised_label:
                 return unit
@@ -351,9 +516,22 @@ class CsvImporter:
             "percent_transmittance": "percent_transmittance",
             "transmittance": "transmittance",
             "t": "transmittance",
+            "reflectance": "transmittance",
             "absorbance": "absorbance",
             "a10": "absorbance",
-            "absorbance_e": "absorbance_e",
+            "absorbance_e": "absorbance",
+            "opticaldensity": "absorbance",
+            "od": "absorbance",
+            "a.u.": "absorbance",
+            "a.u": "absorbance",
+            "au": "absorbance",
+            "arb": "absorbance",
+            "arb.units": "absorbance",
+            "arbunits": "absorbance",
+            "counts": "absorbance",
+            "cts": "absorbance",
+            "flux": "absorbance",
+            "radiance": "absorbance",
         }
         return mapping.get(u)
 

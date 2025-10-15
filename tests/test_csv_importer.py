@@ -84,3 +84,59 @@ def test_csv_importer_prefers_wavelength_column_when_intensity_first(tmp_path: P
     assert result.x[0] == 1800  # descending table flipped to ascending
     assert np.isclose(result.y[0], 0.060)
     assert result.metadata["detected_units"]["x"]["reason"] in {"value-range", "default"}
+    column_meta = result.metadata["column_selection"]
+    assert column_meta["x_reason"].startswith("score")
+    assert column_meta["y_reason"].startswith("score")
+
+
+def test_csv_importer_honours_unit_only_headers(tmp_path: Path) -> None:
+    raw = """
+    Value [cm^-1],Absorbance (a.u.)
+    1800,0.10
+    1700,0.15
+    1600,0.21
+    1500,0.26
+    1400,0.33
+    """.strip()
+
+    path = tmp_path / "unit_only_headers.csv"
+    path.write_text(raw, encoding="utf-8")
+
+    importer = CsvImporter()
+    result = importer.read(path)
+
+    assert result.x_unit == "cm^-1"
+    assert result.y_unit == "absorbance"
+    column_meta = result.metadata["column_selection"]
+    assert column_meta["x_reason"].startswith("header-unit")
+    assert column_meta["y_reason"].startswith("header-unit")
+
+
+def test_csv_importer_swaps_axes_when_headers_conflict(tmp_path: Path) -> None:
+    class ForcedSwapImporter(CsvImporter):
+        def _select_x_column(self, data, headers):  # type: ignore[override]
+            # Simulate a misclassification so the conflict resolver can swap.
+            return 0, "forced"
+
+    raw = """
+    Intensity (a.u.),Axis [nm]
+    0.52,400
+    0.48,410
+    0.44,420
+    0.40,430
+    0.36,440
+    """.strip()
+
+    path = tmp_path / "header_swap.csv"
+    path.write_text(raw, encoding="utf-8")
+
+    importer = ForcedSwapImporter()
+    result = importer.read(path)
+
+    assert np.allclose(result.x, np.array([400, 410, 420, 430, 440]))
+    assert np.allclose(result.y, np.array([0.52, 0.48, 0.44, 0.40, 0.36]))
+    column_meta = result.metadata["column_selection"]
+    assert column_meta["swap"] == "header-swap"
+    assert column_meta["original"] == {"x_index": 0, "y_index": 1}
+    assert column_meta["x_reason"].endswith("header-swap")
+    assert column_meta["y_reason"].endswith("header-swap")

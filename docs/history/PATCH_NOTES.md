@@ -1,5 +1,13 @@
 # Patch Notes
 
+## 2025-10-15 (Importer header conflict safeguards) (1:27 am UTC)
+
+- Extended the CSV/TXT importer to honour unit hints inside headers, swap
+  misidentified axes when intensity and wavelength labels conflict, and record
+  the column-selection rationale in ingest metadata.
+- Added regression coverage for unit-only headers and header-driven swaps while
+  documenting the new safeguards in the importing guide.
+
 ## 2025-10-15 (Normalization pipeline & axis heuristics) (1:04 am UTC)
 
 - Tightened CSV/TXT column scoring so wavelength/wavenumber spans outrank intensity-first exports, preventing swapped axes.
