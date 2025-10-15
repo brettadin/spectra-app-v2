@@ -142,6 +142,7 @@ class UnitsService:
             "angstrom": "angstrom",
             "ångström": "angstrom",
             "å": "angstrom",
+            "cm⁻¹": "cm^-1",
         }
         return mappings.get(u, u)
 

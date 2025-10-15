@@ -61,6 +61,9 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         ]
         self._palette_index = 0
 
+        self.log_view: QtWidgets.QPlainTextEdit | None = None
+        self._log_buffer: list[tuple[str, str]] = []
+
         self._setup_ui()
         self._setup_menu()
         self._wire_shortcuts()
@@ -165,7 +168,10 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.log_dock.setWidget(self.log_view)
         self.addDockWidget(QtCore.Qt.DockWidgetArea.BottomDockWidgetArea, self.log_dock)
 
-        self._load_documentation_index()
+        if self._log_buffer:
+            for channel, message in self._log_buffer:
+                self.log_view.appendPlainText(f"[{channel}] {message}")
+            self._log_buffer.clear()
 
         self._build_plot_toolbar()
 
@@ -176,6 +182,8 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                 f"x={x:.4g} {self.plot_unit()} | y={y:.4g}"
             )
         )
+
+        self._load_documentation_index()
 
     def _build_inspector_tabs(self) -> None:
         # Info tab -----------------------------------------------------
@@ -1194,6 +1202,9 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self._log("Smoothing", f"Mode set to {value}")
 
     def _log(self, channel: str, message: str) -> None:
+        if self.log_view is None:
+            self._log_buffer.append((channel, message))
+            return
         self.log_view.appendPlainText(f"[{channel}] {message}")
 
 
