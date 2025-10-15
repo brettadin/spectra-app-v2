@@ -138,6 +138,10 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.central_split.addWidget(self.plot)
         self.plot.autoscale()
 
+        # Build the plot toolbar immediately so dependent UI (e.g. menus)
+        # can reference it during their own setup routines.
+        self._build_plot_toolbar()
+
         self.data_table = QtWidgets.QTableWidget()
         self.data_table.setColumnCount(4)
         self.data_table.setHorizontalHeaderLabels(["Spectrum", "Point", "X", "Y"])
