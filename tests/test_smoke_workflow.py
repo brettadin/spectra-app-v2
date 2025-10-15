@@ -41,9 +41,10 @@ def test_smoke_ingest_toggle_and_export(tmp_path: Path, mini_fits: Path) -> None
         assert window.windowTitle().startswith("Spectra")
         docs_tab_index = window.inspector_tabs.indexOf(window.tab_docs)
         assert docs_tab_index != -1
+        window.inspector_tabs.setCurrentIndex(docs_tab_index)
+        app.processEvents()
         if window.docs_list.count():
-            window.docs_list.setCurrentRow(0)
-            app.processEvents()
+            assert window.docs_list.currentRow() == 0
             assert window.doc_viewer.toPlainText().strip()
 
         reference_index = window.inspector_tabs.indexOf(window.tab_reference)
