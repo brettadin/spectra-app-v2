@@ -33,6 +33,8 @@ def test_smoke_ingest_toggle_and_export(tmp_path: Path, mini_fits: Path) -> None
     if SpectraMainWindow is None or QtWidgets is None:
         pytest.skip(f"Qt stack unavailable: {_qt_import_error}")
 
+    pg = pytest.importorskip("pyqtgraph")
+
     app = _ensure_app()
     window = SpectraMainWindow()
     try:
@@ -49,9 +51,53 @@ def test_smoke_ingest_toggle_and_export(tmp_path: Path, mini_fits: Path) -> None
         window.inspector_tabs.setCurrentIndex(reference_index)
         app.processEvents()
         assert window.reference_dataset_combo.count() >= 3
+        assert isinstance(window.reference_plot, pg.PlotWidget)
         window.reference_dataset_combo.setCurrentIndex(0)
         app.processEvents()
         assert window.reference_table.rowCount() > 0
+        hydrogen_markers = [
+            item
+            for item in window.reference_plot.getPlotItem().items
+            if isinstance(item, pg.InfiniteLine)
+        ]
+        assert hydrogen_markers, "Expected vertical markers for hydrogen lines"
+
+        window.reference_overlay_toggle.setChecked(True)
+        app.processEvents()
+        assert window._reference_overlay_key is not None
+        assert window._reference_overlay_key.startswith("reference::")
+        assert window._reference_overlay_key in window.plot._traces
+
+        window.reference_dataset_combo.setCurrentIndex(1)
+        app.processEvents()
+        ir_regions = [
+            item
+            for item in window.reference_plot.getPlotItem().items
+            if isinstance(item, pg.LinearRegionItem)
+        ]
+        assert ir_regions, "Expected shaded regions for IR functional groups"
+        assert window._reference_overlay_key in window.plot._traces
+
+        jwst_index = next(
+            idx
+            for idx in range(window.reference_dataset_combo.count())
+            if window.reference_dataset_combo.itemData(idx)[0] == "jwst"
+        )
+        window.reference_dataset_combo.setCurrentIndex(jwst_index)
+        app.processEvents()
+        data_items = window.reference_plot.listDataItems()
+        assert any(isinstance(item, pg.PlotDataItem) for item in data_items)
+        error_items = [
+            item
+            for item in window.reference_plot.getPlotItem().items
+            if isinstance(item, pg.ErrorBarItem)
+        ]
+        assert error_items, "Expected error bars for JWST spectra"
+        assert window._reference_overlay_key in window.plot._traces
+
+        window.reference_overlay_toggle.setChecked(False)
+        app.processEvents()
+        assert window._reference_overlay_key is None
     finally:
         window.close()
         window.deleteLater()
