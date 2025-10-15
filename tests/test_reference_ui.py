@@ -141,3 +141,65 @@ def test_ir_overlay_labels_stack_inside_band() -> None:
         window.close()
         window.deleteLater()
         app.processEvents()
+
+
+def test_ir_overlay_realigns_with_view_range() -> None:
+    if SpectraMainWindow is None or QtWidgets is None:
+        pytest.skip(f"Qt stack unavailable: {_qt_import_error}")
+
+    pytest.importorskip("pyqtgraph")
+
+    app = _ensure_app()
+    window = SpectraMainWindow()
+    try:
+        plot_item = window.plot._plot.getPlotItem()
+        plot_item.setXRange(800, 1800)
+        plot_item.setYRange(-1, 1)
+
+        band_bottom, band_top = window._overlay_band_bounds()
+        payload = {
+            "key": "reference::ir_groups",
+            "alias": "Reference – IR Functional Groups",
+            "x_nm": np.array([900, 900, 950, 950, np.nan], dtype=float),
+            "y": np.array([band_bottom, band_top, band_top, band_bottom, np.nan], dtype=float),
+            "color": "#6D597A",
+            "width": 1.2,
+            "fill_color": (109, 89, 122, 70),
+            "fill_level": float(band_bottom),
+            "band_bounds": (float(band_bottom), float(band_top)),
+            "labels": [
+                {"text": "A", "centre_nm": 905.0},
+                {"text": "B", "centre_nm": 912.0},
+                {"text": "C", "centre_nm": 950.0},
+            ],
+        }
+
+        window._reference_overlay_payload = payload
+        window.reference_overlay_checkbox.setChecked(True)
+        window._apply_reference_overlay()
+        app.processEvents()
+
+        plot_item.setYRange(0, 5)
+        app.processEvents()
+
+        refreshed = window._reference_overlay_payload
+        assert refreshed is not None
+
+        new_bottom, new_top = window._overlay_band_bounds()
+        assert refreshed["band_bounds"] == pytest.approx((new_bottom, new_top))
+
+        y_values = refreshed.get("y")
+        assert isinstance(y_values, np.ndarray)
+        finite = y_values[np.isfinite(y_values)]
+        assert finite.size
+        assert np.isclose(np.nanmin(finite), new_bottom)
+        assert np.isclose(np.nanmax(finite), new_top)
+
+        for item in window._reference_overlay_annotations:
+            y_pos = item.pos().y()
+            assert new_bottom <= y_pos <= new_top
+    finally:
+        window._clear_reference_overlay()
+        window.close()
+        window.deleteLater()
+        app.processEvents()
