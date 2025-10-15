@@ -5,7 +5,7 @@ from pathlib import Path
 import numpy as np
 
 from app.services.importers import CsvImporter
-from app.services.importers.csv_importer import _reset_layout_cache
+from app.services.importers.csv_importer import _LAYOUT_CACHE, _reset_layout_cache
 
 
 def test_csv_importer_detects_wavenumber_from_preface(tmp_path: Path) -> None:
@@ -61,6 +61,32 @@ def test_csv_importer_handles_extra_columns_and_selects_intensity(tmp_path: Path
     units_meta = result.metadata["detected_units"]
     assert units_meta["x"]["unit"] == "nm"
     assert units_meta["y"]["reason"] in {"header", "value-range", "default"}
+
+
+def test_csv_importer_scores_monotonic_wavelength_over_noisy_intensity(
+    tmp_path: Path,
+) -> None:
+    _reset_layout_cache()
+    raw = """
+    250.0, 400
+    -300.0, 405
+    275.0, 410
+    -320.0, 415
+    290.0, 420
+    -280.0, 425
+    """.strip()
+
+    path = tmp_path / "noisy_trace.csv"
+    path.write_text(raw, encoding="utf-8")
+
+    importer = CsvImporter()
+    result = importer.read(path)
+
+    column_meta = result.metadata["column_selection"]
+    assert column_meta["x_index"] == 1
+    assert column_meta["x_reason"].startswith("score")
+    assert np.all(np.diff(result.x) > 0)
+    assert not _LAYOUT_CACHE
 
 
 def test_csv_importer_prefers_wavelength_column_when_intensity_first(tmp_path: Path) -> None:
