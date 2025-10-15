@@ -134,6 +134,30 @@ class UnitsService:
 
     def _normalise_x_unit(self, unit: str) -> str:
         u = unit.strip().lower()
+
+        # Normalise Unicode minus/superscript characters that commonly appear in
+        # wavenumber annotations (e.g. ``cm⁻¹``) so they map onto the ASCII token
+        # handled by the conversion logic.
+        for minus_variant in ("⁻", "−", "﹣", "－", "–", "—"):
+            u = u.replace(minus_variant, "-")
+        superscript_digits = {
+            "⁰": "0",
+            "¹": "1",
+            "²": "2",
+            "³": "3",
+            "⁴": "4",
+            "⁵": "5",
+            "⁶": "6",
+            "⁷": "7",
+            "⁸": "8",
+            "⁹": "9",
+        }
+        for superscript, digit in superscript_digits.items():
+            u = u.replace(superscript, digit)
+        u = u.replace(" ", "")
+        if u == "cm-1":
+            u = "cm^-1"
+
         mappings = {
             "nanometre": "nm",
             "nanometer": "nm",
