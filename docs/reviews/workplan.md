@@ -63,3 +63,15 @@
 - 2025-10-15: ✅ `mypy app --ignore-missing-imports`
 - 2025-10-15: ⚠️ `pytest -q --maxfail=1 --disable-warnings --cov=app --cov-report=term-missing` (fails: pytest-cov plugin unavailable)
 - 2025-10-15: ✅ `pytest -q --maxfail=1 --disable-warnings`
+
+# Workplan — Batch 6 (2025-10-15)
+
+- [x] Correct importer axis selection when intensity columns precede wavelength data, with regression coverage.
+- [x] Wire the Normalize toolbar to overlay scaling (None/Max/Area) and document the behaviour.
+
+## Batch 6 QA Log
+
+- 2025-10-15: ✅ `ruff check app tests`
+- 2025-10-15: ✅ `mypy app --ignore-missing-imports`
+- 2025-10-15: ⚠️ `pytest -q --maxfail=1 --disable-warnings --cov=app --cov-report=term-missing` (fails: pytest-cov plugin unavailable)
+- 2025-10-15: ✅ `pytest -q --maxfail=1 --disable-warnings`

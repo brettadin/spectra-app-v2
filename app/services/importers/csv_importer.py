@@ -150,7 +150,7 @@ class CsvImporter:
         if start_index <= 0:
             return []
         header_line = lines[start_index - 1].strip()
-        if not header_line:
+        if not header_line or header_line.lstrip().startswith("#"):
             return []
         tokens = self._tokenise(header_line, delimiter)
         return [self._parse_header_token(token) for token in tokens]
@@ -227,10 +227,37 @@ class CsvImporter:
                 score += 2
             score += np.log1p(abs(span))
             score += np.log1p(abs(variance))
+            if prefer_monotonic and self._looks_like_wavelength(valid):
+                score += 12
+            if not prefer_monotonic and self._looks_like_intensity(valid):
+                score += 6
+            if prefer_monotonic and span < 1.0 and np.nanmedian(np.abs(valid)) < 2.0:
+                score -= 5
             if score > best_score:
                 best_score = score
                 best_index = col
         return best_index
+
+    def _looks_like_wavelength(self, data: np.ndarray) -> bool:
+        median = float(np.nanmedian(np.abs(data)))
+        if not np.isfinite(median):
+            return False
+        if 1e3 <= median <= 2.5e4:  # typical wavenumber export
+            return True
+        if 80.0 <= median <= 2500.0:  # typical nanometre range
+            return True
+        if 0.2 <= median <= 25.0:  # micrometre export
+            return True
+        return False
+
+    def _looks_like_intensity(self, data: np.ndarray) -> bool:
+        median = float(np.nanmedian(np.abs(data)))
+        if not np.isfinite(median):
+            return False
+        span = float(np.nanmax(data) - np.nanmin(data))
+        if median <= 10.0 and span <= 200.0:
+            return True
+        return False
 
     def _infer_x_unit(
         self,

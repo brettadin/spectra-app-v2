@@ -1,5 +1,11 @@
 # Patch Notes
 
+## 2025-10-15 (Normalization pipeline & axis heuristics) (1:04 am UTC)
+
+- Tightened CSV/TXT column scoring so wavelength/wavenumber spans outrank intensity-first exports, preventing swapped axes.
+- Routed the plot toolbar's Normalize control through overlay service scaling with Max/Area modes, updating the data table and provenance metadata.
+- Added unit tests for normalization math and importer regression, refreshed the importing and plot documentation to match, and logged the fixes in the workplan.
+
 ## 2025-10-15 (Importer heuristics & embedded docs) (12:37 am UTC)
 
 - Reworked the CSV/TXT importer to scan messy files for contiguous numeric blocks,

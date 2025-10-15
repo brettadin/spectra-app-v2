@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import sys
 from pathlib import Path
-from typing import Dict, Iterable, List, Any
+from typing import Dict, Iterable, List, Any, cast
 
 import numpy as np
 
@@ -45,6 +45,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self._dataset_items: Dict[str, QtGui.QStandardItem] = {}
         self._spectrum_colors: Dict[str, QtGui.QColor] = {}
         self._visibility: Dict[str, bool] = {}
+        self._normalization_mode: str = "None"
         self._doc_entries: List[tuple[str, Path]] = []
         self._palette: List[QtGui.QColor] = [
             QtGui.QColor("#4F6D7A"),
@@ -295,6 +296,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.norm_combo = QtWidgets.QComboBox()
         self.norm_combo.addItems(["None", "Max", "Area"])
         self.norm_combo.currentTextChanged.connect(self._on_normalize_changed)
+        self._normalization_mode = self.norm_combo.currentText()
         toolbar.addWidget(self.norm_combo)
 
         toolbar.addWidget(QtWidgets.QLabel("Smoothing:"))
@@ -408,11 +410,43 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             selected_ids,
             self.unit_combo.currentText(),
             self._normalise_y("absorbance"),
+            normalization=self._normalization_mode,
         )
         self._populate_data_table(views)
         if not self.data_table.isVisible():
             self.data_table.show()
             self.data_table_action.setChecked(True)
+
+        all_ids = [spec.id for spec in self.overlay_service.list()]
+        if not all_ids:
+            return
+        canonical_views = self.overlay_service.overlay(
+            all_ids,
+            "nm",
+            "absorbance",
+            normalization=self._normalization_mode,
+        )
+        for view in canonical_views:
+            spec_id = cast(str, view["id"])
+            alias_item = self._dataset_items.get(spec_id)
+            alias = alias_item.text() if alias_item else cast(str, view["name"])
+            color = self._spectrum_colors.get(spec_id)
+            if color is None:
+                color = QtGui.QColor("#4F6D7A")
+            style = TraceStyle(
+                color=QtGui.QColor(color),
+                width=1.6,
+                antialias=False,
+                show_in_legend=True,
+            )
+            self.plot.add_trace(
+                key=spec_id,
+                alias=alias,
+                x_nm=cast(np.ndarray, view["x_canonical"]),
+                y=cast(np.ndarray, view["y_canonical"]),
+                style=style,
+            )
+            self.plot.set_visible(spec_id, self._visibility.get(spec_id, True))
 
     def compute_subtract(self) -> None:
         ids = self._selected_math_ids()
@@ -837,7 +871,9 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self._log("Alias", f"{spectrum.name} → {alias}")
 
     def _on_normalize_changed(self, value: str) -> None:
-        self._log("Normalize", f"Mode set to {value}")
+        self._normalization_mode = value or "None"
+        self.refresh_overlay()
+        self._log("Normalize", f"Mode set to {self._normalization_mode}")
 
     def _on_smoothing_changed(self, value: str) -> None:
         self._log("Smoothing", f"Mode set to {value}")

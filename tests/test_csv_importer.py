@@ -60,3 +60,27 @@ def test_csv_importer_handles_extra_columns_and_selects_intensity(tmp_path: Path
     units_meta = result.metadata["detected_units"]
     assert units_meta["x"]["unit"] == "nm"
     assert units_meta["y"]["reason"] in {"header", "value-range", "default"}
+
+
+def test_csv_importer_prefers_wavelength_column_when_intensity_first(tmp_path: Path) -> None:
+    raw = """
+    # Free-form report with intensity before wavelength
+    0.010, 2100
+    0.020, 2085
+    0.030, 2050
+    0.040, 2000
+    0.050, 1900
+    0.060, 1800
+    """.strip()
+
+    path = tmp_path / "reverse_columns.txt"
+    path.write_text(raw, encoding="utf-8")
+
+    importer = CsvImporter()
+    result = importer.read(path)
+
+    assert result.x_unit == "cm^-1"
+    assert result.y_unit == "absorbance"
+    assert result.x[0] == 1800  # descending table flipped to ascending
+    assert np.isclose(result.y[0], 0.060)
+    assert result.metadata["detected_units"]["x"]["reason"] in {"value-range", "default"}

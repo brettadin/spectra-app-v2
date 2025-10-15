@@ -51,6 +51,10 @@ trace:
   the dependent axis is chosen from the remaining columns with the richest
   variation. Extra metadata such as temperature or annotations are retained in
   the provenance notes but excluded from the plotted trace.
+- **Value-range awareness** – When the first numeric column is an intensity
+  channel (common in vendor exports), the importer checks medians/spans against
+  typical wavelength and wavenumber ranges so the axes are not flipped by
+  absorbance-first layouts.
 - **Automatic ordering** – Descending wavenumber tables are reversed so the X
   axis is monotonically increasing, matching the expectations of the plotting
   stack and unit conversions.
