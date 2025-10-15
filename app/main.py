@@ -160,6 +160,8 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.dataset_dock.setWidget(self.dataset_tree)
         self.addDockWidget(QtCore.Qt.DockWidgetArea.LeftDockWidgetArea, self.dataset_dock)
 
+        self._build_plot_toolbar()
+
         self.inspector_dock = QtWidgets.QDockWidget("Inspector", self)
         self.inspector_dock.setObjectName("dock-inspector")
         self.inspector_tabs = QtWidgets.QTabWidget()
@@ -179,8 +181,6 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             for channel, message in self._log_buffer:
                 self.log_view.appendPlainText(f"[{channel}] {message}")
             self._log_buffer.clear()
-
-        self._build_plot_toolbar()
 
         self.status_bar = self.statusBar()
         self.status_bar.showMessage("Ready")
