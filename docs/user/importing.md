@@ -20,7 +20,7 @@ nanometres while preserving the raw arrays on disk for provenance.
 
 ## How to import
 
-1. Choose **File → Open** and select one or more spectra.
+1. Choose **File → Open** and select one or more spectra (hold `Ctrl` or `Shift` to pick multiple files in a single pass).
 2. Review the detected units shown in the preview banner.
 3. Confirm the ingest. The data is copied into the local cache (see
    `docs/dev/ingest_pipeline.md`) so that reloading the same file is

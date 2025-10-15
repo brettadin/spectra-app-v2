@@ -58,6 +58,12 @@
 - Normalised Unicode wavenumber aliases, guarded documentation logging during startup, and restored the normalization toolbar at launch.
 - Switched **File → Open** to accept multi-select batches and updated smoke tests/docs to cover the new reference plotting workflow.
 
+## 2025-10-15 (Reference overlay fixes) (7:18 pm UTC)
+
+- Patched the Reference inspector so combo-box selection sticks, JWST datasets draw their sampled spectra, and the overlay toggle mirrors the active dataset instead of the first entry.
+- Allowed **File → Open** and **File → Load Sample** to queue multiple files at once while batching plot refreshes.
+- Documented the toolbar location for normalization modes and refreshed the reference-data walkthrough with the new overlay behaviour.
+
 ## 2025-10-15 (Importing Guide Provenance Appendix) (9:10 am)
 
 - Expanded `docs/user/importing.md` with a provenance export appendix covering the structure of the manifest bundle.

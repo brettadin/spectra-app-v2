@@ -125,3 +125,16 @@
   - Add a `pyqtgraph.PlotWidget` beneath the reference table, rendering vertical markers for hydrogen transitions, shaded spans for IR bands, and line/error-bar plots for JWST targets.
   - Provide a toggle to overlay the selected reference dataset on the main plot pane using a deterministic `reference::` trace prefix and clean up overlays when deselected.
   - Extend `tests/test_smoke_workflow.py` (plus targeted unit tests) to assert plot rendering, and document the workflow in `docs/user/reference_data.md`.
+
+# Workplan — Batch 11 (2025-10-15)
+
+- [x] Ensure Reference combo-box selection and overlays track the active dataset (spectral lines, IR bands, JWST spectra).
+- [x] Restore JWST overlay payloads so quick-look curves plot both in-panel and on the main workspace.
+- [x] Let sample loading and File → Open queue multiple files while throttling redraws.
+- [x] Document the toolbar location for normalization controls and the updated reference workflow.
+
+## Batch 11 QA Log
+
+- 2025-10-15: ✅ `ruff check app tests`
+- 2025-10-15: ✅ `mypy app --ignore-missing-imports`
+- 2025-10-15: ✅ `pytest -q --maxfail=1 --disable-warnings`

@@ -27,7 +27,7 @@ Every trace that remains visible has a matching entry in the floating legend anc
 
 ## Normalisation toolbar modes
 
-The **Normalize** combo box in the toolbar adjusts every visible trace without mutating the underlying data:
+The top-of-window plot toolbar hosts the **Normalize** combo box alongside the unit selector. Use it to adjust every visible trace without mutating the underlying data:
 
 - **None** leaves the canonical absorbance scale untouched.
 - **Max** divides each series by its maximum absolute absorbance so peaks share a common height of 1.0.

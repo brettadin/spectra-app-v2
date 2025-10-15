@@ -57,7 +57,8 @@ pipeline is wired into CI. Each record cites its release page and records the ap
    first entry.
 2. Enable **Overlay on plot** to add the previewed dataset to the main graph. Hydrogen lines respect their relative
    intensities, IR bands occupy a shaded lane near the top of the axis, and JWST spectra draw as standard curves with
-   optional uncertainty envelopes.
+   optional uncertainty envelopes. Switching the combo box while the overlay toggle is enabled automatically swaps the
+   projected reference so the main plot always mirrors the active dataset.
 3. Use the Inspector filter bar to narrow down to wavelength windows (e.g. enter `1.4` to isolate WASP-96 b’s water
    absorption peak) and click citation links in the metadata pane to open the underlying source documentation.
 

@@ -187,6 +187,13 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.inspector_dock.setWidget(self.inspector_tabs)
         self.addDockWidget(QtCore.Qt.DockWidgetArea.RightDockWidgetArea, self.inspector_dock)
 
+        self.inspector_dock = QtWidgets.QDockWidget("Inspector", self)
+        self.inspector_dock.setObjectName("dock-inspector")
+        self.inspector_tabs = QtWidgets.QTabWidget()
+        self._build_inspector_tabs()
+        self.inspector_dock.setWidget(self.inspector_tabs)
+        self.addDockWidget(QtCore.Qt.DockWidgetArea.RightDockWidgetArea, self.inspector_dock)
+
         self.status_bar = self.statusBar()
         self.status_bar.showMessage("Ready")
         self.plot.pointHovered.connect(
@@ -402,11 +409,29 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             self.plot.end_bulk_update()
 
     def load_sample_via_menu(self) -> None:
-        files = list(SAMPLES_DIR.glob('*.csv'))
+        files = list(SAMPLES_DIR.glob("*.csv"))
         if not files:
             self.status_bar.showMessage("No samples found", 5000)
             return
-        self._ingest_path(files[0])
+
+        dialog = QtWidgets.QFileDialog(self, "Load Sample", str(SAMPLES_DIR))
+        dialog.setNameFilter("Spectra (*.csv *.txt)")
+        dialog.setFileMode(QtWidgets.QFileDialog.FileMode.ExistingFiles)
+        if not dialog.exec():
+            return
+
+        selected = dialog.selectedFiles()
+        if not selected:
+            return
+
+        self.plot.begin_bulk_update()
+        try:
+            for raw in selected:
+                path = Path(raw)
+                if path.exists():
+                    self._ingest_path(path)
+        finally:
+            self.plot.end_bulk_update()
 
     def export_manifest(self) -> None:
         if not self.overlay_service.list():
@@ -850,11 +875,11 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         combo = self.reference_dataset_combo
         combo.blockSignals(True)
         combo.clear()
-        self._reference_options = []
 
         def add_option(label: str, kind: str, key: Optional[str] = None) -> None:
-            self._reference_options.append((kind, key))
             combo.addItem(label)
+            idx = combo.count() - 1
+            combo.setItemData(idx, {"kind": kind, "key": key}, QtCore.Qt.ItemDataRole.UserRole)
 
         add_option("NIST Hydrogen Lines (Balmer & Lyman)", "spectral_lines")
         add_option("IR Functional Groups", "ir_groups")
@@ -864,6 +889,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             name = target.get("name", "Unknown")
             instrument = target.get("instrument") or "—"
             add_option(f"JWST: {name} ({instrument})", "jwst", target.get("id"))
+
         combo.blockSignals(False)
         if combo.count():
             combo.setCurrentIndex(0)
@@ -872,9 +898,27 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
     def _filter_reference_rows(self, _: str) -> None:
         self._refresh_reference_dataset()
 
-    def _refresh_reference_dataset(self) -> None:
-        index = self.reference_dataset_combo.currentIndex()
+    def _current_reference_option(self) -> Optional[tuple[str, Optional[str]]]:
+        combo = getattr(self, "reference_dataset_combo", None)
+        if combo is None:
+            return None
+        index = combo.currentIndex()
         if index < 0:
+            return None
+        data = combo.itemData(index, QtCore.Qt.ItemDataRole.UserRole)
+        if isinstance(data, dict):
+            kind = data.get("kind")
+            if kind:
+                return str(kind), data.get("key") if data.get("key") is None else str(data.get("key"))
+        # Fallback for legacy state where we populated _reference_options list
+        options = getattr(self, "_reference_options", None)
+        if options and 0 <= index < len(options):
+            return options[index]
+        return None
+
+    def _refresh_reference_dataset(self) -> None:
+        option = self._current_reference_option()
+        if option is None:
             self.reference_table.setRowCount(0)
             self.reference_table.setColumnCount(0)
             self.reference_meta.clear()
@@ -882,10 +926,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             self._update_reference_overlay_state(None)
             return
 
-        if index >= len(getattr(self, "_reference_options", [])):
-            return
-
-        kind, key = self._reference_options[index]
+        kind, key = option
         query = self.reference_filter.text().strip().lower()
         overlay_payload: Optional[Dict[str, Any]] = None
 
@@ -961,7 +1002,14 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             )
 
         elif kind == "jwst":
-            target = self.reference_library.jwst_target(key)
+            if key is None:
+                self.reference_table.setRowCount(0)
+                self.reference_table.setColumnCount(0)
+                self.reference_meta.clear()
+                self._clear_reference_plot()
+                self._update_reference_overlay_state(None)
+                return
+            target = self.reference_library.jwst_target(str(key))
             if not target:
                 self.reference_table.setRowCount(0)
                 self.reference_table.setColumnCount(0)
@@ -1169,7 +1217,8 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             lower_item = self.reference_plot.plot(x_array, lower, pen=dotted_pen)
             self._reference_plot_items.extend([upper_item, lower_item])
 
-        return None
+        nm_values = self._convert_um_to_nm(x_array)
+        return self._build_overlay_for_jwst(target, nm_values, y_array)
 
     def _reference_display_unit(self) -> str:
         return self.plot_unit()
@@ -1186,6 +1235,10 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             with np.errstate(divide="ignore"):
                 return np.where(values_nm != 0, 1e7 / values_nm, np.nan)
         return values_nm
+
+    @staticmethod
+    def _convert_um_to_nm(values_um: np.ndarray) -> np.ndarray:
+        return values_um * 1e3
 
     @staticmethod
     def _coerce_float(value: Any) -> Optional[float]:
@@ -1267,6 +1320,35 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             "y": np.array(y_segments, dtype=float),
             "color": "#6D597A",
             "width": 1.2,
+        }
+
+    def _build_overlay_for_jwst(
+        self,
+        target: Mapping[str, Any],
+        wavelengths_nm: np.ndarray,
+        values: np.ndarray,
+    ) -> Optional[Dict[str, Any]]:
+        if wavelengths_nm.size == 0 or values.size == 0:
+            return None
+
+        if values.size != wavelengths_nm.size:
+            min_size = min(values.size, wavelengths_nm.size)
+            wavelengths_nm = wavelengths_nm[:min_size]
+            values = values[:min_size]
+
+        key_suffix = target.get("id") or target.get("name") or "jwst"
+        key = f"reference::jwst::{key_suffix}"
+        alias = f"Reference – JWST {target.get('name', key_suffix)}"
+        color = target.get("plot_color", "#33658A")
+        width = float(target.get("plot_width", 1.6))
+
+        return {
+            "key": key,
+            "alias": alias,
+            "x_nm": np.array(wavelengths_nm, dtype=float),
+            "y": np.array(values, dtype=float),
+            "color": color,
+            "width": width,
         }
 
     def _overlay_vertical_bounds(self) -> tuple[float, float]:

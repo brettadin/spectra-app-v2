@@ -78,6 +78,23 @@ def test_smoke_ingest_toggle_and_export(tmp_path: Path, mini_fits: Path) -> None
         next_payload = window._reference_overlay_payload
         if next_payload:
             assert next_payload.get("key") != initial_key
+
+        jwst_index = None
+        for idx in range(window.reference_dataset_combo.count()):
+            data = window.reference_dataset_combo.itemData(idx, QtCore.Qt.ItemDataRole.UserRole)
+            if isinstance(data, dict) and data.get("kind") == "jwst":
+                jwst_index = idx
+                break
+        if jwst_index is not None:
+            window.reference_dataset_combo.setCurrentIndex(jwst_index)
+            app.processEvents()
+            jwst_payload = window._reference_overlay_payload
+            assert jwst_payload is not None
+            assert str(jwst_payload.get("key", "")).startswith("reference::jwst::")
+            x_vals = jwst_payload.get("x_nm")
+            y_vals = jwst_payload.get("y")
+            assert isinstance(x_vals, np.ndarray) and x_vals.size > 0
+            assert isinstance(y_vals, np.ndarray) and y_vals.size == x_vals.size
     finally:
         window.close()
         window.deleteLater()
