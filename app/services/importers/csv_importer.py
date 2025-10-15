@@ -350,16 +350,23 @@ class CsvImporter:
         monotonic = bool(diffs.size) and (
             np.all(diffs >= 0) or np.all(diffs <= 0)
         )
+        negative_fraction = float(np.mean(values < 0)) if values.size else 0.0
+        predominantly_negative = negative_fraction > 0.6
         looks_wavelength = self._looks_like_wavelength(values)
         looks_intensity = self._looks_like_intensity(values)
         header_wavelength = (
             index < len(headers) and self._token_is_wavelength(headers[index])
         )
         if looks_wavelength and not looks_intensity:
-            return True
+            return monotonic and not predominantly_negative
         if looks_wavelength and looks_intensity:
-            return header_wavelength and monotonic
-        return header_wavelength and monotonic and not looks_intensity
+            return header_wavelength and monotonic and not predominantly_negative
+        return (
+            header_wavelength
+            and monotonic
+            and not looks_intensity
+            and not predominantly_negative
+        )
 
     def _column_looks_like_intensity(
         self, column: np.ndarray, headers: Sequence[_HeaderToken], index: int
@@ -510,17 +517,22 @@ class CsvImporter:
             if valid.size < 3:
                 continue
             diffs = np.diff(valid)
-            monotonic = np.all(diffs >= 0) or np.all(diffs <= 0)
+            monotonic = bool(diffs.size) and (
+                np.all(diffs >= 0) or np.all(diffs <= 0)
+            )
             variance = float(np.nanvar(valid))
             span = float(np.nanmax(valid) - np.nanmin(valid))
             score = valid.size
-            if prefer_monotonic and monotonic:
-                score += 10
+            if prefer_monotonic:
+                if monotonic:
+                    score += 10
+                else:
+                    score -= 8
             elif not prefer_monotonic and not monotonic:
                 score += 2
             score += np.log1p(abs(span))
             score += np.log1p(abs(variance))
-            if prefer_monotonic and self._looks_like_wavelength(valid):
+            if prefer_monotonic and monotonic and self._looks_like_wavelength(valid):
                 score += 12
             if not prefer_monotonic and self._looks_like_intensity(valid):
                 score += 6
