@@ -653,3 +653,111 @@ and patch notes document the automatic caching behaviour and opt-out flow.【F:t
 - 9e7be442cbab35d2ba254c8a90bbaa994fb8d734af9de203453a283476618260
 
 ---
+## 2025-10-16 10:57 – Import
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested sample_reference (90717cd0-75ac-4e7e-bad4-911f0c2a0e5f) via CsvImporter from sample_reference.csv.
+
+**References**:
+- C:\Code\spectra-app-beta\samples\sample_reference.csv
+- 90717cd0-75ac-4e7e-bad4-911f0c2a0e5f
+- 76a5a1d2fdaaee20d3a89ac3af382df9f42c2727a01afde5462688e9a2633425
+
+---
+## 2025-10-16 10:57 – Import
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested sample_spectrum (2afaca74-0e78-4426-a2ea-fdaff59c1ab1) via CsvImporter from sample_spectrum.csv.
+
+**References**:
+- C:\Code\spectra-app-beta\samples\sample_spectrum.csv
+- 2afaca74-0e78-4426-a2ea-fdaff59c1ab1
+- b0cf809fb461459e6fae989a24e45ffb65fbc797884b69edf2bf3c44a4acfeac
+
+---
+## 2025-10-16 10:57 – Import
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested sample_transmittance (fdd91df4-6481-4d23-aaec-e777e5523d0d) via CsvImporter from sample_transmittance.csv.
+
+**References**:
+- C:\Code\spectra-app-beta\samples\sample_transmittance.csv
+- fdd91df4-6481-4d23-aaec-e777e5523d0d
+- 9e7be442cbab35d2ba254c8a90bbaa994fb8d734af9de203453a283476618260
+
+---
+## 2025-10-16 10:58 – Import
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested Good Sun reading (65395b8b-691e-4b00-856b-40cba70b60ec) via CsvImporter from Good Sun reading.txt.
+
+**References**:
+- C:\Users\brett\OneDrive - Georgia Gwinnett College\---  SCHOOL ---\STEC\DATA\Sun\Good Sun reading.txt
+- 65395b8b-691e-4b00-856b-40cba70b60ec
+- 283417d0db257f60e458765472c01550f5af2dfdfd2daf0f151c7e6710d7bf52
+
+---
+## 2025-10-16 10:58 – Overlay
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Enabled reference overlay reference::hydrogen_lines.
+
+**References**:
+- reference::hydrogen_lines
+
+---
+## 2025-10-16 10:59 – Import
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested CO2 - 500 torr (d4317dab-5054-4467-8834-a9b53309b846) via CsvImporter from CO2 - 500 torr.csv.
+
+**References**:
+- C:\Users\brett\OneDrive - Georgia Gwinnett College\---  SCHOOL ---\Anfuso_Bell STEC Research (Fall 2025) - Documents\General\Data\DATA\IR - CO2\CO2 - 500 torr.csv
+- d4317dab-5054-4467-8834-a9b53309b846
+- 7ee9228c5b4561d33a03ce5469d0824905fa0f62354ee5e482eb42e86ea53e1d
+
+---
+## 2025-10-16 10:59 – Overlay
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Enabled reference overlay reference::ir_groups.
+
+**References**:
+- reference::ir_groups
+
+---
+## 2025-10-16 10:59 – Import
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested CO2 - 300 torr (817126e1-f338-4210-a656-a5445fab1450) via CsvImporter from CO2 - 300 torr.csv.
+
+**References**:
+- C:\Code\spectra-app-beta\samples\CO2 - 300 torr.csv
+- 817126e1-f338-4210-a656-a5445fab1450
+- e1faaf0ab4753f05a8ebcb1fc55dcf1b747e0d46f5e6bb0883d003fe85977e02
+
+---
