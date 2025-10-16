@@ -1,79 +1,101 @@
 # Project Roadmap and Milestones
 
-This roadmap outlines a four‑week plan for the redesign of Spectra‑App into a standalone Windows desktop application.  Each week includes a set of milestones with acceptance criteria.  Adjustments may be necessary based on actual progress and resource availability.
+This roadmap replaces the previous reboot-by-week schedule with a backlog-oriented plan that maps feature delivery, data regeneration, and documentation tasks into cohesive workstreams. Each section tracks dependencies across code, data, and docs so the tactical backlog remains aligned with the strategic vision recorded in the workplan reviews.
 
-## Week 1 – Discovery and Architecture
+## Importer Heuristics and Data Integrity
 
-**Objectives:**
+**Goal:** Hardening CSV, TXT, and FITS ingestion paths so wavelength/intensity axes are inferred correctly across noisy QA feeds and historical archives.
 
-1. Complete a full audit of the existing codebase (see `reports/repo_audit.md`).
-2. Define the functional requirements and compile the feature parity matrix.
-3. Evaluate desktop UI frameworks (PySide6/Qt, Tauri with Python backend, .NET MAUI) and prepare a decision matrix.
-4. Choose the technology stack and draft the high‑level architecture.
-5. Draft the units and provenance specifications.
+**Key backlog items**
 
-**Acceptance criteria:**
+- Capture the QA-provided background spectra that still swap axes and fold the findings into `CsvImporter` heuristics, fixtures, and cache coverage.
+- Integrate IR functional group heuristics into importer header parsing to automate axis validation and prevent regressions.
+- Expand regression coverage for header-driven swaps and document the rationale in importer metadata for future audits.
 
-- A complete audit report with identified issues and initial remediation strategies.
-- A decision matrix with pros/cons, performance considerations and packaging implications for at least three UI frameworks.
-- A preliminary architecture diagram showing modules, data flow and plugin boundaries.
-- Draft specifications for canonical units, conversion rules and manifest schema.
+**Dependencies and documentation**
 
-## Week 2 – Skeleton Implementation and Unit Service
+- Update `docs/user/reference_data.md` with a multi-file ingest overlay walkthrough so QA operators can validate importer behaviour end-to-end.
+- Backfill `docs/history/KNOWLEDGE_LOG.md` to note the importer/overlay fixes, ensuring traceability for release reviews.
+- Keep the importer regression suite runnable in CI once the Qt-dependent tests are stabilised (see QA section).
 
-**Objectives:**
+**Acceptance signals**
 
-1. Set up the project scaffold using the chosen UI framework.
-2. Implement the canonical units service with conversions for wavelength (nm, µm, Å, cm⁻¹) and flux (transmittance, absorbance, absorption coefficient).
-3. Create a basic UI shell with tabs (Data, Compare, Functional Groups, Similarity, History) and navigation.
-4. Integrate the units service into the UI shell; allow users to toggle display units.
-5. Write initial unit tests covering the conversions and UI shell instantiation.
+- Messy QA datasets load without axis inversions; automated heuristics capture unit hints and header overrides.
+- Tests covering heuristic extensions run green locally and in CI, including fixtures that reproduce the prior regressions.
+- Documentation walkthroughs reference the latest importer behaviour and link back to provenance notes for review teams.
 
-**Acceptance criteria:**
+## Reference Data Regeneration and Provenance
 
-- The project builds and runs a minimal desktop window on Windows.
-- Users can open the Data tab and switch wavelength units without mutating underlying data.
-- Unit tests for the units service pass in continuous integration.
+**Goal:** Maintain trusted reference overlays (NIST hydrogen lines, IR functional groups, JWST quick-look spectra) with reproducible regeneration scripts and clear provenance.
 
-## Week 3 – Data Ingestion and Core Operations
+**Key backlog items**
 
-**Objectives:**
+- Regenerate bundled reference datasets using the reproducible build scripts, capturing generator versions and retrieval timestamps.
+- Stage new provenance metadata in the inspector UI, ensuring reference overlays expose source citations and regeneration notes.
+- Align documentation updates with asset refreshes so spectroscopy primers and reference guides explain the regeneration workflow.
 
-1. Implement the data ingest module supporting CSV and JCAMP‑DX as initial formats.
-2. Design a plugin interface for importers and write at least one additional importer (e.g. FITS).
-3. Develop the overlay manager component: display imported spectra, manage trace list, allow renaming and hiding.
-4. Implement differential operations (subtract, ratio) using the unified resample function with masking of near‑zero denominators.
-5. Integrate the differential operations into the Compare tab.
+**Dependencies and documentation**
 
-**Acceptance criteria:**
+- Propagate provenance metadata updates through `docs/user/reference_data.md` and related spectroscopy documentation.
+- Coordinate with the Knowledge Log backfill so reference data updates are recorded alongside importer improvements.
+- Ensure the Reference tab overlays continue to render through automated smoke tests before promoting regenerated assets.
 
-- Users can drag and drop sample datasets and see them listed in the overlay manager.
-- The Compare tab allows selecting two spectra and computing their difference or ratio.  Results are plotted correctly with masked spikes and suppressed trivial results.
-- Importers are decoupled modules with clear interfaces and unit tests.
+**Acceptance signals**
 
-## Week 4 – ML Integration, Export and Documentation
+- Regenerated reference JSON assets pass validation and can be overlaid both in the Reference tab preview and the main plot workspace.
+- Provenance metadata is surfaced in-app and cross-linked within user documentation and release notes.
+- Automated tests (including smoke workflows) cover reference overlay rendering using the refreshed assets.
 
-**Objectives:**
+## Physics Models and Analysis Enhancements
 
-1. Implement the functional‑group identification plugin (using the existing IR classifier) and display results in the Functional Groups tab.
-2. Add similarity search functionality using a local dataset as a prototype.
-3. Implement the export wizard that packages selected spectra, derived data, plots and a manifest conforming to the provenance schema.
-4. Finalise documentation: architecture spec, plugin development guide, units and provenance spec, UI contract and testing guide.
-5. Prepare the Windows build using the chosen packaging tool and conduct smoke tests on Windows 10 and 11.
+**Goal:** Introduce physically-motivated models into the overlay service to support spectroscopy workflows beyond static references.
 
-**Acceptance criteria:**
+**Key backlog items**
 
-- The functional‑group classifier runs on a sample spectrum and overlays predicted bands.
-- The Similarity tab returns a ranked list when searching against the sample dataset.
-- The export wizard produces a ZIP containing a manifest and PNG plot that open correctly.
-- Comprehensive documentation is complete and cross‑linked; the README explains how to run and build the application.
-- The Windows installer installs and runs without errors on test machines.
+- Wire Doppler, pressure, and Stark broadening models into the overlay service using existing parameter scaffolding.
+- Provide UI controls and presets so users can compare broadened line profiles against observed spectra.
+- Extend regression coverage to validate parameter inputs and output consistency for the new models.
 
-## Post‑1.0 Tasks (Future Work)
+**Dependencies and documentation**
 
-After the 1.0 release, future milestones may include:
+- Update analytical documentation (spectroscopy primer, analysis guides) to describe the new broadening options and expected usage patterns.
+- Coordinate with importer enhancements so broadened overlays can draw on correctly normalised datasets.
+- Capture parameter defaults and equations in developer docs to support future extension (e.g., turbulence or rotation profiles).
 
-- Adding support for additional data formats (netCDF, HDF5), remote telescopic archives and user‑definable plugins.
-- Integrating machine‑learning models for exoplanet composition prediction.
-- Implementing dark/light theme switching and accessibility improvements.
-- Extending the knowledge log to support natural‑language queries.
+**Acceptance signals**
+
+- Users can configure and overlay broadened line models alongside reference and observed data.
+- Automated tests confirm model outputs for canonical parameter sets and protect against regressions.
+- Documentation includes examples showing how broadened models interact with importer-normalised spectra.
+
+## QA Automation and Documentation Alignment
+
+**Goal:** Keep strategic and tactical plans in lockstep by eliminating skipped UI tests and synchronising documentation milestones.
+
+**Key backlog items**
+
+- Configure CI (or a documented headless recipe) to run Qt-dependent Inspector/Reference tests without skips, validating overlays and dock persistence end-to-end.
+- Expand the user documentation set (reference data guide, importer walkthroughs) to reflect recent overlay and toolbar behaviour.
+- Continue capturing QA findings within the Knowledge Log to maintain traceability between backlog tasks and release decisions.
+
+**Dependencies and documentation**
+
+- Coordinate with importer and reference data workstreams so CI recipes include regenerated fixtures and assets.
+- Ensure documentation updates are mirrored in help menu links and in-app references once published.
+- Track QA runs within the workplan reviews to provide historical evidence for sign-off.
+
+**Acceptance signals**
+
+- CI pipelines execute Qt-dependent tests successfully, providing confidence in Inspector and overlay behaviour.
+- Documentation milestones from the workplan are completed, reviewed, and linked from the application help surfaces.
+- QA logs remain up to date, showing alignment between backlog execution and release governance.
+
+## Future Horizons
+
+Beyond the active backlog, several strategic initiatives remain on the long-term radar:
+
+- Replace digitised JWST tables with calibrated FITS ingestion and provenance links once the pipeline module is production-ready.
+- Broaden the spectral line catalogue beyond hydrogen (e.g., He I, O III, Fe II) with citations and regression coverage.
+- Incorporate additional importer safeguards (e.g., for netCDF/HDF5 archives) and expand machine-learning overlays for exoplanet diagnostics as resources allow.
+
+These initiatives will be revisited as the current backlog stabilises and supporting infrastructure (tests, documentation, data pipelines) matures.
