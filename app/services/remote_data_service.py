@@ -207,6 +207,8 @@ class RemoteDataService:
         observations = self._ensure_mast()
         criteria = dict(query)
         text = criteria.pop("text", None)
+        if isinstance(text, str):
+            text = text.strip()
         if text and not criteria.get("target_name"):
             criteria["target_name"] = text
         table = observations.Observations.query_criteria(**criteria)

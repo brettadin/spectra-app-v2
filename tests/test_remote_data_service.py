@@ -156,10 +156,15 @@ def test_search_mast_rewrites_text_to_target_name(store: LocalStore, monkeypatch
     service = RemoteDataService(store, session=None)
     monkeypatch.setattr(service, "_ensure_mast", lambda: DummyMast)
 
-    records = service.search(RemoteDataService.PROVIDER_MAST, {"text": "WASP-96 b"})
+    records = service.search(
+        RemoteDataService.PROVIDER_MAST,
+        {"text": "  WASP-96 b  ", "obs_collection": "JWST"},
+    )
 
     assert records == []
     assert captured["target_name"] == "WASP-96 b"
+    assert captured["obs_collection"] == "JWST"
+    assert "text" not in captured
 
 
 def test_providers_hide_missing_dependencies(monkeypatch: pytest.MonkeyPatch, store: LocalStore) -> None:
