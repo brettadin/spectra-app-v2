@@ -56,6 +56,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self._reference_plot_items: List[object] = []
         self._reference_overlay_key: Optional[str] = None
         self._reference_overlay_payload: Optional[Dict[str, Any]] = None
+        self._reference_overlay_annotations: List[pg.TextItem] = []
         self._display_y_units: Dict[str, str] = {}
         self._palette: List[QtGui.QColor] = [
             QtGui.QColor("#4F6D7A"),
@@ -1395,6 +1396,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         x_segments: List[float] = []
         y_segments: List[float] = []
         y_low, y_high = self._overlay_band_bounds()
+        labels: List[Dict[str, object]] = []
 
         for entry in entries:
             start = self._coerce_float(entry.get("wavenumber_cm_1_min"))
@@ -1409,8 +1411,23 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                 continue
             if nm_low == nm_high:
                 continue
-            x_segments.extend([nm_low, nm_low, nm_high, nm_high, nm_low, np.nan])
-            y_segments.extend([y_low, y_high, y_high, y_low, y_low, np.nan])
+            # PyQtGraph's PlotDataItem differentiates successive X values when
+            # constructing fill paths; perfectly vertical edges therefore
+            # trigger divide-by-zero warnings if we submit identical
+            # coordinates back-to-back.  Use ``nextafter`` to pull the interior
+            # points infinitesimally towards the opposite edge so the segment
+            # remains visually vertical while avoiding zero-length steps.
+            low_edge = np.nextafter(nm_low, nm_high)
+            high_edge = np.nextafter(nm_high, nm_low)
+            x_segments.extend([nm_low, low_edge, high_edge, nm_high, np.nan])
+            y_segments.extend([y_low, y_high, y_high, y_low, np.nan])
+
+            label = entry.get("group") or entry.get("id")
+            if label:
+                labels.append({
+                    "text": str(label),
+                    "centre_nm": float((nm_low + nm_high) / 2.0),
+                })
 
         if not x_segments:
             return None
@@ -1422,6 +1439,10 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             "y": np.array(y_segments, dtype=float),
             "color": "#6D597A",
             "width": 1.2,
+            "fill_color": (109, 89, 122, 70),
+            "fill_level": float(y_low),
+            "band_bounds": (float(y_low), float(y_high)),
+            "labels": labels,
         }
 
     def _build_overlay_for_jwst(
@@ -1465,11 +1486,11 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
     def _overlay_band_bounds(self) -> tuple[float, float]:
         y_min, y_max = self._overlay_vertical_bounds()
         span = y_max - y_min
-        bottom = y_min + span * 0.7
-        top = y_min + span * 0.9
+        bottom = y_min + span * 0.08
+        top = y_min + span * 0.38
         if not np.isfinite(bottom) or not np.isfinite(top) or top <= bottom:
             bottom = y_min + span * 0.1
-            top = y_min + span * 0.3
+            top = bottom + max(span * 0.3, 1.0)
         return bottom, top
 
     def _on_reference_overlay_toggled(self, checked: bool) -> None:
@@ -1516,17 +1537,114 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         alias = str(payload.get("alias", key))
         color = payload.get("color", "#33658A")
         width = float(payload.get("width", 1.5))
+        fill_color = payload.get("fill_color")
+        fill_level = payload.get("fill_level")
 
         self._clear_reference_overlay()
 
-        style = TraceStyle(QtGui.QColor(color), width=width, show_in_legend=False)
+        style = TraceStyle(
+            QtGui.QColor(color),
+            width=width,
+            show_in_legend=False,
+            fill_brush=fill_color,
+            fill_level=float(fill_level) if fill_level is not None else None,
+        )
         self.plot.add_trace(key, alias, x_values, y_values, style)
         self._reference_overlay_key = key
+
+        self._reference_overlay_annotations = []
+        band_bounds = payload.get("band_bounds")
+        labels = payload.get("labels")
+        if (
+            isinstance(labels, list)
+            and isinstance(band_bounds, tuple)
+            and len(band_bounds) == 2
+        ):
+            band_bottom = float(band_bounds[0])
+            band_top = float(band_bounds[1])
+            if not (np.isfinite(band_bottom) and np.isfinite(band_top)):
+                return
+            if band_top <= band_bottom:
+                band_top = band_bottom + 1.0
+
+            x_range, _ = self.plot.view_range()
+            x_min, x_max = map(float, x_range)
+            x_span = abs(x_max - x_min)
+            if not np.isfinite(x_span) or x_span == 0.0:
+                x_span = 1.0
+            cluster_threshold = x_span * 0.04
+
+            assigned: List[tuple[str, float, int]] = []
+            row_last_x: List[float] = []
+
+            for label in sorted(
+                (label for label in labels if isinstance(label, Mapping)),
+                key=lambda entry: float(entry.get("centre_nm", float("inf"))),
+            ):
+                text = label.get("text")
+                centre_nm = label.get("centre_nm")
+                if not text or centre_nm is None:
+                    continue
+                centre_nm = float(centre_nm)
+                if not np.isfinite(centre_nm):
+                    continue
+                x_display = self.plot.map_nm_to_display(centre_nm)
+                if not np.isfinite(x_display):
+                    continue
+
+                row_index = None
+                for idx, last_x in enumerate(row_last_x):
+                    if abs(x_display - last_x) >= cluster_threshold:
+                        row_index = idx
+                        row_last_x[idx] = x_display
+                        break
+                if row_index is None:
+                    row_index = len(row_last_x)
+                    row_last_x.append(x_display)
+
+                assigned.append((str(text), x_display, row_index))
+
+            if not assigned:
+                return
+
+            row_count = max((row for *_, row in assigned), default=-1) + 1
+            if row_count <= 0:
+                row_count = 1
+
+            band_span = band_top - band_bottom
+            margin = band_span * 0.1
+            if not np.isfinite(margin) or margin < 0.0:
+                margin = 0.0
+            available = band_span - margin * 2.0
+            if available <= 0:
+                available = band_span
+            spacing = available / max(row_count, 1)
+
+            for text, x_display, row_index in assigned:
+                anchor_y = band_top - margin - spacing * (row_index + 0.5)
+                anchor_y = float(np.clip(anchor_y, band_bottom + margin, band_top - margin))
+                text_item = pg.TextItem(
+                    text,
+                    color=QtGui.QColor("#E6E1EB"),
+                    fill=pg.mkBrush(28, 28, 38, 200),
+                    border=pg.mkPen(color),
+                )
+                text_item.setAnchor((0.5, 0.5))
+                text_item.setPos(x_display, anchor_y)
+                text_item.setZValue(25)
+                self.plot.add_graphics_item(text_item, ignore_bounds=True)
+                self._reference_overlay_annotations.append(text_item)
 
     def _clear_reference_overlay(self) -> None:
         if self._reference_overlay_key:
             self.plot.remove_trace(self._reference_overlay_key)
             self._reference_overlay_key = None
+        for item in self._reference_overlay_annotations:
+            try:
+                self.plot.remove_graphics_item(item)
+            except Exception:  # pragma: no cover - defensive cleanup
+                continue
+        self._reference_overlay_annotations = []
 
     def _set_reference_meta(self, title: Optional[str], url: Optional[str], notes: Optional[str]) -> None:
         pieces: List[str] = []

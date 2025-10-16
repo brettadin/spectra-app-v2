@@ -86,9 +86,9 @@ class OverlayService:
             y_finite = np.abs(data[finite_mask])
             if x_finite.size < 2:
                 return data.copy(), {"mode": "area", "applied": False, "reason": "insufficient-samples"}
-            area = float(np.trapz(y_finite, x_finite))
+            area = float(np.trapezoid(y_finite, x_finite))
             if not np.isfinite(area) or area <= 0.0:
                 return data.copy(), {"mode": "area", "applied": False, "reason": "degenerate-area"}
-            return data / area, {"mode": "area", "applied": True, "scale": area, "basis": "abs-trapz"}
+            return data / area, {"mode": "area", "applied": True, "scale": area, "basis": "abs-trapezoid"}
 
         return data.copy(), {"mode": mode, "applied": False, "reason": "unknown-mode"}

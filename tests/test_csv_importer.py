@@ -89,6 +89,50 @@ def test_csv_importer_scores_monotonic_wavelength_over_noisy_intensity(
     assert not _LAYOUT_CACHE
 
 
+def test_csv_importer_ignores_invalid_cached_layout(tmp_path: Path) -> None:
+    _reset_layout_cache()
+    header = "Value,Value2"
+    first = "\n".join(
+        [
+            header,
+            "100,0.1",
+            "200,0.5",
+            "300,0.9",
+            "400,0.4",
+        ]
+    )
+    second = "\n".join(
+        [
+            header,
+            "0.5,120",
+            "0.2,140",
+            "0.8,160",
+            "0.1,180",
+        ]
+    )
+
+    first_path = tmp_path / "first.csv"
+    second_path = tmp_path / "second.csv"
+    first_path.write_text(first, encoding="utf-8")
+    second_path.write_text(second, encoding="utf-8")
+
+    importer = CsvImporter()
+    first_result = importer.read(first_path)
+
+    assert first_result.metadata["column_selection"]["layout_cache"] == "miss"
+    signature = tuple(first_result.metadata["column_selection"]["layout_signature"])
+    assert _LAYOUT_CACHE[signature] == (0, 1)
+
+    second_result = importer.read(second_path)
+    column_meta = second_result.metadata["column_selection"]
+
+    assert column_meta["layout_cache"] == "miss"
+    assert column_meta["x_index"] == 1
+    assert column_meta["y_index"] == 0
+    assert not column_meta["x_reason"].startswith("layout-cache")
+    assert _LAYOUT_CACHE[signature] == (1, 0)
+
+
 def test_csv_importer_prefers_wavelength_column_when_intensity_first(tmp_path: Path) -> None:
     raw = """
     # Free-form report with intensity before wavelength
