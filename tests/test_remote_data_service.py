@@ -198,6 +198,33 @@ def test_search_mast_table_conversion(store: LocalStore, monkeypatch: pytest.Mon
     assert records[0].units == {"x": "um", "y": "flux"}
 
 
+def test_search_mast_translates_text_query(
+    store: LocalStore, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    captured: dict[str, Any] = {}
+
+    class DummyObservations:
+        @staticmethod
+        def query_criteria(**criteria: Any) -> list[dict[str, Any]]:
+            captured.update(criteria)
+            return []
+
+    class DummyMast:
+        Observations = DummyObservations
+
+    service = RemoteDataService(store, session=None)
+    monkeypatch.setattr(service, "_ensure_mast", lambda: DummyMast)
+
+    records = service.search(
+        RemoteDataService.PROVIDER_MAST,
+        {"text": "  WASP-96 b  "},
+    )
+
+    assert records == []
+    assert captured.get("target_name") == "WASP-96 b"
+    assert "text" not in captured
+
+
 def test_search_mast_rewrites_text_to_target_name(store: LocalStore, monkeypatch: pytest.MonkeyPatch) -> None:
     captured: dict[str, Any] = {}
 
