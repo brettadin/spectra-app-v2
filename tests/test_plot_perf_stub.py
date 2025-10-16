@@ -19,15 +19,44 @@ def test_plotpane_downsamples_to_point_cap():
 
     app = QtWidgets.QApplication.instance() or QtWidgets.QApplication([])
     pane = PlotPane()
-    assert pane._max_points <= 120_000  # Guard rail to prevent regressions
+    assert pane.max_points <= PlotPane.DEFAULT_MAX_POINTS  # Guard rail to prevent regressions
 
-    x = np.linspace(0, 1, pane._max_points * 5)
+    x = np.linspace(0, 1, pane.max_points * 5)
     y = np.sin(x)
-    xs, ys = pane._downsample_peak(x, y, pane._max_points)
+    xs, ys = pane._downsample_peak(x, y, pane.max_points)
 
-    assert len(xs) <= pane._max_points * 2
+    assert len(xs) <= pane.max_points * 2
     assert len(xs) < len(x)
     assert len(xs) == len(ys)
+
+    pane.deleteLater()
+    if QtWidgets.QApplication.instance() is app and not app.topLevelWidgets():
+        app.quit()
+
+
+def test_plotpane_max_points_override_and_clamping():
+    try:
+        _, _, QtWidgets, _ = get_qt()
+    except ImportError:  # pragma: no cover - environment specific
+        pytest.skip("Qt bindings not available")
+
+    app = QtWidgets.QApplication.instance() or QtWidgets.QApplication([])
+    pane = PlotPane(max_points=10_000)
+    assert pane.max_points == 10_000
+
+    # Setting too-low values clamps to the supported minimum.
+    pane.set_max_points(10)
+    assert pane.max_points == PlotPane.MIN_MAX_POINTS
+
+    # Setting too-high values clamps to the supported maximum.
+    pane.set_max_points(5_000_000)
+    assert pane.max_points == PlotPane.MAX_MAX_POINTS
+
+    # Downsampling honours the configured budget.
+    x = np.linspace(0, 1, pane.max_points * 4)
+    y = np.cos(x)
+    xs, _ = pane._downsample_peak(x, y, pane.max_points)
+    assert len(xs) <= pane.max_points * 2
 
     pane.deleteLater()
     if QtWidgets.QApplication.instance() is app and not app.topLevelWidgets():
