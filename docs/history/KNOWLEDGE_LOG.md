@@ -1088,3 +1088,305 @@ and patch notes document the automatic caching behaviour and opt-out flow.【F:t
 - 3f33b3cb-2e66-49f7-9372-d174cfddb688
 
 ---
+## 2025-10-16 17:34 – Import
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested sample_reference (6385ebff-972c-497d-a4dc-3501f79897f3) via CsvImporter from sample_reference.csv.
+
+**References**:
+- C:\Code\spectra-app-beta\samples\sample_reference.csv
+- 6385ebff-972c-497d-a4dc-3501f79897f3
+- 76a5a1d2fdaaee20d3a89ac3af382df9f42c2727a01afde5462688e9a2633425
+
+---
+## 2025-10-16 17:34 – Import
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested sample_spectrum (22ef4fea-a533-419d-a483-df0fe4115868) via CsvImporter from sample_spectrum.csv.
+
+**References**:
+- C:\Code\spectra-app-beta\samples\sample_spectrum.csv
+- 22ef4fea-a533-419d-a483-df0fe4115868
+- b0cf809fb461459e6fae989a24e45ffb65fbc797884b69edf2bf3c44a4acfeac
+
+---
+## 2025-10-16 17:34 – Import
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested sample_transmittance (c9405742-6916-4507-a922-98c7efe4597d) via CsvImporter from sample_transmittance.csv.
+
+**References**:
+- C:\Code\spectra-app-beta\samples\sample_transmittance.csv
+- c9405742-6916-4507-a922-98c7efe4597d
+- 9e7be442cbab35d2ba254c8a90bbaa994fb8d734af9de203453a283476618260
+
+---
+## 2025-10-16 17:35 – Import
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested CO2 - 500 torr (af97eb02-0779-4580-b000-e46ecc5b8729) via CsvImporter from CO2 - 500 torr.csv.
+
+**References**:
+- C:\Users\brett\OneDrive - Georgia Gwinnett College\---  SCHOOL ---\Anfuso_Bell STEC Research (Fall 2025) - Documents\General\Data\DATA\IR - CO2\CO2 - 500 torr.csv
+- af97eb02-0779-4580-b000-e46ecc5b8729
+- 7ee9228c5b4561d33a03ce5469d0824905fa0f62354ee5e482eb42e86ea53e1d
+
+---
+## 2025-10-16 17:36 – Import
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested run4 (8784a23c-80c4-4724-abdb-3d92da6f50dd) via CsvImporter from run4.csv.
+
+**References**:
+- C:\Users\brett\OneDrive - Georgia Gwinnett College\---  SCHOOL ---\Anfuso_Bell STEC Research (Fall 2025) - Documents\General\Data\DATA\IR - CO2\run4.csv
+- 8784a23c-80c4-4724-abdb-3d92da6f50dd
+- 5068b4acfbcc9ef7ac3ea7585b1f56d3197b489a2c0968c01de2efcedb6f9395
+
+---
+## 2025-10-16 17:36 – Import
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested run2 (46878262-450f-424c-8ea4-c2f165737234) via CsvImporter from run2.csv.
+
+**References**:
+- C:\Users\brett\OneDrive - Georgia Gwinnett College\---  SCHOOL ---\Anfuso_Bell STEC Research (Fall 2025) - Documents\General\Data\DATA\IR - CO2\run2.csv
+- 46878262-450f-424c-8ea4-c2f165737234
+- 169dbf5375303ef621a33643b74917d6ebdbf0236b253b4f70ed81cb4d743103
+
+---
+## 2025-10-16 17:36 – Import
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested Run1 no co2 (91ac197a-3dae-4cc3-8075-61ddef55ac72) via CsvImporter from Run1 no co2.csv.
+
+**References**:
+- C:\Users\brett\OneDrive - Georgia Gwinnett College\---  SCHOOL ---\Anfuso_Bell STEC Research (Fall 2025) - Documents\General\Data\DATA\IR - CO2\Run1 no co2.csv
+- 91ac197a-3dae-4cc3-8075-61ddef55ac72
+- 914eb7f9f1715e8794cf61a1e7be53c89e76f545146e2189cf745c4972386b8c
+
+---
+## 2025-10-16 17:36 – Import
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested open air (8769f3c1-663b-47be-ae99-b6cccb9c4500) via CsvImporter from open air.csv.
+
+**References**:
+- C:\Users\brett\OneDrive - Georgia Gwinnett College\---  SCHOOL ---\Anfuso_Bell STEC Research (Fall 2025) - Documents\General\Data\DATA\IR - CO2\open air.csv
+- 8769f3c1-663b-47be-ae99-b6cccb9c4500
+- e346732d62d0ae4a677fef7aa314486e6df0437e76ac5dd7a4ee80d892a23af3
+
+---
+## 2025-10-16 17:36 – Import
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested open air A (162d3710-f62c-4bd7-a9f8-4fe33af98cd3) via CsvImporter from open air A.csv.
+
+**References**:
+- C:\Users\brett\OneDrive - Georgia Gwinnett College\---  SCHOOL ---\Anfuso_Bell STEC Research (Fall 2025) - Documents\General\Data\DATA\IR - CO2\open air A.csv
+- 162d3710-f62c-4bd7-a9f8-4fe33af98cd3
+- 50a551cffc313ec16b1e2d49bbfda4322536a1ab46d7d6697d69e5be63adfe29
+
+---
+## 2025-10-16 17:36 – Import
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested CO2 - 500 torr (d9a3b2d5-30c3-4537-aefa-634b529df8d7) via CsvImporter from CO2 - 500 torr.csv.
+
+**References**:
+- C:\Users\brett\OneDrive - Georgia Gwinnett College\---  SCHOOL ---\Anfuso_Bell STEC Research (Fall 2025) - Documents\General\Data\DATA\IR - CO2\CO2 - 500 torr.csv
+- d9a3b2d5-30c3-4537-aefa-634b529df8d7
+- 7ee9228c5b4561d33a03ce5469d0824905fa0f62354ee5e482eb42e86ea53e1d
+
+---
+## 2025-10-16 17:36 – Import
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested CO2 - 500 torr A (6e770b22-1af8-4870-8e45-e9b79c79decb) via CsvImporter from CO2 - 500 torr A.csv.
+
+**References**:
+- C:\Users\brett\OneDrive - Georgia Gwinnett College\---  SCHOOL ---\Anfuso_Bell STEC Research (Fall 2025) - Documents\General\Data\DATA\IR - CO2\CO2 - 500 torr A.csv
+- 6e770b22-1af8-4870-8e45-e9b79c79decb
+- 6df2ac3618a5de6e47c64418efebc237b0ecfacb35fa72bc6315babfca95331c
+
+---
+## 2025-10-16 17:36 – Import
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested CO2 - 300 torr (bfc158cc-afa3-4152-97d7-b8df82739653) via CsvImporter from CO2 - 300 torr.csv.
+
+**References**:
+- C:\Users\brett\OneDrive - Georgia Gwinnett College\---  SCHOOL ---\Anfuso_Bell STEC Research (Fall 2025) - Documents\General\Data\DATA\IR - CO2\CO2 - 300 torr.csv
+- bfc158cc-afa3-4152-97d7-b8df82739653
+- e1faaf0ab4753f05a8ebcb1fc55dcf1b747e0d46f5e6bb0883d003fe85977e02
+
+---
+## 2025-10-16 17:36 – Import
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested CO2 - 300 torr A (411f4f7c-c75d-4da5-9554-1a0cd07533ca) via CsvImporter from CO2 - 300 torr A.csv.
+
+**References**:
+- C:\Users\brett\OneDrive - Georgia Gwinnett College\---  SCHOOL ---\Anfuso_Bell STEC Research (Fall 2025) - Documents\General\Data\DATA\IR - CO2\CO2 - 300 torr A.csv
+- 411f4f7c-c75d-4da5-9554-1a0cd07533ca
+- 00a3a8e11206a00aed9b71257bb11fcb417f881777f32cee462a83901a809d83
+
+---
+## 2025-10-16 17:36 – Import
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested bkgrd (04e7cb71-739f-4a33-8ecf-4688ac6cc600) via CsvImporter from bkgrd.csv.
+
+**References**:
+- C:\Users\brett\OneDrive - Georgia Gwinnett College\---  SCHOOL ---\Anfuso_Bell STEC Research (Fall 2025) - Documents\General\Data\DATA\IR - CO2\bkgrd.csv
+- 04e7cb71-739f-4a33-8ecf-4688ac6cc600
+- 4e1b11d3f87b90a783af0041076ab1cdb93acb2f651c380891a081383eb00b4a
+
+---
+## 2025-10-16 17:36 – Import
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested bkgrd A (8336661d-c31f-4f82-a00f-6743aba87c45) via CsvImporter from bkgrd A.csv.
+
+**References**:
+- C:\Users\brett\OneDrive - Georgia Gwinnett College\---  SCHOOL ---\Anfuso_Bell STEC Research (Fall 2025) - Documents\General\Data\DATA\IR - CO2\bkgrd A.csv
+- 8336661d-c31f-4f82-a00f-6743aba87c45
+- ef5fc5dcaf2c111311bc4cae0aa13f185ebd43c1aa8853c23e812624f666f904
+
+---
+## 2025-10-16 17:36 – Import
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested bckgr (763bcd20-ecd7-4ac3-9014-cf14a2475a62) via CsvImporter from bckgr.csv.
+
+**References**:
+- C:\Users\brett\OneDrive - Georgia Gwinnett College\---  SCHOOL ---\Anfuso_Bell STEC Research (Fall 2025) - Documents\General\Data\DATA\IR - CO2\bckgr.csv
+- 763bcd20-ecd7-4ac3-9014-cf14a2475a62
+- 042361f17459ddde4a54b3bb206d5156aa4263f0c0aacc645eb730c456b753dd
+
+---
+## 2025-10-16 17:36 – Import
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested 10.8 Test 2 (7cf2007c-f6c2-4be3-97e2-ec096f10bda0) via CsvImporter from 10.8 Test 2.csv.
+
+**References**:
+- C:\Users\brett\OneDrive - Georgia Gwinnett College\---  SCHOOL ---\Anfuso_Bell STEC Research (Fall 2025) - Documents\General\Data\DATA\IR - CO2\10.8 Test 2.csv
+- 7cf2007c-f6c2-4be3-97e2-ec096f10bda0
+- 902c970295e926b624a3c88e546522d98b332dd27c14247cd5005421e9caec19
+
+---
+## 2025-10-16 17:36 – Import
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested 10.8 Test 1 (0633b10f-c3a7-42c8-8ddf-3c0fbd8f451b) via CsvImporter from 10.8 Test 1.csv.
+
+**References**:
+- C:\Users\brett\OneDrive - Georgia Gwinnett College\---  SCHOOL ---\Anfuso_Bell STEC Research (Fall 2025) - Documents\General\Data\DATA\IR - CO2\10.8 Test 1.csv
+- 0633b10f-c3a7-42c8-8ddf-3c0fbd8f451b
+- cfc395d30fa942ad7635a5c86fe7a66cae623431f2030fe7ae9cadde7593df6a
+
+---
+## 2025-10-16 17:38 – Overlay
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Enabled reference overlay reference::ir_groups.
+
+**References**:
+- reference::ir_groups
+
+---
+## 2025-10-16 17:40 – Overlay
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Reference overlay cleared.
+
+**References**:
+- reference::ir_groups
+
+---
+## 2025-10-16 17:41 – Import
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested okay sun file (cac011c6-7b92-4ec6-8a76-f75f99f290cf) via CsvImporter from okay sun file.csv.
+
+**References**:
+- C:\Users\brett\OneDrive - Georgia Gwinnett College\---  SCHOOL ---\STEC\DATA\Sun\okay sun file.csv
+- cac011c6-7b92-4ec6-8a76-f75f99f290cf
+- a39c5b38ba14f61b01eba899e1b953ea9b458838f5a94ce4bc0a059fd41b3337
+
+---
+## 2025-10-16 17:42 – Overlay
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Enabled reference overlay reference::hydrogen_lines.
+
+**References**:
+- reference::hydrogen_lines
+
+---
