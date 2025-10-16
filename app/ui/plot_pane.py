@@ -37,6 +37,7 @@ class PlotPane(QtWidgets.QWidget):
 
     unitChanged = QtCore.Signal(str)
     pointHovered = QtCore.Signal(float, float)
+    rangeChanged = QtCore.Signal(tuple, tuple)
 
     def __init__(self, parent: QtWidgets.QWidget | None = None) -> None:
         super().__init__(parent)
@@ -177,6 +178,7 @@ class PlotPane(QtWidgets.QWidget):
         self._plot.setDownsampling(mode="peak")
         self._plot.showGrid(x=False, y=False, alpha=0.2)
         self._vb: pg.ViewBox = self._plot.getPlotItem().getViewBox()
+        self._plot.sigRangeChanged.connect(self._on_plot_range_changed)
 
         self._legend = pg.LegendItem(offset=(10, 10))
         self._legend.setParentItem(self._plot.getPlotItem())
@@ -198,6 +200,29 @@ class PlotPane(QtWidgets.QWidget):
 
         self._plot.setLabel("bottom", "Wavelength", units=self._display_unit)
         self._plot.setLabel("left", self._y_label)
+
+    # ------------------------------------------------------------------
+    def _on_plot_range_changed(self, _: pg.PlotItem, ranges: object) -> None:
+        """Emit a simplified range tuple when the view bounds change."""
+
+        try:
+            x_range, y_range = ranges  # type: ignore[misc]
+        except Exception:
+            x_range, y_range = self._plot.viewRange()
+
+        def _coerce_pair(pair: object) -> tuple[float, float]:
+            values: list[float] = []
+            if isinstance(pair, (list, tuple)):
+                for value in pair[:2]:
+                    try:
+                        values.append(float(value))
+                    except (TypeError, ValueError):
+                        values.append(float("nan"))
+            if len(values) != 2:
+                return (float("nan"), float("nan"))
+            return (values[0], values[1])
+
+        self.rangeChanged.emit(_coerce_pair(x_range), _coerce_pair(y_range))
 
     def _apply_style(self, key: str) -> None:
         trace = self._traces[key]
