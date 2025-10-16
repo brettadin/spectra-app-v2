@@ -149,6 +149,12 @@
 - Allowed **File → Open** and **File → Load Sample** to queue multiple files at once while batching plot refreshes.
 - Documented the toolbar location for normalization modes and refreshed the reference-data walkthrough with the new overlay behaviour.
 
+## 2025-10-16 (Curated link catalogue) (2:30 pm)
+
+- Recovered the JWST and Astropy resource list into `docs/link_collection.md` with preserved annotations and clearer grouping for future documentation sprints.
+- Pointed the developer orientation notes at the refreshed catalogue so contributors can locate upstream references quickly.
+- Logged the addition in the knowledge log to surface the resource in session history.
+
 ## 2025-10-15 (Importing Guide Provenance Appendix) (9:10 am)
 
 - Expanded `docs/user/importing.md` with a provenance export appendix covering the structure of the manifest bundle.

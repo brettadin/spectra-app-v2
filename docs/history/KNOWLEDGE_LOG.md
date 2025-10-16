@@ -761,3 +761,16 @@ and patch notes document the automatic caching behaviour and opt-out flow.【F:t
 - e1faaf0ab4753f05a8ebcb1fc55dcf1b747e0d46f5e6bb0883d003fe85977e02
 
 ---
+## 2025-10-16 14:30 – Documentation
+
+**Author**: agent
+
+**Context**: Curated resource catalogue
+
+**Summary**: Restored the JWST and Astropy link collection into `docs/link_collection.md` with preserved annotations and added a developer note pointing to the catalogue for future reference.
+
+**References**:
+- docs/link_collection.md
+- docs/developer_notes.md
+
+---

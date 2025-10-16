@@ -1,5 +1,8 @@
 # Developer Notes – Service Extension Points
 
+## Reference materials
+- Consult `docs/link_collection.md` for curated JWST, MAST, and Astropy ecosystem resources when scoping integrations or reviewing upstream tooling.
+
 ## Importers
 - Implement `SupportsImport` protocol (`app/services/importers/base.py`) and register via `DataIngestService.register_importer`. Each importer should return `ImporterResult` with raw arrays, units, metadata, and optional `source_path`.
 - Keep parsing non-destructive: do not mutate arrays; let `UnitsService.to_canonical` normalise units.
