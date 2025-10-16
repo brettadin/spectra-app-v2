@@ -1,5 +1,17 @@
 # Patch Notes
 
+## 2025-10-16 (Remote catalogue ingestion) (11:10 pm UTC)
+
+- Added a `RemoteDataService` with dependency guards for `requests`/`astroquery`,
+  caching remote downloads in the shared `LocalStore` with provider metadata,
+  fetch timestamps, and checksums so repeated requests reuse cached artefacts.
+- Wired a **File → Fetch Remote Data…** dialog that searches NIST ASD/MAST
+  catalogues, previews metadata, and pipes downloads into the existing ingest
+  pipeline so imported spectra immediately populate overlays and history logs.
+- Authored user documentation for the remote workflow, noted the plotting
+  integration, and recorded regression tests covering URL construction, cache
+  reuse, and provenance payloads for remote downloads.
+
 ## 2025-10-16 (Knowledge log automation & history dock) (9:45 pm UTC)
 
 - Added a `KnowledgeLogService` that appends structured entries to the consolidated log (or an alternate runtime file) and

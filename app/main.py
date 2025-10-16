@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import os
 import sys
+import tempfile
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Mapping, Optional, Sequence, cast
 
@@ -23,8 +24,10 @@ from .services import (
     LocalStore,
     KnowledgeLogEntry,
     KnowledgeLogService,
+    RemoteDataService,
 )
 from .ui.plot_pane import PlotPane, TraceStyle
+from .ui.remote_data_dialog import RemoteDataDialog
 
 QtCore: Any
 QtGui: Any
@@ -60,6 +63,10 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self._persistence_disabled = self._persistence_env_disabled or self._load_persistence_preference()
         self.store: LocalStore | None = None if self._persistence_disabled else LocalStore()
         self.ingest_service = DataIngestService(self.units_service, store=self.store)
+        remote_store = self.store
+        if remote_store is None:
+            remote_store = LocalStore(base_dir=Path(tempfile.mkdtemp(prefix="spectra-remote-")))
+        self.remote_data_service = RemoteDataService(remote_store)
         self.math_service = MathService()
         self.knowledge_log = knowledge_log_service or KnowledgeLogService(
             default_context="Spectra Desktop Session"
@@ -120,6 +127,11 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         sample_action = QtGui.QAction("Load &Sample", self)
         sample_action.triggered.connect(self.load_sample_via_menu)
         file_menu.addAction(sample_action)
+
+        remote_action = QtGui.QAction("Fetch &Remote Data…", self)
+        remote_action.setShortcut("Ctrl+Shift+R")
+        remote_action.triggered.connect(self.open_remote_data_dialog)
+        file_menu.addAction(remote_action)
 
         self.persistence_action = QtGui.QAction("Enable Persistent Cache", self, checkable=True)
         self.persistence_action.setChecked(not self._persistence_disabled)
@@ -523,6 +535,42 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                 self._ingest_path(Path(raw))
         finally:
             self.plot.end_bulk_update()
+
+    def open_remote_data_dialog(self) -> None:
+        dialog = RemoteDataDialog(
+            self,
+            remote_service=self.remote_data_service,
+            ingest_service=self.ingest_service,
+        )
+        if not dialog.exec():
+            return
+
+        spectra = [spec for spec in dialog.ingested_spectra() if isinstance(spec, Spectrum)]
+        if not spectra:
+            return
+
+        self.plot.begin_bulk_update()
+        try:
+            for spectrum in spectra:
+                self.overlay_service.add(spectrum)
+                self._add_spectrum(spectrum)
+                remote_info = self._record_remote_history_event(spectrum)
+                provider = str(remote_info.get("provider", "remote source"))
+                uri = remote_info.get("uri")
+                detail = f"Imported {spectrum.name} from {provider}"
+                if uri:
+                    detail += f" ({uri})"
+                self._log("Remote", detail)
+        finally:
+            self.plot.end_bulk_update()
+
+        self._update_math_selectors()
+        self.refresh_overlay()
+        self._show_metadata(spectra[-1])
+        self._show_provenance(spectra[-1])
+        message = f"Imported {len(spectra)} remote spectrum(s)."
+        self.status_bar.showMessage(message, 5000)
+        self._log("Remote", message)
 
     def load_sample_via_menu(self) -> None:
         files = list(SAMPLES_DIR.glob("*.csv"))
@@ -990,6 +1038,24 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             return
         if getattr(self, "_history_ui_ready", False):
             self._append_history_entry(entry)
+
+    def _record_remote_history_event(self, spectrum: Spectrum) -> Mapping[str, Any]:
+        metadata = spectrum.metadata if isinstance(spectrum.metadata, Mapping) else {}
+        cache_record = metadata.get("cache_record") if isinstance(metadata, Mapping) else None
+        remote: Mapping[str, Any] | None = None
+        if isinstance(cache_record, Mapping):
+            source = cache_record.get("source")
+            if isinstance(source, Mapping):
+                candidate = source.get("remote")
+                if isinstance(candidate, Mapping):
+                    remote = candidate
+        provider = str(remote.get("provider", "remote source")) if remote else "remote source"
+        uri = str(remote.get("uri")) if remote and remote.get("uri") else None
+        sha = str(cache_record.get("sha256")) if isinstance(cache_record, Mapping) and cache_record.get("sha256") else None
+        summary = f"Imported {spectrum.name} ({spectrum.id}) from {provider}."
+        references = [ref for ref in [uri, sha, spectrum.id] if ref]
+        self._record_history_event("Remote Import", summary, references)
+        return {"provider": provider, "uri": uri, "sha": sha}
 
     def _populate_data_table(self, views: Iterable[dict]) -> None:
         views = list(views)

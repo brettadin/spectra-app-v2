@@ -2,4 +2,5 @@
 
 __all__ = [
     "plot_pane",
+    "remote_data_dialog",
 ]
