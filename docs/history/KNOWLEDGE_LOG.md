@@ -611,3 +611,45 @@ and patch notes document the automatic caching behaviour and opt-out flow.【F:t
 - 9e7be442cbab35d2ba254c8a90bbaa994fb8d734af9de203453a283476618260
 
 ---
+## 2025-10-15 23:55 – Import
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested sample_reference (594a8105-9884-4b86-a939-303cf078678c) via CsvImporter from sample_reference.csv.
+
+**References**:
+- C:\Code\spectra-app-beta\samples\sample_reference.csv
+- 594a8105-9884-4b86-a939-303cf078678c
+- 76a5a1d2fdaaee20d3a89ac3af382df9f42c2727a01afde5462688e9a2633425
+
+---
+## 2025-10-15 23:55 – Import
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested sample_spectrum (721b881e-1746-4284-b10d-2377c30a2756) via CsvImporter from sample_spectrum.csv.
+
+**References**:
+- C:\Code\spectra-app-beta\samples\sample_spectrum.csv
+- 721b881e-1746-4284-b10d-2377c30a2756
+- b0cf809fb461459e6fae989a24e45ffb65fbc797884b69edf2bf3c44a4acfeac
+
+---
+## 2025-10-15 23:55 – Import
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested sample_transmittance (67d7c558-61dc-4e70-b14b-507fe301ff2b) via CsvImporter from sample_transmittance.csv.
+
+**References**:
+- C:\Code\spectra-app-beta\samples\sample_transmittance.csv
+- 67d7c558-61dc-4e70-b14b-507fe301ff2b
+- 9e7be442cbab35d2ba254c8a90bbaa994fb8d734af9de203453a283476618260
+
+---
