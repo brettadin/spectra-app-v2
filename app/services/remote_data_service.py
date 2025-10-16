@@ -137,6 +137,8 @@ class RemoteDataService:
                 tmp_path = Path(handle.name)
             cleanup_tmp = True
 
+        tmp_path = Path(tmp_path)
+
         x_unit, y_unit = record.resolved_units()
         remote_metadata = {
             "provider": record.provider,
