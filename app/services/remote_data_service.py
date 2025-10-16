@@ -222,11 +222,14 @@ class RemoteDataService:
     def _search_mast(self, query: Mapping[str, Any]) -> List[RemoteRecord]:
         observations = self._ensure_mast()
         criteria = dict(query)
-        text = criteria.pop("text", None)
+        text = criteria.get("text")
         if isinstance(text, str):
-            text = text.strip()
-        if text and not criteria.get("target_name"):
-            criteria["target_name"] = text
+            stripped = text.strip()
+            if stripped:
+                criteria.setdefault("target_name", stripped)
+            criteria.pop("text", None)
+        elif "text" in criteria:
+            criteria.pop("text", None)
         table = observations.Observations.query_criteria(**criteria)
         rows = self._table_to_records(table)
         records: List[RemoteRecord] = []
