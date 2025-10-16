@@ -8,6 +8,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
+      
+
+Check failure on line 10 in .github/workflows/ci.yml
+GitHub Actions / .github/workflows/ci.yml
+
+Invalid workflow file
+
+You have an error in your yaml syntax on line 10
+
+
         with: { python-version: ${{ matrix.python-version }} }
       - name: Install
         run: |
