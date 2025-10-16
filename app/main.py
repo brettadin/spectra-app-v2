@@ -36,6 +36,7 @@ QT_BINDING: str
 QtCore, QtGui, QtWidgets, QT_BINDING = get_qt()
 
 SAMPLES_DIR = Path(__file__).resolve().parent.parent / "samples"
+PLOT_MAX_POINTS_KEY = "plot/max_points"
 
 
 class SpectraMainWindow(QtWidgets.QMainWindow):
@@ -74,6 +75,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
 
         self.unit_combo: Optional[QtWidgets.QComboBox] = None
         self.plot_toolbar: Optional[QtWidgets.QToolBar] = None
+        self.plot_max_points_control: Optional[QtWidgets.QSpinBox] = None
 
         self._dataset_items: Dict[str, QtGui.QStandardItem] = {}
         self._spectrum_colors: Dict[str, QtGui.QColor] = {}
@@ -108,6 +110,8 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self._history_entries: List[KnowledgeLogEntry] = []
         self._displayed_history_entries: List[KnowledgeLogEntry] = []
         self._history_ui_ready = False
+
+        self._plot_max_points = self._load_plot_max_points()
 
         self._setup_ui()
         self._setup_menu()
@@ -186,6 +190,15 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         settings = QtCore.QSettings("SpectraApp", "DesktopPreview")
         return bool(settings.value("persistence/disabled", False, type=bool))
 
+    def _load_plot_max_points(self) -> int:
+        settings = QtCore.QSettings("SpectraApp", "DesktopPreview")
+        stored = settings.value(PLOT_MAX_POINTS_KEY, PlotPane.DEFAULT_MAX_POINTS, type=int)
+        return PlotPane.normalize_max_points(stored)
+
+    def _save_plot_max_points(self, value: int) -> None:
+        settings = QtCore.QSettings("SpectraApp", "DesktopPreview")
+        settings.setValue(PLOT_MAX_POINTS_KEY, int(value))
+
     def _on_persistence_toggled(self, enabled: bool) -> None:
         if self._persistence_env_disabled:
             return
@@ -203,7 +216,8 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.central_split.setOrientation(QtCore.Qt.Orientation.Horizontal)
         self.setCentralWidget(self.central_split)
 
-        self.plot = PlotPane(self)
+        self.plot = PlotPane(self, max_points=self._plot_max_points)
+        self._plot_max_points = self.plot.max_points
         self.plot.setObjectName("plot-area")
         self.central_split.addWidget(self.plot)
         self.plot.autoscale()
@@ -395,9 +409,25 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         # Style tab placeholder ---------------------------------------
         self.tab_style = QtWidgets.QWidget()
         style_layout = QtWidgets.QVBoxLayout(self.tab_style)
-        style_placeholder = QtWidgets.QLabel("Style controls coming soon.")
-        style_placeholder.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
-        style_layout.addWidget(style_placeholder)
+        lod_help = QtWidgets.QLabel(
+            "Adjust the level-of-detail budget to trade fidelity for interactivity when plotting dense spectra."
+        )
+        lod_help.setWordWrap(True)
+        style_layout.addWidget(lod_help)
+
+        lod_form = QtWidgets.QFormLayout()
+        style_layout.addLayout(lod_form)
+
+        self.plot_max_points_control = QtWidgets.QSpinBox()
+        self.plot_max_points_control.setRange(PlotPane.MIN_MAX_POINTS, PlotPane.MAX_MAX_POINTS)
+        self.plot_max_points_control.setSingleStep(PlotPane.MIN_MAX_POINTS)
+        self.plot_max_points_control.setAccelerated(True)
+        self.plot_max_points_control.setKeyboardTracking(False)
+        self.plot_max_points_control.setValue(self._plot_max_points)
+        self.plot_max_points_control.valueChanged.connect(self._on_plot_max_points_changed)
+        lod_form.addRow("LOD point budget:", self.plot_max_points_control)
+
+        style_layout.addStretch(1)
 
         # Provenance tab -----------------------------------------------
         self.tab_prov = QtWidgets.QWidget()
@@ -476,6 +506,18 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         if self.unit_combo is None:
             return "nm"
         return self.unit_combo.currentText()
+
+    def _on_plot_max_points_changed(self, value: int) -> None:
+        coerced = PlotPane.normalize_max_points(value)
+        if coerced != value and self.plot_max_points_control is not None:
+            self.plot_max_points_control.blockSignals(True)
+            self.plot_max_points_control.setValue(coerced)
+            self.plot_max_points_control.blockSignals(False)
+        if coerced == self._plot_max_points:
+            return
+        self._plot_max_points = coerced
+        self.plot.set_max_points(coerced)
+        self._save_plot_max_points(coerced)
 
     def _on_display_unit_changed(self, unit: str) -> None:
         self.plot.set_display_unit(unit)
