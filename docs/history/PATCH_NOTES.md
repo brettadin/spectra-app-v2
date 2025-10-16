@@ -1,5 +1,14 @@
 # Patch Notes
 
+## 2025-10-16 (Knowledge log automation & history dock) (9:45 pm UTC)
+
+- Added a `KnowledgeLogService` that appends structured entries to the consolidated log (or an alternate runtime file) and
+  exposes helpers for filtering/exporting provenance events.
+- Instrumented SpectraMainWindow imports, overlays, math operations, and exports so each workflow records provenance-ready
+  metadata while updating the new History dock in real time.
+- Introduced a History dock with search and component filters plus export controls, refreshed docs to describe the automation
+  pathway, and added regression coverage for the service and UI integration.
+
 ## 2025-10-16 (Automatic ingest caching) (2:30 pm UTC)
 
 - Wired `DataIngestService` to accept a `LocalStore`, recording canonical units
