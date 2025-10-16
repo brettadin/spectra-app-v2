@@ -35,17 +35,26 @@ class TraceStyle:
 class PlotPane(QtWidgets.QWidget):
     """Central plotting widget with legend, crosshair, and multi-trace support."""
 
+    DEFAULT_MAX_POINTS = 120_000
+    MIN_MAX_POINTS = 1_000
+    MAX_MAX_POINTS = 1_000_000
+
     unitChanged = QtCore.Signal(str)
     pointHovered = QtCore.Signal(float, float)
     rangeChanged = QtCore.Signal(tuple, tuple)
 
-    def __init__(self, parent: QtWidgets.QWidget | None = None) -> None:
+    def __init__(
+        self,
+        parent: QtWidgets.QWidget | None = None,
+        *,
+        max_points: int | None = None,
+    ) -> None:
         super().__init__(parent)
         self._display_unit = "nm"
         self._y_label = "Intensity"
         self._traces: Dict[str, Dict[str, object]] = {}
         self._order: list[str] = []
-        self._max_points = 120_000
+        self._max_points = self.normalize_max_points(max_points)
         self._crosshair_visible = True
         self._build_ui()
 
@@ -264,6 +273,34 @@ class PlotPane(QtWidgets.QWidget):
         x_disp, y = self._downsample_peak(x_disp, y, self._max_points)
         item.setData(x_disp, y, connect="finite")
         item.setVisible(bool(trace.get("visible", True)))
+
+    def set_max_points(self, value: int | None) -> None:
+        """Adjust the point budget used when downsampling traces."""
+
+        validated = self.normalize_max_points(value)
+        if validated == self._max_points:
+            return
+        self._max_points = validated
+        for key in self._traces:
+            self._update_curve(key)
+
+    @property
+    def max_points(self) -> int:
+        return self._max_points
+
+    @classmethod
+    def normalize_max_points(cls, value: int | None) -> int:
+        if value is None:
+            return cls.DEFAULT_MAX_POINTS
+        try:
+            numeric = int(value)
+        except (TypeError, ValueError):
+            return cls.DEFAULT_MAX_POINTS
+        if numeric < cls.MIN_MAX_POINTS:
+            return cls.MIN_MAX_POINTS
+        if numeric > cls.MAX_MAX_POINTS:
+            return cls.MAX_MAX_POINTS
+        return numeric
 
     def _downsample_peak(
         self, x: np.ndarray, y: np.ndarray, max_points: int

@@ -55,9 +55,9 @@ Automated coverage in `tests/test_reference_ui.py::test_ir_overlay_labels_stack_
 
 ## Level-of-detail safeguards
 
-High-resolution spectra can contain millions of samples. Rendering every point would make panning and zooming sluggish, so the plot pane automatically enforces a peak-envelope LOD cap:
+High-resolution spectra can contain millions of samples. Rendering every point would make panning and zooming sluggish, so the plot pane automatically enforces a peak-envelope LOD cap. The default budget renders up to **120,000** points per trace exactly as provided, but you can tailor the threshold under **Inspector → Style → LOD point budget**. The spinner ranges from 1,000 to 1,000,000 samples so dense imports stay interactive on modest GPUs.
 
-- Up to **120,000** points per trace render exactly as provided.
+- Up to the configured cap render exactly as provided.
 - Above that threshold, the x-axis is segmented and each block collapses into alternating min/max samples that preserve peaks.
 - The tail of a trace that does not align perfectly with the segmentation is appended without modification so you never lose edge information.
 

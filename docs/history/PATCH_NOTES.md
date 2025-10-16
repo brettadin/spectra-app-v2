@@ -1,5 +1,11 @@
 # Patch Notes
 
+## 2025-10-16 (Adjustable plot LOD budget) (11:55 pm UTC)
+
+- Added a configurable "LOD point budget" control to the Inspector Style tab so users can raise or lower the plot downsampling threshold from 1k to 1M samples while Spectra persists the preference via `QSettings`.
+- Taught `PlotPane` to accept a constructor-provided budget with validation plus a runtime setter that clamps unreasonable values and re-renders existing traces accordingly.
+- Extended the plot performance stub tests to exercise the override path and ensure the peak-envelope downsampling honours the user-selected limit, alongside documentation updates for the new control.
+
 ## 2025-10-16 (Remote catalogue ingestion) (11:10 pm UTC)
 
 - Added a `RemoteDataService` with dependency guards for `requests`/`astroquery`,
