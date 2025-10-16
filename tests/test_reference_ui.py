@@ -81,6 +81,12 @@ def test_ir_overlay_payload_includes_fill_and_labels() -> None:
         assert isinstance(labels, list)
         assert labels and labels[0]["text"] == "Carbonyl"
         assert labels[0]["centre_nm"] > 0
+
+        x_values = payload["x_nm"]
+        finite = x_values[np.isfinite(x_values)]
+        assert finite.size >= 2
+        diffs = np.diff(finite)
+        assert np.all(diffs != 0.0)
     finally:
         window.close()
         window.deleteLater()
@@ -102,7 +108,16 @@ def test_ir_overlay_labels_stack_inside_band() -> None:
 
         band_bottom, band_top = window._overlay_band_bounds()
 
-        x_segments = np.array([900, 900, 950, 950, np.nan], dtype=float)
+        x_segments = np.array(
+            [
+                900.0,
+                np.nextafter(900.0, 950.0),
+                np.nextafter(950.0, 900.0),
+                950.0,
+                np.nan,
+            ],
+            dtype=float,
+        )
         y_segments = np.array([band_bottom, band_top, band_top, band_bottom, np.nan], dtype=float)
 
         payload = {

@@ -1412,7 +1412,15 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                 continue
             if nm_low == nm_high:
                 continue
-            x_segments.extend([nm_low, nm_low, nm_high, nm_high, np.nan])
+            # PyQtGraph's PlotDataItem differentiates successive X values when
+            # constructing fill paths; perfectly vertical edges therefore
+            # trigger divide-by-zero warnings if we submit identical
+            # coordinates back-to-back.  Use ``nextafter`` to pull the interior
+            # points infinitesimally towards the opposite edge so the segment
+            # remains visually vertical while avoiding zero-length steps.
+            low_edge = np.nextafter(nm_low, nm_high)
+            high_edge = np.nextafter(nm_high, nm_low)
+            x_segments.extend([nm_low, low_edge, high_edge, nm_high, np.nan])
             y_segments.extend([y_low, y_high, y_high, y_low, np.nan])
 
             label = entry.get("group") or entry.get("id")
