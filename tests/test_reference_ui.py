@@ -197,3 +197,52 @@ def test_line_shape_preview_populates_overlay_payload() -> None:
         window.close()
         window.deleteLater()
         app.processEvents()
+
+
+def test_reference_overlay_toggle_preserves_payload_object() -> None:
+    if SpectraMainWindow is None or QtWidgets is None:
+        pytest.skip(f"Qt stack unavailable: {_qt_import_error}")
+
+    pytest.importorskip("pyqtgraph")
+
+    app = _ensure_app()
+    window = SpectraMainWindow()
+    try:
+        band_bottom, band_top = window._overlay_band_bounds()
+        payload = {
+            "key": "reference::regression::toggle",
+            "alias": "Reference – Toggle Regression",
+            "x_nm": np.array([410.0, 410.0, 520.0, 520.0, np.nan], dtype=float),
+            "y": np.array([band_bottom, band_top, band_top, band_bottom, np.nan], dtype=float),
+            "color": "#4F6D7A",
+            "width": 1.2,
+            "fill_color": (79, 109, 122, 90),
+            "fill_level": float(band_bottom),
+            "band_bounds": (float(band_bottom), float(band_top)),
+            "labels": [
+                {"text": "Feature", "centre_nm": 465.0},
+            ],
+        }
+
+        window._update_reference_overlay_state(payload)
+        assert window._reference_overlay_payload is payload
+
+        annotations_list = window._reference_overlay_annotations
+        window.reference_overlay_checkbox.setChecked(True)
+        app.processEvents()
+
+        assert window._reference_overlay_payload is payload
+        assert window._reference_overlay_annotations is annotations_list
+        assert window._reference_overlay_annotations
+
+        window.reference_overlay_checkbox.setChecked(False)
+        app.processEvents()
+
+        assert window._reference_overlay_payload is payload
+        assert window._reference_overlay_annotations is annotations_list
+        assert not window._reference_overlay_annotations
+    finally:
+        window._clear_reference_overlay()
+        window.close()
+        window.deleteLater()
+        app.processEvents()

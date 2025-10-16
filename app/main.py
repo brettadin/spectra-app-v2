@@ -59,9 +59,10 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self._normalization_mode: str = "None"
         self._doc_entries: List[tuple[str, Path]] = []
         self._reference_plot_items: List[object] = []
+        self._reference_overlay_annotations: List[pg.TextItem] = []
         self._reference_overlay_key: Optional[str] = None
         self._reference_overlay_payload: Optional[Dict[str, Any]] = None
-        self._reference_overlay_annotations: List[pg.TextItem] = []
+        self._reset_reference_overlay_state()
         self._display_y_units: Dict[str, str] = {}
         self._line_shape_rows: List[Mapping[str, Any]] = []
         self._palette: List[QtGui.QColor] = [
@@ -81,8 +82,6 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self._log_ready = False
 
         self._reference_items: list[pg.GraphicsObject] = []
-        self._reference_overlay_payload: Optional[Dict[str, Any]] = None
-        self._reference_overlay_key: Optional[str] = None
 
         self._setup_ui()
         self._setup_menu()
@@ -1638,6 +1637,16 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             top = bottom + max(span * 0.3, 1.0)
         return bottom, top
 
+    def _reset_reference_overlay_state(self) -> None:
+        """Clear overlay bookkeeping while preserving payload state."""
+
+        self._reference_overlay_key = None
+        annotations = getattr(self, "_reference_overlay_annotations", None)
+        if annotations is None:
+            self._reference_overlay_annotations = []
+        else:
+            annotations.clear()
+
     def _on_reference_overlay_toggled(self, checked: bool) -> None:
         if checked:
             self._apply_reference_overlay()
@@ -1753,7 +1762,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.plot.add_trace(key, alias, x_values, y_values, style)
         self._reference_overlay_key = key
 
-        self._reference_overlay_annotations = []
+        self._reference_overlay_annotations.clear()
         band_bounds = payload.get("band_bounds")
         labels = payload.get("labels")
         if (
@@ -1837,15 +1846,15 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                 self._reference_overlay_annotations.append(text_item)
 
     def _clear_reference_overlay(self) -> None:
-        if self._reference_overlay_key:
-            self.plot.remove_trace(self._reference_overlay_key)
-            self._reference_overlay_key = None
+        key = self._reference_overlay_key
+        if key:
+            self.plot.remove_trace(key)
         for item in self._reference_overlay_annotations:
             try:
                 self.plot.remove_graphics_item(item)
             except Exception:  # pragma: no cover - defensive cleanup
                 continue
-        self._reference_overlay_annotations = []
+        self._reset_reference_overlay_state()
 
     def _set_reference_meta(self, title: Optional[str], url: Optional[str], notes: Optional[str]) -> None:
         pieces: List[str] = []

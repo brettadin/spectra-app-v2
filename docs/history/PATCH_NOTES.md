@@ -1,5 +1,14 @@
 # Patch Notes
 
+## 2025-10-16 (Reference overlay state consolidation) (1:50 pm UTC)
+
+- Deduplicated the Reference inspector's overlay attributes so the payload, key, and annotations initialise once at startup and
+  reset through a shared helper when overlays are cleared.
+- Added `_reset_reference_overlay_state()` to centralise cleanup paths, ensuring toggles reuse the existing payload dictionary
+  and annotation list rather than replacing them mid-session.
+- Extended the GUI regression suite to cover overlay toggling semantics and updated the plotting guide to mention the
+  single-source overlay bookkeeping; logged the activity in the consolidated knowledge log for traceability.
+
 ## 2025-10-16 (Line-shape previews & overlay integration) (11:45 am UTC)
 
 - Promoted Doppler, pressure, and Stark placeholders to `ready` with units and example parameters so the Inspector can seed
