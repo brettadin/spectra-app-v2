@@ -1,5 +1,16 @@
 # Patch Notes
 
+## 2025-10-16 (Automatic ingest caching) (2:30 pm UTC)
+
+- Wired `DataIngestService` to accept a `LocalStore`, recording canonical units
+  and provenance metadata after every import so the cache index updates without
+  manual intervention.
+- Instantiated a shared `LocalStore` in the preview shell with a toggleable
+  persistence preference (plus the `SPECTRA_DISABLE_PERSISTENCE` environment
+  override) so manual imports and sample loads land in the cache consistently.
+- Documented the new behaviour, regression coverage, and knowledge-log entry to
+  highlight the automatic caching flow and opt-out controls.
+
 ## 2025-10-16 (Reference overlay state consolidation) (1:50 pm UTC)
 
 - Deduplicated the Reference inspector's overlay attributes so the payload, key, and annotations initialise once at startup and

@@ -6,9 +6,11 @@ import json
 from collections import deque
 from datetime import datetime, timezone
 from pathlib import Path
+from unittest.mock import MagicMock
 
 import pytest
 
+from app.services import DataIngestService, UnitsService
 from app.services.store import LocalStore
 
 
@@ -88,3 +90,51 @@ def test_record_preserves_created_timestamp(tmp_path: Path, mini_source: Path):
     assert first["sha256"] == second["sha256"]
     assert first["created"] == second["created"]
     assert first["updated"] != second["updated"]
+
+
+def test_ingest_records_with_store():
+    store = MagicMock(spec=LocalStore)
+    store.record.return_value = {
+        "sha256": "deadbeef",
+        "created": "2025-10-16T08:00:00+00:00",
+        "updated": "2025-10-16T08:00:00+00:00",
+    }
+    service = DataIngestService(UnitsService(), store=store)
+    sample_path = Path("samples/sample_spectrum.csv")
+
+    spectrum = service.ingest(sample_path)
+
+    store.record.assert_called_once()
+    _, kwargs = store.record.call_args
+    assert kwargs["x_unit"] == spectrum.x_unit
+    assert kwargs["y_unit"] == spectrum.y_unit
+    cache_meta = spectrum.metadata["ingest"]["cache_record"]
+    assert cache_meta["sha256"] == "deadbeef"
+    assert spectrum.metadata["cache_record"]["created"] == "2025-10-16T08:00:00+00:00"
+
+
+def test_ingest_reuses_cached_metadata():
+    store = MagicMock(spec=LocalStore)
+    store.record.side_effect = [
+        {
+            "sha256": "deadbeef",
+            "created": "2025-10-16T08:00:00+00:00",
+            "updated": "2025-10-16T08:00:00+00:00",
+        },
+        {
+            "sha256": "deadbeef",
+            "created": "2025-10-16T08:00:00+00:00",
+            "updated": "2025-10-16T09:15:00+00:00",
+        },
+    ]
+    service = DataIngestService(UnitsService(), store=store)
+    sample_path = Path("samples/sample_spectrum.csv")
+
+    first = service.ingest(sample_path)
+    second = service.ingest(sample_path)
+
+    assert store.record.call_count == 2
+    assert first.metadata["ingest"]["cache_record"]["sha256"] == "deadbeef"
+    assert second.metadata["ingest"]["cache_record"]["sha256"] == "deadbeef"
+    assert second.metadata["ingest"]["cache_record"]["created"] == "2025-10-16T08:00:00+00:00"
+    assert second.metadata["ingest"]["cache_record"]["updated"] == "2025-10-16T09:15:00+00:00"
