@@ -18,6 +18,7 @@ from .services import (
     MathService,
     ReferenceLibrary,
     Spectrum,
+    LineShapeModel,
 )
 from .ui.plot_pane import PlotPane, TraceStyle
 
@@ -40,10 +41,14 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
 
         self.units_service = UnitsService()
         self.provenance_service = ProvenanceService()
-        self.ingest_service = DataIngestService(self.units_service)
-        self.overlay_service = OverlayService(self.units_service)
-        self.math_service = MathService()
         self.reference_library = ReferenceLibrary()
+        self.line_shape_model = LineShapeModel(
+            self.reference_library.line_shape_placeholders(),
+            self.reference_library.line_shape_metadata(),
+        )
+        self.overlay_service = OverlayService(self.units_service, line_shape_model=self.line_shape_model)
+        self.ingest_service = DataIngestService(self.units_service)
+        self.math_service = MathService()
 
         self.unit_combo: Optional[QtWidgets.QComboBox] = None
         self.plot_toolbar: Optional[QtWidgets.QToolBar] = None
@@ -58,6 +63,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self._reference_overlay_payload: Optional[Dict[str, Any]] = None
         self._reference_overlay_annotations: List[pg.TextItem] = []
         self._display_y_units: Dict[str, str] = {}
+        self._line_shape_rows: List[Mapping[str, Any]] = []
         self._palette: List[QtGui.QColor] = [
             QtGui.QColor("#4F6D7A"),
             QtGui.QColor("#C0D6DF"),
@@ -930,6 +936,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.reference_table.setAlternatingRowColors(True)
         header = self.reference_table.horizontalHeader()
         header.setStretchLastSection(True)
+        self.reference_table.itemSelectionChanged.connect(self._on_reference_row_selection_changed)
         layout.addWidget(self.reference_table, 1)
 
         self.reference_plot = pg.PlotWidget()
@@ -1018,6 +1025,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         overlay_payload: Optional[Dict[str, Any]] = None
 
         self._clear_reference_plot()
+        self._line_shape_rows = []
 
         if kind == "spectral_lines":
             entries = self.reference_library.spectral_lines()
@@ -1063,30 +1071,36 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         elif kind == "line_shapes":
             entries = self.reference_library.line_shape_placeholders()
             filtered = self._filter_reference_entries(entries, query)
-            self.reference_table.setColumnCount(4)
+            self._line_shape_rows = list(filtered)
+            self.reference_table.setColumnCount(5)
             self.reference_table.setHorizontalHeaderLabels(
-                ["Model", "Status", "Parameters", "Notes"]
+                ["Model", "Status", "Parameters", "Units", "Example"]
             )
             self.reference_table.setRowCount(len(filtered))
             for row, entry in enumerate(filtered):
-                self._set_table_item(row, 0, entry.get("label", entry.get("id", "")))
+                label = entry.get("label", entry.get("id", ""))
+                self._set_table_item(row, 0, label)
                 self._set_table_item(row, 1, entry.get("status", ""))
-                params = ", ".join(entry.get("parameters", []))
-                self._set_table_item(row, 2, params)
-                self._set_table_item(row, 3, entry.get("description", ""))
-            meta = self.reference_library.line_shape_metadata()
-            notes = meta.get("notes", "")
-            references = meta.get("references", [])
-            ref_lines = "".join(
-                f"<li><a href='{ref.get('url')}'>{ref.get('citation')}</a></li>"
-                for ref in references
-                if isinstance(ref, Mapping)
-            )
-            self.reference_meta.setHtml(
-                f"<p><b>{meta.get('notes', 'Line-shape placeholders')}</b></p><ul>{ref_lines}</ul>"
-                if ref_lines
-                else f"<p>{notes}</p>"
-            )
+                params = entry.get("parameters", [])
+                params_text = ", ".join(params) if isinstance(params, list) else ""
+                self._set_table_item(row, 2, params_text)
+                units_map = entry.get("units")
+                units_text = ", ".join(
+                    f"{key} ({value})" for key, value in units_map.items()
+                ) if isinstance(units_map, Mapping) else ""
+                self._set_table_item(row, 3, units_text)
+                example_text = self._format_line_shape_example(entry.get("example_parameters"))
+                self._set_table_item(row, 4, example_text)
+
+            if filtered:
+                self.reference_table.blockSignals(True)
+                self.reference_table.selectRow(0)
+                self.reference_table.blockSignals(False)
+                overlay_payload = self._render_selected_line_shape()
+            else:
+                self.reference_table.clearSelection()
+                meta = self.reference_library.line_shape_metadata()
+                self.reference_meta.setHtml(self._line_shape_overview_html(meta))
 
         elif kind == "jwst":
             if key is None:
@@ -1323,6 +1337,136 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
 
         nm_values = self._convert_um_to_nm(x_array)
         return self._build_overlay_for_jwst(target, nm_values, y_array)
+
+    def _on_reference_row_selection_changed(self) -> None:
+        option = self._current_reference_option()
+        if option is None or option[0] != "line_shapes":
+            return
+        overlay_payload = self._render_selected_line_shape()
+        self._update_reference_overlay_state(overlay_payload)
+
+    def _render_selected_line_shape(self) -> Optional[Dict[str, Any]]:
+        if not self._line_shape_rows or self.line_shape_model is None:
+            meta = self.reference_library.line_shape_metadata()
+            self.reference_meta.setHtml(self._line_shape_overview_html(meta))
+            self._clear_reference_plot()
+            return None
+        row = self.reference_table.currentRow()
+        if row < 0 or row >= len(self._line_shape_rows):
+            meta = self.reference_library.line_shape_metadata()
+            self.reference_meta.setHtml(self._line_shape_overview_html(meta))
+            self._clear_reference_plot()
+            return None
+        entry = self._line_shape_rows[row]
+        return self._render_line_shape_entry(entry)
+
+    def _render_line_shape_entry(self, entry: Mapping[str, Any]) -> Optional[Dict[str, Any]]:
+        if self.line_shape_model is None:
+            return None
+        model_id = str(entry.get("id", ""))
+        params = entry.get("example_parameters")
+        params_map = params if isinstance(params, Mapping) else None
+        outcome = self.line_shape_model.sample_profile(model_id, params_map)
+        meta = self.reference_library.line_shape_metadata()
+        if outcome is None:
+            self._clear_reference_plot()
+            self.reference_meta.setHtml(self._line_shape_overview_html(meta, entry, None))
+            return None
+
+        self._clear_reference_plot()
+        x_nm = np.asarray(outcome.x, dtype=float)
+        y_vals = np.asarray(outcome.y, dtype=float)
+        display_unit = self._reference_display_unit()
+        x_display = self._convert_nm_to_unit(x_nm, display_unit)
+        pen = pg.mkPen(color="#4F6D7A", width=2)
+        curve = self.reference_plot.plot(x_display, y_vals, pen=pen)
+        self._reference_plot_items.append(curve)
+        self.reference_plot.setLabel("bottom", "Wavelength", units=display_unit)
+        self.reference_plot.setLabel("left", "Normalised intensity (a.u.)")
+        if y_vals.size:
+            y_max = float(np.nanmax(y_vals))
+            if not np.isfinite(y_max) or y_max <= 0:
+                y_max = 1.0
+            self.reference_plot.setYRange(0.0, y_max * 1.1, padding=0.05)
+
+        self.reference_meta.setHtml(self._line_shape_overview_html(meta, entry, outcome.metadata))
+        alias = entry.get("label") or model_id or "Line-shape"
+        payload = {
+            "key": f"reference::line_shape::{model_id}",
+            "alias": f"Reference – {alias}",
+            "x_nm": x_nm,
+            "y": y_vals,
+            "color": "#4F6D7A",
+            "width": 2.0,
+            "model": model_id,
+            "parameters": outcome.metadata.get("parameters", {}),
+            "metadata": outcome.metadata,
+        }
+        return payload
+
+    def _format_line_shape_example(self, params: Any) -> str:
+        if not isinstance(params, Mapping):
+            return ""
+        tokens: List[str] = []
+        for key, value in params.items():
+            if isinstance(value, (int, float)):
+                tokens.append(f"{key}={self._format_float(value)}")
+            else:
+                tokens.append(f"{key}={value}")
+        return ", ".join(tokens)
+
+    def _line_shape_overview_html(
+        self,
+        meta: Mapping[str, Any],
+        entry: Mapping[str, Any] | None = None,
+        outcome: Mapping[str, Any] | None = None,
+    ) -> str:
+        parts: List[str] = []
+        if entry is not None:
+            title = entry.get("label") or entry.get("id") or "Line-shape model"
+            description = entry.get("description") or entry.get("notes") or ""
+            parts.append(f"<p><b>{title}</b><br/>{description}</p>")
+
+            units_map = entry.get("units")
+            if isinstance(units_map, Mapping) and units_map:
+                unit_items = "".join(
+                    f"<li>{key}: {value}</li>" for key, value in units_map.items()
+                )
+                parts.append(f"<p><b>Units</b></p><ul>{unit_items}</ul>")
+
+            params = outcome.get("parameters") if isinstance(outcome, Mapping) else entry.get("example_parameters")
+            example_text = self._format_line_shape_example(params)
+            if example_text:
+                parts.append(f"<p><b>Example parameters:</b> {example_text}</p>")
+
+            if isinstance(outcome, Mapping):
+                highlights: List[str] = []
+                for key in ("doppler_factor", "beta", "width_nm", "stark_width_nm", "delta_nm"):
+                    value = outcome.get(key)
+                    if value is None:
+                        continue
+                    if isinstance(value, (int, float)):
+                        highlights.append(f"{key.replace('_', ' ')} = {self._format_float(value)}")
+                    else:
+                        highlights.append(f"{key.replace('_', ' ')} = {value}")
+                if highlights:
+                    parts.append("<p><b>Computed metrics:</b> " + ", ".join(highlights) + "</p>")
+
+        notes = meta.get("notes")
+        if notes:
+            parts.append(f"<p>{notes}</p>")
+        references = meta.get("references")
+        if isinstance(references, list) and references:
+            ref_lines = "".join(
+                f"<li><a href='{ref.get('url')}'>{ref.get('citation')}</a></li>"
+                if isinstance(ref, Mapping) and ref.get("url")
+                else f"<li>{ref.get('citation')}</li>"
+                for ref in references
+                if isinstance(ref, Mapping) and ref.get("citation")
+            )
+            if ref_lines:
+                parts.append(f"<p><b>References</b></p><ul>{ref_lines}</ul>")
+        return "".join(parts) if parts else "<p>Line-shape placeholders</p>"
 
     def _reference_display_unit(self) -> str:
         return self.plot_unit()

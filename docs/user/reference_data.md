@@ -33,10 +33,14 @@ authoritative NIST assets from digitised JWST placeholders that still need regen
 ## Line-shape placeholders
 
 - References: B.W. Mangum & S. Shirley (2015) PASP 127, 266–298; G. Herzberg (1950) *Spectra of Diatomic Molecules*.
-- Purpose: captures TODO scaffolding for Doppler shifts, pressure/Stark broadening, and instrumental resolution so the
+- Purpose: captures Doppler shifts, pressure and Stark broadening, instrumental resolution, and other scaffolding so the
   feature backlog is visible to users and agents.
-- Usage: select **Line-shape Placeholders** to review planned parameters before integrating physics models. Each entry
-  is marked with a status flag (currently `todo`).
+- Models marked `ready` (Doppler shift, pressure broadening, Stark broadening) now include physical units and example
+  parameters pulled from those references. Highlighting a row renders a normalised sample profile and records Doppler
+  factors, Lorentzian kernel widths, or Stark wing scaling derived from the seeded inputs.
+- Usage: select **Line-shape Placeholders** and click a row to refresh the preview plot. The **Overlay on plot** toggle
+  projects the simulated profile into the main workspace, letting you compare the seeded broadening or velocity shift
+  against active spectra before wiring real metadata into the pipeline.
 
 ## JWST quick-look spectra
 

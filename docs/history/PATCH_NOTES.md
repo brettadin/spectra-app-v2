@@ -1,5 +1,14 @@
 # Patch Notes
 
+## 2025-10-16 (Line-shape previews & overlay integration) (11:45 am UTC)
+
+- Promoted Doppler, pressure, and Stark placeholders to `ready` with units and example parameters so the Inspector can seed
+  sample profiles from the reference catalogue.
+- Added a `LineShapeModel` service that parses the placeholder definitions, applies relativistic Doppler shifts, Lorentzian
+  pressure kernels, and Stark wing scaling, exposing the results to the overlay pipeline with provenance metadata.
+- Updated the Reference Inspector to preview the simulated profiles, wire selection changes into the overlay toggle, and added
+  regression coverage plus documentation updates for the new controls.
+
 ## 2025-10-16 (IR overlay anchoring documentation) (9:30 am UTC)
 
 - Documented the anchored IR functional-group overlays and label stacking safeguards in

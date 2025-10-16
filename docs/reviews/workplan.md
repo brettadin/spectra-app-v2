@@ -141,7 +141,7 @@
 
 # Workplan — Batch 10 (Backlog)
 
-- [ ] Wire Doppler/pressure/Stark broadening models into the overlay service using the placeholder parameter scaffolding.
+- [x] Wire Doppler/pressure/Stark broadening models into the overlay service using the placeholder parameter scaffolding (LineShapeModel service, Inspector preview, regression tests).
 - [ ] Replace digitised JWST tables with calibrated FITS ingestion and provenance links once the pipeline module is ready.
 - [ ] Expand the spectral line catalogue beyond hydrogen (e.g. He I, O III, Fe II) with citations and regression coverage.
 - [ ] Integrate IR functional group heuristics into importer header parsing for automated axis validation.
