@@ -43,7 +43,6 @@ class RemoteDataDialog(QtWidgets.QDialog):
 
         controls = QtWidgets.QHBoxLayout()
         self.provider_combo = QtWidgets.QComboBox(self)
-        self.provider_combo.addItems(self.remote_service.providers())
         controls.addWidget(QtWidgets.QLabel("Catalogue:"))
         controls.addWidget(self.provider_combo)
 
@@ -82,10 +81,17 @@ class RemoteDataDialog(QtWidgets.QDialog):
         cancel.clicked.connect(self.reject)
         layout.addWidget(buttons)
 
+        self.hint_label = QtWidgets.QLabel(self)
+        self.hint_label.setObjectName("remote-hint")
+        self.hint_label.setWordWrap(True)
+        layout.addWidget(self.hint_label)
+
         self.status_label = QtWidgets.QLabel(self)
         self.status_label.setObjectName("remote-status")
         self.status_label.setWordWrap(True)
         layout.addWidget(self.status_label)
+
+        self._refresh_provider_state()
 
     # ------------------------------------------------------------------
     def _on_search(self) -> None:
@@ -139,4 +145,36 @@ class RemoteDataDialog(QtWidgets.QDialog):
 
         self._ingested = spectra
         self.accept()
+
+    def _refresh_provider_state(self) -> None:
+        providers = self.remote_service.providers()
+        self.provider_combo.clear()
+        if providers:
+            self.provider_combo.addItems(providers)
+            self.provider_combo.setEnabled(True)
+            self.search_edit.setEnabled(True)
+            self.search_button.setEnabled(True)
+        else:
+            self.provider_combo.setEnabled(False)
+            self.search_edit.setEnabled(False)
+            self.search_button.setEnabled(False)
+
+        unavailable = self.remote_service.unavailable_providers()
+        if unavailable:
+            messages = []
+            for provider, reason in unavailable.items():
+                messages.append(f"{provider}: {reason}")
+            self.hint_label.setText("\n".join(messages))
+        else:
+            self.hint_label.clear()
+
+        if not providers:
+            if not unavailable:
+                self.status_label.setText("Remote catalogues are temporarily unavailable.")
+            else:
+                self.status_label.setText(
+                    "Remote catalogues are unavailable until the required optional dependencies are installed."
+                )
+        else:
+            self.status_label.clear()
 

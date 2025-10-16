@@ -76,7 +76,28 @@ class RemoteDataService:
     PROVIDER_MAST = "MAST"
 
     def providers(self) -> List[str]:
-        return [self.PROVIDER_NIST, self.PROVIDER_MAST]
+        """Return the list of remote providers whose dependencies are satisfied."""
+
+        providers: List[str] = []
+        if self._has_requests():
+            providers.append(self.PROVIDER_NIST)
+            if self._has_astroquery():
+                providers.append(self.PROVIDER_MAST)
+        return providers
+
+    def unavailable_providers(self) -> Dict[str, str]:
+        """Describe catalogues that cannot be used because dependencies are missing."""
+
+        reasons: Dict[str, str] = {}
+        if not self._has_requests():
+            reasons[self.PROVIDER_NIST] = "Install the 'requests' package to enable remote downloads."
+            reasons[self.PROVIDER_MAST] = (
+                "Install the 'requests' and 'astroquery' packages to enable MAST searches."
+            )
+            return reasons
+        if not self._has_astroquery():
+            reasons[self.PROVIDER_MAST] = "Install the 'astroquery' package to enable MAST searches."
+        return reasons
 
     # ------------------------------------------------------------------
     def search(self, provider: str, query: Mapping[str, Any]) -> List[RemoteRecord]:
@@ -234,6 +255,12 @@ class RemoteDataService:
         if astroquery_mast is None:
             raise RuntimeError("The 'astroquery' package is required for MAST searches")
         return astroquery_mast
+
+    def _has_requests(self) -> bool:
+        return requests is not None or self.session is not None
+
+    def _has_astroquery(self) -> bool:
+        return astroquery_mast is not None
 
     def _table_to_records(self, table: Any) -> List[Mapping[str, Any]]:
         if table is None:
