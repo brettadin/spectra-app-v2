@@ -118,13 +118,24 @@ class RemoteDataService:
                 cached=True,
             )
 
-        session = self._ensure_session()
-        response = session.get(record.download_url, timeout=60)
-        response.raise_for_status()
+        mast_provenance: Dict[str, Any] | None = None
+        cleanup_tmp = False
+        if record.provider == self.PROVIDER_MAST:
+            tmp_path = self._download_via_mast(record)
+            mast_provenance = {
+                "mast": {
+                    "downloaded_via": "astroquery.mast.Observations.download_file",
+                }
+            }
+        else:
+            session = self._ensure_session()
+            response = session.get(record.download_url, timeout=60)
+            response.raise_for_status()
 
-        with tempfile.NamedTemporaryFile(delete=False) as handle:
-            handle.write(response.content)
-            tmp_path = Path(handle.name)
+            with tempfile.NamedTemporaryFile(delete=False) as handle:
+                handle.write(response.content)
+                tmp_path = Path(handle.name)
+            cleanup_tmp = True
 
         x_unit, y_unit = record.resolved_units()
         remote_metadata = {
@@ -134,6 +145,8 @@ class RemoteDataService:
             "fetched_at": self._timestamp(),
             "metadata": json.loads(json.dumps(record.metadata)),
         }
+        if mast_provenance is not None:
+            remote_metadata.update(mast_provenance)
         store_entry = self.store.record(
             tmp_path,
             x_unit=x_unit,
@@ -141,7 +154,8 @@ class RemoteDataService:
             source={"remote": remote_metadata},
             alias=record.suggested_filename(),
         )
-        tmp_path.unlink(missing_ok=True)
+        if cleanup_tmp:
+            tmp_path.unlink(missing_ok=True)
 
         return RemoteDownloadResult(
             record=record,
@@ -260,6 +274,11 @@ class RemoteDataService:
         if astroquery_mast is None:
             raise RuntimeError("The 'astroquery' package is required for MAST searches")
         return astroquery_mast
+
+    def _download_via_mast(self, record: RemoteRecord) -> Path:
+        observations = self._ensure_mast()
+        path = observations.Observations.download_file(record.download_url, cache=False)
+        return Path(path)
 
     def _has_requests(self) -> bool:
         return requests is not None or self.session is not None
