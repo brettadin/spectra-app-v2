@@ -10,6 +10,8 @@ import pytest
 
 from app.services import LocalStore, RemoteDataService, RemoteRecord
 
+from app.services import remote_data_service as remote_module
+
 
 class DummyResponse:
     def __init__(self, *, json_payload: Any | None = None, content: bytes = b"", status: int = 200):
@@ -137,3 +139,27 @@ def test_search_mast_table_conversion(store: LocalStore, monkeypatch: pytest.Mon
     assert records[0].identifier == "12345"
     assert records[0].download_url == "mast:JWST/product.fits"
     assert records[0].units == {"x": "um", "y": "flux"}
+
+
+def test_providers_hide_missing_dependencies(monkeypatch: pytest.MonkeyPatch, store: LocalStore) -> None:
+    monkeypatch.setattr(remote_module, "requests", None)
+    monkeypatch.setattr(remote_module, "astroquery_mast", None)
+    service = RemoteDataService(store, session=None)
+
+    assert service.providers() == []
+    unavailable = service.unavailable_providers()
+    assert remote_module.RemoteDataService.PROVIDER_NIST in unavailable
+    assert remote_module.RemoteDataService.PROVIDER_MAST in unavailable
+
+    # Restoring requests but not astroquery keeps NIST available while flagging MAST.
+    class DummyRequests:
+        class Session:
+            def __call__(self) -> None:  # pragma: no cover - defensive
+                return None
+
+    monkeypatch.setattr(remote_module, "requests", DummyRequests)
+    service = RemoteDataService(store, session=None)
+
+    assert service.providers() == [remote_module.RemoteDataService.PROVIDER_NIST]
+    unavailable = service.unavailable_providers()
+    assert remote_module.RemoteDataService.PROVIDER_MAST in unavailable

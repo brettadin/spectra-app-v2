@@ -5,6 +5,14 @@ desktop preview. Searches are routed through provider-specific adapters and the
 downloads are cached in your local Spectra data directory so you can re-open
 them even when offline.
 
+> **Optional dependencies**
+>
+> Remote catalogues rely on third-party clients. The NIST adapter requires the
+> [`requests`](https://docs.python-requests.org/) package, while MAST lookups
+> also need [`astroquery`](https://astroquery.readthedocs.io/). If either
+> dependency is missing the dialog will list the provider as unavailable and the
+> search controls remain disabled until the package is installed.
+
 ## Opening the dialog
 
 1. Choose **File → Fetch Remote Data…** (or press `Ctrl+Shift+R`).
