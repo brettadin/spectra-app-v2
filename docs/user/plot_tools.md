@@ -45,6 +45,10 @@ Reference overlays adopt the scaling of the active plot so annotations land wher
 - Use **View → Reset Plot** to reapply auto-range—the overlay matches the recomputed intensity span.
 - Confirm no hidden traces define the axis limits; even invisible datasets can contribute to the active span if their visibility checkbox remains enabled.
 
+The Reference inspector now keeps a single source of truth for overlay bookkeeping, so toggling the checkbox reuses the existing
+payload and annotations rather than rebuilding empty containers. That means manual labels and band settings persist between
+clears until you load a different dataset or regenerate the payload from the inspector table.
+
 Automated coverage in `tests/test_reference_ui.py::test_ir_overlay_labels_stack_inside_band` protects the label-spacing logic, so overlap usually signals that the active axis is extremely compressed. Widening the y-range or temporarily disabling normalisation restores the expected layout.
 
 ## Level-of-detail safeguards

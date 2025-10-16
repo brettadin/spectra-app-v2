@@ -246,3 +246,15 @@ To migrate existing `brains` and `atlas` logs, follow these steps:
 **References**: `app/main.py`, `tests/test_smoke_workflow.py`, `docs/reviews/workplan.md`.
 
 ---
+
+## 2025-10-16 13:50 – Reference UI Overlay State
+
+**Author**: agent
+
+**Context**: Reference inspector overlay cleanup and regression coverage.
+
+**Summary**: Collapsed duplicate overlay attribute initialisation in the preview shell and introduced `_reset_reference_overlay_state()` so every clear path shares a single bookkeeping helper, keeping the payload dictionary and annotation list stable across toggles.【F:app/main.py†L60-L75】【F:app/main.py†L174-L192】【F:app/main.py†L229-L244】 Added a GUI regression test that flips the overlay checkbox to assert the payload object survives clears, preventing future refactors from dropping labels mid-session.【F:tests/test_reference_ui.py†L8-L118】 Updated the plotting guide and patch notes to call out the single-source overlay state for operators tracking behaviour changes.【F:docs/user/plot_tools.md†L58-L74】【F:docs/history/PATCH_NOTES.md†L1-L12】
+
+**References**: `app/main.py`, `tests/test_reference_ui.py`, `docs/user/plot_tools.md`, `docs/history/PATCH_NOTES.md`.
+
+---
