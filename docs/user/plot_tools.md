@@ -25,6 +25,8 @@ The **Cursor** toolbar toggle controls whether the crosshair guides are visible.
 
 Every trace that remains visible has a matching entry in the floating legend anchored to the top-left corner of the plot. Rename a dataset from the Inspector's alias field to update the legend label in real time. To declutter dense overlays, uncheck the visibility toggle in the Datasets dock—the trace disappears from the canvas and the legend until you re-enable it.
 
+> **Remote catalogue tip**: Imports triggered from **File → Fetch Remote Data…** behave just like local files. The spectra land in the Datasets dock with their remote provenance already cached, so you can toggle overlays, rename aliases, and compute ratios without any manual copying.
+
 ## Normalisation toolbar modes
 
 The top-of-window plot toolbar hosts the **Normalize** combo box alongside the unit selector. If the toolbar is hidden, restore it via **View → Plot Toolbar**—Spectra now draws every trace in the source intensity units reported by the importer (for example `%T` for percent transmittance). The y-axis label and data table adapt to those units so you see raw amplitudes first, then optionally apply scaling.

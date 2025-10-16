@@ -159,6 +159,18 @@ To migrate existing `brains` and `atlas` logs, follow these steps:
 
 ---
 
+## 2025-10-16 23:10 – Remote Data Ingestion
+
+**Author**: agent
+
+**Context**: Remote catalogue search, caching, and UI integration.
+
+**Summary**: Introduced a `RemoteDataService` that wraps NIST ASD and MAST lookups with dependency guards so optional `requests`/`astroquery` imports fail gracefully while cached downloads record provider URIs, checksums, and fetch timestamps in `LocalStore`.【F:app/services/remote_data_service.py†L1-L231】 Added a **File → Fetch Remote Data…** dialog that previews metadata, streams downloads through the standard ingest pipeline, and emits history entries for each remote import while logging the session status bar and knowledge log.【F:app/ui/remote_data_dialog.py†L1-L129】【F:app/main.py†L66-L896】 Documented the workflow, highlighted that remote imports behave like local overlays, updated patch notes, and wrote regression tests that mock remote APIs to assert URL construction, cache reuse, and provenance payloads.【F:docs/user/remote_data.md†L1-L52】【F:docs/user/plot_tools.md†L33-L37】【F:docs/history/PATCH_NOTES.md†L1-L9】【F:tests/test_remote_data_service.py†L1-L120】
+
+**References**: `app/services/remote_data_service.py`, `app/ui/remote_data_dialog.py`, `app/main.py`, `tests/test_remote_data_service.py`, `docs/user/remote_data.md`, `docs/user/plot_tools.md`, `docs/history/PATCH_NOTES.md`.
+
+---
+
 ## 2025-10-15 04:18 – Reference Regeneration Tooling
 
 **Author**: agent
