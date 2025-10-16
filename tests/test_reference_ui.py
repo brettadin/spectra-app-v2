@@ -156,3 +156,44 @@ def test_ir_overlay_labels_stack_inside_band() -> None:
         window.close()
         window.deleteLater()
         app.processEvents()
+
+
+def test_line_shape_preview_populates_overlay_payload() -> None:
+    if SpectraMainWindow is None or QtWidgets is None:
+        pytest.skip(f"Qt stack unavailable: {_qt_import_error}")
+
+    pytest.importorskip("pyqtgraph")
+
+    app = _ensure_app()
+    window = SpectraMainWindow()
+    try:
+        index = window.reference_dataset_combo.findText("Line-shape Placeholders")
+        assert index != -1
+        window.reference_dataset_combo.setCurrentIndex(index)
+        app.processEvents()
+
+        assert window.reference_table.rowCount() > 0
+        window.reference_table.selectRow(0)
+        app.processEvents()
+
+        plot_items = window.reference_plot.getPlotItem().listDataItems()
+        assert plot_items, "line-shape preview curve should be drawn"
+
+        payload = window._reference_overlay_payload
+        assert payload is not None
+        assert str(payload.get("key", "")).startswith("reference::line_shape::")
+        x_values = payload.get("x_nm")
+        y_values = payload.get("y")
+        assert isinstance(x_values, np.ndarray)
+        assert isinstance(y_values, np.ndarray)
+        assert x_values.size == y_values.size
+
+        metadata = payload.get("metadata")
+        assert isinstance(metadata, dict)
+        assert metadata.get("model") in {"doppler_shift", "pressure_broadening", "stark_broadening"}
+
+        assert window.reference_overlay_checkbox.isEnabled()
+    finally:
+        window.close()
+        window.deleteLater()
+        app.processEvents()

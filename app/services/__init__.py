@@ -8,6 +8,7 @@ from .overlay_service import OverlayService
 from .math_service import MathService
 from .reference_library import ReferenceLibrary
 from .store import LocalStore
+from .line_shapes import LineShapeModel, LineShapeOutcome
 
 __all__ = [
     "Spectrum",
@@ -19,4 +20,6 @@ __all__ = [
     "MathService",
     "ReferenceLibrary",
     "LocalStore",
+    "LineShapeModel",
+    "LineShapeOutcome",
 ]

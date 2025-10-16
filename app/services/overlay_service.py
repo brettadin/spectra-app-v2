@@ -9,6 +9,7 @@ import numpy as np
 
 from .spectrum import Spectrum
 from .units_service import UnitsService
+from .line_shapes import LineShapeModel
 
 
 @dataclass
@@ -16,6 +17,7 @@ class OverlayService:
     """Store spectra and provide overlay-ready views."""
 
     units_service: UnitsService
+    line_shape_model: LineShapeModel | None = None
     _spectra: Dict[str, Spectrum] = field(default_factory=dict)
 
     def add(self, spectrum: Spectrum) -> None:
@@ -45,11 +47,26 @@ class OverlayService:
         for sid in spectrum_ids:
             spectrum = self._spectra[sid]
             canonical_y, norm_meta = self._apply_normalization(spectrum, normalization)
-            x_display, y_display = self.units_service.from_canonical(spectrum.x, canonical_y, x_unit, y_unit)
+            x_canonical = np.array(spectrum.x, dtype=np.float64, copy=True)
+            line_shape_specs = spectrum.metadata.get("line_shapes")
+            line_shape_metadata: Optional[Dict[str, Any]] = None
+            if self.line_shape_model and isinstance(line_shape_specs, list):
+                outcome = self.line_shape_model.apply_sequence(x_canonical, canonical_y, line_shape_specs)
+                if outcome is not None:
+                    x_canonical = outcome.x
+                    canonical_y = outcome.y
+                    line_shape_metadata = outcome.metadata
+            x_display, y_display = self.units_service.from_canonical(x_canonical, canonical_y, x_unit, y_unit)
             metadata: Dict[str, Any] = dict(spectrum.metadata)
             if norm_meta:
                 metadata = dict(metadata)  # shallow copy to avoid mutating cached metadata
                 metadata["normalization"] = norm_meta
+            if line_shape_metadata is not None:
+                metadata = dict(metadata)
+                metadata["line_shapes"] = {
+                    "specifications": list(line_shape_specs) if isinstance(line_shape_specs, list) else [],
+                    "results": line_shape_metadata,
+                }
             view: Dict[str, object] = {
                 "id": spectrum.id,
                 "name": spectrum.name,
@@ -58,7 +75,7 @@ class OverlayService:
                 "x_unit": x_unit,
                 "y_unit": y_unit,
                 "metadata": metadata,
-                "x_canonical": np.array(spectrum.x, copy=True),
+                "x_canonical": np.array(x_canonical, copy=True),
                 "y_canonical": canonical_y,
             }
             views.append(view)
