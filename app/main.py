@@ -138,6 +138,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.plot.setObjectName("plot-area")
         self.central_split.addWidget(self.plot)
         self.plot.autoscale()
+        self.plot.rangeChanged.connect(self._on_plot_range_changed)
 
         # Build the plot toolbar immediately so dependent UI (e.g. menus)
         # can reference it during their own setup routines.
@@ -1498,6 +1499,62 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             self._apply_reference_overlay()
         else:
             self._clear_reference_overlay()
+
+    def _on_plot_range_changed(self, _: tuple[float, float], __: tuple[float, float]) -> None:
+        if self._suppress_overlay_refresh:
+            return
+        if not self.reference_overlay_checkbox.isChecked():
+            return
+        payload = self._reference_overlay_payload
+        if not payload:
+            return
+
+        band_bounds = payload.get("band_bounds")
+        if not (
+            isinstance(band_bounds, tuple)
+            and len(band_bounds) == 2
+        ):
+            return
+
+        new_bottom, new_top = self._overlay_band_bounds()
+        if not (np.isfinite(new_bottom) and np.isfinite(new_top)):
+            return
+
+        old_bottom = float(band_bounds[0])
+        old_top = float(band_bounds[1])
+        if np.isclose(new_bottom, old_bottom) and np.isclose(new_top, old_top):
+            return
+
+        y_values = payload.get("y")
+        if isinstance(y_values, np.ndarray):
+            updated = y_values.copy()
+            bottom_mask = np.isclose(
+                updated,
+                old_bottom,
+                rtol=1e-6,
+                atol=1e-9,
+                equal_nan=False,
+            )
+            top_mask = np.isclose(
+                updated,
+                old_top,
+                rtol=1e-6,
+                atol=1e-9,
+                equal_nan=False,
+            )
+            updated[bottom_mask] = float(new_bottom)
+            updated[top_mask] = float(new_top)
+            payload["y"] = updated
+
+        payload["fill_level"] = float(new_bottom)
+        payload["band_bounds"] = (float(new_bottom), float(new_top))
+
+        self._reference_overlay_payload = payload
+        self._suppress_overlay_refresh = True
+        try:
+            self._apply_reference_overlay()
+        finally:
+            self._suppress_overlay_refresh = False
 
     def _update_reference_overlay_state(self, payload: Optional[Dict[str, Any]]) -> None:
         self._reference_overlay_payload = payload

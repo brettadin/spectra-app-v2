@@ -37,6 +37,16 @@ Use the control to adjust every visible trace without mutating the underlying da
 
 The data table and provenance metadata mirror the active normalisation, and the plot toolbar’s left-axis label calls out both the unit (e.g. `%T`) and the selected normalisation mode for downstream auditing.
 
+## Overlay alignment and troubleshooting
+
+Reference overlays adopt the scaling of the active plot so annotations land where you expect them. The IR functional-group lanes, for example, now anchor their filled band to the visible y-axis span and assign each label to its own vertical slot. When you normalise a trace or zoom the view, the overlay recalculates those slots to keep the stacked annotations readable. If labels ever drift out of band after switching datasets:
+
+- Toggle **Overlay on plot** off and back on to rebuild the payload against the new scale.
+- Use **View → Reset Plot** to reapply auto-range—the overlay matches the recomputed intensity span.
+- Confirm no hidden traces define the axis limits; even invisible datasets can contribute to the active span if their visibility checkbox remains enabled.
+
+Automated coverage in `tests/test_reference_ui.py::test_ir_overlay_labels_stack_inside_band` protects the label-spacing logic, so overlap usually signals that the active axis is extremely compressed. Widening the y-range or temporarily disabling normalisation restores the expected layout.
+
 ## Level-of-detail safeguards
 
 High-resolution spectra can contain millions of samples. Rendering every point would make panning and zooming sluggish, so the plot pane automatically enforces a peak-envelope LOD cap:
