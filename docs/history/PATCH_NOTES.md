@@ -1,5 +1,11 @@
 # Patch Notes
 
+## 2025-10-16 (IR overlay anchoring & stacked labels) (11:42 pm UTC)
+
+- Anchored the IR reference overlay to the active dataset so the preview and main canvas stay in lockstep when swapping instruments, consolidating the wiring in [`app/main.py`](../../app/main.py).
+- Stacked overlay labels to avoid collisions when multiple functional-group bands share a region, updating the reference-layer layout logic in [`app/main.py`](../../app/main.py).
+- Extended the regression suite with overlay anchoring and label-order assertions in [`tests/test_reference_ui.py`](../../tests/test_reference_ui.py) to guard the new behaviour.
+
 ## 2025-10-15 (Reference selection + importer layout cache) (8:42 pm UTC)
 
 - Fixed the Reference inspector so combo-box changes always drive the preview plot and overlay payloads, preventing the first dataset from lingering when toggling between hydrogen, IR, and JWST entries.
