@@ -8,6 +8,10 @@
 - [ ] Backfill `docs/history/KNOWLEDGE_LOG.md` with an entry summarizing the overlay, inspector, and toolbar fixes so documentation traceability stays current.
 - [ ] Configure CI (or a documented headless recipe) to run the Qt-dependent Inspector/Reference tests without skips, verifying overlays and dock persistence end-to-end.
 - [ ] Expand `docs/user/reference_data.md` with a multi-file ingest overlay walkthrough so QA operators know how the combo/overlay state synchronises across batches.
+- [ ] Refresh user-facing documentation assets for the latest overlay fixes, covering the reference guide, patch notes, and associated visuals.
+  - Update the reference walkthrough in [`docs/user/reference_data.md`](../user/reference_data.md) with the new combo/overlay workflow and revised screenshots.
+  - Append the regression summary to [`docs/history/PATCH_NOTES.md`](../history/PATCH_NOTES.md), including links back to the overlay and inspector fixes.
+  - Acceptance criteria: screenshots in the reference guide reflect the current UI, cited regression tests confirm overlay/inspector behaviour, and patch notes enumerate the documentation changes.
 
 ## Batch 13 QA Log
 
