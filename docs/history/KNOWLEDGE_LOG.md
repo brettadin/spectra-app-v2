@@ -872,3 +872,219 @@ and patch notes document the automatic caching behaviour and opt-out flow.【F:t
 - 5068b4acfbcc9ef7ac3ea7585b1f56d3197b489a2c0968c01de2efcedb6f9395
 
 ---
+## 2025-10-16 17:04 – Import
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested sample_reference (e259a2d3-8ac5-4a1c-b2f0-8cd5df0685ce) via CsvImporter from sample_reference.csv.
+
+**References**:
+- C:\Code\spectra-app-beta\samples\sample_reference.csv
+- e259a2d3-8ac5-4a1c-b2f0-8cd5df0685ce
+- 76a5a1d2fdaaee20d3a89ac3af382df9f42c2727a01afde5462688e9a2633425
+
+---
+## 2025-10-16 17:04 – Import
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested sample_spectrum (a14e2d2e-784c-4d40-8331-2a7a6d1facbf) via CsvImporter from sample_spectrum.csv.
+
+**References**:
+- C:\Code\spectra-app-beta\samples\sample_spectrum.csv
+- a14e2d2e-784c-4d40-8331-2a7a6d1facbf
+- b0cf809fb461459e6fae989a24e45ffb65fbc797884b69edf2bf3c44a4acfeac
+
+---
+## 2025-10-16 17:04 – Import
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested sample_transmittance (4cc1cb54-d554-4b6f-9bb0-521d72c82c9c) via CsvImporter from sample_transmittance.csv.
+
+**References**:
+- C:\Code\spectra-app-beta\samples\sample_transmittance.csv
+- 4cc1cb54-d554-4b6f-9bb0-521d72c82c9c
+- 9e7be442cbab35d2ba254c8a90bbaa994fb8d734af9de203453a283476618260
+
+---
+## 2025-10-16 17:04 – Import
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested _880torr~ w low vol h2o vapor (668d8b21-9eae-443b-aff2-8b37175ec028) via CsvImporter from _880torr~ w low vol h2o vapor.csv.
+
+**References**:
+- C:\Users\brett\OneDrive - Georgia Gwinnett College\---  SCHOOL ---\Anfuso_Bell STEC Research (Fall 2025) - Documents\General\Data\DATA\IR H2O\_880torr~ w low vol h2o vapor.csv
+- 668d8b21-9eae-443b-aff2-8b37175ec028
+- 9063b49153cc13c5b19d9a1b302ef31256cc1bf8d970f2724b7a204878afa95e
+
+---
+## 2025-10-16 17:04 – Import
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested 7ish torr w h2o vapor (76c7b1ca-d402-45f4-a100-1bda9de7a342) via CsvImporter from 7ish torr w h2o vapor.csv.
+
+**References**:
+- C:\Users\brett\OneDrive - Georgia Gwinnett College\---  SCHOOL ---\Anfuso_Bell STEC Research (Fall 2025) - Documents\General\Data\DATA\IR H2O\7ish torr w h2o vapor.csv
+- 76c7b1ca-d402-45f4-a100-1bda9de7a342
+- d842557e38f3791ea2d3ef6b56818f935ef9905e6fa12e7b031ef35877b935bd
+
+---
+## 2025-10-16 17:04 – Import
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested bkgrd 10 16 VAC (22991d9f-1d8b-47a3-8117-ee5f3195f4d6) via CsvImporter from bkgrd 10 16 VAC.csv.
+
+**References**:
+- C:\Users\brett\OneDrive - Georgia Gwinnett College\---  SCHOOL ---\Anfuso_Bell STEC Research (Fall 2025) - Documents\General\Data\DATA\IR H2O\bkgrd 10 16 VAC.csv
+- 22991d9f-1d8b-47a3-8117-ee5f3195f4d6
+- 0d009a84cb100ae69a8646e2d5458edce811eb6888dcd22f0f4d1d1275cabd09
+
+---
+## 2025-10-16 17:04 – Import
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested goodo vapor run i think (a62e29c4-7414-4147-93e3-d553932a7677) via CsvImporter from goodo vapor run i think.csv.
+
+**References**:
+- C:\Users\brett\OneDrive - Georgia Gwinnett College\---  SCHOOL ---\Anfuso_Bell STEC Research (Fall 2025) - Documents\General\Data\DATA\IR H2O\goodo vapor run i think.csv
+- a62e29c4-7414-4147-93e3-d553932a7677
+- 2ee82812af376d8b3333a00511afb32bc31f755382e3dc046f964929f6e00ac9
+
+---
+## 2025-10-16 17:04 – Import
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested i froze h2o in the schlenk line oopsie (be222741-562a-444a-b4bf-d839f5915ec9) via CsvImporter from i froze h2o in the schlenk line oopsie.csv.
+
+**References**:
+- C:\Users\brett\OneDrive - Georgia Gwinnett College\---  SCHOOL ---\Anfuso_Bell STEC Research (Fall 2025) - Documents\General\Data\DATA\IR H2O\i froze h2o in the schlenk line oopsie.csv
+- be222741-562a-444a-b4bf-d839f5915ec9
+- b08067c1ec6748f9b53d4f161d52e4d06d2badf568542fe1295dea521ea9dd42
+
+---
+## 2025-10-16 17:04 – Import
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested low vapor for the road (32d0b41d-a502-4929-b612-0422b0a082ac) via CsvImporter from low vapor for the road.csv.
+
+**References**:
+- C:\Users\brett\OneDrive - Georgia Gwinnett College\---  SCHOOL ---\Anfuso_Bell STEC Research (Fall 2025) - Documents\General\Data\DATA\IR H2O\low vapor for the road.csv
+- 32d0b41d-a502-4929-b612-0422b0a082ac
+- 9c79b67b8fb610f94ac91a25da169f3f9fb98d9c7b601e23dd256f37c19ed39f
+
+---
+## 2025-10-16 17:04 – Import
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested sketchy vapor test (465ddcab-9323-4e99-a563-8235847aa7bc) via CsvImporter from sketchy vapor test.csv.
+
+**References**:
+- C:\Users\brett\OneDrive - Georgia Gwinnett College\---  SCHOOL ---\Anfuso_Bell STEC Research (Fall 2025) - Documents\General\Data\DATA\IR H2O\sketchy vapor test.csv
+- 465ddcab-9323-4e99-a563-8235847aa7bc
+- 91dfb5f812ab30bc48495e2abf36a57b25b76a40592bd2ccb2550cd91eafa925
+
+---
+## 2025-10-16 17:04 – Import
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested vacc'd again 244 pm (c5f416d9-2529-4f35-8eb3-e830ac87294e) via CsvImporter from vacc'd again 244 pm.csv.
+
+**References**:
+- C:\Users\brett\OneDrive - Georgia Gwinnett College\---  SCHOOL ---\Anfuso_Bell STEC Research (Fall 2025) - Documents\General\Data\DATA\IR H2O\vacc'd again 244 pm.csv
+- c5f416d9-2529-4f35-8eb3-e830ac87294e
+- 92ccfb93f980247c37ec03fd32174f919bc3b1e5c07eb1d8f7eab077749f5cc6
+
+---
+## 2025-10-16 17:13 – Overlay
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Enabled reference overlay reference::ir_groups.
+
+**References**:
+- reference::ir_groups
+
+---
+## 2025-10-16 17:15 – Overlay
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Reference overlay cleared.
+
+**References**:
+- reference::ir_groups
+
+---
+## 2025-10-16 17:15 – Overlay
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Enabled reference overlay reference::hydrogen_lines.
+
+**References**:
+- reference::hydrogen_lines
+
+---
+## 2025-10-16 17:16 – Overlay
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Reference overlay cleared.
+
+**References**:
+- reference::hydrogen_lines
+
+---
+## 2025-10-16 17:17 – Math
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Computed goodo vapor run i think − bkgrd 10 16 VAC; created goodo vapor run i think - bkgrd 10 16 VAC (3f33b3cb-2e66-49f7-9372-d174cfddb688).
+
+**References**:
+- a62e29c4-7414-4147-93e3-d553932a7677
+- 22991d9f-1d8b-47a3-8117-ee5f3195f4d6
+- 3f33b3cb-2e66-49f7-9372-d174cfddb688
+
+---
