@@ -21,7 +21,12 @@ them even when offline.
    - **NIST ASD** (line lists via the Atomic Spectra Database)
    - **MAST** (MAST data products via `astroquery.mast`)
 3. Enter a keyword, element symbol, or target name in the search field and click
-   **Search**.
+   **Search**. The dialog adapts the criteria to the selected provider:
+   - **NIST ASD** interprets the text as the `spectra` field that powers the
+     Atomic Spectra Database line search.
+   - **MAST** treats free-form text as a `target_name`, or you can provide
+     comma-separated `key=value` pairs for supported `astroquery.mast`
+     parameters (for example `instrument_name=NIRSpec, dataproduct_type=spectrum`).
 
 The results table displays identifiers, titles, and the source URI for each
 match. Selecting a row shows the raw metadata payload in the preview panel so
