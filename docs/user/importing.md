@@ -1,8 +1,12 @@
 # Importing Local Spectra
 
-The Import dialog accepts comma-separated text, JCAMP-DX, and FITS spectra. All
-files are normalised into the app's canonical wavelength baseline of
-nanometres while preserving the raw arrays on disk for provenance.
+The **File → Open** picker currently filters to comma-separated (`*.csv`,
+`*.txt`) datasets. JCAMP-DX still appears once you toggle the OS-provided
+"*All files*" view, but FITS ingest requires manually typing or pasting the path
+into the filename field until the [GUI filter expansion roadmap
+item](../../reports/roadmap.md#gui-file-dialog-filter-expansion) lands. Imported
+arrays are normalised into the app's canonical wavelength baseline of
+nanometres while preserving the raw data on disk for provenance.
 
 ## Supported formats
 
@@ -13,18 +17,22 @@ nanometres while preserving the raw arrays on disk for provenance.
 - **FITS** – 1D binary tables with wavelength and flux columns. The importer
   looks for standard names such as `WAVELENGTH`, `WAVE`, or `FLUX`. Original
   header metadata is preserved in the provenance panel. Install the optional
-  `astropy` dependency to enable FITS ingest on new machines; without it the
-  menu item remains but attempting to load FITS files will raise a helpful
-  error.
+  `astropy` dependency (`pip install astropy`) to enable FITS ingest on new
+  machines; without it the menu item remains but attempting to load FITS files
+  will raise a helpful error.
 - **JCAMP-DX** – Compact infrared/UV spectral files using `##XYDATA` blocks.
 
 ## How to import
 
 1. Choose **File → Open** and select one or more spectra (hold `Ctrl` or `Shift` to pick multiple files in a single pass).
 2. Review the detected units shown in the preview banner.
-3. Confirm the ingest. The data is copied into the local cache (see
-   `docs/dev/ingest_pipeline.md`) so that reloading the same file is
-   instantaneous.
+3. Confirm the ingest. The spectrum is normalised in-memory; LocalStore-based
+   caching is planned but not yet wired into the desktop build.
+
+> **Planned enhancement**: The `LocalStore` cache integration will copy the raw
+> upload alongside the canonical arrays so repeat loads avoid re-parsing. Track
+> progress via the [GUI filter expansion roadmap
+> entry](../../reports/roadmap.md#gui-file-dialog-filter-expansion).
 
 Imported spectra always appear in canonical units inside the application. Use
  the unit toggle on the toolbar to view alternative axes without mutating the
