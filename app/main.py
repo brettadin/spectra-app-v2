@@ -57,7 +57,6 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self._reference_overlay_key: Optional[str] = None
         self._reference_overlay_payload: Optional[Dict[str, Any]] = None
         self._reference_overlay_annotations: List[pg.TextItem] = []
-        self._suppress_overlay_refresh = False
         self._display_y_units: Dict[str, str] = {}
         self._palette: List[QtGui.QColor] = [
             QtGui.QColor("#4F6D7A"),

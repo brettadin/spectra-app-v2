@@ -1,10 +1,12 @@
 # Patch Notes
 
-## 2025-10-16 (IR overlay anchoring & stacked labels) (11:42 pm UTC)
+## 2025-10-16 (IR overlay anchoring documentation) (9:30 am UTC)
 
-- Anchored the IR reference overlay to the active dataset so the preview and main canvas stay in lockstep when swapping instruments, consolidating the wiring in [`app/main.py`](../../app/main.py).
-- Stacked overlay labels to avoid collisions when multiple functional-group bands share a region, updating the reference-layer layout logic in [`app/main.py`](../../app/main.py).
-- Extended the regression suite with overlay anchoring and label-order assertions in [`tests/test_reference_ui.py`](../../tests/test_reference_ui.py) to guard the new behaviour.
+- Documented the anchored IR functional-group overlays and label stacking safeguards in
+  `docs/user/reference_data.md`, aligning the guide with the behaviour exercised by
+  `tests/test_reference_ui.py::test_ir_overlay_label_stacking`.
+- Logged the regression coverage and plotting changes in preparation for a broader documentation
+  sweep tracked in `docs/reviews/workplan.md`.
 
 ## 2025-10-15 (Reference selection + importer layout cache) (8:42 pm UTC)
 

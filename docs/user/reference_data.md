@@ -24,18 +24,11 @@ authoritative NIST assets from digitised JWST placeholders that still need regen
 - Contents: characteristic absorption windows (cm⁻¹) for O–H, N–H, aliphatic/aromatic C–H, carbonyl variants, alkynes,
   and carboxylates. Each range is annotated with intensity heuristics and vibrational modes.
 - Usage: load **IR Functional Groups**, then filter by mode (“stretch”), functional class (“carbonyl”), or a wavenumber
-  value to shortlist plausible assignments during import QA. Each band now renders as a labelled shaded lane that locks to the
-  active intensity span, keeping the overlay vertically anchored even after you normalise or zoom. Labels stack inside the lane
-  in discrete slots so you can read overlapping functional classes without dragging them out of band, and the fill realigns with
-  the trace currently defining the y-axis scale. See the
-  [overlay alignment guidance](plot_tools.md#overlay-alignment-and-troubleshooting) for tips on re-synching the lane with
-  exported plots or alternative unit choices.
-- Preview: stacked labels hug the filled band and stay within the active intensity span. Trigger the overlay in-app (or reuse
-  an existing capture from `File → Export → Manifest`) to generate a fresh screenshot once binary assets are permitted again.
-
-- QA note: `tests/test_reference_ui.py::test_ir_overlay_labels_stack_inside_band` exercises the label-spacing safeguard so
-  annotations remain legible when multiple functional groups share the same window. The dataset provenance links back to the
-  staging CSV stored under `docs/reference_sources/`.
+  value to shortlist plausible assignments during import QA. Each band now renders as a filled, labelled lane that anchors
+  itself to the active trace’s intensity span, keeping the annotation inside the plotted data rather than floating above it.
+  Bands automatically stack their labels on discrete rows within the filled region so overlapping annotations remain legible
+  even when multiple functional classes share a range. The dataset provenance links back to the staging CSV stored under
+  `docs/reference_sources/`.
 
 ## Line-shape placeholders
 
@@ -66,10 +59,10 @@ pipeline is wired into CI. Each record cites its release page and records the ap
 1. Select a dataset from the combo box; the Reference plot updates immediately without forcing the selection back to the
    first entry, and the metadata pane refreshes with provenance and citation details.
 2. Enable **Overlay on plot** to add the previewed dataset to the main graph. Hydrogen lines respect their relative
-   intensities, IR bands anchor to the active intensity span and dynamically stack their labels inside the shaded lane, and JWST
-   spectra draw as standard curves with optional uncertainty envelopes. Switching the combo box while the overlay toggle is
-   enabled automatically swaps the projected reference so the main plot always mirrors the active dataset and keeps the labels
-   aligned with the visible scale.
+   intensities, IR bands anchor their shaded lanes within the current intensity envelope with label spacing safeguards verified
+   by `tests/test_reference_ui.py::test_ir_overlay_label_stacking`, and JWST spectra draw as standard curves with optional
+   uncertainty envelopes. Switching the combo box while the overlay toggle is enabled automatically swaps the projected
+   reference so the main plot always mirrors the active dataset.
 3. Use the Inspector filter bar to narrow down to wavelength windows (e.g. enter `1.4` to isolate WASP-96 b’s water
    absorption peak) and click citation links in the metadata pane to open the underlying source documentation.
 4. If the plot toolbar is hidden, use **View → Plot Toolbar** to reveal the unit and normalization controls before deciding
