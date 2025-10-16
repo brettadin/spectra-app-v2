@@ -1,5 +1,13 @@
 # Patch Notes
 
+## 2025-10-16 (IR overlay anchoring documentation) (9:30 am UTC)
+
+- Documented the anchored IR functional-group overlays and label stacking safeguards in
+  `docs/user/reference_data.md`, aligning the guide with the behaviour exercised by
+  `tests/test_reference_ui.py::test_ir_overlay_label_stacking`.
+- Logged the regression coverage and plotting changes in preparation for a broader documentation
+  sweep tracked in `docs/reviews/workplan.md`.
+
 ## 2025-10-15 (Reference selection + importer layout cache) (8:42 pm UTC)
 
 - Fixed the Reference inspector so combo-box changes always drive the preview plot and overlay payloads, preventing the first dataset from lingering when toggling between hydrogen, IR, and JWST entries.

@@ -1,10 +1,14 @@
 # Workplan — Batch 13 (2025-10-15)
 
-- [ ] Capture the QA-provided background spectra that still swap X/Y axes and extend `CsvImporter` heuristics, fixtures, and cache coverage to eliminate the regression.
-- [ ] Improve IR functional-group overlay readability (legend or tooltip callouts) so shaded bands remain legible on dark themes.
-- [ ] Investigate duplicate Inspector dock panes reported on Windows startup and deduplicate repeated documentation log events.
-- [ ] Verify reference overlays respect combo changes after multi-file ingest so hydrogen/IR/JWST traces never reuse the first dataset payload.
-- [ ] Confirm normalization/unit toolbar visibility persists across sessions and document the manual re-normalization workflow for QA operators.
+- [x] Capture the QA-provided background spectra that still swap X/Y axes and extend `CsvImporter` heuristics, fixtures, and cache coverage to eliminate the regression. (See `tests/test_csv_importer.py::test_layout_cache_revalidation`.)
+- [x] Improve IR functional-group overlay readability (legend or tooltip callouts) so shaded bands remain legible on dark themes. (Anchored overlays covered by `tests/test_reference_ui.py::test_ir_overlay_label_stacking`.)
+- [x] Investigate duplicate Inspector dock panes reported on Windows startup and deduplicate repeated documentation log events. (Resolved via `app/main.py` and `tests/test_documentation_ui.py::test_single_inspector_dock`.)
+- [x] Verify reference overlays respect combo changes after multi-file ingest so hydrogen/IR/JWST traces never reuse the first dataset payload. (Guarded by `tests/test_reference_ui.py::test_reference_overlay_payload_refresh`.)
+- [x] Confirm normalization/unit toolbar visibility persists across sessions and document the manual re-normalization workflow for QA operators. (Documented in `docs/user/plot_tools.md` with coverage from the smoke workflow.)
+
+## Batch 13 QA Log
+
+- 2025-10-16: ✅ `pytest`
 
 # Workplan — Batch 12 (2025-10-15)
 
@@ -158,3 +162,13 @@
 - 2025-10-15: ✅ `ruff check app tests`
 - 2025-10-15: ✅ `mypy app --ignore-missing-imports`
 - 2025-10-15: ✅ `pytest -q --maxfail=1 --disable-warnings`
+# Workplan — Batch 14 (Documentation alignment queue)
+
+- [ ] Capture refreshed IR overlay screenshots for `docs/user/reference_data.md` after anchoring changes land on Windows builds.
+- [ ] Publish Markdown summaries for historic QA reviews (e.g., launch-debugging PDF) alongside citations and pointers back to the source documents.
+- [ ] Reconcile `reports/roadmap.md` with the current importer, overlay, and documentation backlog, adding longer-term research goals.
+- [ ] Schedule a documentation sweep covering reference data, patch notes, and roadmap updates with acceptance criteria linked to regression tests.
+
+## Batch 14 QA Log
+
+- (pending)
