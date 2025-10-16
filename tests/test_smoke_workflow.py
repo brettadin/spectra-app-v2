@@ -17,7 +17,7 @@ else:  # pragma: no cover - exercised via smoke test
     _qt_import_error = None
     QtCore, QtGui, QtWidgets, _ = get_qt()
 
-from app.services import DataIngestService, ProvenanceService, UnitsService
+from app.services import DataIngestService, KnowledgeLogService, ProvenanceService, UnitsService
 
 def _ensure_app() -> QtWidgets.QApplication:
     os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
@@ -36,7 +36,8 @@ def test_smoke_ingest_toggle_and_export(tmp_path: Path, mini_fits: Path) -> None
     pg = pytest.importorskip("pyqtgraph")
 
     app = _ensure_app()
-    window = SpectraMainWindow()
+    log_service = KnowledgeLogService(log_path=tmp_path / "history.md", author="pytest")
+    window = SpectraMainWindow(knowledge_log_service=log_service)
     try:
         assert window.windowTitle().startswith("Spectra")
         docs_tab_index = window.inspector_tabs.indexOf(window.tab_docs)
@@ -99,6 +100,40 @@ def test_smoke_ingest_toggle_and_export(tmp_path: Path, mini_fits: Path) -> None
         window.deleteLater()
         app.processEvents()
 
+
+def test_history_view_updates_on_import(tmp_path: Path) -> None:
+    if SpectraMainWindow is None or QtWidgets is None:
+        pytest.skip(f"Qt stack unavailable: {_qt_import_error}")
+
+    app = _ensure_app()
+    log_service = KnowledgeLogService(log_path=tmp_path / "history.md", author="pytest")
+    window = SpectraMainWindow(knowledge_log_service=log_service)
+    try:
+        app.processEvents()
+        initial_rows = window.history_table.rowCount()
+        csv_path = tmp_path / "integration.csv"
+        csv_path.write_text("wavelength_nm,absorbance\n500,0.1\n510,0.2\n", encoding="utf-8")
+
+        window._ingest_path(csv_path)
+        app.processEvents()
+
+        entries = log_service.load_entries()
+        assert entries
+        assert any("integration.csv" in entry.summary for entry in entries)
+        assert window.history_table.rowCount() >= initial_rows + 1
+        top_summary_item = window.history_table.item(0, 2)
+        assert top_summary_item is not None
+        assert "integration" in top_summary_item.text()
+        window.history_table.selectRow(0)
+        app.processEvents()
+        detail_text = window.history_detail.toPlainText()
+        assert "Ingested" in detail_text
+        assert "integration.csv" in detail_text
+    finally:
+        window.close()
+        window.deleteLater()
+        app.processEvents()
+
     units = UnitsService()
     ingest = DataIngestService(units)
     provenance = ProvenanceService(app_version="0.2-smoke")
@@ -149,7 +184,8 @@ def test_plot_preserves_source_intensity_units(tmp_path: Path) -> None:
     csv_path.write_text("wavelength_nm,%T\n400,50\n410,75\n420,100\n", encoding="utf-8")
 
     app = _ensure_app()
-    window = SpectraMainWindow()
+    log_service = KnowledgeLogService(log_path=tmp_path / "history.md", author="pytest")
+    window = SpectraMainWindow(knowledge_log_service=log_service)
     try:
         spectrum = window.ingest_service.ingest(csv_path)
         window.overlay_service.add(spectrum)

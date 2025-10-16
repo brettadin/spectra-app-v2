@@ -5,7 +5,7 @@ from __future__ import annotations
 import os
 import sys
 from pathlib import Path
-from typing import Any, Dict, Iterable, List, Mapping, Optional, cast
+from typing import Any, Dict, Iterable, List, Mapping, Optional, Sequence, cast
 
 import numpy as np
 import pyqtgraph as pg
@@ -21,6 +21,8 @@ from .services import (
     Spectrum,
     LineShapeModel,
     LocalStore,
+    KnowledgeLogEntry,
+    KnowledgeLogService,
 )
 from .ui.plot_pane import PlotPane, TraceStyle
 
@@ -36,7 +38,12 @@ SAMPLES_DIR = Path(__file__).resolve().parent.parent / "samples"
 class SpectraMainWindow(QtWidgets.QMainWindow):
     """Preview shell that wires UI actions to services with docked layout."""
 
-    def __init__(self, container: object | None = None) -> None:
+    def __init__(
+        self,
+        container: object | None = None,
+        *,
+        knowledge_log_service: KnowledgeLogService | None = None,
+    ) -> None:
         super().__init__()
         self.setWindowTitle("Spectra Desktop Preview")
         self.resize(1320, 840)
@@ -54,6 +61,9 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.store: LocalStore | None = None if self._persistence_disabled else LocalStore()
         self.ingest_service = DataIngestService(self.units_service, store=self.store)
         self.math_service = MathService()
+        self.knowledge_log = knowledge_log_service or KnowledgeLogService(
+            default_context="Spectra Desktop Session"
+        )
 
         self.unit_combo: Optional[QtWidgets.QComboBox] = None
         self.plot_toolbar: Optional[QtWidgets.QToolBar] = None
@@ -68,6 +78,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self._reference_overlay_key: Optional[str] = None
         self._reference_overlay_payload: Optional[Dict[str, Any]] = None
         self._reset_reference_overlay_state()
+        self._suppress_overlay_refresh = False
         self._display_y_units: Dict[str, str] = {}
         self._line_shape_rows: List[Mapping[str, Any]] = []
         self._palette: List[QtGui.QColor] = [
@@ -87,6 +98,9 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self._log_ready = False
 
         self._reference_items: list[pg.GraphicsObject] = []
+        self._history_entries: List[KnowledgeLogEntry] = []
+        self._displayed_history_entries: List[KnowledgeLogEntry] = []
+        self._history_ui_ready = False
 
         self._setup_ui()
         self._setup_menu()
@@ -129,6 +143,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         view_menu = menu.addMenu("&View")
         view_menu.addAction(self.dataset_dock.toggleViewAction())
         view_menu.addAction(self.inspector_dock.toggleViewAction())
+        view_menu.addAction(self.history_dock.toggleViewAction())
         view_menu.addAction(self.log_dock.toggleViewAction())
         if self.plot_toolbar is not None:
             view_menu.addAction(self.plot_toolbar.toggleViewAction())
@@ -218,6 +233,8 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.dataset_dock.setWidget(self.dataset_tree)
         self.addDockWidget(QtCore.Qt.DockWidgetArea.LeftDockWidgetArea, self.dataset_dock)
 
+        self._build_history_dock()
+
         self.log_dock = QtWidgets.QDockWidget("Log", self)
         self.log_dock.setObjectName("dock-log")
         self.log_view = QtWidgets.QPlainTextEdit()
@@ -243,6 +260,62 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         # Load documentation entries after all dock widgets (including the log view)
         # have been initialised so that the initial selection can log status safely.
         self._load_documentation_index()
+
+    def _build_history_dock(self) -> None:
+        self.history_dock = QtWidgets.QDockWidget("History", self)
+        self.history_dock.setObjectName("dock-history")
+
+        container = QtWidgets.QWidget()
+        layout = QtWidgets.QVBoxLayout(container)
+        layout.setContentsMargins(6, 6, 6, 6)
+        layout.setSpacing(6)
+
+        filter_layout = QtWidgets.QHBoxLayout()
+        self.history_search = QtWidgets.QLineEdit()
+        self.history_search.setPlaceholderText("Filter history…")
+        self.history_search.textChanged.connect(self._on_history_filter_changed)
+        filter_layout.addWidget(self.history_search)
+
+        self.history_component_filter = QtWidgets.QComboBox()
+        self.history_component_filter.addItem("All Components")
+        self.history_component_filter.currentTextChanged.connect(self._on_history_filter_changed)
+        filter_layout.addWidget(self.history_component_filter)
+
+        refresh_btn = QtWidgets.QPushButton("Refresh")
+        refresh_btn.clicked.connect(self._load_history_entries)
+        filter_layout.addWidget(refresh_btn)
+
+        export_btn = QtWidgets.QPushButton("Export…")
+        export_btn.clicked.connect(self._export_history_entries)
+        filter_layout.addWidget(export_btn)
+
+        layout.addLayout(filter_layout)
+
+        splitter = QtWidgets.QSplitter(QtCore.Qt.Orientation.Vertical)
+
+        self.history_table = QtWidgets.QTableWidget(0, 3)
+        self.history_table.setHorizontalHeaderLabels(["Timestamp", "Component", "Summary"])
+        self.history_table.horizontalHeader().setSectionResizeMode(0, QtWidgets.QHeaderView.ResizeToContents)
+        self.history_table.horizontalHeader().setSectionResizeMode(1, QtWidgets.QHeaderView.ResizeToContents)
+        self.history_table.horizontalHeader().setSectionResizeMode(2, QtWidgets.QHeaderView.Stretch)
+        self.history_table.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectionBehavior.SelectRows)
+        self.history_table.setSelectionMode(QtWidgets.QAbstractItemView.SelectionMode.SingleSelection)
+        self.history_table.itemSelectionChanged.connect(self._on_history_selection_changed)
+        splitter.addWidget(self.history_table)
+
+        self.history_detail = QtWidgets.QPlainTextEdit()
+        self.history_detail.setReadOnly(True)
+        self.history_detail.setPlaceholderText("Select an entry to inspect details.")
+        splitter.addWidget(self.history_detail)
+        splitter.setStretchFactor(0, 3)
+        splitter.setStretchFactor(1, 2)
+
+        layout.addWidget(splitter)
+
+        self.history_dock.setWidget(container)
+        self.addDockWidget(QtCore.Qt.DockWidgetArea.RightDockWidgetArea, self.history_dock)
+        self._history_ui_ready = True
+        self._load_history_entries()
 
     def _build_inspector_tabs(self) -> None:
         self.inspector_tabs.clear()
@@ -502,6 +575,15 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             self._log("Manifest", f"Saved to {export['manifest_path']}")
             self._log("Export", f"CSV saved to {export['csv_path']}")
             self._log("Export", f"Plot snapshot saved to {export['png_path']}")
+            self._record_history_event(
+                "Export",
+                f"Exported manifest bundle with {len(self.overlay_service.list())} spectra to {export['manifest_path']}",
+                [
+                    str(export["manifest_path"]),
+                    str(export["csv_path"]),
+                    str(export["png_path"]),
+                ],
+            )
             self.provenance_view.setPlainText(json_pretty(export['manifest']))
             self.provenance_view.show()
             self.prov_tree.show()
@@ -598,6 +680,14 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         spec_b = self.overlay_service.get(ids[1])
         result, info = self.math_service.subtract(spec_a, spec_b)
         self._log_math(info)
+        summary = (
+            f"Computed {spec_a.name} − {spec_b.name}; "
+            + (f"created {result.name} ({result.id})." if result else "result suppressed within tolerance.")
+        )
+        references = [spec_a.id, spec_b.id]
+        if result and result.id:
+            references.append(result.id)
+        self._record_history_event("Math", summary, references)
         if result:
             self.overlay_service.add(result)
             self._add_spectrum(result)
@@ -611,6 +701,14 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         spec_b = self.overlay_service.get(ids[1])
         result, info = self.math_service.ratio(spec_a, spec_b)
         self._log_math(info)
+        masked_points = info.get("masked_points") if isinstance(info, dict) else None
+        summary = f"Computed {spec_a.name} ÷ {spec_b.name}; created {result.name} ({result.id})."
+        if masked_points:
+            summary += f" Masked {masked_points} low-denominator points."
+        references = [spec_a.id, spec_b.id]
+        if result.id:
+            references.append(result.id)
+        self._record_history_event("Math", summary, references)
         self.overlay_service.add(result)
         self._add_spectrum(result)
         self._update_math_selectors()
@@ -629,6 +727,19 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.refresh_overlay()
         self._show_metadata(spectrum)
         self._show_provenance(spectrum)
+        ingest_meta = spectrum.metadata.get("ingest", {}) if isinstance(spectrum.metadata, dict) else {}
+        importer = ingest_meta.get("importer", "Unknown importer")
+        summary = (
+            f"Ingested {spectrum.name} ({spectrum.id}) via {importer} from {path.name}."
+        )
+        references = [str(path)]
+        if spectrum.id:
+            references.append(spectrum.id)
+        cache_record = ingest_meta.get("cache_record", {}) if isinstance(ingest_meta, dict) else {}
+        cache_sha = cache_record.get("sha256")
+        if cache_sha:
+            references.append(str(cache_sha))
+        self._record_history_event("Import", summary, references)
 
     def _add_spectrum(self, spectrum: Spectrum) -> None:
         color = self._assign_color(spectrum)
@@ -755,6 +866,130 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             'transforms': list(transforms),
         }))
         self.provenance_view.show()
+
+    # History helpers --------------------------------------------------
+    def _load_history_entries(self) -> None:
+        if not getattr(self, "_history_ui_ready", False):
+            return
+        try:
+            entries = self.knowledge_log.load_entries(limit=250)
+        except Exception as exc:  # pragma: no cover - filesystem feedback
+            self._log("History", f"Failed to load knowledge log: {exc}")
+            return
+        self._history_entries = entries
+        self._refresh_history_component_filter()
+        self._refresh_history_table(select_first=True)
+
+    def _refresh_history_component_filter(self) -> None:
+        if not getattr(self, "_history_ui_ready", False):
+            return
+        current = self.history_component_filter.currentText()
+        self.history_component_filter.blockSignals(True)
+        self.history_component_filter.clear()
+        self.history_component_filter.addItem("All Components")
+        for component in sorted({entry.component for entry in self._history_entries}):
+            self.history_component_filter.addItem(component)
+        if current:
+            idx = self.history_component_filter.findText(current)
+            if idx != -1:
+                self.history_component_filter.setCurrentIndex(idx)
+        self.history_component_filter.blockSignals(False)
+
+    def _filtered_history_entries(self) -> list[KnowledgeLogEntry]:
+        if not getattr(self, "_history_ui_ready", False):
+            return []
+        entries = list(self._history_entries)
+        component = self.history_component_filter.currentText()
+        if component and component != "All Components":
+            entries = [entry for entry in entries if entry.component == component]
+        text = self.history_search.text().strip().lower()
+        if text:
+            entries = [
+                entry
+                for entry in entries
+                if text in entry.summary.lower()
+                or any(text in ref.lower() for ref in entry.references)
+                or text in entry.component.lower()
+            ]
+        return entries
+
+    def _refresh_history_table(self, *, select_first: bool = False) -> None:
+        if not getattr(self, "_history_ui_ready", False):
+            return
+        entries = self._filtered_history_entries()
+        self._displayed_history_entries = entries
+        self.history_table.setRowCount(len(entries))
+        for row, entry in enumerate(entries):
+            timestamp = entry.timestamp.astimezone().strftime("%Y-%m-%d %H:%M") if entry.timestamp.tzinfo else entry.timestamp.strftime("%Y-%m-%d %H:%M")
+            items = [
+                QtWidgets.QTableWidgetItem(timestamp),
+                QtWidgets.QTableWidgetItem(entry.component),
+                QtWidgets.QTableWidgetItem(entry.summary.splitlines()[0] if entry.summary else ""),
+            ]
+            for col, item in enumerate(items):
+                item.setFlags(item.flags() & ~QtCore.Qt.ItemFlag.ItemIsEditable)
+                self.history_table.setItem(row, col, item)
+        if not entries:
+            self.history_detail.clear()
+            return
+        if select_first:
+            self.history_table.selectRow(0)
+            self.history_detail.setPlainText(entries[0].raw.strip())
+
+    def _on_history_filter_changed(self) -> None:
+        self._refresh_history_table(select_first=True)
+
+    def _on_history_selection_changed(self) -> None:
+        if not getattr(self, "_history_ui_ready", False):
+            return
+        indexes = self.history_table.selectionModel().selectedRows()
+        if not indexes:
+            self.history_detail.clear()
+            return
+        row = indexes[0].row()
+        if 0 <= row < len(self._displayed_history_entries):
+            entry = self._displayed_history_entries[row]
+            self.history_detail.setPlainText(entry.raw.strip())
+
+    def _export_history_entries(self) -> None:
+        entries = self._filtered_history_entries()
+        if not entries:
+            QtWidgets.QMessageBox.information(self, "No Entries", "Nothing to export.")
+            return
+        save_path, _ = QtWidgets.QFileDialog.getSaveFileName(
+            self,
+            "Export History",
+            str(Path.home() / "spectra_history.md"),
+            "Markdown (*.md *.markdown)",
+        )
+        if not save_path:
+            return
+        try:
+            self.knowledge_log.export_entries(Path(save_path), entries)
+        except Exception as exc:  # pragma: no cover - filesystem feedback
+            QtWidgets.QMessageBox.warning(self, "Export Failed", str(exc))
+            self._log("History", f"Export failed: {exc}")
+        else:
+            self._log("History", f"Exported {len(entries)} entries to {save_path}")
+
+    def _append_history_entry(self, entry: KnowledgeLogEntry) -> None:
+        self._history_entries.insert(0, entry)
+        self._refresh_history_component_filter()
+        self._refresh_history_table(select_first=True)
+
+    def _record_history_event(
+        self,
+        component: str,
+        summary: str,
+        references: Sequence[str] | None = None,
+    ) -> None:
+        try:
+            entry = self.knowledge_log.record_event(component, summary, references)
+        except Exception as exc:  # pragma: no cover - filesystem feedback
+            self._log("History", f"Failed to record event: {exc}")
+            return
+        if getattr(self, "_history_ui_ready", False):
+            self._append_history_entry(entry)
 
     def _populate_data_table(self, views: Iterable[dict]) -> None:
         views = list(views)
@@ -1685,10 +1920,26 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             annotations.clear()
 
     def _on_reference_overlay_toggled(self, checked: bool) -> None:
+        if getattr(self, "_suppress_overlay_refresh", False):
+            return
         if checked:
             self._apply_reference_overlay()
+            payload = self._reference_overlay_payload or {}
+            overlay_key = payload.get("key") or "reference::overlay"
+            references = [str(overlay_key)]
+            dataset = payload.get("dataset") if isinstance(payload, dict) else None
+            if dataset:
+                references.append(str(dataset))
+            self._record_history_event(
+                "Overlay",
+                f"Enabled reference overlay {overlay_key}.",
+                references,
+            )
         else:
+            previous_key = self._reference_overlay_key
             self._clear_reference_overlay()
+            references = [previous_key] if previous_key else []
+            self._record_history_event("Overlay", "Reference overlay cleared.", references)
 
     def _on_plot_range_changed(self, _: tuple[float, float], __: tuple[float, float]) -> None:
         if self._suppress_overlay_refresh:

@@ -34,6 +34,14 @@ original repository can be summarised and linked at the end of this file.
 When summarising legacy content, include a note indicating that the details
 come from a previous format (e.g. “Imported from brains/2023‑04‑10.md”).
 
+### Automation support
+
+The desktop preview now ships with a `KnowledgeLogService` that writes
+automation events into this file by default.  The service can also be pointed
+at an alternative runtime location (e.g. a temporary path during tests) by
+passing a custom `log_path`, ensuring automated provenance never tramples the
+canonical history while still following the structure defined here.
+
 ## Example Entry
 
 ```markdown
@@ -196,6 +204,18 @@ To migrate existing `brains` and `atlas` logs, follow these steps:
 **Summary**: Persisted reference combo selections across sessions so JWST targets and IR overlays stay active after restarts while bolstering the importer’s profile-based safeguards that prevent jittery axes from being overwritten by monotonic intensity exports.【F:app/main.py†L961-L1040】【F:app/services/importers/csv_importer.py†L193-L200】 Regression coverage keeps combo changes, overlay payload swaps, and importer rationale in check; roadmap/workplan link will be backfilled once refreshed.【F:tests/test_smoke_workflow.py†L72-L96】【F:tests/test_csv_importer.py†L66-L133】【F:docs/reviews/workplan.md†L24-L32】
 
 **References**: `app/main.py`, `app/services/importers/csv_importer.py`, `tests/test_smoke_workflow.py`, `tests/test_csv_importer.py`, `docs/reviews/workplan.md`.
+
+---
+
+## 2025-10-16 21:45 – Knowledge Log Automation
+
+**Author**: agent
+
+**Context**: KnowledgeLogService instrumentation and in-app history browser.
+
+**Summary**: Built a reusable KnowledgeLogService that appends structured, provenance-ready events to the consolidated log (or a redirected runtime file), added filters/export helpers, and instrumented imports, overlays, exports, and math operations so SpectraMainWindow records session activity automatically. Surfaced the new History dock with search/filter controls and backed the flow with unit plus integration coverage.
+
+**References**: `app/services/knowledge_log_service.py`, `app/main.py`, `tests/test_knowledge_log_service.py`, `tests/test_smoke_workflow.py`, `docs/history/PATCH_NOTES.md`.
 
 ---
 
