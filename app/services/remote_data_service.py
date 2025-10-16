@@ -155,7 +155,7 @@ class RemoteDataService:
         session = self._ensure_session()
         params: Dict[str, Any] = {
             "format": "json",
-            "spectra": query.get("element") or query.get("text") or "",
+            "spectra": query.get("element") or query.get("spectra") or query.get("text") or "",
         }
         if query.get("wavelength_min") is not None:
             params["wavemin"] = query["wavelength_min"]
@@ -206,6 +206,9 @@ class RemoteDataService:
     def _search_mast(self, query: Mapping[str, Any]) -> List[RemoteRecord]:
         observations = self._ensure_mast()
         criteria = dict(query)
+        text = criteria.pop("text", None)
+        if text and not criteria.get("target_name"):
+            criteria["target_name"] = text
         table = observations.Observations.query_criteria(**criteria)
         rows = self._table_to_records(table)
         records: List[RemoteRecord] = []

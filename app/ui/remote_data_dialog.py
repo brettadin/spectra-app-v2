@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import List
+from typing import Dict, List
 
 from app.qt_compat import get_qt
 from app.services import DataIngestService, RemoteDataService, RemoteRecord
@@ -14,6 +14,20 @@ QtCore, QtGui, QtWidgets, _ = get_qt()
 
 class RemoteDataDialog(QtWidgets.QDialog):
     """Interactive browser for remote catalogue search and download."""
+
+    _MAST_SUPPORTED_CRITERIA = {
+        "target_name",
+        "obs_collection",
+        "dataproduct_type",
+        "instrument_name",
+        "proposal_id",
+        "proposal_pi",
+        "filters",
+        "s_ra",
+        "s_dec",
+        "radius",
+    }
+    _MAST_NUMERIC_CRITERIA = {"s_ra", "s_dec", "radius"}
 
     def __init__(
         self,
@@ -96,7 +110,8 @@ class RemoteDataDialog(QtWidgets.QDialog):
     # ------------------------------------------------------------------
     def _on_search(self) -> None:
         provider = self.provider_combo.currentText()
-        query = {"text": self.search_edit.text().strip()}
+        text = self.search_edit.text().strip()
+        query = self._build_query_for_provider(provider, text)
         try:
             records = self.remote_service.search(provider, query)
         except Exception as exc:  # pragma: no cover - UI feedback
@@ -114,6 +129,55 @@ class RemoteDataDialog(QtWidgets.QDialog):
             self.results.selectRow(0)
         else:
             self.preview.clear()
+
+    # ------------------------------------------------------------------
+    def _build_query_for_provider(self, provider: str, text: str) -> Dict[str, object]:
+        if provider == RemoteDataService.PROVIDER_NIST:
+            return {"spectra": text} if text else {}
+        if provider == RemoteDataService.PROVIDER_MAST:
+            return self._build_mast_criteria(text)
+        return {"text": text} if text else {}
+
+    def _build_mast_criteria(self, text: str) -> Dict[str, object]:
+        text = text.strip()
+        if not text:
+            return {}
+
+        if "=" in text or ":" in text:
+            criteria: Dict[str, object] = {}
+            tokens = [token.strip() for token in text.split(",") if token.strip()]
+            for token in tokens:
+                key, value = self._split_token(token)
+                if key is None or value is None:
+                    criteria.clear()
+                    break
+                if key not in self._MAST_SUPPORTED_CRITERIA:
+                    criteria.clear()
+                    break
+                if key in self._MAST_NUMERIC_CRITERIA:
+                    try:
+                        criteria[key] = float(value)
+                    except ValueError:
+                        criteria.clear()
+                        break
+                else:
+                    criteria[key] = value
+            if criteria:
+                return criteria
+
+        return {"target_name": text}
+
+    @staticmethod
+    def _split_token(token: str) -> tuple[str | None, str | None]:
+        if "=" in token:
+            key, _, value = token.partition("=")
+        else:
+            key, _, value = token.partition(":")
+        key = key.strip()
+        value = value.strip()
+        if not key or not value:
+            return None, None
+        return key, value
 
     def _update_preview(self) -> None:
         indexes = self.results.selectionModel().selectedRows()
