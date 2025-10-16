@@ -9,6 +9,7 @@ from typing import Dict, Iterable
 from .spectrum import Spectrum
 from .units_service import UnitsService
 from .importers import SupportsImport, CsvImporter, FitsImporter, JcampImporter
+from .store import LocalStore
 
 
 @dataclass
@@ -16,6 +17,7 @@ class DataIngestService:
     """Manage importer plugins and normalise spectra into canonical units."""
 
     units_service: UnitsService
+    store: LocalStore | None = None
     _registry: Dict[str, SupportsImport] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
@@ -56,6 +58,28 @@ class DataIngestService:
             metadata=metadata,
             source_path=raw.source_path or path,
         )
+        if self.store is not None:
+            source_summary = {
+                "ingest": dict(metadata.get("ingest", {})),
+                "source_units": dict(metadata.get("source_units", {})),
+            }
+            record = self.store.record(
+                raw.source_path or path,
+                x_unit=spectrum.x_unit,
+                y_unit=spectrum.y_unit,
+                source=source_summary,
+                alias=(raw.source_path or path).name,
+            )
+            ingest_meta = dict(spectrum.metadata.get("ingest", {}))
+            ingest_meta["cache_record"] = {
+                "sha256": record.get("sha256"),
+                "created": record.get("created"),
+                "updated": record.get("updated"),
+            }
+            spectrum = spectrum.with_metadata(
+                ingest=ingest_meta,
+                cache_record=record,
+            )
         return spectrum
 
     def supported_extensions(self) -> Dict[str, str]:

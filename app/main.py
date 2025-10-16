@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 import sys
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Mapping, Optional, cast
@@ -19,6 +20,7 @@ from .services import (
     ReferenceLibrary,
     Spectrum,
     LineShapeModel,
+    LocalStore,
 )
 from .ui.plot_pane import PlotPane, TraceStyle
 
@@ -47,7 +49,10 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             self.reference_library.line_shape_metadata(),
         )
         self.overlay_service = OverlayService(self.units_service, line_shape_model=self.line_shape_model)
-        self.ingest_service = DataIngestService(self.units_service)
+        self._persistence_env_disabled = self._persistence_disabled_via_env()
+        self._persistence_disabled = self._persistence_env_disabled or self._load_persistence_preference()
+        self.store: LocalStore | None = None if self._persistence_disabled else LocalStore()
+        self.ingest_service = DataIngestService(self.units_service, store=self.store)
         self.math_service = MathService()
 
         self.unit_combo: Optional[QtWidgets.QComboBox] = None
@@ -102,6 +107,16 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         sample_action.triggered.connect(self.load_sample_via_menu)
         file_menu.addAction(sample_action)
 
+        self.persistence_action = QtGui.QAction("Enable Persistent Cache", self, checkable=True)
+        self.persistence_action.setChecked(not self._persistence_disabled)
+        self.persistence_action.setEnabled(not self._persistence_env_disabled)
+        if self._persistence_env_disabled:
+            self.persistence_action.setToolTip(
+                "Disabled via SPECTRA_DISABLE_PERSISTENCE environment override"
+            )
+        self.persistence_action.triggered.connect(self._on_persistence_toggled)
+        file_menu.addAction(self.persistence_action)
+
         export_action = QtGui.QAction("Export &Manifest", self)
         export_action.triggered.connect(self.export_manifest)
         file_menu.addAction(export_action)
@@ -133,6 +148,28 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         docs_action.setShortcut("F1")
         docs_action.triggered.connect(self.show_documentation)
         help_menu.addAction(docs_action)
+
+    def _persistence_disabled_via_env(self) -> bool:
+        flag = os.environ.get("SPECTRA_DISABLE_PERSISTENCE")
+        if flag is None:
+            return False
+        return flag.strip().lower() in {"1", "true", "yes", "on"}
+
+    def _load_persistence_preference(self) -> bool:
+        settings = QtCore.QSettings("SpectraApp", "DesktopPreview")
+        return bool(settings.value("persistence/disabled", False, type=bool))
+
+    def _on_persistence_toggled(self, enabled: bool) -> None:
+        if self._persistence_env_disabled:
+            return
+        self._persistence_disabled = not enabled
+        settings = QtCore.QSettings("SpectraApp", "DesktopPreview")
+        settings.setValue("persistence/disabled", self._persistence_disabled)
+        if self._persistence_disabled:
+            self.store = None
+        else:
+            self.store = LocalStore()
+        self.ingest_service.store = self.store
 
     def _setup_ui(self) -> None:
         self.central_split = QtWidgets.QSplitter(self)

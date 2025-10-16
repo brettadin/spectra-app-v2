@@ -258,3 +258,22 @@ To migrate existing `brains` and `atlas` logs, follow these steps:
 **References**: `app/main.py`, `tests/test_reference_ui.py`, `docs/user/plot_tools.md`, `docs/history/PATCH_NOTES.md`.
 
 ---
+
+## 2025-10-16 14:30 – Local Cache Integration
+
+**Author**: agent
+
+**Context**: Automatic LocalStore writes and persistence controls for ingest.
+
+**Summary**: Updated the ingest pipeline to accept a shared `LocalStore`,
+recording canonical-unit provenance for every import and annotating spectra with
+cache metadata so repeated loads reuse prior manifests.【F:app/services/data_ingest_service.py†L11-L72】 Wired the preview shell
+to construct the store, expose an environment override and menu toggle for
+persistence, and feed the instance into manual and sample ingest paths.【F:app/main.py†L1-L131】 Regression coverage now mocks the
+store to confirm `record` invocations and metadata reuse, and the importing guide
+and patch notes document the automatic caching behaviour and opt-out flow.【F:tests/test_cache_index.py†L1-L123】【F:docs/user/importing.md†L7-L38】【F:docs/history/PATCH_NOTES.md†L1-L10】
+
+**References**: `app/services/data_ingest_service.py`, `app/main.py`,
+`tests/test_cache_index.py`, `docs/user/importing.md`, `docs/history/PATCH_NOTES.md`.
+
+---

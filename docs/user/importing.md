@@ -6,7 +6,8 @@ The **File → Open** picker currently filters to comma-separated (`*.csv`,
 into the filename field until the [GUI filter expansion roadmap
 item](../../reports/roadmap.md#gui-file-dialog-filter-expansion) lands. Imported
 arrays are normalised into the app's canonical wavelength baseline of
-nanometres while preserving the raw data on disk for provenance.
+nanometres while the desktop build now copies the raw upload into the local
+cache for provenance-aware reuse.
 
 ## Supported formats
 
@@ -26,13 +27,18 @@ nanometres while preserving the raw data on disk for provenance.
 
 1. Choose **File → Open** and select one or more spectra (hold `Ctrl` or `Shift` to pick multiple files in a single pass).
 2. Review the detected units shown in the preview banner.
-3. Confirm the ingest. The spectrum is normalised in-memory; LocalStore-based
-   caching is planned but not yet wired into the desktop build.
+3. Confirm the ingest. The spectrum is normalised in-memory and the
+   provenance-aware cache records the canonical units alongside a copy of the
+   upload so repeat loads avoid re-parsing.
 
-> **Planned enhancement**: The `LocalStore` cache integration will copy the raw
-> upload alongside the canonical arrays so repeat loads avoid re-parsing. Track
-> progress via the [GUI filter expansion roadmap
-> entry](../../reports/roadmap.md#gui-file-dialog-filter-expansion).
+### Cache persistence controls
+
+The ingest pipeline now writes to the on-disk cache automatically, which keeps
+track of canonical units, importer provenance, and SHA256 hashes for deduping.
+You can opt out temporarily by setting the environment variable
+`SPECTRA_DISABLE_PERSISTENCE=1` before launching the app. When the environment
+flag is not set, toggle **File → Enable Persistent Cache** to persist the
+preference between sessions.
 
 Imported spectra always appear in canonical units inside the application. Use
  the unit toggle on the toolbar to view alternative axes without mutating the
