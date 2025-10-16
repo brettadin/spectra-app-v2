@@ -38,6 +38,9 @@ checkboxes in [Batch 13](../docs/reviews/workplan.md#workplan--batch-13-2025-10-
   traceability for release sign-off.
 - **Overlay polish and accessibility.** Tighten legend callouts, tooltip contrast, and screenshot updates across the user guides
   to reflect the refreshed PySide6 layout. This encompasses the documentation refresh tasks in Batch 13 and feeds future QA runs.
+- **GUI file dialog filter expansion.** Broaden the **File → Open** picker so it recognises FITS and JCAMP-DX assets without
+  manual path entry, and expose an affordance for typing absolute paths. Track optional dependencies (e.g., `astropy`) and align
+  importer hints once the LocalStore-backed caching lands.
 - **Qt-enabled CI guidance.** Draft the documented recipe (or CI configuration) for running the Qt-dependent UI tests without
   skips, improving confidence before the next release candidate.
 
