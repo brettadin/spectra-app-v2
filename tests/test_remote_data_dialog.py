@@ -61,7 +61,7 @@ def test_remote_dialog_translates_mast_search() -> None:
         index = dialog.provider_combo.findText(RemoteDataService.PROVIDER_MAST)
         assert index != -1
         dialog.provider_combo.setCurrentIndex(index)
-        dialog.search_edit.setText("WASP-96 b")
+        dialog.search_edit.setText("  WASP-96 b  ")
 
         dialog._on_search()
         app.processEvents()

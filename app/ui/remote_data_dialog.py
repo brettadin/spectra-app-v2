@@ -110,7 +110,7 @@ class RemoteDataDialog(QtWidgets.QDialog):
     # ------------------------------------------------------------------
     def _on_search(self) -> None:
         provider = self.provider_combo.currentText()
-        text = self.search_edit.text().strip()
+        text = self.search_edit.text()
         query = self._build_query_for_provider(provider, text)
         try:
             records = self.remote_service.search(provider, query)
@@ -132,6 +132,7 @@ class RemoteDataDialog(QtWidgets.QDialog):
 
     # ------------------------------------------------------------------
     def _build_query_for_provider(self, provider: str, text: str) -> Dict[str, object]:
+        text = text.strip()
         if provider == RemoteDataService.PROVIDER_NIST:
             return {"spectra": text} if text else {}
         if provider == RemoteDataService.PROVIDER_MAST:
