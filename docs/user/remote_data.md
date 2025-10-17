@@ -23,7 +23,60 @@ directly against laboratory references.
    - **NIST ASD** (line lists via the Atomic Spectra Database)
    - **MAST** (MAST data products via `astroquery.mast`)
 3. Enter a keyword, element symbol, or target name in the search field and click
-   **Search**.
+   **Search**. The dialog adapts the criteria to the selected provider before it
+   reaches the service layer:
+   - **NIST ASD** maps the text to the `spectra` parameter that powers the
+     Atomic Spectra Database line search.
+   - **MAST** converts free-form text into a `target_name`, or you can provide
+     comma-separated `key=value` pairs for supported `astroquery.mast`
+     parameters (for example `instrument_name=NIRSpec, dataproduct_type=spectrum`).
+4. Reference the hint banner below the buttons for provider-specific examples.
+   The dialog surfaces the mapping so you know when NIST expects an element/ion
+   such as `Fe II`, and when MAST accepts target names or comma-separated
+   arguments like `instrument_name=NIRSpec`.
+
+When you switch between catalogues the banner updates in real time:
+
+* **NIST ASD** highlights that searches revolve around element symbols or ion
+  designations and reminds you that wavelength filters live in the advanced
+  toolbar.
+* **MAST** clarifies that the free-text box becomes a `target_name` by default
+  and that you can provide comma-separated `key=value` pairs for supported
+  `astroquery.mast.Observations.query_criteria` arguments (for example
+  `obs_collection=JWST`, `proposal_id=1076`, or numerical sky positions via
+  `s_ra`, `s_dec`, and `radius`).
+
+### Provider-specific search tips
+
+- **NIST ASD** – The query box maps to the catalogue’s `spectra` filter. Enter
+  an element/ion (e.g. `Fe II`) or a transition label (`H-alpha`) to retrieve
+  laboratory line lists that align with the bundled reference overlays.
+- **MAST** – Free-text input is rewritten to `target_name` before invoking
+  `astroquery.mast.Observations.query_criteria`, and the adapter injects
+  `dataproduct_type="spectrum"`, `intentType="SCIENCE"`, and
+  `calib_level=[2, 3]` filters automatically. Supply JWST target names or
+  instrument identifiers (e.g. `WASP-96 b`, `NIRSpec grism`) to favour
+  calibrated spectroscopic products (IFS cubes, slit/grism/prism extractions)
+  instead of broad-band imaging or photometric light curves.
+
+The hint banner beneath the results table updates as you switch providers and
+also surfaces dependency warnings when optional clients are missing.
+
+### Provider-specific search tips
+
+- **NIST ASD** – The query box maps to the catalogue’s `spectra` filter. Enter
+  an element/ion (e.g. `Fe II`) or a transition label (`H-alpha`) to retrieve
+  laboratory line lists that align with the bundled reference overlays.
+- **MAST** – Free-text input is rewritten to `target_name` before invoking
+  `astroquery.mast.Observations.query_criteria`, and the adapter injects
+  `dataproduct_type="spectrum"`, `intentType="SCIENCE"`, and
+  `calib_level=[2, 3]` filters automatically. Supply JWST target names or
+  instrument identifiers (e.g. `WASP-96 b`, `NIRSpec grism`) to favour
+  calibrated spectroscopic products (IFS cubes, slit/grism/prism extractions)
+  instead of broad-band imaging or photometric light curves.
+
+The hint banner beneath the results table updates as you switch providers and
+also surfaces dependency warnings when optional clients are missing.
 
 ### Provider-specific search tips
 
@@ -58,7 +111,9 @@ Behind the scenes the application:
   `astroquery.mast.Observations.download_file` for `mast:` products, which keeps
   the MAST token/auth flow intact).
 * Copies the artefact into the `LocalStore`, recording the provider, URI,
-  checksum, and fetch timestamp in the cache index.
+  checksum, and fetch timestamp in the cache index. MAST downloads normalise the
+  returned astroquery path before copying so cached imports are reused even when
+  the original file lives in the astroquery cache.
 * Hands the stored path to `DataIngestService` so the file benefits from the
   existing importer registry, unit normalisation, and provenance hooks.
 

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import List
+from typing import Dict, List
 
 from app.qt_compat import get_qt
 from app.services import DataIngestService, RemoteDataService, RemoteRecord
@@ -14,6 +14,30 @@ QtCore, QtGui, QtWidgets, _ = get_qt()
 
 class RemoteDataDialog(QtWidgets.QDialog):
     """Interactive browser for remote catalogue search and download."""
+
+    _MAST_SUPPORTED_CRITERIA = {
+        "target_name",
+        "obs_collection",
+        "dataproduct_type",
+        "instrument_name",
+        "proposal_id",
+        "proposal_pi",
+        "filters",
+        "s_ra",
+        "s_dec",
+        "radius",
+    }
+    _MAST_NUMERIC_CRITERIA = {"s_ra", "s_dec", "radius"}
+    _PROVIDER_HINTS = {
+        RemoteDataService.PROVIDER_NIST: (
+            "NIST ASD: enter an element symbol or atom (for example 'Fe II'). "
+            "Advanced searches accept wavelength ranges via the toolbar."
+        ),
+        RemoteDataService.PROVIDER_MAST: (
+            "MAST: supply a target name or comma-separated key=value pairs such as "
+            "'instrument_name=NIRSpec, dataproduct_type=spectrum'."
+        ),
+    }
 
     def __init__(
         self,
@@ -49,6 +73,7 @@ class RemoteDataDialog(QtWidgets.QDialog):
         self.provider_combo.currentIndexChanged.connect(self._on_provider_changed)
         controls.addWidget(QtWidgets.QLabel("Catalogue:"))
         controls.addWidget(self.provider_combo)
+        self.provider_combo.currentIndexChanged.connect(self._on_provider_changed)
 
         self.search_edit = QtWidgets.QLineEdit(self)
         self.search_edit.setPlaceholderText("Element, target name, or keyword…")
