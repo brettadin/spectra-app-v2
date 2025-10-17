@@ -1,5 +1,11 @@
 # Patch Notes
 
+## 2025-10-17 (Remote data MAST fixes) (9:30 am UTC)
+
+- Patched `RemoteDataService.download` to route MAST URIs through `astroquery.mast.Observations.download_file` while preserving the HTTP branch for direct URLs.
+- Normalised the astroquery result through `LocalStore.record` so cache reuse and provenance hashing stay consistent with HTTP downloads.
+- Added regression coverage and refreshed the remote-data user guide plus knowledge log entry to highlight the corrected flow.
+
 ## 2025-10-16 (Remote catalogue hinting & MAST text translation) (11:58 pm UTC)
 
 - Surfaced provider-specific search hints in the Remote Data dialog so the banner

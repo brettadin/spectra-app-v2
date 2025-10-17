@@ -1408,3 +1408,17 @@ and patch notes document the automatic caching behaviour and opt-out flow.【F:t
 - reference::hydrogen_lines
 
 ---
+## 2025-10-17 09:30 – Remote data ingestion
+
+**Author**: documentation
+
+**Context**: RemoteDataService
+
+**Summary**: Updated the MAST download flow to use astroquery for provenance, record the normalised path in the cache, and refreshed user docs plus regression tests.
+
+**References**:
+- app/services/remote_data_service.py
+- tests/test_remote_data_service.py
+- docs/user/remote_data.md
+
+---

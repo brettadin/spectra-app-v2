@@ -170,6 +170,24 @@ def test_download_mast_uses_astroquery_and_records_provenance(
     assert cached.cache_entry["original_path"] == str(downloaded)
 
 
+def test_download_rejects_unknown_protocol(store: LocalStore) -> None:
+    session = DummySession()
+    service = RemoteDataService(store, session=session)
+    record = RemoteRecord(
+        provider=RemoteDataService.PROVIDER_NIST,
+        identifier="mystery",
+        title="Unsupported",
+        download_url="ftp://example.invalid/data.bin",
+        metadata={},
+        units={"x": "nm", "y": "flux"},
+    )
+
+    with pytest.raises(ValueError):
+        service.download(record)
+
+    assert session.calls == []
+
+
 def test_search_mast_table_conversion(store: LocalStore, monkeypatch: pytest.MonkeyPatch) -> None:
     class DummyObservations:
         @staticmethod
