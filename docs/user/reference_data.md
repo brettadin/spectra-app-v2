@@ -3,7 +3,9 @@
 The **Reference** tab in the Inspector exposes curated spectroscopy datasets that ship with the preview shell. All
 entries are stored in `app/data/reference` so they can be browsed without a network connection and reused by agents or
 future automation. Each dataset advertises a `provenance` status in the metadata pane so you can distinguish
-authoritative NIST assets from digitised JWST placeholders that still need regeneration.
+authoritative NIST assets from digitised JWST placeholders that still need regeneration. For additional leads (UV/VIS,
+IR, mass spectrometry, elemental standards, instrument handbooks), consult `docs/link_collection.md`—it tracks
+spectroscopy-focused resources that align with the app’s analytical goals.
 
 ## NIST hydrogen line list
 
@@ -49,6 +51,10 @@ illustrate multi-instrument datasets without contacting MAST. The metadata drawe
 digitized_release_graphic` and the planned MAST product URI that will replace the placeholder once the astroquery build
 pipeline is wired into CI. Each record cites its release page and records the approximate resolving power.
 
+> **Roadmap**: These placeholders exist solely to exercise the UI until calibrated `mast:` products land in the repo. The remote
+> data tooling now prefers spectroscopic cubes/slits/grisms over photometric light curves so the eventual replacements focus on
+> elemental/molecular analysis rather than brightness-versus-time metrics.
+
 | Target | Instrument | Program | Spectral range (µm) | Units | Provenance status | Notes |
 | ------ | ---------- | ------- | ------------------- | ----- | ----------------- | ----- |
 | WASP-96 b transmission | NIRSpec PRISM | ERS 1324 | 0.6–2.8 | Transit depth (ppm) | digitized_release_graphic → mast:JWST/product/jw01324-o001_s00002_nirspec_prism_clear_prism_x1d.fits | Water vapour feature from 2022 release graphic. |
@@ -80,3 +86,5 @@ pipeline is wired into CI. Each record cites its release page and records the ap
 - Additional species (He I, O III, Fe II, etc.) can extend the NIST catalogue by dropping JSON manifests into
   `app/data/reference` — regenerate via a companion build script and the Reference tab will ingest the new files after
   service refresh.
+- Remote catalogue tooling now rewrites provider-specific queries and downloads via astroquery so agents should focus on
+  spectroscopic targets (UV/VIS, IR, mass-spec benchmarks) when wiring new data sources.
