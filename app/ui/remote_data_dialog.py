@@ -122,7 +122,10 @@ class RemoteDataDialog(QtWidgets.QDialog):
     def _on_search(self) -> None:
         provider = self.provider_combo.currentText()
         text = self.search_edit.text()
-        query = self._build_provider_query(provider, text)
+        if provider == RemoteDataService.PROVIDER_MAST:
+            query = self._build_mast_criteria(text)
+        else:
+            query = self._build_provider_query(provider, text)
         try:
             records = self.remote_service.search(provider, query)
         except Exception as exc:  # pragma: no cover - UI feedback
@@ -146,8 +149,6 @@ class RemoteDataDialog(QtWidgets.QDialog):
         text = text.strip()
         if provider == RemoteDataService.PROVIDER_NIST:
             return {"spectra": text} if text else {}
-        if provider == RemoteDataService.PROVIDER_MAST:
-            return self._build_mast_criteria(text)
         return {"text": text} if text else {}
 
     def _build_mast_criteria(self, text: str) -> Dict[str, object]:
