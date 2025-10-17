@@ -1,5 +1,64 @@
 # Patch Notes
 
+## 2025-10-17 (Knowledge log runtime guard) (04:30 am UTC)
+
+- Registered Import/Remote Import as runtime-only components inside
+  `KnowledgeLogService`, ensuring they never touch the canonical log even if a
+  caller omits `persist=False`.
+- Updated the knowledge-log regression suite to cover the runtime-only guard and
+  allow tests to override the component set when persistence is required.
+- Audited the consolidated log to confirm no automation-generated Import/Remote
+  Import entries remain after the cleanup.
+- Added `*.egg-info/` to `.gitignore` so setuptools artefacts from test runs do
+  not clutter the working tree.
+
+## 2025-10-17 (Knowledge log hygiene) (03:45 am UTC)
+
+- Added a non-persistent mode to `KnowledgeLogService.record_event` so routine
+  Import/Remote Import notifications stay in the History dock without appending
+  to `docs/history/KNOWLEDGE_LOG.md`.
+- Updated the Spectra shell ingest hooks to call the new flag, preventing cache
+  loads from spamming the canonical log while still surfacing activity in the
+  UI.
+- Extended the knowledge-log regression suite to assert that `persist=False`
+  avoids creating a log file and retains the returned entry for in-memory
+  display.
+
+## 2025-10-17 (Spectroscopy-focused remote catalogue pass) (02:30 am UTC)
+
+- Fixed the **Fetch Remote Data…** crash caused by a missing provider-change
+  slot and added regression coverage (`tests/test_remote_data_dialog.py`) to
+  instantiate the dialog safely under pytest.
+- Tightened the MAST adapter so free-text searches now inject
+  `dataproduct_type="spectrum"`, `intentType="SCIENCE"`, and `calib_level=[2, 3]`
+  filters, pruning non-spectroscopic rows before presenting them in the UI.
+  The user guide calls out the new defaults and the service filters results via
+  `_is_spectroscopic` to keep the workflow aligned with lab comparisons.
+- Updated developer notes with a documentation map plus guidance for future
+  remote-catalogue work, ensuring every agent knows where the curated resources
+  live and how to keep docs/tests in sync.
+- Extended the remote-data regression suite to assert the injected filters and
+  confirm HTTP/MAST download routing remains intact after the change.
+
+## 2025-10-17 (Remote search & cache library) (01:45 am UTC)
+
+- Reworked the Remote Data dialog to emit provider-specific queries (`spectra`
+  for NIST, `target_name` for MAST) and surfaced contextual hints so operators
+  know which spectroscopic assets to request. Updated
+  `app/services/remote_data_service.py` to translate legacy payloads, download
+  `mast:` URIs via `astroquery.mast.Observations.download_file`, and exercised
+  the new paths in `tests/test_remote_data_service.py`.
+- Introduced a Library dock driven by `LocalStore.list_entries()` so cached
+  spectra can be reloaded without re-downloading. Routine ingest events now log
+  concise knowledge-log summaries while file-level metadata lives in the Library
+  view.
+- Added a trace-colour mode toggle to the Inspector Style tab (high-contrast vs
+  uniform) and refreshed rendering so palette changes propagate to the plot and
+  dataset icons in real time.
+- Authored `docs/link_collection.md`, refreshed the remote/importing/reference
+  guides, and created `AGENTS.md` to document repository conventions, knowledge
+  log policy, and spectroscopy-first sourcing.
+
 ## 2025-10-16 (Adjustable plot LOD budget) (11:55 pm UTC)
 
 - Added a configurable "LOD point budget" control to the Inspector Style tab so users can raise or lower the plot downsampling threshold from 1k to 1M samples while Spectra persists the preference via `QSettings`.

@@ -1,5 +1,17 @@
 # Developer Notes – Service Extension Points
 
+## Documentation map
+- `AGENTS.md` – Top-level operating manual; review before editing code or docs.
+- `docs/link_collection.md` – Curated spectroscopy datasets, standards, and
+  instrument handbooks. Start here when sourcing new material.
+- `docs/user/*.md` – User guides (importing, remote data, reference overlays,
+  plot tools). Keep behaviour changes in sync.
+- `docs/dev/reference_build.md` – Scripts and manifests for regenerating the
+  bundled reference assets.
+- `docs/history/PATCH_NOTES.md` & `docs/history/KNOWLEDGE_LOG.md` – Chronological
+  change log and distilled insights; update alongside code.
+- `docs/reviews/workplan.md` – Batch tracker/backlog. Mark progress here.
+
 ## Importers
 - Implement `SupportsImport` protocol (`app/services/importers/base.py`) and register via `DataIngestService.register_importer`. Each importer should return `ImporterResult` with raw arrays, units, metadata, and optional `source_path`.
 - Keep parsing non-destructive: do not mutate arrays; let `UnitsService.to_canonical` normalise units.
@@ -19,6 +31,24 @@
 
 ## UI Shell
 - `app/main.py` composes the services. Widgets can subscribe to overlay updates by calling `refresh_overlay()` after making service changes. When adding new tabs, reuse `OverlayService` views and update selectors to keep keyboard navigation consistent.
+
+## Cache & Library
+- `LocalStore` persists every ingest; the Library dock (tabified with Datasets)
+  queries it via `LocalStore.list_entries()` so operators can reload cached
+  spectra. When you extend ingest logic, refresh the Library view and avoid
+  logging raw file paths in the knowledge log—keep that file for high-level
+  insights.
+- Remote downloads now branch: HTTP requests still use `requests`, while MAST
+  records go through `astroquery.mast.Observations.download_file`. Update tests
+  in `tests/test_remote_data_service.py` if you add new providers.
+- The MAST adapter injects `dataproduct_type="spectrum"`, `intentType="SCIENCE"`,
+  and `calib_level=[2, 3]` and prunes non-spectroscopic rows to keep the results
+  focused on slit/grism/IFS products that align with laboratory references. Only
+  override these defaults when a workflow explicitly requires imaging products
+  and document the change in the workplan/user guide.
+- Trace colouring can be toggled between the high-contrast palette and a uniform
+  colour via the Style tab combo box; respect the `_use_uniform_palette`
+  attribute when adding new plot interactions.
 
 ## Packaging
 - Update `packaging/spectra_app.spec` when adding new data assets. Keep `requirements.txt` aligned with runtime dependencies to ensure PyInstaller bundles the correct versions.
