@@ -5,6 +5,14 @@ desktop preview. Searches are routed through provider-specific adapters and the
 downloads are cached in your local Spectra data directory so you can re-open
 them even when offline.
 
+> **Optional dependencies**
+>
+> Remote catalogues rely on third-party clients. The NIST adapter requires the
+> [`requests`](https://docs.python-requests.org/) package, while MAST lookups
+> also need [`astroquery`](https://astroquery.readthedocs.io/). If either
+> dependency is missing the dialog will list the provider as unavailable and the
+> search controls remain disabled until the package is installed.
+
 ## Opening the dialog
 
 1. Choose **File → Fetch Remote Data…** (or press `Ctrl+Shift+R`).
@@ -12,8 +20,14 @@ them even when offline.
    with:
    - **NIST ASD** (line lists via the Atomic Spectra Database)
    - **MAST** (MAST data products via `astroquery.mast`)
-3. Enter a keyword, element symbol, or target name in the search field and click
-   **Search**.
+3. Enter a search term and click **Search**. The dialog adapts the query to the
+   chosen provider:
+   - **NIST ASD** – accepts element or ion designations (for example,
+     `Fe II`). The adapter also submits the term as a general keyword so any
+     server-side filters continue to function.
+   - **MAST** – expects an archive-recognised target name (for example,
+     `WASP-96 b`). Free-form text is translated into the `target_name`
+     argument required by `astroquery.mast`.
 
 The results table displays identifiers, titles, and the source URI for each
 match. Selecting a row shows the raw metadata payload in the preview panel so
@@ -27,16 +41,17 @@ you can confirm provenance before downloading.
 
 Behind the scenes the application:
 
-* Streams the remote file through the HTTP/MAST client and writes it to a
+* Streams the remote file through the HTTP client (NIST) or via
+  `astroquery.mast.Observations.download_file` (MAST) and writes it to a
   temporary location.
-* Copies the artefact into the `LocalStore`, recording the provider, URI,
-  checksum, and fetch timestamp in the cache index.
+* Copies the artefact into the `LocalStore`, recording the provider, URI, and
+  fetch timestamp in the cache index.
 * Hands the stored path to `DataIngestService` so the file benefits from the
   existing importer registry, unit normalisation, and provenance hooks.
 
 Imported spectra appear in the dataset tree immediately. They behave exactly
 like manual imports: overlays update, the data table refreshes, and the history
-dock records a "Remote Import" entry with the provider URI and cache checksum.
+dock records a "Remote Import" entry summarising the provider and spectrum ID.
 
 ## Offline behaviour and caching
 

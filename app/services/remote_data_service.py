@@ -76,7 +76,28 @@ class RemoteDataService:
     PROVIDER_MAST = "MAST"
 
     def providers(self) -> List[str]:
-        return [self.PROVIDER_NIST, self.PROVIDER_MAST]
+        """Return the list of remote providers whose dependencies are satisfied."""
+
+        providers: List[str] = []
+        if self._has_requests():
+            providers.append(self.PROVIDER_NIST)
+            if self._has_astroquery():
+                providers.append(self.PROVIDER_MAST)
+        return providers
+
+    def unavailable_providers(self) -> Dict[str, str]:
+        """Describe catalogues that cannot be used because dependencies are missing."""
+
+        reasons: Dict[str, str] = {}
+        if not self._has_requests():
+            reasons[self.PROVIDER_NIST] = "Install the 'requests' package to enable remote downloads."
+            reasons[self.PROVIDER_MAST] = (
+                "Install the 'requests' and 'astroquery' packages to enable MAST searches."
+            )
+            return reasons
+        if not self._has_astroquery():
+            reasons[self.PROVIDER_MAST] = "Install the 'astroquery' package to enable MAST searches."
+        return reasons
 
     # ------------------------------------------------------------------
     def search(self, provider: str, query: Mapping[str, Any]) -> List[RemoteRecord]:
@@ -97,13 +118,10 @@ class RemoteDataService:
                 cached=True,
             )
 
-        session = self._ensure_session()
-        response = session.get(record.download_url, timeout=60)
-        response.raise_for_status()
-
-        with tempfile.NamedTemporaryFile(delete=False) as handle:
-            handle.write(response.content)
-            tmp_path = Path(handle.name)
+        if record.provider == self.PROVIDER_MAST and record.download_url.startswith("mast:"):
+            download_path = self._download_via_mast(record)
+        else:
+            download_path = self._download_via_http(record)
 
         x_unit, y_unit = record.resolved_units()
         remote_metadata = {
@@ -114,13 +132,18 @@ class RemoteDataService:
             "metadata": json.loads(json.dumps(record.metadata)),
         }
         store_entry = self.store.record(
-            tmp_path,
+            download_path,
             x_unit=x_unit,
             y_unit=y_unit,
             source={"remote": remote_metadata},
             alias=record.suggested_filename(),
         )
-        tmp_path.unlink(missing_ok=True)
+
+        if download_path.exists():
+            try:
+                download_path.unlink()
+            except Exception:  # pragma: no cover - best effort cleanup
+                pass
 
         return RemoteDownloadResult(
             record=record,
@@ -185,6 +208,8 @@ class RemoteDataService:
     def _search_mast(self, query: Mapping[str, Any]) -> List[RemoteRecord]:
         observations = self._ensure_mast()
         criteria = dict(query)
+        if "text" in criteria and "target_name" not in criteria:
+            criteria["target_name"] = criteria.pop("text")
         table = observations.Observations.query_criteria(**criteria)
         rows = self._table_to_records(table)
         records: List[RemoteRecord] = []
@@ -234,6 +259,26 @@ class RemoteDataService:
         if astroquery_mast is None:
             raise RuntimeError("The 'astroquery' package is required for MAST searches")
         return astroquery_mast
+
+    def _download_via_http(self, record: RemoteRecord) -> Path:
+        session = self._ensure_session()
+        response = session.get(record.download_url, timeout=60)
+        response.raise_for_status()
+
+        with tempfile.NamedTemporaryFile(delete=False) as handle:
+            handle.write(response.content)
+            return Path(handle.name)
+
+    def _download_via_mast(self, record: RemoteRecord) -> Path:
+        observations = self._ensure_mast().Observations
+        path = observations.download_file(record.download_url, cache=False)
+        return Path(path)
+
+    def _has_requests(self) -> bool:
+        return requests is not None or self.session is not None
+
+    def _has_astroquery(self) -> bool:
+        return astroquery_mast is not None
 
     def _table_to_records(self, table: Any) -> List[Mapping[str, Any]]:
         if table is None:

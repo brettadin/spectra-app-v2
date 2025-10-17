@@ -85,6 +85,10 @@ To migrate existing `brains` and `atlas` logs, follow these steps:
 * **Completeness**: Include enough information for future developers or
   agents to understand the context without having to search through commit
   history.  When in doubt, write more rather than less.
+* **Signal over noise**: Routine ingest events should be summarised (provider,
+  spectrum identifier, outcome) rather than dumping raw file paths or cache
+  checksums. Detailed artefact bookkeeping lives in the LocalStore index and
+  library view.
 * **Citation**: Use tether IDs to cite official documents, academic papers or
   authoritative resources.  This ensures that claims can be verified.
 

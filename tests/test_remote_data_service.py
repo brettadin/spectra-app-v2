@@ -10,6 +10,8 @@ import pytest
 
 from app.services import LocalStore, RemoteDataService, RemoteRecord
 
+from app.services import remote_data_service as remote_module
+
 
 class DummyResponse:
     def __init__(self, *, json_payload: Any | None = None, content: bytes = b"", status: int = 200):
@@ -113,9 +115,11 @@ def test_download_uses_cache_and_records_provenance(store: LocalStore) -> None:
 
 def test_search_mast_table_conversion(store: LocalStore, monkeypatch: pytest.MonkeyPatch) -> None:
     class DummyObservations:
-        @staticmethod
-        def query_criteria(**criteria: Any) -> list[dict[str, Any]]:
-            assert criteria["target_name"] == "WASP-96 b"
+        calls: list[dict[str, Any]] = []
+
+        @classmethod
+        def query_criteria(cls, **criteria: Any) -> list[dict[str, Any]]:
+            cls.calls.append(criteria)
             return [
                 {
                     "obsid": "12345",
@@ -137,3 +141,86 @@ def test_search_mast_table_conversion(store: LocalStore, monkeypatch: pytest.Mon
     assert records[0].identifier == "12345"
     assert records[0].download_url == "mast:JWST/product.fits"
     assert records[0].units == {"x": "um", "y": "flux"}
+    assert DummyObservations.calls[0]["target_name"] == "WASP-96 b"
+
+
+def test_search_mast_translates_text_to_target_name(store: LocalStore, monkeypatch: pytest.MonkeyPatch) -> None:
+    captured: dict[str, Any] = {}
+
+    class DummyObservations:
+        @staticmethod
+        def query_criteria(**criteria: Any) -> list[dict[str, Any]]:
+            captured.update(criteria)
+            return []
+
+    class DummyMast:
+        Observations = DummyObservations
+
+    service = RemoteDataService(store, session=None)
+    monkeypatch.setattr(service, "_ensure_mast", lambda: DummyMast)
+
+    service.search(RemoteDataService.PROVIDER_MAST, {"text": "WASP-96 b"})
+
+    assert captured == {"target_name": "WASP-96 b"}
+
+
+def test_providers_hide_missing_dependencies(monkeypatch: pytest.MonkeyPatch, store: LocalStore) -> None:
+    monkeypatch.setattr(remote_module, "requests", None)
+    monkeypatch.setattr(remote_module, "astroquery_mast", None)
+    service = RemoteDataService(store, session=None)
+
+    assert service.providers() == []
+    unavailable = service.unavailable_providers()
+    assert remote_module.RemoteDataService.PROVIDER_NIST in unavailable
+    assert remote_module.RemoteDataService.PROVIDER_MAST in unavailable
+
+    # Restoring requests but not astroquery keeps NIST available while flagging MAST.
+    class DummyRequests:
+        class Session:
+            def __call__(self) -> None:  # pragma: no cover - defensive
+                return None
+
+    monkeypatch.setattr(remote_module, "requests", DummyRequests)
+    service = RemoteDataService(store, session=None)
+
+    assert service.providers() == [remote_module.RemoteDataService.PROVIDER_NIST]
+    unavailable = service.unavailable_providers()
+    assert remote_module.RemoteDataService.PROVIDER_MAST in unavailable
+
+
+def test_download_uses_astroquery_for_mast(store: LocalStore, monkeypatch: pytest.MonkeyPatch) -> None:
+    session = DummySession()
+    service = RemoteDataService(store, session=session)
+    record = RemoteRecord(
+        provider=RemoteDataService.PROVIDER_MAST,
+        identifier="12345",
+        title="WASP-96 b",
+        download_url="mast:JWST/product.fits",
+        metadata={"units": {"x": "um", "y": "flux"}},
+        units={"x": "um", "y": "flux"},
+    )
+
+    download_path = store.data_dir / "temp.fits"
+    download_path.parent.mkdir(parents=True, exist_ok=True)
+    download_path.write_bytes(b"binary")
+
+    class DummyObservations:
+        @staticmethod
+        def download_file(uri: str, cache: bool = False) -> str:
+            assert uri == record.download_url
+            assert cache is False
+            return str(download_path)
+
+    class DummyMast:
+        Observations = DummyObservations
+
+    monkeypatch.setattr(service, "_ensure_mast", lambda: DummyMast)
+
+    result = service.download(record)
+
+    assert session.calls == []
+    assert result.cached is False
+    assert Path(result.cache_entry["stored_path"]).exists()
+    remote_meta = result.cache_entry.get("source", {}).get("remote", {})
+    assert remote_meta.get("provider") == RemoteDataService.PROVIDER_MAST
+    assert remote_meta.get("uri") == record.download_url

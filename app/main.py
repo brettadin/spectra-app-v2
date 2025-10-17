@@ -1093,11 +1093,12 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                     remote = candidate
         provider = str(remote.get("provider", "remote source")) if remote else "remote source"
         uri = str(remote.get("uri")) if remote and remote.get("uri") else None
-        sha = str(cache_record.get("sha256")) if isinstance(cache_record, Mapping) and cache_record.get("sha256") else None
-        summary = f"Imported {spectrum.name} ({spectrum.id}) from {provider}."
-        references = [ref for ref in [uri, sha, spectrum.id] if ref]
+        summary = f"Imported remote spectrum '{spectrum.name}' from {provider}."
+        references = [spectrum.id]
+        if uri:
+            references.append(uri)
         self._record_history_event("Remote Import", summary, references)
-        return {"provider": provider, "uri": uri, "sha": sha}
+        return {"provider": provider, "uri": uri}
 
     def _populate_data_table(self, views: Iterable[dict]) -> None:
         views = list(views)

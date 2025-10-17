@@ -149,6 +149,13 @@
 - Allowed **File → Open** and **File → Load Sample** to queue multiple files at once while batching plot refreshes.
 - Documented the toolbar location for normalization modes and refreshed the reference-data walkthrough with the new overlay behaviour.
 
+## 2025-10-15 (Remote data workflow fixes) (11:45 pm)
+
+- Patched the Remote Data dialog so provider selection updates search hints and submits provider-specific criteria, restoring MAST query support in the desktop UI.
+- Routed MAST downloads through `astroquery.mast.Observations.download_file`, ensuring cached entries reflect canonical URIs without relying on raw HTTP schemes.
+- Trimmed remote import history entries to list spectrum IDs and provenance summaries, keeping the knowledge log focused on actionable insights.
+- Authored `AGENTS.md` plus `docs/link_collection.md` to give contributors a single orientation hub with spectroscopy references and documentation cross-links.
+
 ## 2025-10-15 (Importing Guide Provenance Appendix) (9:10 am)
 
 - Expanded `docs/user/importing.md` with a provenance export appendix covering the structure of the manifest bundle.
