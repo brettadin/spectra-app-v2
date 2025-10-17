@@ -27,12 +27,21 @@ class StubRemoteService(RemoteDataService):
             RemoteDataService.PROVIDER_NIST,
             RemoteDataService.PROVIDER_MAST,
         ]
+        self.search_calls: int = 0
+        self.last_provider: str | None = None
+        self.last_query: dict[str, object] | None = None
 
     def providers(self) -> List[str]:
         return list(self._providers)
 
     def unavailable_providers(self) -> dict[str, str]:
         return {}
+
+    def search(self, provider: str, query: dict[str, object]):
+        self.search_calls += 1
+        self.last_provider = provider
+        self.last_query = dict(query)
+        return []
 
 
 def _ensure_app() -> QtWidgets.QApplication:
@@ -59,6 +68,58 @@ def test_dialog_initialises_without_missing_slots(monkeypatch: Any) -> None:
     assert "JWST" in dialog.search_edit.placeholderText()
 
     # Clean up the dialog explicitly for Qt stability in headless tests.
+    dialog.deleteLater()
+    if QtWidgets.QApplication.instance() is app and not app.topLevelWidgets():
+        app.quit()
+
+
+def test_mast_blank_query_surfaces_validation(monkeypatch: Any) -> None:
+    app = _ensure_app()
+    ingest = IngestServiceStub()
+    remote = StubRemoteService()
+    dialog = RemoteDataDialog(
+        None,
+        remote_service=remote,
+        ingest_service=ingest,
+    )
+
+    index = dialog.provider_combo.findText(RemoteDataService.PROVIDER_MAST)
+    dialog.provider_combo.setCurrentIndex(index)
+    dialog.search_edit.setText("   ")
+    dialog._on_search()
+
+    assert remote.search_calls == 0
+    assert "MAST searches require" in dialog.status_label.text()
+
+    dialog.deleteLater()
+    if QtWidgets.QApplication.instance() is app and not app.topLevelWidgets():
+        app.quit()
+
+
+def test_mast_supported_filters_route_to_service(monkeypatch: Any) -> None:
+    app = _ensure_app()
+    ingest = IngestServiceStub()
+    remote = StubRemoteService()
+    dialog = RemoteDataDialog(
+        None,
+        remote_service=remote,
+        ingest_service=ingest,
+    )
+
+    index = dialog.provider_combo.findText(RemoteDataService.PROVIDER_MAST)
+    dialog.provider_combo.setCurrentIndex(index)
+    dialog.search_edit.setText("instrument_name=NIRSpec, s_ra=123.4, s_dec=-45.6, radius=0.2")
+    dialog._on_search()
+
+    assert remote.search_calls == 1
+    assert remote.last_provider == RemoteDataService.PROVIDER_MAST
+    assert remote.last_query is not None
+    assert remote.last_query.get("instrument_name") == "NIRSpec"
+    assert remote.last_query.get("s_ra") == pytest.approx(123.4)
+    assert remote.last_query.get("s_dec") == pytest.approx(-45.6)
+    assert remote.last_query.get("radius") == pytest.approx(0.2)
+    assert dialog.status_label.text().startswith("0 result(s) fetched from MAST")
+
     dialog.deleteLater()
     if QtWidgets.QApplication.instance() is app and not app.topLevelWidgets():
         app.quit()

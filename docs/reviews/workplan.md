@@ -4,6 +4,9 @@ This document tracks feature batches, validation status, and outstanding backlog
 
 ## Batch 14 (2025-10-17) — In Progress
 
+- [x] Block blank MAST queries by validating Remote Data input, adding service
+      guards, documentation, and regression tests so astroquery calls stay
+      bounded.
 - [x] Align Remote Data searches with provider-specific criteria so MAST queries pass `target_name` while NIST continues to use `spectra` filters, and extend the regression suite to cover the translation.
 - [x] Route MAST downloads through `astroquery.mast.Observations.download_file`, retaining the HTTP code path for direct URLs and persisting results via `LocalStore`.
 - [x] Separate routine ingest bookkeeping from the Knowledge Log by introducing a cached-library view backed by `LocalStore` and limiting the log to distilled insights. Update the documentation to reflect the new policy.
@@ -21,6 +24,7 @@ This document tracks feature batches, validation status, and outstanding backlog
 
 ### Batch 14 QA Log
 
+- 2025-10-18: ✅ `pytest` (remote MAST validation)
 - 2025-10-17: ✅ `pytest`
 - 2025-10-17: ✅ `pytest` (library detail refresh)
 

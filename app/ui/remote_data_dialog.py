@@ -126,6 +126,18 @@ class RemoteDataDialog(QtWidgets.QDialog):
     def _on_search(self) -> None:
         provider = self.provider_combo.currentText()
         query = self._build_provider_query(provider, self.search_edit.text())
+
+        if provider == RemoteDataService.PROVIDER_MAST and not any(
+            key in self._MAST_SUPPORTED_CRITERIA for key in query
+        ):
+            self.status_label.setText(
+                "MAST searches require a target name or supported key=value filters to avoid expansive queries."
+            )
+            self._records = []
+            self.results.setRowCount(0)
+            self.preview.clear()
+            return
+
         try:
             records = self.remote_service.search(provider, query)
         except Exception as exc:  # pragma: no cover - UI feedback
@@ -164,10 +176,39 @@ class RemoteDataDialog(QtWidgets.QDialog):
             hint = "\n".join(parts)
         self.hint_label.setText(hint)
 
-    def _build_provider_query(self, provider: str, text: str) -> dict[str, str]:
+    def _build_provider_query(self, provider: str, text: str) -> dict[str, object]:
         stripped = text.strip()
         if provider == RemoteDataService.PROVIDER_MAST:
-            return {"target_name": stripped} if stripped else {}
+            if not stripped:
+                return {}
+
+            criteria: dict[str, object] = {}
+            names: list[str] = []
+            for raw_part in stripped.split(","):
+                part = raw_part.strip()
+                if not part:
+                    continue
+                if "=" in part:
+                    key, value = (segment.strip() for segment in part.split("=", 1))
+                    if not key or not value:
+                        continue
+                    if key in self._MAST_SUPPORTED_CRITERIA:
+                        if key in self._MAST_NUMERIC_CRITERIA:
+                            try:
+                                criteria[key] = float(value)
+                                continue
+                            except ValueError:
+                                # Fall back to the raw string so users can correct typos
+                                # without the UI discarding the field entirely.
+                                pass
+                        criteria[key] = value
+                    continue
+                names.append(part)
+
+            if names and "target_name" not in criteria:
+                criteria["target_name"] = ", ".join(names)
+
+            return criteria
         if provider == RemoteDataService.PROVIDER_NIST:
             return {"element": stripped} if stripped else {}
         return {"text": stripped} if stripped else {}

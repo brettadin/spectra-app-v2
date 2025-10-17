@@ -225,6 +225,16 @@ class RemoteDataService:
             if isinstance(legacy_text, str) and legacy_text.strip():
                 criteria["target_name"] = legacy_text.strip()
 
+        provided_narrowing_keys = [
+            key for key in criteria if key in self._MAST_SUPPORTED_CRITERIA
+        ]
+        if not provided_narrowing_keys:
+            supported = ", ".join(sorted(self._MAST_SUPPORTED_CRITERIA))
+            raise ValueError(
+                "MAST searches require a target name or one of the supported filters to bound the result set. "
+                f"Recognised filters: {supported}."
+            )
+
         # Default to calibrated spectroscopic products so search results focus on
         # slit/grism/cube observations that pair with laboratory references.
         criteria.setdefault("dataproduct_type", "spectrum")
