@@ -1,5 +1,23 @@
 # Consolidated Knowledge Log
 
+## 2025-10-17 02:10 – Remote search normalisation & cache library
+
+**Author**: agent
+
+**Context**: Remote catalogue UX, cache discoverability, and palette accessibility.
+
+**Summary**: Normalised the Remote Data dialog so provider hints explain token syntax while searches translate free text into
+`target_name`, `element`, and wavelength bounds before hitting the adapters; MAST downloads now flow through
+`astroquery.mast.Observations.download_file` with regression coverage guarding the new branch.【F:app/ui/remote_data_dialog.py†L1-L182】【F:app/services/remote_data_service.py†L62-L207】【F:tests/test_remote_data_service.py†L1-L124】
+Introduced a Library dock backed by `LocalStore` so cached artefacts can be reloaded without polluting the Knowledge Log, updated
+docs accordingly, and left the log for distilled insights only.【F:app/main.py†L74-L454】【F:docs/user/importing.md†L33-L54】【F:docs/user/remote_data.md†L1-L60】 Added palette presets (Vivid/High Contrast/Monochrome) with a Style-tab selector that
+recolours traces, legend entries, and dataset icons in place plus documentation highlighting the new control.【F:app/main.py†L70-L214】【F:docs/user/plot_tools.md†L32-L70】
+
+**References**: `app/ui/remote_data_dialog.py`, `app/services/remote_data_service.py`, `tests/test_remote_data_service.py`,
+`app/main.py`, `docs/user/remote_data.md`, `docs/user/importing.md`, `docs/user/plot_tools.md`.
+
+---
+
 This file serves as the single entry point for all historical notes, patches,
 "brains" and "atlas" logs.  Previous iterations of Spectra‑App stored
 information in many places (e.g. `brains`, `atlas`, `PATCHLOG.txt`) and often

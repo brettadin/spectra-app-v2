@@ -10,6 +10,8 @@ import pytest
 
 from app.services import LocalStore, RemoteDataService, RemoteRecord
 
+from app.services import remote_data_service as remote_module
+
 
 class DummyResponse:
     def __init__(self, *, json_payload: Any | None = None, content: bytes = b"", status: int = 200):
@@ -131,9 +133,66 @@ def test_search_mast_table_conversion(store: LocalStore, monkeypatch: pytest.Mon
     service = RemoteDataService(store, session=None)
     monkeypatch.setattr(service, "_ensure_mast", lambda: DummyMast)
 
-    records = service.search(RemoteDataService.PROVIDER_MAST, {"target_name": "WASP-96 b"})
+    records = service.search(RemoteDataService.PROVIDER_MAST, {"text": "WASP-96 b"})
 
     assert len(records) == 1
     assert records[0].identifier == "12345"
     assert records[0].download_url == "mast:JWST/product.fits"
     assert records[0].units == {"x": "um", "y": "flux"}
+
+
+def test_download_mast_uses_astroquery_helper(
+    store: LocalStore, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    service = RemoteDataService(store, session=None)
+    payload = tmp_path / "mast-product.fits"
+    payload.write_bytes(b"mast")
+
+    called: dict[str, Any] = {}
+
+    def fake_download(uri: str) -> Path:
+        called["uri"] = uri
+        return payload
+
+    monkeypatch.setattr(service, "_download_via_mast", fake_download)
+
+    record = RemoteRecord(
+        provider=RemoteDataService.PROVIDER_MAST,
+        identifier="obs123",
+        title="Target",
+        download_url="mast:JWST/product.fits",
+        metadata={"units": {"x": "um", "y": "flux"}},
+        units={"x": "um", "y": "flux"},
+    )
+
+    result = service.download(record)
+
+    assert called["uri"] == "mast:JWST/product.fits"
+    assert result.cached is False
+    assert result.cache_entry["source"]["remote"]["provider"] == RemoteDataService.PROVIDER_MAST
+    assert Path(result.cache_entry["stored_path"]).exists()
+    assert not payload.exists(), "Temporary MAST download should be cleaned up"
+
+
+def test_providers_hide_missing_dependencies(monkeypatch: pytest.MonkeyPatch, store: LocalStore) -> None:
+    monkeypatch.setattr(remote_module, "requests", None)
+    monkeypatch.setattr(remote_module, "astroquery_mast", None)
+    service = RemoteDataService(store, session=None)
+
+    assert service.providers() == []
+    unavailable = service.unavailable_providers()
+    assert remote_module.RemoteDataService.PROVIDER_NIST in unavailable
+    assert remote_module.RemoteDataService.PROVIDER_MAST in unavailable
+
+    # Restoring requests but not astroquery keeps NIST available while flagging MAST.
+    class DummyRequests:
+        class Session:
+            def __call__(self) -> None:  # pragma: no cover - defensive
+                return None
+
+    monkeypatch.setattr(remote_module, "requests", DummyRequests)
+    service = RemoteDataService(store, session=None)
+
+    assert service.providers() == [remote_module.RemoteDataService.PROVIDER_NIST]
+    unavailable = service.unavailable_providers()
+    assert remote_module.RemoteDataService.PROVIDER_MAST in unavailable

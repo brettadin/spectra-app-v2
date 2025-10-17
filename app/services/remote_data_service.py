@@ -76,7 +76,28 @@ class RemoteDataService:
     PROVIDER_MAST = "MAST"
 
     def providers(self) -> List[str]:
-        return [self.PROVIDER_NIST, self.PROVIDER_MAST]
+        """Return the list of remote providers whose dependencies are satisfied."""
+
+        providers: List[str] = []
+        if self._has_requests():
+            providers.append(self.PROVIDER_NIST)
+            if self._has_astroquery():
+                providers.append(self.PROVIDER_MAST)
+        return providers
+
+    def unavailable_providers(self) -> Dict[str, str]:
+        """Describe catalogues that cannot be used because dependencies are missing."""
+
+        reasons: Dict[str, str] = {}
+        if not self._has_requests():
+            reasons[self.PROVIDER_NIST] = "Install the 'requests' package to enable remote downloads."
+            reasons[self.PROVIDER_MAST] = (
+                "Install the 'requests' and 'astroquery' packages to enable MAST searches."
+            )
+            return reasons
+        if not self._has_astroquery():
+            reasons[self.PROVIDER_MAST] = "Install the 'astroquery' package to enable MAST searches."
+        return reasons
 
     # ------------------------------------------------------------------
     def search(self, provider: str, query: Mapping[str, Any]) -> List[RemoteRecord]:
@@ -97,13 +118,19 @@ class RemoteDataService:
                 cached=True,
             )
 
-        session = self._ensure_session()
-        response = session.get(record.download_url, timeout=60)
-        response.raise_for_status()
-
-        with tempfile.NamedTemporaryFile(delete=False) as handle:
-            handle.write(response.content)
-            tmp_path = Path(handle.name)
+        tmp_path: Path
+        cleanup = True
+        if record.provider == self.PROVIDER_MAST:
+            tmp_path = self._download_via_mast(record.download_url)
+        else:
+            session = self._ensure_session()
+            response = session.get(record.download_url, timeout=60)
+            response.raise_for_status()
+            with tempfile.NamedTemporaryFile(delete=False) as handle:
+                handle.write(response.content)
+                tmp_path = Path(handle.name)
+        if not tmp_path.exists():
+            raise RuntimeError(f"Download failed: payload from {record.download_url} missing")
 
         x_unit, y_unit = record.resolved_units()
         remote_metadata = {
@@ -120,7 +147,8 @@ class RemoteDataService:
             source={"remote": remote_metadata},
             alias=record.suggested_filename(),
         )
-        tmp_path.unlink(missing_ok=True)
+        if cleanup:
+            tmp_path.unlink(missing_ok=True)
 
         return RemoteDownloadResult(
             record=record,
@@ -184,7 +212,7 @@ class RemoteDataService:
 
     def _search_mast(self, query: Mapping[str, Any]) -> List[RemoteRecord]:
         observations = self._ensure_mast()
-        criteria = dict(query)
+        criteria = self._normalise_mast_criteria(query)
         table = observations.Observations.query_criteria(**criteria)
         rows = self._table_to_records(table)
         records: List[RemoteRecord] = []
@@ -211,6 +239,38 @@ class RemoteDataService:
         return records
 
     # ------------------------------------------------------------------
+    def _download_via_mast(self, data_uri: str) -> Path:
+        mast = self._ensure_mast()
+        if not hasattr(mast, "Observations"):
+            raise RuntimeError("astroquery.mast Observations helper is unavailable")
+        download = mast.Observations.download_file(data_uri, cache=False)
+        if download is None:
+            raise RuntimeError(f"astroquery returned no file for {data_uri}")
+        tmp_path = Path(download)
+        if not tmp_path.exists():
+            raise RuntimeError(f"astroquery did not materialise a file for {data_uri}")
+        return tmp_path
+
+    def _normalise_mast_criteria(self, query: Mapping[str, Any]) -> Dict[str, Any]:
+        criteria: Dict[str, Any] = {}
+        for key, value in dict(query).items():
+            if value in (None, ""):
+                continue
+            if key == "text":
+                continue
+            key_str = str(key)
+            normalised = key_str.lower().strip()
+            if normalised in {"target", "name"}:
+                normalised = "target_name"
+            criteria[normalised] = value
+        text = str(query.get("text", "")).strip()
+        if text and "target_name" not in criteria and "obsid" not in criteria:
+            criteria["target_name"] = text
+        if not criteria:
+            raise ValueError("MAST searches require at least a target_name or obsid filter")
+        return criteria
+
+    # ------------------------------------------------------------------
     def _find_cached(self, uri: str) -> Dict[str, Any] | None:
         entries = self.store.list_entries()
         for entry in entries.values():
@@ -234,6 +294,12 @@ class RemoteDataService:
         if astroquery_mast is None:
             raise RuntimeError("The 'astroquery' package is required for MAST searches")
         return astroquery_mast
+
+    def _has_requests(self) -> bool:
+        return requests is not None or self.session is not None
+
+    def _has_astroquery(self) -> bool:
+        return astroquery_mast is not None
 
     def _table_to_records(self, table: Any) -> List[Mapping[str, Any]]:
         if table is None:

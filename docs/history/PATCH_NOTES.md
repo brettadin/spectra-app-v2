@@ -1,5 +1,16 @@
 # Patch Notes
 
+## 2025-10-17 (Remote search fixes & cache library) (??)
+
+- Taught the Remote Data dialog to translate free-text queries into provider-specific criteria (`target_name`, `element`,
+  `wavelength_min/max`) with inline hints, preventing MAST lookups from forwarding unsupported keywords.
+- Routed MAST downloads through `astroquery.mast.Observations.download_file`, falling back to the shared `requests` session for
+  HTTP providers, and extended the regression suite to cover the new path.
+- Introduced a Library dock that lists cached `LocalStore` artefacts, supports double-click ingest, and removes routine import
+  noise from the Knowledge Log.
+- Added Inspector palette presets (Vivid, High Contrast, Monochrome) with live recolouring plus documentation updates covering
+  the new styling, Library workflow, and remote-data behaviour.
+
 ## 2025-10-16 (Adjustable plot LOD budget) (11:55 pm UTC)
 
 - Added a configurable "LOD point budget" control to the Inspector Style tab so users can raise or lower the plot downsampling threshold from 1k to 1M samples while Spectra persists the preference via `QSettings`.

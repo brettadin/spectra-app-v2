@@ -40,6 +40,15 @@ You can opt out temporarily by setting the environment variable
 flag is not set, toggle **File → Enable Persistent Cache** to persist the
 preference between sessions.
 
+### Browsing cached artefacts
+
+When persistence is enabled the **Library** dock lists every cached file. Select
+an entry and click **Load Selection** (or double-click a row) to re-ingest it
+without leaving Spectra. The table shows the source provider/importer, units,
+and last-updated timestamp; tooltips expose the stored path and checksum for
+auditing. Because the Library covers day-to-day bookkeeping, the Knowledge Log
+is now reserved for higher-level insights and architectural notes.
+
 Imported spectra always appear in canonical units inside the application. Use
  the unit toggle on the toolbar to view alternative axes without mutating the
  underlying data. The raw source file remains untouched in the provenance

@@ -39,6 +39,17 @@ Use the control to adjust every visible trace without mutating the underlying da
 
 The data table and provenance metadata mirror the active normalisation, and the plot toolbar’s left-axis label calls out both the unit (e.g. `%T`) and the selected normalisation mode for downstream auditing.
 
+## Palette modes & contrast
+
+Open **Inspector → Style** to switch the colour palette applied to new and existing traces. The **Palette** selector offers:
+
+- **Vivid** – the default mix, tuned for general overlays.
+- **High Contrast** – saturated colours optimised for crowded comparisons.
+- **Monochrome** – a greyscale ramp for publication-style exports.
+
+Changing the palette recolours the dataset tree icons, legend entries, and plot traces immediately without altering provenance or
+normalisation metadata.
+
 ## Overlay alignment and troubleshooting
 
 Reference overlays adopt the scaling of the active plot so annotations land where you expect them. The IR functional-group lanes, for example, now anchor their filled band to the visible y-axis span and assign each label to its own vertical slot. When you normalise a trace or zoom the view, the overlay recalculates those slots to keep the stacked annotations readable. If labels ever drift out of band after switching datasets:
