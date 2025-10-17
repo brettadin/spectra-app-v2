@@ -78,6 +78,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.plot_max_points_control: Optional[QtWidgets.QSpinBox] = None
 
         self._dataset_items: Dict[str, QtGui.QStandardItem] = {}
+        self._dataset_color_items: Dict[str, QtGui.QStandardItem] = {}
         self._spectrum_colors: Dict[str, QtGui.QColor] = {}
         self._visibility: Dict[str, bool] = {}
         self._normalization_mode: str = "None"
@@ -89,22 +90,33 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self._reset_reference_overlay_state()
         self._suppress_overlay_refresh = False
         self._display_y_units: Dict[str, str] = {}
+        self._library_entries: Dict[str, Dict[str, Any]] = {}
         self._line_shape_rows: List[Mapping[str, Any]] = []
-        self._palette: List[QtGui.QColor] = [
-            QtGui.QColor("#4F6D7A"),
-            QtGui.QColor("#C0D6DF"),
-            QtGui.QColor("#C72C41"),
-            QtGui.QColor("#2F4858"),
-            QtGui.QColor("#33658A"),
-            QtGui.QColor("#758E4F"),
-            QtGui.QColor("#6D597A"),
-            QtGui.QColor("#EE964B"),
-        ]
+        self._palettes: Dict[str, List[QtGui.QColor]] = {
+            "Distinct": [
+                QtGui.QColor("#4F6D7A"),
+                QtGui.QColor("#C0D6DF"),
+                QtGui.QColor("#C72C41"),
+                QtGui.QColor("#2F4858"),
+                QtGui.QColor("#33658A"),
+                QtGui.QColor("#758E4F"),
+                QtGui.QColor("#6D597A"),
+                QtGui.QColor("#EE964B"),
+            ],
+            "Monochrome": [QtGui.QColor("#4F6D7A")],
+        }
+        self._color_mode = "Distinct"
         self._palette_index = 0
 
         self.log_view: QtWidgets.QPlainTextEdit | None = None
         self._log_buffer: list[tuple[str, str]] = []
         self._log_ready = False
+
+        self.library_dock: QtWidgets.QDockWidget | None = None
+        self.library_tree: QtWidgets.QTreeWidget | None = None
+        self.library_filter: QtWidgets.QLineEdit | None = None
+        self.library_detail: QtWidgets.QPlainTextEdit | None = None
+        self.color_mode_combo: QtWidgets.QComboBox | None = None
 
         self._reference_items: list[pg.GraphicsObject] = []
         self._history_entries: List[KnowledgeLogEntry] = []
@@ -259,6 +271,8 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.dataset_dock.setWidget(self.dataset_tree)
         self.addDockWidget(QtCore.Qt.DockWidgetArea.LeftDockWidgetArea, self.dataset_dock)
 
+        self._build_library_dock()
+
         self._build_history_dock()
 
         self.log_dock = QtWidgets.QDockWidget("Log", self)
@@ -286,6 +300,36 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         # Load documentation entries after all dock widgets (including the log view)
         # have been initialised so that the initial selection can log status safely.
         self._load_documentation_index()
+
+    def _build_library_dock(self) -> None:
+        self.library_dock = QtWidgets.QDockWidget("Library", self)
+        self.library_dock.setObjectName("dock-library")
+        container = QtWidgets.QWidget()
+        layout = QtWidgets.QVBoxLayout(container)
+        layout.setContentsMargins(6, 6, 6, 6)
+        layout.setSpacing(6)
+
+        self.library_filter = QtWidgets.QLineEdit()
+        self.library_filter.setPlaceholderText("Filter cached spectra…")
+        self.library_filter.textChanged.connect(self._on_library_filter_changed)
+        layout.addWidget(self.library_filter)
+
+        self.library_tree = QtWidgets.QTreeWidget()
+        self.library_tree.setColumnCount(4)
+        self.library_tree.setHeaderLabels(["Alias", "Provider", "Stored", "Units"])
+        self.library_tree.setSelectionMode(QtWidgets.QAbstractItemView.SelectionMode.SingleSelection)
+        self.library_tree.itemSelectionChanged.connect(self._on_library_selection_changed)
+        self.library_tree.itemDoubleClicked.connect(self._on_library_item_activated)
+        layout.addWidget(self.library_tree, 2)
+
+        self.library_detail = QtWidgets.QPlainTextEdit()
+        self.library_detail.setReadOnly(True)
+        self.library_detail.setPlaceholderText("Select a cached entry to inspect metadata.")
+        layout.addWidget(self.library_detail, 3)
+
+        self.library_dock.setWidget(container)
+        self.addDockWidget(QtCore.Qt.DockWidgetArea.LeftDockWidgetArea, self.library_dock)
+        self._refresh_library_view()
 
     def _build_history_dock(self) -> None:
         self.history_dock = QtWidgets.QDockWidget("History", self)
@@ -342,6 +386,154 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.addDockWidget(QtCore.Qt.DockWidgetArea.RightDockWidgetArea, self.history_dock)
         self._history_ui_ready = True
         self._load_history_entries()
+
+    def _on_library_filter_changed(self, text: str) -> None:
+        _ = text
+        self._refresh_library_view()
+
+    def _refresh_library_view(self) -> None:
+        if self.library_tree is None:
+            return
+        self.library_tree.setUpdatesEnabled(False)
+        self.library_tree.clear()
+        self._library_entries.clear()
+
+        if self.library_detail is not None:
+            self.library_detail.clear()
+            self.library_detail.setPlaceholderText("Select a cached entry to inspect metadata.")
+
+        store = self.remote_data_service.store
+        if store is None:
+            self.library_tree.setDisabled(True)
+            if self.library_detail is not None:
+                self.library_detail.setPlainText(
+                    "Caching is disabled for this session. Enable persistence to retain imports."
+                )
+            self.library_tree.setUpdatesEnabled(True)
+            return
+
+        self.library_tree.setDisabled(False)
+        entries = store.list_entries()
+        filter_text = ""
+        if self.library_filter is not None:
+            filter_text = self.library_filter.text().strip().lower()
+
+        ordered = sorted(
+            entries.items(),
+            key=lambda item: item[1].get("updated") or item[1].get("created") or "",
+            reverse=True,
+        )
+
+        for sha, entry in ordered:
+            alias = str(entry.get("filename") or entry.get("alias") or sha)
+            provider = self._library_provider(entry)
+            stored = str(entry.get("updated") or entry.get("created") or "")
+            units_label = self._library_units(entry)
+            haystack = " ".join([alias.lower(), provider.lower(), stored.lower(), units_label.lower(), str(sha).lower()])
+            if filter_text and filter_text not in haystack:
+                continue
+            item = QtWidgets.QTreeWidgetItem([alias, provider, stored, units_label])
+            item.setData(0, QtCore.Qt.ItemDataRole.UserRole, str(sha))
+            self.library_tree.addTopLevelItem(item)
+            self._library_entries[str(sha)] = dict(entry)
+
+        if self.library_tree.topLevelItemCount() == 0:
+            placeholder = "No cached entries match the current filter." if filter_text else "No cached entries yet."
+            if self.library_detail is not None:
+                self.library_detail.setPlainText(placeholder)
+        else:
+            self.library_tree.header().setSectionResizeMode(0, QtWidgets.QHeaderView.ResizeMode.Stretch)
+            for column in range(1, self.library_tree.columnCount()):
+                self.library_tree.resizeColumnToContents(column)
+
+        self.library_tree.setUpdatesEnabled(True)
+
+    def _library_provider(self, entry: Mapping[str, Any]) -> str:
+        source = entry.get("source") if isinstance(entry, Mapping) else None
+        if isinstance(source, Mapping):
+            remote = source.get("remote")
+            if isinstance(remote, Mapping):
+                provider = remote.get("provider")
+                if provider:
+                    return str(provider)
+        return "Local import"
+
+    def _library_units(self, entry: Mapping[str, Any]) -> str:
+        units = entry.get("units") if isinstance(entry, Mapping) else None
+        if not isinstance(units, Mapping):
+            return "unknown / unknown"
+        x_unit = str(units.get("x") or "unknown")
+        y_unit = str(units.get("y") or "unknown")
+        return f"{x_unit} / {y_unit}"
+
+    def _on_library_selection_changed(self) -> None:
+        if self.library_tree is None or self.library_detail is None:
+            return
+        selected = self.library_tree.selectedItems()
+        if not selected:
+            self.library_detail.clear()
+            self.library_detail.setPlaceholderText("Select a cached entry to inspect metadata.")
+            return
+        item = selected[0]
+        sha = item.data(0, QtCore.Qt.ItemDataRole.UserRole)
+        if not sha:
+            self.library_detail.clear()
+            return
+        entry = self._library_entries.get(str(sha))
+        if not entry:
+            self.library_detail.clear()
+            return
+        self.library_detail.setPlainText(json_pretty(entry))
+
+    def _on_library_item_activated(self, item: QtWidgets.QTreeWidgetItem, column: int) -> None:
+        _ = column
+        sha = item.data(0, QtCore.Qt.ItemDataRole.UserRole)
+        if not sha:
+            return
+        entry = self._library_entries.get(str(sha))
+        if not entry:
+            return
+        self._load_library_entry(entry)
+
+    def _load_library_entry(self, entry: Mapping[str, Any]) -> None:
+        path_value = entry.get("stored_path") if isinstance(entry, Mapping) else None
+        if not path_value:
+            QtWidgets.QMessageBox.warning(self, "Load failed", "Cached entry is missing its stored path.")
+            return
+        path = Path(path_value)
+        if not path.exists():
+            QtWidgets.QMessageBox.warning(
+                self,
+                "Load failed",
+                "The cached file is no longer available on disk. Remove it from the cache and try again.",
+            )
+            return
+        try:
+            spectrum = self.ingest_service.ingest(path)
+        except Exception as exc:  # pragma: no cover - UI feedback
+            QtWidgets.QMessageBox.critical(self, "Import failed", str(exc))
+            return
+
+        self.plot.begin_bulk_update()
+        try:
+            self.overlay_service.add(spectrum)
+            self._add_spectrum(spectrum)
+        finally:
+            self.plot.end_bulk_update()
+        self._update_math_selectors()
+        self.refresh_overlay()
+        self._show_metadata(spectrum)
+        self._show_provenance(spectrum)
+        alias = entry.get("filename") if isinstance(entry, Mapping) else None
+        provider = self._library_provider(entry)
+        detail = f"Loaded {spectrum.name} from library"
+        if alias:
+            detail += f" ({alias})"
+        if provider and provider != "Local import":
+            detail += f" via {provider}"
+        self._log("Library", detail)
+        self.status_bar.showMessage(detail, 5000)
+        self._refresh_library_view()
 
     def _build_inspector_tabs(self) -> None:
         self.inspector_tabs.clear()
@@ -426,6 +618,14 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.plot_max_points_control.setValue(self._plot_max_points)
         self.plot_max_points_control.valueChanged.connect(self._on_plot_max_points_changed)
         lod_form.addRow("LOD point budget:", self.plot_max_points_control)
+
+        self.color_mode_combo = QtWidgets.QComboBox()
+        self.color_mode_combo.addItem("Distinct palette", userData="Distinct")
+        self.color_mode_combo.addItem("Monochrome", userData="Monochrome")
+        current_index = max(self.color_mode_combo.findData(self._color_mode), 0)
+        self.color_mode_combo.setCurrentIndex(current_index)
+        self.color_mode_combo.currentIndexChanged.connect(self._on_color_mode_index_changed)
+        lod_form.addRow("Trace colour mode:", self.color_mode_combo)
 
         style_layout.addStretch(1)
 
@@ -519,6 +719,16 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.plot.set_max_points(coerced)
         self._save_plot_max_points(coerced)
 
+    def _on_color_mode_index_changed(self, index: int) -> None:
+        if self.color_mode_combo is None:
+            return
+        mode = self.color_mode_combo.itemData(index)
+        if not mode:
+            mode = self.color_mode_combo.itemText(index)
+        if not mode:
+            return
+        self._set_color_mode(str(mode))
+
     def _on_display_unit_changed(self, unit: str) -> None:
         self.plot.set_display_unit(unit)
         self.refresh_overlay()
@@ -606,6 +816,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         finally:
             self.plot.end_bulk_update()
 
+        self._refresh_library_view()
         self._update_math_selectors()
         self.refresh_overlay()
         self._show_metadata(spectra[-1])
@@ -819,17 +1030,13 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self._show_provenance(spectrum)
         ingest_meta = spectrum.metadata.get("ingest", {}) if isinstance(spectrum.metadata, dict) else {}
         importer = ingest_meta.get("importer", "Unknown importer")
-        summary = (
-            f"Ingested {spectrum.name} ({spectrum.id}) via {importer} from {path.name}."
-        )
-        references = [str(path)]
-        if spectrum.id:
-            references.append(spectrum.id)
         cache_record = ingest_meta.get("cache_record", {}) if isinstance(ingest_meta, dict) else {}
         cache_sha = cache_record.get("sha256")
         if cache_sha:
-            references.append(str(cache_sha))
-        self._record_history_event("Import", summary, references)
+            self._log("Import", f"{spectrum.name} cached ({str(cache_sha)[:12]}…) via {importer}")
+        else:
+            self._log("Import", f"{spectrum.name} ingested via {importer}")
+        self._refresh_library_view()
 
     def _add_spectrum(self, spectrum: Spectrum) -> None:
         color = self._assign_color(spectrum)
@@ -853,6 +1060,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         group_item.appendRow([alias_item, visible_item, color_item])
         self.dataset_tree.expandAll()
         self._dataset_items[spectrum.id] = alias_item
+        self._dataset_color_items[spectrum.id] = color_item
         self._visibility[spectrum.id] = True
         _source_x, source_y = self._source_units(spectrum)
         self._display_y_units[spectrum.id] = source_y
@@ -1094,9 +1302,6 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         provider = str(remote.get("provider", "remote source")) if remote else "remote source"
         uri = str(remote.get("uri")) if remote and remote.get("uri") else None
         sha = str(cache_record.get("sha256")) if isinstance(cache_record, Mapping) and cache_record.get("sha256") else None
-        summary = f"Imported {spectrum.name} ({spectrum.id}) from {provider}."
-        references = [ref for ref in [uri, sha, spectrum.id] if ref]
-        self._record_history_event("Remote Import", summary, references)
         return {"provider": provider, "uri": uri, "sha": sha}
 
     def _populate_data_table(self, views: Iterable[dict]) -> None:
@@ -1184,27 +1389,74 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             return f"Intensity ({unit_label}, normalized: {normalised})"
         return f"Intensity ({unit_label})"
 
-    def _assign_color(self, spectrum: Spectrum) -> QtGui.QColor:
-        if spectrum.id in self._spectrum_colors:
+    def _assign_color(self, spectrum: Spectrum, *, force: bool = False) -> QtGui.QColor:
+        if not force and spectrum.id in self._spectrum_colors:
             return self._spectrum_colors[spectrum.id]
 
+        palette = self._palette_for_mode()
         color: QtGui.QColor | None = None
-        metadata = spectrum.metadata if isinstance(spectrum.metadata, dict) else {}
-        operation = metadata.get('operation') if isinstance(metadata, dict) else None
-        parents: List[str] = []
-        if isinstance(operation, dict):
-            parents = list(operation.get('parents') or [])
-        if parents:
-            base_id = parents[0]
-            base_color = self._spectrum_colors.get(base_id)
-            if base_color:
-                color = QtGui.QColor(base_color)
-                color = color.lighter(130)
+
+        if self._color_mode != "Monochrome":
+            metadata = spectrum.metadata if isinstance(spectrum.metadata, Mapping) else {}
+            operation = metadata.get('operation') if isinstance(metadata, Mapping) else None
+            parents: List[str] = []
+            if isinstance(operation, Mapping):
+                parents = list(operation.get('parents') or [])
+            if parents:
+                base_id = parents[0]
+                base_color = self._spectrum_colors.get(base_id)
+                if base_color:
+                    color = QtGui.QColor(base_color)
+                    color = color.lighter(130)
+
         if color is None:
-            color = self._palette[self._palette_index % len(self._palette)]
+            palette_len = max(len(palette), 1)
+            base = palette[self._palette_index % palette_len]
+            color = QtGui.QColor(base)
             self._palette_index += 1
+
         self._spectrum_colors[spectrum.id] = color
         return color
+
+    def _palette_for_mode(self) -> List[QtGui.QColor]:
+        palette = self._palettes.get(self._color_mode)
+        if not palette:
+            palette = self._palettes.get("Distinct") or [QtGui.QColor("#4F6D7A")]
+        return palette
+
+    def _set_color_mode(self, mode: str) -> None:
+        if mode == self._color_mode:
+            return
+        if mode not in self._palettes:
+            return
+        self._color_mode = mode
+        self._apply_color_mode()
+
+    def _apply_color_mode(self) -> None:
+        self._spectrum_colors.clear()
+        self._palette_index = 0
+        spectra = list(self.overlay_service.list())
+        if not spectra:
+            return
+        for spectrum in spectra:
+            color = self._assign_color(spectrum, force=True)
+            self._apply_color_to_dataset_item(spectrum.id, color)
+            style = TraceStyle(
+                color=QtGui.QColor(color),
+                width=1.6,
+                antialias=False,
+                show_in_legend=True,
+            )
+            self.plot.update_style(spectrum.id, style)
+        self.refresh_overlay()
+
+    def _apply_color_to_dataset_item(self, spectrum_id: str, color: QtGui.QColor) -> None:
+        item = self._dataset_color_items.get(spectrum_id)
+        if item is None:
+            return
+        pixmap = QtGui.QPixmap(16, 16)
+        pixmap.fill(QtGui.QColor(color))
+        item.setIcon(QtGui.QIcon(pixmap))
 
     def _is_derived(self, spectrum: Spectrum) -> bool:
         metadata = spectrum.metadata

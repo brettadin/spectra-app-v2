@@ -149,6 +149,13 @@
 - Allowed **File → Open** and **File → Load Sample** to queue multiple files at once while batching plot refreshes.
 - Documented the toolbar location for normalization modes and refreshed the reference-data walkthrough with the new overlay behaviour.
 
+## 2025-10-16 (Remote data polish & cache library)
+
+- Fixed the Remote Data dialog crash by wiring the provider combo to a dedicated change handler and surfacing provider-specific search hints so agents know which criteria each catalogue expects.
+- Taught the remote-data service to rewrite free-text MAST queries to `target_name`, fetch `mast:` URIs via `astroquery.Observations.download_file`, and added regression coverage to keep the translation layer honest.
+- Introduced a Library dock that lists cached LocalStore entries, exposes metadata previews, and lets users reload spectra without spamming the knowledge log; routine imports now log to the UI instead of the knowledge journal.
+- Added a trace colour-mode toggle (distinct vs. monochrome) in the Style tab and refreshed documentation plus the new `AGENTS.md` guide so future contributors can find the expanded docs and resource index quickly.
+
 ## 2025-10-15 (Importing Guide Provenance Appendix) (9:10 am)
 
 - Expanded `docs/user/importing.md` with a provenance export appendix covering the structure of the manifest bundle.

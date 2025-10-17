@@ -43,7 +43,7 @@ class RemoteDataDialog(QtWidgets.QDialog):
 
         controls = QtWidgets.QHBoxLayout()
         self.provider_combo = QtWidgets.QComboBox(self)
-        self.provider_combo.addItems(self.remote_service.providers())
+        self.provider_combo.currentIndexChanged.connect(self._on_provider_changed)
         controls.addWidget(QtWidgets.QLabel("Catalogue:"))
         controls.addWidget(self.provider_combo)
 
@@ -82,15 +82,29 @@ class RemoteDataDialog(QtWidgets.QDialog):
         cancel.clicked.connect(self.reject)
         layout.addWidget(buttons)
 
+        self.hint_label = QtWidgets.QLabel(self)
+        self.hint_label.setObjectName("remote-hint")
+        self.hint_label.setWordWrap(True)
+        layout.addWidget(self.hint_label)
+
+        self.provider_hint_label = QtWidgets.QLabel(self)
+        self.provider_hint_label.setObjectName("remote-provider-hint")
+        self.provider_hint_label.setWordWrap(True)
+        self.provider_hint_label.setStyleSheet("color: #7d8896;")
+        layout.addWidget(self.provider_hint_label)
+        self.provider_hint_label.hide()
+
         self.status_label = QtWidgets.QLabel(self)
         self.status_label.setObjectName("remote-status")
         self.status_label.setWordWrap(True)
         layout.addWidget(self.status_label)
 
+        self._refresh_provider_state()
+
     # ------------------------------------------------------------------
     def _on_search(self) -> None:
         provider = self.provider_combo.currentText()
-        query = {"text": self.search_edit.text().strip()}
+        query = self._build_query(provider)
         try:
             records = self.remote_service.search(provider, query)
         except Exception as exc:  # pragma: no cover - UI feedback
@@ -108,6 +122,19 @@ class RemoteDataDialog(QtWidgets.QDialog):
             self.results.selectRow(0)
         else:
             self.preview.clear()
+
+    def _on_provider_changed(self, index: int) -> None:  # pragma: no cover - simple UI handler
+        _ = index
+        provider = self.provider_combo.currentText()
+        placeholder, hint = self._provider_hint(provider)
+        if placeholder:
+            self.search_edit.setPlaceholderText(placeholder)
+        if hint:
+            self.provider_hint_label.setText(hint)
+            self.provider_hint_label.show()
+        else:
+            self.provider_hint_label.clear()
+            self.provider_hint_label.hide()
 
     def _update_preview(self) -> None:
         indexes = self.results.selectionModel().selectedRows()
@@ -139,4 +166,68 @@ class RemoteDataDialog(QtWidgets.QDialog):
 
         self._ingested = spectra
         self.accept()
+
+    def _refresh_provider_state(self) -> None:
+        providers = self.remote_service.providers()
+        self.provider_combo.clear()
+        if providers:
+            self.provider_combo.addItems(providers)
+            self.provider_combo.setEnabled(True)
+            self.search_edit.setEnabled(True)
+            self.search_button.setEnabled(True)
+            self._on_provider_changed(self.provider_combo.currentIndex())
+        else:
+            self.provider_combo.setEnabled(False)
+            self.search_edit.setEnabled(False)
+            self.search_button.setEnabled(False)
+            self.provider_hint_label.hide()
+
+        unavailable = self.remote_service.unavailable_providers()
+        if unavailable:
+            messages = []
+            for provider, reason in unavailable.items():
+                messages.append(f"{provider}: {reason}")
+            self.hint_label.setText("\n".join(messages))
+        else:
+            self.hint_label.clear()
+
+        if not providers:
+            if not unavailable:
+                self.status_label.setText("Remote catalogues are temporarily unavailable.")
+            else:
+                self.status_label.setText(
+                    "Remote catalogues are unavailable until the required optional dependencies are installed."
+                )
+        else:
+            self.status_label.clear()
+
+    def _build_query(self, provider: str) -> dict[str, str]:
+        text = self.search_edit.text().strip()
+        if provider == RemoteDataService.PROVIDER_MAST:
+            if not text:
+                return {}
+            return {"target_name": text}
+        if provider == RemoteDataService.PROVIDER_NIST:
+            if not text:
+                return {}
+            # Allow users to enter either an element code or keyword.
+            return {"element": text}
+        if text:
+            return {"text": text}
+        return {}
+
+    def _provider_hint(self, provider: str) -> tuple[str, str]:
+        if provider == RemoteDataService.PROVIDER_MAST:
+            return (
+                "Search by target name (e.g. WASP-96 b)",
+                "MAST queries accept target names, coordinates, or proposal IDs. Use the full target label "
+                "as published in MAST to retrieve calibrated JWST spectra.",
+            )
+        if provider == RemoteDataService.PROVIDER_NIST:
+            return (
+                "Search by species symbol (e.g. Fe II)",
+                "NIST ASD searches support element symbols, charge states, or transition keywords."
+                " Narrow the results later using the wavelength filters.",
+            )
+        return ("", "")
 

@@ -27,6 +27,21 @@ Each entry in this document should follow this structure:
   applicable).
 
 ---
+
+## 2025-10-16 14:30 – Remote data & caching
+
+**Author**: agent
+
+**Context**: Remote catalogue UX, LocalStore caching, and documentation hand-off.
+
+**Summary**: Patched the Remote Data dialog so provider changes update search hints and prevent the `_on_provider_changed` crash; searches now translate free-text into provider-specific criteria and MAST downloads run through `astroquery` helpers instead of raw HTTP.【F:app/ui/remote_data_dialog.py†L40-L134】【F:app/services/remote_data_service.py†L82-L223】【F:tests/test_remote_data_service.py†L1-L162】 Added a Library dock that lists cached spectra, enables double-click ingest, and keeps routine imports out of the knowledge log while exposing metadata previews for provenance checks.【F:app/main.py†L202-L476】【F:app/main.py†L728-L939】【F:docs/user/remote_data.md†L1-L74】 Documented the new workflow, created `docs/link_collection.md` to centralise research links, and seeded `AGENTS.md` so future operators can find all guidance in one place.【F:docs/user/remote_data.md†L1-L74】【F:docs/link_collection.md†L1-L55】【F:AGENTS.md†L1-L53】【F:docs/history/PATCH_NOTES.md†L1-L9】
+
+**References**:
+- `app/ui/remote_data_dialog.py`, `app/services/remote_data_service.py`
+- `app/main.py` library panel implementation and logging changes
+- Updated documentation (`docs/user/remote_data.md`, `docs/link_collection.md`, `AGENTS.md`, patch notes)
+
+---
 ```
 
 Entries should be appended chronologically.  Older logs imported from the
