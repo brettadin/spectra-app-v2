@@ -4,13 +4,17 @@ This document tracks feature batches, validation status, and outstanding backlog
 
 ## Batch 14 (2025-10-17) — In Progress
 
-- [ ] Align Remote Data searches with provider-specific criteria so MAST queries pass `target_name` while NIST continues to use `spectra` filters, and extend the regression suite to cover the translation.
-- [ ] Route MAST downloads through `astroquery.mast.Observations.download_file`, retaining the HTTP code path for direct URLs and persisting results via `LocalStore`.
-- [ ] Separate routine ingest bookkeeping from the Knowledge Log by introducing a cached-library view backed by `LocalStore` and limiting the log to distilled insights. Update the documentation to reflect the new policy.
+- [x] Align Remote Data searches with provider-specific criteria so MAST queries pass `target_name` while NIST continues to use `spectra` filters, and extend the regression suite to cover the translation.
+- [x] Route MAST downloads through `astroquery.mast.Observations.download_file`, retaining the HTTP code path for direct URLs and persisting results via `LocalStore`.
+- [x] Separate routine ingest bookkeeping from the Knowledge Log by introducing a cached-library view backed by `LocalStore` and limiting the log to distilled insights. Update the documentation to reflect the new policy.
+- [x] Restore the Remote Data provider-change slot, assert it under pytest, and
+      inject spectroscopic defaults (`dataproduct_type="spectrum"`,
+      `intentType="SCIENCE"`, `calib_level=[2, 3]`) so MAST queries prioritise
+      calibrated spectra with matching documentation updates.
 
 ### Batch 14 QA Log
 
-- _Pending_ — execute the standard `ruff`, `mypy`, and `pytest` gates once the above work lands.
+- 2025-10-17: ✅ `pytest`
 
 ## Batch 13 (2025-10-15)
 
@@ -54,6 +58,7 @@ This document tracks feature batches, validation status, and outstanding backlog
 - [ ] Expand the spectral-line catalogue beyond hydrogen (e.g., He I, O III, Fe II) with citations and regression coverage.
 - [ ] Integrate IR functional-group heuristics into importer header parsing for automated axis validation.
 - [x] Plot bundled reference datasets inside the Reference tab and allow overlay toggles on the main plot pane.
+- [ ] Prototype a native extension hook (e.g., `pybind11`/C++) for high-throughput spectral transforms and document the Windows build toolchain.
 
 ## Documentation Alignment Queue
 

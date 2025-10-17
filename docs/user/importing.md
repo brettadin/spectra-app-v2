@@ -31,6 +31,10 @@ cache for provenance-aware reuse.
    provenance-aware cache records the canonical units alongside a copy of the
    upload so repeat loads avoid re-parsing.
 
+> **Need datasets?** Consult `docs/link_collection.md` for curated spectroscopy
+> portals, lab standards, and instrument handbooks that pair well with the
+> importer and remote catalogue workflow.
+
 ### Cache persistence controls
 
 The ingest pipeline now writes to the on-disk cache automatically, which keeps
@@ -45,17 +49,15 @@ Imported spectra always appear in canonical units inside the application. Use
  underlying data. The raw source file remains untouched in the provenance
  bundle created during export.
 
-### Reviewing cached artefacts
+### Browsing cached files
 
-- Open the **Datasets** dock and switch to the **Library** tab to inspect
-  everything the LocalStore cache has captured. Each entry lists the stored
-  filename, SHA256 digest, on-disk location, byte size, and importer ID.
-- Use this view to confirm that repeated ingests map to the same digest or to
-  browse previously cached files without scrolling through the knowledge log.
-- The **History** dock now focuses on summarised insights (for example “Batch
-  of calibration frames loaded for detector QA”). Per-file import noise no
-  longer lands in `docs/history/KNOWLEDGE_LOG.md`, keeping the log readable
-  while the Library surfaces the low-level provenance.
+Open the **Library** dock (tabified with the Datasets pane) to inspect cached
+uploads. Each row lists the stored alias, units, timestamp, provider/importer,
+and checksum. Double-click an entry to re-load it without touching the original
+path—ideal when you want to compare different normalisations or revisit a
+session offline. Routine imports no longer spam the knowledge log with raw file
+paths; only high-level summaries remain in `docs/history/KNOWLEDGE_LOG.md` while
+the library exposes the full cache index for auditability.
 
 ## Intelligent parsing of messy tables
 

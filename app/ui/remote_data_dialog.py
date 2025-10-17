@@ -54,6 +54,9 @@ class RemoteDataDialog(QtWidgets.QDialog):
         self.ingest_service = ingest_service
         self._records: List[RemoteRecord] = []
         self._ingested: List[object] = []
+        self._provider_hints: dict[str, str] = {}
+        self._provider_placeholders: dict[str, str] = {}
+        self._dependency_hint: str = ""
 
         self._build_ui()
 
@@ -67,6 +70,7 @@ class RemoteDataDialog(QtWidgets.QDialog):
 
         controls = QtWidgets.QHBoxLayout()
         self.provider_combo = QtWidgets.QComboBox(self)
+        self.provider_combo.currentIndexChanged.connect(self._on_provider_changed)
         controls.addWidget(QtWidgets.QLabel("Catalogue:"))
         controls.addWidget(self.provider_combo)
         self.provider_combo.currentIndexChanged.connect(self._on_provider_changed)
@@ -121,11 +125,7 @@ class RemoteDataDialog(QtWidgets.QDialog):
     # ------------------------------------------------------------------
     def _on_search(self) -> None:
         provider = self.provider_combo.currentText()
-        text = self.search_edit.text()
-        if provider == RemoteDataService.PROVIDER_MAST:
-            query = self._build_mast_criteria(text)
-        else:
-            query = self._build_provider_query(provider, text)
+        query = self._build_provider_query(provider, self.search_edit.text())
         try:
             records = self.remote_service.search(provider, query)
         except Exception as exc:  # pragma: no cover - UI feedback
@@ -144,53 +144,33 @@ class RemoteDataDialog(QtWidgets.QDialog):
         else:
             self.preview.clear()
 
-    # ------------------------------------------------------------------
-    def _build_provider_query(self, provider: str, text: str) -> Dict[str, object]:
-        text = text.strip()
-        if provider == RemoteDataService.PROVIDER_NIST:
-            return {"spectra": text} if text else {}
-        return {"text": text} if text else {}
-
-    def _build_mast_criteria(self, text: str) -> Dict[str, object]:
-        text = text.strip()
-        if not text:
-            return {}
-
-        if "=" in text or ":" in text:
-            criteria: Dict[str, object] = {}
-            tokens = [token.strip() for token in text.split(",") if token.strip()]
-            for token in tokens:
-                key, value = self._split_token(token)
-                if key is None or value is None:
-                    criteria.clear()
-                    break
-                if key not in self._MAST_SUPPORTED_CRITERIA:
-                    criteria.clear()
-                    break
-                if key in self._MAST_NUMERIC_CRITERIA:
-                    try:
-                        criteria[key] = float(value)
-                    except ValueError:
-                        criteria.clear()
-                        break
-                else:
-                    criteria[key] = value
-            if criteria:
-                return criteria
-
-        return {"target_name": text}
-
-    @staticmethod
-    def _split_token(token: str) -> tuple[str | None, str | None]:
-        if "=" in token:
-            key, _, value = token.partition("=")
+    def _on_provider_changed(self, index: int | None = None) -> None:
+        # Accept the index argument emitted by Qt while keeping the logic driven
+        # by the current provider string so external callers can trigger the
+        # refresh without supplying an index explicitly.
+        if index is not None:
+            # Qt passes the numeric index; the logic below derives values from
+            # the provider string so the argument is intentionally ignored.
+            pass
+        provider = self.provider_combo.currentText()
+        placeholder = self._provider_placeholders.get(provider)
+        if placeholder:
+            self.search_edit.setPlaceholderText(placeholder)
         else:
-            key, _, value = token.partition(":")
-        key = key.strip()
-        value = value.strip()
-        if not key or not value:
-            return None, None
-        return key, value
+            self.search_edit.setPlaceholderText("Element, target name, or keyword…")
+        hint = self._provider_hints.get(provider, "")
+        if self._dependency_hint:
+            parts = [part for part in (hint, self._dependency_hint) if part]
+            hint = "\n".join(parts)
+        self.hint_label.setText(hint)
+
+    def _build_provider_query(self, provider: str, text: str) -> dict[str, str]:
+        stripped = text.strip()
+        if provider == RemoteDataService.PROVIDER_MAST:
+            return {"target_name": stripped} if stripped else {}
+        if provider == RemoteDataService.PROVIDER_NIST:
+            return {"element": stripped} if stripped else {}
+        return {"text": stripped} if stripped else {}
 
     def _update_preview(self) -> None:
         indexes = self.results.selectionModel().selectedRows()
@@ -231,19 +211,34 @@ class RemoteDataDialog(QtWidgets.QDialog):
             self.provider_combo.setEnabled(True)
             self.search_edit.setEnabled(True)
             self.search_button.setEnabled(True)
+            self._provider_placeholders = {
+                RemoteDataService.PROVIDER_NIST: "Fe II, H-alpha, or ion symbol…",
+                RemoteDataService.PROVIDER_MAST: "JWST spectroscopic target (e.g. WASP-96 b, NIRSpec)…",
+            }
+            self._provider_hints = {
+                RemoteDataService.PROVIDER_NIST: (
+                    "Searches target laboratory-grade spectral line lists from the NIST ASD."
+                ),
+                RemoteDataService.PROVIDER_MAST: (
+                    "MAST requests favour calibrated spectra (IFS cubes, slits, prisms) using the "
+                    "`dataproduct_type=spectrum` filter so results align with lab references."
+                ),
+            }
         else:
             self.provider_combo.setEnabled(False)
             self.search_edit.setEnabled(False)
             self.search_button.setEnabled(False)
+            self._provider_placeholders = {}
+            self._provider_hints = {}
 
         unavailable = self.remote_service.unavailable_providers()
         if unavailable:
             messages = []
             for provider, reason in unavailable.items():
                 messages.append(f"{provider}: {reason}")
-            self.hint_label.setText("\n".join(messages))
+            self._dependency_hint = "\n".join(messages)
         else:
-            self.hint_label.clear()
+            self._dependency_hint = ""
 
         if not providers:
             if not unavailable:
@@ -254,4 +249,6 @@ class RemoteDataDialog(QtWidgets.QDialog):
                 )
         else:
             self.status_label.clear()
+
+        self._on_provider_changed()
 

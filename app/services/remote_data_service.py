@@ -134,34 +134,7 @@ class RemoteDataService:
                 cached=True,
             )
 
-        mast_provenance: Dict[str, Any] | None = None
-        cleanup_tmp = False
-        parsed_url = urlparse(record.download_url)
-        scheme = (parsed_url.scheme or "").lower()
-
-        if record.provider == self.PROVIDER_MAST:
-            tmp_path = self._download_via_mast(record)
-            mast_provenance = {
-                "mast": {
-                    "downloaded_via": "astroquery.mast.Observations.download_file",
-                }
-            }
-        elif scheme in {"http", "https"}:
-            session = self._ensure_session()
-            response = session.get(record.download_url, timeout=60)
-            response.raise_for_status()
-
-            with tempfile.NamedTemporaryFile(delete=False) as handle:
-                handle.write(response.content)
-                tmp_path = Path(handle.name)
-            cleanup_tmp = True
-        else:
-            raise ValueError(
-                "Unsupported download protocol for remote record: "
-                f"{record.download_url!r}"
-            )
-
-        tmp_path = self._normalise_download_path(tmp_path)
+        fetch_path, cleanup = self._fetch_remote(record)
 
         x_unit, y_unit = record.resolved_units()
         remote_metadata = {
@@ -174,14 +147,14 @@ class RemoteDataService:
         if mast_provenance is not None:
             remote_metadata.update(mast_provenance)
         store_entry = self.store.record(
-            tmp_path,
+            fetch_path,
             x_unit=x_unit,
             y_unit=y_unit,
             source={"remote": remote_metadata},
             alias=record.suggested_filename(),
         )
-        if cleanup_tmp:
-            tmp_path.unlink(missing_ok=True)
+        if cleanup:
+            fetch_path.unlink(missing_ok=True)
 
         return RemoteDownloadResult(
             record=record,
@@ -245,12 +218,26 @@ class RemoteDataService:
 
     def _search_mast(self, query: Mapping[str, Any]) -> List[RemoteRecord]:
         observations = self._ensure_mast()
-        criteria = self._normalise_mast_criteria(dict(query))
+        criteria = dict(query)
+        legacy_text = criteria.pop("text", None)
+        if legacy_text and "target_name" not in criteria:
+            if isinstance(legacy_text, str) and legacy_text.strip():
+                criteria["target_name"] = legacy_text.strip()
+
+        # Default to calibrated spectroscopic products so search results focus on
+        # slit/grism/cube observations that pair with laboratory references.
+        criteria.setdefault("dataproduct_type", "spectrum")
+        criteria.setdefault("intentType", "SCIENCE")
+        if "calib_level" not in criteria:
+            criteria["calib_level"] = [2, 3]
+
         table = observations.Observations.query_criteria(**criteria)
         rows = self._table_to_records(table)
         records: List[RemoteRecord] = []
         for row in rows:
             metadata = dict(row)
+            if not self._is_spectroscopic(metadata):
+                continue
             identifier = str(metadata.get("obsid") or metadata.get("ObservationID") or metadata.get("id"))
             if not identifier:
                 continue
@@ -268,89 +255,57 @@ class RemoteDataService:
                     metadata=metadata,
                     units=units_map,
                 )
-            )
+                )
         return records
 
-    def _download_via_mast(self, record: RemoteRecord) -> Path:
-        observations = self._ensure_mast().Observations
-        downloaded = observations.download_file(record.download_url, cache=False)
-        return Path(downloaded)
+    def _is_spectroscopic(self, metadata: Mapping[str, Any]) -> bool:
+        """Return True when the MAST row represents spectroscopic data."""
 
-    @staticmethod
-    def _normalize_mast_text(value: Any) -> str | None:
-        if value is None:
-            return None
-        if isinstance(value, str):
-            stripped = value.strip()
-            return stripped or None
-        try:
-            text = str(value)
-        except Exception:
-            return None
-        stripped = text.strip()
-        return stripped or None
+        product = str(metadata.get("dataproduct_type") or "").lower()
+        if product in {"spectrum", "spectral_energy_distribution"}:
+            return True
+        if "spect" in product:
+            return True
 
-    @staticmethod
-    def _normalise_download_path(path: Path | str) -> Path:
-        candidate = Path(path)
-        try:
-            resolved = candidate.resolve(strict=True)
-        except FileNotFoundError:
-            return candidate
-        return resolved
+        product_type = str(metadata.get("productType") or "").lower()
+        spectro_tokens = ("spectrum", "spectroscopy", "grism", "ifu", "slit", "prism")
+        if any(token in product_type for token in spectro_tokens):
+            return True
 
-    # ------------------------------------------------------------------
-    def _normalise_mast_criteria(self, criteria: Dict[str, Any]) -> Dict[str, Any]:
-        parsed_from_text = self._parse_mast_text(criteria.pop("text", None))
-        for key, value in parsed_from_text.items():
-            criteria.setdefault(key, value)
+        description = str(metadata.get("description") or metadata.get("display_name") or "").lower()
+        if any(token in description for token in spectro_tokens):
+            return True
 
-        if "target_name" in criteria:
-            normalized_target = self._normalize_mast_text(criteria.get("target_name"))
-            if normalized_target is None:
-                criteria.pop("target_name", None)
-            else:
-                criteria["target_name"] = normalized_target
+        return False
 
-        return criteria
+    def _fetch_remote(self, record: RemoteRecord) -> tuple[Path, bool]:
+        if self._should_use_mast(record):
+            return self._fetch_via_mast(record), True
+        return self._fetch_via_http(record), True
 
-    def _parse_mast_text(self, text: Any) -> Dict[str, Any]:
-        normalized = self._normalize_mast_text(text)
-        if normalized is None:
-            return {}
+    def _fetch_via_http(self, record: RemoteRecord) -> Path:
+        session = self._ensure_session()
+        response = session.get(record.download_url, timeout=60)
+        response.raise_for_status()
 
-        tokens = [token.strip() for token in normalized.split(",") if token.strip()]
-        if not tokens:
-            return {"target_name": normalized}
+        with tempfile.NamedTemporaryFile(delete=False) as handle:
+            handle.write(response.content)
+            return Path(handle.name)
 
-        criteria: Dict[str, Any] = {}
-        for token in tokens:
-            key, value = self._split_mast_token(token)
-            if key is None or value is None:
-                return {"target_name": normalized}
-            if key not in self._MAST_SUPPORTED_CRITERIA:
-                return {"target_name": normalized}
-            if key in self._MAST_NUMERIC_CRITERIA:
-                try:
-                    criteria[key] = float(value)
-                except ValueError:
-                    return {"target_name": normalized}
-            else:
-                criteria[key] = value
+    def _fetch_via_mast(self, record: RemoteRecord) -> Path:
+        mast = self._ensure_mast()
+        result = mast.Observations.download_file(record.download_url, cache=False)
+        if not result:
+            raise RuntimeError("MAST download did not return a file path")
+        path = Path(result)
+        if not path.exists():
+            raise FileNotFoundError(f"MAST download missing: {path}")
+        return path
 
-        return criteria or {"target_name": normalized}
-
-    @staticmethod
-    def _split_mast_token(token: str) -> tuple[str | None, str | None]:
-        if "=" in token:
-            key, _, value = token.partition("=")
-        else:
-            key, _, value = token.partition(":")
-        key = key.strip()
-        value = value.strip()
-        if not key or not value:
-            return None, None
-        return key, value
+    def _should_use_mast(self, record: RemoteRecord) -> bool:
+        if record.provider == self.PROVIDER_MAST:
+            return True
+        return record.download_url.startswith("mast:")
 
     # ------------------------------------------------------------------
     def _find_cached(self, uri: str) -> Dict[str, Any] | None:

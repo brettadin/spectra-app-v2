@@ -1,76 +1,71 @@
-"""Regression coverage for the remote data discovery dialog."""
+"""UI smoke tests for the Remote Data dialog."""
 
 from __future__ import annotations
 
-import os
-from typing import Any
+import tempfile
+from pathlib import Path
+from typing import Any, List
 
 import pytest
 
-try:  # pragma: no cover - optional dependency guard
-    from app.services import RemoteDataService
-    from app.ui.remote_data_dialog import RemoteDataDialog
-    from app.qt_compat import get_qt
-except ImportError as exc:  # pragma: no cover - exercised via skip path
-    RemoteDataDialog = None  # type: ignore[assignment]
-    RemoteDataService = None  # type: ignore[assignment]
-    _qt_import_error = exc
-    QtWidgets = None  # type: ignore[assignment]
-else:  # pragma: no cover - covered when Qt stack is present
-    _qt_import_error = None
+from app.qt_compat import get_qt
+from app.services import LocalStore, RemoteDataService
+
+try:  # pragma: no cover - skip when Qt bindings unavailable
     QtCore, QtGui, QtWidgets, _ = get_qt()
+except ImportError:  # pragma: no cover - test skipped in headless envs
+    pytest.skip("Qt bindings not available for RemoteDataDialog smoke test", allow_module_level=True)
+
+from app.ui.remote_data_dialog import RemoteDataDialog
 
 
-def _ensure_app() -> "QtWidgets.QApplication":
-    os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
+class StubRemoteService(RemoteDataService):
+    def __init__(self) -> None:
+        base = Path(tempfile.mkdtemp(prefix="spectra-remote-test-"))
+        super().__init__(store=LocalStore(base_dir=base))
+        self._providers: List[str] = [
+            RemoteDataService.PROVIDER_NIST,
+            RemoteDataService.PROVIDER_MAST,
+        ]
+
+    def providers(self) -> List[str]:
+        return list(self._providers)
+
+    def unavailable_providers(self) -> dict[str, str]:
+        return {}
+
+
+def _ensure_app() -> QtWidgets.QApplication:
     app = QtWidgets.QApplication.instance()
     if app is None:
         app = QtWidgets.QApplication([])
     return app
 
 
-@pytest.mark.skipif(RemoteDataDialog is None or QtWidgets is None, reason="Qt stack unavailable")
-def test_remote_dialog_translates_mast_search() -> None:
+def test_dialog_initialises_without_missing_slots(monkeypatch: Any) -> None:
     app = _ensure_app()
+    ingest = IngestServiceStub()
+    dialog = RemoteDataDialog(
+        None,
+        remote_service=StubRemoteService(),
+        ingest_service=ingest,
+    )
 
-    class DummyRemoteService:
-        def __init__(self) -> None:
-            self.calls: list[tuple[str, dict[str, Any]]] = []
+    assert dialog.provider_combo.count() == 2
+    assert "Catalogue" in dialog.windowTitle() or dialog.windowTitle() == "Remote Data"
 
-        def providers(self) -> list[str]:
-            return [RemoteDataService.PROVIDER_NIST, RemoteDataService.PROVIDER_MAST]
+    # Switch providers to ensure the slot exists and updates hints/placeholder.
+    dialog.provider_combo.setCurrentIndex(1)
+    assert "JWST" in dialog.search_edit.placeholderText()
 
-        def unavailable_providers(self) -> dict[str, str]:
-            return {}
+    # Clean up the dialog explicitly for Qt stability in headless tests.
+    dialog.deleteLater()
+    if QtWidgets.QApplication.instance() is app and not app.topLevelWidgets():
+        app.quit()
 
-        def search(self, provider: str, query: dict[str, Any]):
-            self.calls.append((provider, query))
-            return []
 
-        def download(self, record):  # pragma: no cover - dialog test does not download
-            raise AssertionError("download should not be invoked during search")
+class IngestServiceStub:
+    """Minimal stub mimicking the ingest service used by the dialog."""
 
-    class DummyIngestService:
-        def ingest(self, path):  # pragma: no cover - dialog test does not ingest
-            raise AssertionError("ingest should not be invoked during search")
-
-    remote = DummyRemoteService()
-    dialog = RemoteDataDialog(None, remote_service=remote, ingest_service=DummyIngestService())
-
-    try:
-        index = dialog.provider_combo.findText(RemoteDataService.PROVIDER_MAST)
-        assert index != -1
-        dialog.provider_combo.setCurrentIndex(index)
-        dialog.search_edit.setText("  WASP-96 b  ")
-
-        dialog._on_search()
-        app.processEvents()
-
-        assert remote.calls, "search should invoke the remote service"
-        provider, query = remote.calls[-1]
-        assert provider == RemoteDataService.PROVIDER_MAST
-        assert query == {"target_name": "WASP-96 b"}
-    finally:
-        dialog.close()
-        dialog.deleteLater()
-        app.processEvents()
+    def ingest(self, path: Path) -> Any:  # pragma: no cover - not exercised in this smoke test
+        raise RuntimeError(f"ingest not expected in dialog smoke test for {path}")

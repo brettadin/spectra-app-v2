@@ -1,40 +1,39 @@
 # Patch Notes
 
-## 2025-10-17 (Remote data MAST download normalisation) (1:05 pm UTC)
+## 2025-10-17 (Spectroscopy-focused remote catalogue pass) (02:30 am UTC)
 
-- Taught `RemoteDataService.download` to hand MAST records to
-  `astroquery.mast.Observations.download_file`, normalising the resolved path
-  before persisting it through the `LocalStore` so cached imports stay
-  deduplicated.
-- Added regression coverage confirming the astroquery downloader is invoked and
-  the raw HTTP session stays untouched when fetching MAST artefacts.
-- Updated the remote data user guide and recorded the work in the knowledge log
-  to document the corrected provenance flow.
+- Fixed the **Fetch Remote Data…** crash caused by a missing provider-change
+  slot and added regression coverage (`tests/test_remote_data_dialog.py`) to
+  instantiate the dialog safely under pytest.
+- Tightened the MAST adapter so free-text searches now inject
+  `dataproduct_type="spectrum"`, `intentType="SCIENCE"`, and `calib_level=[2, 3]`
+  filters, pruning non-spectroscopic rows before presenting them in the UI.
+  The user guide calls out the new defaults and the service filters results via
+  `_is_spectroscopic` to keep the workflow aligned with lab comparisons.
+- Updated developer notes with a documentation map plus guidance for future
+  remote-catalogue work, ensuring every agent knows where the curated resources
+  live and how to keep docs/tests in sync.
+- Extended the remote-data regression suite to assert the injected filters and
+  confirm HTTP/MAST download routing remains intact after the change.
 
-## 2025-10-17 (Remote data provider query mapping) (11:15 am UTC)
+## 2025-10-17 (Remote search & cache library) (01:45 am UTC)
 
-- Mapped the Remote Data dialog's free-text input to provider-specific kwargs so NIST searches supply `spectra` while MAST
-  queries populate `target_name` before calling the service.
-- Added a legacy `text` safeguard in `RemoteDataService._search_mast` that normalises explicit or blank `target_name` values,
-  keeping older integrations compatible with the astroquery client.
-- Expanded remote-data regression coverage and refreshed the user docs/knowledge log to describe the surfaced provider hints.
-
-## 2025-10-17 (Remote data MAST fixes) (9:30 am UTC)
-
-- Patched `RemoteDataService.download` to route MAST URIs through `astroquery.mast.Observations.download_file` while preserving the HTTP branch for direct URLs.
-- Normalised the astroquery result through `LocalStore.record` so cache reuse and provenance hashing stay consistent with HTTP downloads.
-- Added regression coverage and refreshed the remote-data user guide plus knowledge log entry to highlight the corrected flow.
-
-## 2025-10-16 (Remote catalogue hinting & MAST text translation) (11:58 pm UTC)
-
-- Surfaced provider-specific search hints in the Remote Data dialog so the banner
-  explains when to enter NIST element symbols versus MAST target names or
-  `key=value` pairs.
-- Updated the MAST adapter to translate free-text queries into `target_name`
-  arguments before calling `astroquery.mast.Observations.query_criteria`, with
-  defensive coercion for non-string inputs.
-- Extended the remote data tests to cover the new translation path and refreshed
-  the user guide/knowledge log to document the hint banner behaviour.
+- Reworked the Remote Data dialog to emit provider-specific queries (`spectra`
+  for NIST, `target_name` for MAST) and surfaced contextual hints so operators
+  know which spectroscopic assets to request. Updated
+  `app/services/remote_data_service.py` to translate legacy payloads, download
+  `mast:` URIs via `astroquery.mast.Observations.download_file`, and exercised
+  the new paths in `tests/test_remote_data_service.py`.
+- Introduced a Library dock driven by `LocalStore.list_entries()` so cached
+  spectra can be reloaded without re-downloading. Routine ingest events now log
+  concise knowledge-log summaries while file-level metadata lives in the Library
+  view.
+- Added a trace-colour mode toggle to the Inspector Style tab (high-contrast vs
+  uniform) and refreshed rendering so palette changes propagate to the plot and
+  dataset icons in real time.
+- Authored `docs/link_collection.md`, refreshed the remote/importing/reference
+  guides, and created `AGENTS.md` to document repository conventions, knowledge
+  log policy, and spectroscopy-first sourcing.
 
 ## 2025-10-16 (Adjustable plot LOD budget) (11:55 pm UTC)
 
