@@ -30,6 +30,8 @@ directly against laboratory references.
    - **MAST** converts free-form text into a `target_name`, or you can provide
      comma-separated `key=value` pairs for supported `astroquery.mast`
      parameters (for example `instrument_name=NIRSpec, dataproduct_type=spectrum`).
+     Blank submissions are blocked because MAST requires a target name or
+     narrowing filters to avoid unbounded catalogue scans.
 4. Reference the hint banner below the buttons for provider-specific examples.
    The dialog surfaces the mapping so you know when NIST expects an element/ion
    such as `Fe II`, and when MAST accepts target names or comma-separated
@@ -58,6 +60,8 @@ When you switch between catalogues the banner updates in real time:
   instrument identifiers (e.g. `WASP-96 b`, `NIRSpec grism`) to favour
   calibrated spectroscopic products (IFS cubes, slit/grism/prism extractions)
   instead of broad-band imaging or photometric light curves.
+  The dialog enforces this by refusing empty submissions and explaining why the
+  query was rejected whenever no recognised filter is present.
 
 The hint banner beneath the results table updates as you switch providers and
 also surfaces dependency warnings when optional clients are missing.

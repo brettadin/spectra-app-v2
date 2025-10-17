@@ -33,6 +33,24 @@ Each entry in this document should follow this structure:
 
 ---
 
+## 2025-10-18 09:10 – Remote MAST validation
+
+**Author**: agent
+
+**Context**: Remote catalogue guard rails.
+
+**Summary**: Tightened the Remote Data workflow so blank MAST requests are blocked
+in the dialog and the service refuses unbounded astroquery calls. The UI now
+explains why a search was rejected, while the adapter raises a descriptive error
+when no recognised filters are supplied. Regression coverage asserts the guard
+rails and documentation highlights the requirement for bounded MAST criteria.
+
+**References**: `app/ui/remote_data_dialog.py`, `app/services/remote_data_service.py`,
+`tests/test_remote_data_dialog.py`, `tests/test_remote_data_service.py`,
+`docs/user/remote_data.md`, `docs/history/PATCH_NOTES.md`.
+
+---
+
 ## 2025-10-17 18:40 – Library knowledge-log surfacing
 
 **Author**: agent

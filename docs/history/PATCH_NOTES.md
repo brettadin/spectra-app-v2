@@ -1,5 +1,17 @@
 # Patch Notes
 
+## 2025-10-18 (MAST search validation) (09:10 UTC)
+
+- Blocked empty MAST submissions in the Remote Data dialog, surfacing a validation
+  hint so operators add target names or supported key=value filters before
+  dispatching a search.
+- Guarded the MAST adapter against unbounded astroquery lookups by requiring at
+  least one recognised criterion (`target_name`, `instrument_name`, etc.) and
+  raising a descriptive error when none are provided.
+- Documented the stricter requirements and refreshed the regression suite to
+  cover the UI validation path and ensure blank requests never hit
+  `Observations.query_criteria`.
+
 ## 2025-10-17 (Library detail knowledge-log links) (18:40 UTC)
 
 - Extended the Library dock detail pane so selecting a cache record surfaces

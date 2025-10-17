@@ -47,6 +47,29 @@ def store(tmp_path: Path) -> LocalStore:
     return LocalStore(base_dir=tmp_path)
 
 
+def test_search_mast_requires_target_or_filters(store: LocalStore, monkeypatch: pytest.MonkeyPatch) -> None:
+    service = RemoteDataService(store, session=None)
+
+    class DummyObservations:
+        called = False
+
+        @classmethod
+        def query_criteria(cls, **criteria: Any) -> list[dict[str, Any]]:  # pragma: no cover - defensive
+            cls.called = True
+            return []
+
+    class DummyMast:
+        Observations = DummyObservations
+
+    monkeypatch.setattr(service, "_ensure_mast", lambda: DummyMast)
+
+    with pytest.raises(ValueError) as excinfo:
+        service.search(RemoteDataService.PROVIDER_MAST, {})
+
+    assert "target name" in str(excinfo.value)
+    assert DummyObservations.called is False
+
+
 def test_search_nist_constructs_url_and_params(store: LocalStore) -> None:
     session = DummySession()
     session.queue(
