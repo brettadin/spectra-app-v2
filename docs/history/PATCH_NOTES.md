@@ -1,5 +1,17 @@
 # Patch Notes
 
+## 2025-10-17 (Knowledge log runtime guard) (04:30 am UTC)
+
+- Registered Import/Remote Import as runtime-only components inside
+  `KnowledgeLogService`, ensuring they never touch the canonical log even if a
+  caller omits `persist=False`.
+- Updated the knowledge-log regression suite to cover the runtime-only guard and
+  allow tests to override the component set when persistence is required.
+- Audited the consolidated log to confirm no automation-generated Import/Remote
+  Import entries remain after the cleanup.
+- Added `*.egg-info/` to `.gitignore` so setuptools artefacts from test runs do
+  not clutter the working tree.
+
 ## 2025-10-17 (Knowledge log hygiene) (03:45 am UTC)
 
 - Added a non-persistent mode to `KnowledgeLogService.record_event` so routine

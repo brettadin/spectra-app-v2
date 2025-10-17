@@ -10,19 +10,19 @@ def test_record_and_load_round_trip(tmp_path: Path) -> None:
     log_path = tmp_path / "knowledge_log.md"
     service = KnowledgeLogService(log_path=log_path, author="tester", default_context="Unit Test")
 
-    entry = service.record_event("Import", "Loaded calibration frame", ["samples/calibration.csv"])
+    entry = service.record_event("Export", "Generated calibration manifest", ["exports/calibration.json"])
 
     assert log_path.exists()
     contents = log_path.read_text(encoding="utf-8")
-    assert "Loaded calibration frame" in contents
-    assert "Import" in contents
+    assert "Generated calibration manifest" in contents
+    assert "Export" in contents
 
     entries = service.load_entries()
     assert entries
     first = entries[0]
-    assert first.component == "Import"
-    assert "Loaded calibration frame" in first.summary
-    assert first.references == ("samples/calibration.csv",)
+    assert first.component == "Export"
+    assert "Generated calibration manifest" in first.summary
+    assert first.references == ("exports/calibration.json",)
     assert first.author == "tester"
     assert first.context == "Unit Test"
     assert entry.summary == first.summary
@@ -42,7 +42,11 @@ def test_record_without_persist(tmp_path: Path) -> None:
 
 def test_load_filters_and_export(tmp_path: Path) -> None:
     log_path = tmp_path / "knowledge_log.md"
-    service = KnowledgeLogService(log_path=log_path, author="tester")
+    service = KnowledgeLogService(
+        log_path=log_path,
+        author="tester",
+        runtime_only_components=(),
+    )
 
     service.record_event(
         "Import",
@@ -76,3 +80,14 @@ def test_load_filters_and_export(tmp_path: Path) -> None:
     exported = export_path.read_text(encoding="utf-8")
     assert "Follow-up ingest" in exported
     assert "Created manifest bundle" not in exported
+
+
+def test_runtime_only_components_skip_disk(tmp_path: Path) -> None:
+    log_path = tmp_path / "knowledge_log.md"
+    service = KnowledgeLogService(log_path=log_path, author="tester")
+
+    entry = service.record_event("Remote Import", "Fetched WASP-96 b from MAST")
+
+    assert not log_path.exists()
+    assert entry.component == "Remote Import"
+    assert "Fetched WASP-96 b" in entry.summary

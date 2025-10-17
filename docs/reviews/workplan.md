@@ -8,6 +8,9 @@ This document tracks feature batches, validation status, and outstanding backlog
 - [x] Route MAST downloads through `astroquery.mast.Observations.download_file`, retaining the HTTP code path for direct URLs and persisting results via `LocalStore`.
 - [x] Separate routine ingest bookkeeping from the Knowledge Log by introducing a cached-library view backed by `LocalStore` and limiting the log to distilled insights. Update the documentation to reflect the new policy.
 - [x] Ensure Import/Remote Import history entries no longer persist to the canonical knowledge log by adding a non-persistent flag to `KnowledgeLogService` and updating ingest hooks plus regression tests.
+- [x] Harden the knowledge-log runtime guard so Import/Remote Import components
+      are treated as runtime-only even if callers omit `persist=False`, with
+      regression coverage and a log audit to confirm the cleanup.
 - [x] Restore the Remote Data provider-change slot, assert it under pytest, and
       inject spectroscopic defaults (`dataproduct_type="spectrum"`,
       `intentType="SCIENCE"`, `calib_level=[2, 3]`) so MAST queries prioritise

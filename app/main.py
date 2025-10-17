@@ -1463,9 +1463,6 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                 if isinstance(candidate, Mapping):
                     remote = candidate
         provider = str(remote.get("provider", "remote source")) if remote else "remote source"
-        summary = f"Imported {spectrum.name} ({spectrum.id}) from {provider}; cached in Library."
-        references = [spectrum.id] if spectrum.id else []
-        self._record_history_event("Remote Import", summary, references)
         uri = str(remote.get("uri")) if remote and remote.get("uri") else None
         summary = f"Imported {spectrum.name} via {provider}."
         references = [ref for ref in [spectrum.id] if ref]

@@ -425,3 +425,24 @@ and confirmed the knowledge log contains only curated summaries.
 `tests/test_knowledge_log_service.py`.
 
 ---
+
+## 2025-10-17 04:30 – Knowledge Log Runtime Guard
+
+**Author**: agent
+
+**Context**: Knowledge-log policy enforcement and historical cleanup.
+
+**Summary**: Hardened `KnowledgeLogService.record_event` so Import/Remote Import
+components are always treated as runtime-only—even if callers forget to disable
+persistence—by registering a default runtime-only component set. Extended the
+regression suite to verify the guard and to allow opt-in overrides for tests,
+then audited `docs/history/KNOWLEDGE_LOG.md` to ensure no automation-generated
+Import/Remote Import entries remain after the cleanup.
+
+**References**:
+- `app/services/knowledge_log_service.py`
+- `tests/test_knowledge_log_service.py`
+- `docs/history/PATCH_NOTES.md`
+- `docs/reviews/workplan.md`
+
+---
