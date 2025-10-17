@@ -219,6 +219,24 @@ To migrate existing `brains` and `atlas` logs, follow these steps:
 
 ---
 
+## 2025-10-16 23:58 – Remote catalogue hinting & query translation
+
+**Author**: agent
+
+**Context**: Remote catalogue search ergonomics and MAST adapter resilience.
+
+**Summary**: Wired provider-specific hints into the Remote Data dialog so users see
+which query styles NIST and MAST accept while typing, translated the MAST free-text
+field into `target_name` arguments both in the UI and the service layer, and added
+regression coverage that exercises the astroquery stub with the rewritten kwargs.
+Documentation now calls out the hint banner alongside the existing search
+instructions.【F:app/ui/remote_data_dialog.py†L17-L27】【F:app/ui/remote_data_dialog.py†L58-L131】【F:app/services/remote_data_service.py†L222-L279】【F:tests/test_remote_data_service.py†L169-L229】【F:docs/user/remote_data.md†L24-L33】
+
+**References**: `app/ui/remote_data_dialog.py`, `app/services/remote_data_service.py`,
+`tests/test_remote_data_service.py`, `docs/user/remote_data.md`.
+
+---
+
 ## 2025-10-16 21:45 – Knowledge Log Automation
 
 **Author**: agent

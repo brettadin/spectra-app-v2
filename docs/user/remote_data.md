@@ -27,6 +27,10 @@ them even when offline.
    - **MAST** treats free-form text as a `target_name`, or you can provide
      comma-separated `key=value` pairs for supported `astroquery.mast`
      parameters (for example `instrument_name=NIRSpec, dataproduct_type=spectrum`).
+4. Reference the hint banner below the buttons for provider-specific examples.
+   The dialog highlights when NIST expects an element/ion (such as `Fe II`) and
+   when MAST accepts target names or comma-separated arguments like
+   `instrument_name=NIRSpec`.
 
 The results table displays identifiers, titles, and the source URI for each
 match. Selecting a row shows the raw metadata payload in the preview panel so
