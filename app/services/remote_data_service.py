@@ -145,7 +145,7 @@ class RemoteDataService:
                 f"{record.download_url!r}"
             )
 
-        tmp_path = Path(tmp_path)
+        tmp_path = self._normalise_download_path(tmp_path)
 
         x_unit, y_unit = record.resolved_units()
         remote_metadata = {
@@ -312,7 +312,22 @@ class RemoteDataService:
     def _download_via_mast(self, record: RemoteRecord) -> Path:
         observations = self._ensure_mast()
         path = observations.Observations.download_file(record.download_url, cache=False)
-        return Path(path)
+        if not path:
+            raise RuntimeError(
+                "astroquery.mast.Observations.download_file returned an empty path"
+            )
+        return self._normalise_download_path(path)
+
+    @staticmethod
+    def _normalise_download_path(path: Path | str) -> Path:
+        candidate = Path(path).expanduser()
+        try:
+            return candidate.resolve()
+        except FileNotFoundError:
+            # Some astroquery caches may hand back paths that are not yet materialised
+            # on disk (e.g. remote staging). Fall back to the expanded path so callers
+            # can still surface a sensible provenance record before the copy occurs.
+            return candidate
 
     def _has_requests(self) -> bool:
         return requests is not None or self.session is not None

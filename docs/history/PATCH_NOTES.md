@@ -1,5 +1,16 @@
 # Patch Notes
 
+## 2025-10-17 (Remote data MAST download normalisation) (1:05 pm UTC)
+
+- Taught `RemoteDataService.download` to hand MAST records to
+  `astroquery.mast.Observations.download_file`, normalising the resolved path
+  before persisting it through the `LocalStore` so cached imports stay
+  deduplicated.
+- Added regression coverage confirming the astroquery downloader is invoked and
+  the raw HTTP session stays untouched when fetching MAST artefacts.
+- Updated the remote data user guide and recorded the work in the knowledge log
+  to document the corrected provenance flow.
+
 ## 2025-10-17 (Remote data provider query mapping) (11:15 am UTC)
 
 - Mapped the Remote Data dialog's free-text input to provider-specific kwargs so NIST searches supply `spectra` while MAST

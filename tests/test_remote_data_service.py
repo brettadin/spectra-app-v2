@@ -153,7 +153,7 @@ def test_download_mast_uses_astroquery_and_records_provenance(
     stored_path = Path(result.cache_entry["stored_path"])
     assert stored_path.exists()
     assert stored_path.read_bytes() == payload
-    assert result.cache_entry["original_path"] == str(downloaded)
+    assert result.cache_entry["original_path"] == str(downloaded.resolve())
 
     remote_meta = result.cache_entry.get("source", {}).get("remote", {})
     assert remote_meta.get("provider") == RemoteDataService.PROVIDER_MAST
@@ -167,7 +167,7 @@ def test_download_mast_uses_astroquery_and_records_provenance(
     assert cached.cached is True
     assert len(mast_calls) == before
     assert Path(cached.cache_entry["stored_path"]) == stored_path
-    assert cached.cache_entry["original_path"] == str(downloaded)
+    assert cached.cache_entry["original_path"] == str(downloaded.resolve())
 
 
 def test_download_rejects_unknown_protocol(store: LocalStore) -> None:
