@@ -29,7 +29,7 @@ def _ensure_app() -> QtWidgets.QApplication:
     return app
 
 
-def test_library_view_populates_and_skips_import_history(tmp_path, monkeypatch):
+def test_library_view_populates_and_summarises_remote_history(tmp_path, monkeypatch):
     if (
         SpectraMainWindow is None
         or QtWidgets is None
@@ -56,6 +56,7 @@ def test_library_view_populates_and_skips_import_history(tmp_path, monkeypatch):
         app.processEvents()
 
         assert window.library_view is not None
+        assert window.library_view.headerItem().text(1) == "Origin"
         assert window.library_view.topLevelItemCount() == 1
         placeholder = window.library_view.topLevelItem(0)
         assert "No cached files" in placeholder.text(0)
@@ -66,13 +67,53 @@ def test_library_view_populates_and_skips_import_history(tmp_path, monkeypatch):
         window._refresh_library_view()
 
         items = [
-            window.library_view.topLevelItem(index).text(0)
+            [window.library_view.topLevelItem(index).text(col) for col in range(window.library_view.columnCount())]
             for index in range(window.library_view.topLevelItemCount())
         ]
-        assert any("mini.csv" in text for text in items)
+        assert any("mini.csv" in row[0] for row in items)
+        assert any(row[1] == "Local import" for row in items)
 
         import_entries = knowledge_log.load_entries(component="Import")
         assert import_entries == []
+
+        remote_payload = {
+            "provider": "Test Provider",
+            "uri": "https://example.test/data",  # nosec - test fixture
+            "identifier": "ABC123",
+        }
+        remote_record = window.store.record(
+            sample,
+            x_unit="nm",
+            y_unit="absorbance",
+            source={"remote": remote_payload},
+            alias="remote.csv",
+        )
+        remote_spectrum = window.ingest_service.ingest(Path(remote_record["stored_path"]))
+        assert remote_spectrum.metadata.get("cache_record", {}).get("source", {}).get("remote")
+
+        summary_info = window._record_remote_history_event(remote_spectrum)
+        assert summary_info["provider"] == "Test Provider"
+
+        window._refresh_library_view()
+        app.processEvents()
+
+        entries = knowledge_log.load_entries(component="Remote Import")
+        assert entries
+        for entry in entries:
+            assert not any(ref.startswith("http") for ref in entry.references)
+            assert all(len(ref) < 60 for ref in entry.references)
+            assert "Test Provider" in entry.summary
+
+        library_entries = window.store.list_entries()
+        assert library_entries[remote_record["sha256"]]["source"]["remote"]["provider"] == "Test Provider"
+
+        has_remote_origin = False
+        for index in range(window.library_view.topLevelItemCount()):
+            item = window.library_view.topLevelItem(index)
+            if item.text(0) == "remote.csv":
+                has_remote_origin = item.text(1).startswith("Test Provider")
+                break
+        assert has_remote_origin
     finally:
         window.close()
         window.deleteLater()

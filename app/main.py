@@ -558,13 +558,14 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         view.setUniformRowHeights(True)
         view.setAlternatingRowColors(True)
         view.setSelectionMode(QtWidgets.QAbstractItemView.SelectionMode.SingleSelection)
-        view.setHeaderLabels(["File", "SHA256", "Stored Path", "Size", "Importer"])
+        view.setHeaderLabels(["File", "Origin", "SHA256", "Stored Path", "Size", "Importer"])
         header = view.header()
         header.setSectionResizeMode(0, QtWidgets.QHeaderView.Stretch)
         header.setSectionResizeMode(1, QtWidgets.QHeaderView.ResizeToContents)
-        header.setSectionResizeMode(2, QtWidgets.QHeaderView.Stretch)
-        header.setSectionResizeMode(3, QtWidgets.QHeaderView.ResizeToContents)
+        header.setSectionResizeMode(2, QtWidgets.QHeaderView.ResizeToContents)
+        header.setSectionResizeMode(3, QtWidgets.QHeaderView.Stretch)
         header.setSectionResizeMode(4, QtWidgets.QHeaderView.ResizeToContents)
+        header.setSectionResizeMode(5, QtWidgets.QHeaderView.ResizeToContents)
         return view
 
     def _wire_shortcuts(self) -> None:
@@ -979,13 +980,21 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
 
         importer = ""
         source = record.get("source") if isinstance(record, Mapping) else None
+        origin = "Local import"
         if isinstance(source, Mapping):
             ingest = source.get("ingest")
             if isinstance(ingest, Mapping):
                 importer = str(ingest.get("importer") or "")
+            remote = source.get("remote")
+            if isinstance(remote, Mapping):
+                provider = str(remote.get("provider") or "Remote source")
+                identifier = remote.get("identifier")
+                origin = provider if not identifier else f"{provider} ({identifier})"
+                stored_display = stored_display or str(remote.get("uri") or "")
 
         return [
             label,
+            origin,
             str(sha or ""),
             stored_display,
             size,
@@ -995,6 +1004,8 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
     def _decorate_library_item(self, item: QtWidgets.QTreeWidgetItem, record: Mapping[str, Any]) -> None:
         stored_path = record.get("stored_path") if isinstance(record, Mapping) else None
         original_path = record.get("original_path") if isinstance(record, Mapping) else None
+        source = record.get("source") if isinstance(record, Mapping) else None
+        remote = source.get("remote") if isinstance(source, Mapping) else None
         tooltip_lines = [item.text(0)]
         if isinstance(stored_path, str) and stored_path:
             tooltip_lines.append(f"Stored at: {stored_path}")
@@ -1004,6 +1015,13 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             and original_path != stored_path
         ):
             tooltip_lines.append(f"Original path: {original_path}")
+        if isinstance(remote, Mapping):
+            provider = remote.get("provider")
+            if provider:
+                tooltip_lines.append(f"Provider: {provider}")
+            uri = remote.get("uri")
+            if uri:
+                tooltip_lines.append(f"URI: {uri}")
         item.setToolTip(0, "\n".join(filter(None, tooltip_lines)))
 
         for col in range(1, item.columnCount()):
@@ -1015,7 +1033,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         view = getattr(self, "library_view", None)
         if view is None:
             return
-        placeholder = QtWidgets.QTreeWidgetItem([message, "", "", "", ""])
+        placeholder = QtWidgets.QTreeWidgetItem([message, "", "", "", "", ""])
         placeholder.setFlags(QtCore.Qt.ItemFlag.NoItemFlags)
         view.addTopLevelItem(placeholder)
         view.setFirstColumnSpanned(placeholder, True)
@@ -1241,11 +1259,11 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                 if isinstance(candidate, Mapping):
                     remote = candidate
         provider = str(remote.get("provider", "remote source")) if remote else "remote source"
+        summary = f"Imported {spectrum.name} ({spectrum.id}) from {provider}; cached in Library."
+        references = [spectrum.id] if spectrum.id else []
+        self._record_history_event("Remote Import", summary, references)
         uri = str(remote.get("uri")) if remote and remote.get("uri") else None
         sha = str(cache_record.get("sha256")) if isinstance(cache_record, Mapping) and cache_record.get("sha256") else None
-        summary = f"Imported {spectrum.name} ({spectrum.id}) from {provider}."
-        references = [ref for ref in [uri, sha, spectrum.id] if ref]
-        self._record_history_event("Remote Import", summary, references)
         return {"provider": provider, "uri": uri, "sha": sha}
 
     def _populate_data_table(self, views: Iterable[dict]) -> None:
