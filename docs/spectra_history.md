@@ -1,3 +1,217 @@
+## 2025-10-20 10:15 – Palette registry & persistence
+
+**Author**: agent
+
+**Context**: Trace colouring presets and inspector integration.
+
+**Summary**: Centralised the trace palettes in `app/ui/palettes.py` and exposed them through `PlotPane.palette_definitions()` so the Inspector’s Style tab can list shared presets while keeping dataset icons and plot pens in sync. `SpectraMainWindow` now loads the stored palette from `QSettings`, reapplies colours to existing overlays when users switch modes, and persists the selection for future sessions. Coverage exercises each preset in the Qt smoke workflow, and the plotting guide documents the new colour-blind and dark-friendly options alongside the uniform mode.
+
+**References**: `app/ui/palettes.py`, `app/ui/plot_pane.py`, `app/main.py`, `tests/test_smoke_workflow.py`, `docs/user/plot_tools.md`, `docs/history/PATCH_NOTES.md`.
+
+---
+## 2025-10-19 08:30 – Remote search guard rails
+
+**Author**: agent
+
+**Context**: Remote catalogue validation UX and service safety nets.
+
+**Summary**: Hardened the Remote Data workflow so blank submissions stop in the
+dialog with provider-specific guidance while the NIST/MAST adapters raise
+`ValueError` when automation callers omit narrowing terms. Regression coverage
+now clicks the UI button for empty queries and asserts the NIST service refuses
+empty payloads, and the troubleshooting guide documents the required filters.
+
+**References**: `app/ui/remote_data_dialog.py`,
+`app/services/remote_data_service.py`, `tests/test_remote_data_dialog.py`,
+`tests/test_remote_data_service.py`, `docs/user/remote_data.md`,
+`docs/history/PATCH_NOTES.md`.
+
+---
+## 2025-10-18 09:10 – Remote MAST validation
+
+**Author**: agent
+
+**Context**: Remote catalogue guard rails.
+
+**Summary**: Tightened the Remote Data workflow so blank MAST requests are blocked
+in the dialog and the service refuses unbounded astroquery calls. The UI now
+explains why a search was rejected, while the adapter raises a descriptive error
+when no recognised filters are supplied. Regression coverage asserts the guard
+rails and documentation highlights the requirement for bounded MAST criteria.
+
+**References**: `app/ui/remote_data_dialog.py`, `app/services/remote_data_service.py`,
+`tests/test_remote_data_dialog.py`, `tests/test_remote_data_service.py`,
+`docs/user/remote_data.md`, `docs/history/PATCH_NOTES.md`.
+
+---
+## 2025-10-17 18:40 – Library knowledge-log surfacing
+
+**Author**: agent
+
+**Context**: Cache inspection UX and provenance traceability.
+
+**Summary**: Expanded the Library dock detail pane so selecting a cache record
+now lists canonical units, provenance, and knowledge-log matches inline. The
+preview links to the consolidated log, while documentation and smoke tests were
+updated to describe and guard the workflow so auditing no longer requires
+double-click re-imports.
+
+**References**: `app/main.py`, `tests/test_smoke_workflow.py`,
+`docs/user/importing.md`, `docs/user/remote_data.md`,
+`docs/history/PATCH_NOTES.md`.
+
+---
+## 2025-10-17 16:20 – Atlas architectural log
+
+**Author**: agent
+
+**Context**: Architectural documentation continuity.
+
+**Summary**: Restored the atlas/brains log as `docs/atlas/brains.md`, capturing
+the production ingest pipeline, cache policy, and remote-service defaults so the
+Master Prompt references a living source. Linked the log from the developer
+notes, onboarding guide, and link collection, and removed the empty placeholder
+that previously obscured the canonical record. Patch notes document the
+restoration for traceability.
+
+**References**: `docs/atlas/brains.md`, `docs/developer_notes.md`,
+`START_HERE.md`, `docs/link_collection.md`, `docs/history/PATCH_NOTES.md`.
+
+---
+## 2025-10-17 14:19 – Library metadata preview
+
+**Author**: agent
+
+**Context**: Cache inspection UX and provenance traceability.
+
+**Summary**: Added a detail pane to the Library dock so selecting a cached
+spectra entry now reveals its provenance, canonical units, and storage path
+inline. Hooked selection changes to the preview, refreshed the empty-state
+messaging, and documented the workflow in the importing guide. A new smoke test
+guards the dock, ensuring metadata appears even in headless CI runs.
+
+**References**:
+- `app/main.py`
+- `tests/test_smoke_workflow.py`
+- `docs/user/importing.md`
+- `docs/history/PATCH_NOTES.md`
+
+---
+
+```
+
+Entries should be appended chronologically.  Older logs imported from the
+original repository can be summarised and linked at the end of this file.
+When summarising legacy content, include a note indicating that the details
+come from a previous format (e.g. “Imported from brains/2023‑04‑10.md”).
+
+### Automation support
+
+The desktop preview now ships with a `KnowledgeLogService` that writes
+automation events into this file by default.  The service can also be pointed
+at an alternative runtime location (e.g. a temporary path during tests) by
+passing a custom `log_path`, ensuring automated provenance never tramples the
+canonical history while still following the structure defined here. Import
+actions are summarised at the session level; per-file cache entries (including
+remote URIs and SHA256 digests) are stored in the Library view so the log
+remains focused on insights and operator decisions.
+## 2025-10-17 13:05 – Remote Data Service
+
+**Author**: agent
+
+**Context**: MAST download pipeline normalisation and regression coverage.
+
+**Summary**: Routed `RemoteDataService.download` through `astroquery.mast.Observations.download_file` for MAST records and normalised the returned path before persisting it via the shared `LocalStore`, keeping cached imports deduplicated alongside HTTP downloads.【F:app/services/remote_data_service.py†L109-L154】 Added a regression test that monkeypatches the astroquery client to assert the HTTP session remains untouched and the cached path retains its provenance, plus refreshed the user guide to document the flow.【F:tests/test_remote_data_service.py†L102-L164】【F:docs/user/remote_data.md†L47-L63】
+
+**References**: `app/services/remote_data_service.py`, `tests/test_remote_data_service.py`, `docs/user/remote_data.md`.
+
+---
+## 2025-10-17 04:30 – Knowledge Log Runtime Guard
+
+**Author**: agent
+
+**Context**: Knowledge-log policy enforcement and historical cleanup.
+
+**Summary**: Hardened `KnowledgeLogService.record_event` so Import/Remote Import
+components are always treated as runtime-only—even if callers forget to disable
+persistence—by registering a default runtime-only component set. Extended the
+regression suite to verify the guard and to allow opt-in overrides for tests,
+then audited `docs/history/KNOWLEDGE_LOG.md` to ensure no automation-generated
+Import/Remote Import entries remain after the cleanup.
+
+**References**:
+- `app/services/knowledge_log_service.py`
+- `tests/test_knowledge_log_service.py`
+- `docs/history/PATCH_NOTES.md`
+- `docs/reviews/workplan.md`
+
+---
+## 2025-10-17 03:45 – Knowledge Log Hygiene
+
+**Author**: agent
+
+**Context**: Import bookkeeping and history retention.
+
+**Summary**: Added a non-persistent mode to `KnowledgeLogService.record_event` so
+routine Import/Remote Import notifications stay in the in-app History dock
+without appending to the canonical log. Updated `SpectraMainWindow` ingest hooks
+to call `persist=False`, refreshed the regression suite to cover the new flag,
+and confirmed the knowledge log contains only curated summaries.
+
+**References**: `app/services/knowledge_log_service.py`, `app/main.py`,
+`tests/test_knowledge_log_service.py`.
+
+---
+## 2025-10-17 02:30 – Remote Data & Documentation Map
+
+**Author**: agent
+
+**Context**: Remote catalogue UX hardening and documentation continuity.
+
+**Summary**: Fixed the Remote Data dialog crash triggered by an undefined provider-change slot, enforced spectroscopic defaults for MAST searches (`dataproduct_type="spectrum"`, `intentType="SCIENCE"`, `calib_level=[2, 3]`), and filtered out imaging products via `_is_spectroscopic` so remote results stay aligned with laboratory comparisons.【F:app/ui/remote_data_dialog.py†L30-L219】【F:app/services/remote_data_service.py†L111-L212】 Added a Qt smoke test plus extended regression coverage to assert the injected filters, refreshed the remote-data user guide with the new hints, and published a developer documentation map so future agents can locate the operating manual, link collection, and workplan without guesswork.【F:tests/test_remote_data_dialog.py†L1-L75】【F:tests/test_remote_data_service.py†L1-L125】【F:docs/user/remote_data.md†L1-L99】【F:docs/developer_notes.md†L1-L42】【F:docs/history/PATCH_NOTES.md†L1-L17】
+
+**References**: `app/ui/remote_data_dialog.py`, `app/services/remote_data_service.py`, `tests/test_remote_data_dialog.py`, `tests/test_remote_data_service.py`, `docs/user/remote_data.md`, `docs/developer_notes.md`, `docs/history/PATCH_NOTES.md`.
+
+---
+## 2025-10-17 01:45 – Remote data focus & cache library
+
+**Author**: agent
+
+**Context**: Remote catalogue reliability, cache UX, and documentation hygiene.
+
+**Summary**: Rewired the Remote Data dialog to send provider-specific queries
+(`spectra` vs `target_name`) and patched the download path so `mast:` URIs flow
+through `astroquery.Observations.download_file`. Added regression coverage for
+the translation/downloader. Introduced a Library dock that lists cached
+artefacts via `LocalStore.list_entries()` so we can reload spectra without
+polluting the knowledge log with raw file paths; updated `_ingest_path` and the
+remote import hook to log concise summaries instead. Added a trace-colour mode
+toggle (palette vs uniform) and refreshed user docs plus `docs/link_collection.md`
+to keep the spectroscopy focus explicit.
+
+**References**: `app/ui/remote_data_dialog.py`, `app/services/remote_data_service.py`,
+`app/main.py`, `tests/test_remote_data_service.py`, `docs/user/remote_data.md`,
+`docs/user/importing.md`, `docs/user/plot_tools.md`, `docs/user/reference_data.md`,
+`docs/link_collection.md`, `docs/reviews/workplan.md`.
+
+---
+## 2025-10-16 23:58 – Remote catalogue hinting & query translation
+
+**Author**: agent
+
+**Context**: Remote catalogue search ergonomics and MAST adapter resilience.
+
+**Summary**: Wired provider-specific hints into the Remote Data dialog so users see
+which query styles NIST and MAST accept while typing, translated the MAST free-text
+field into `target_name` arguments both in the UI and the service layer, and added
+regression coverage that exercises the astroquery stub with the rewritten kwargs.
+Documentation now calls out the hint banner alongside the existing search
+instructions.【F:app/ui/remote_data_dialog.py†L17-L27】【F:app/ui/remote_data_dialog.py†L58-L131】【F:app/services/remote_data_service.py†L222-L279】【F:tests/test_remote_data_service.py†L169-L229】【F:docs/user/remote_data.md†L24-L33】
+
+**References**: `app/ui/remote_data_dialog.py`, `app/services/remote_data_service.py`,
+`tests/test_remote_data_service.py`, `docs/user/remote_data.md`.
+
+---
 ## 2025-10-16 23:55 – Plot LOD Preference Control
 
 **Author**: agent
@@ -49,19 +263,6 @@ and patch notes document the automatic caching behaviour and opt-out flow.【F:t
 `tests/test_cache_index.py`, `docs/user/importing.md`, `docs/history/PATCH_NOTES.md`.
 
 ---
-## 2025-10-16 14:30 – Documentation
-
-**Author**: agent
-
-**Context**: Curated resource catalogue
-
-**Summary**: Restored the JWST and Astropy link collection into `docs/link_collection.md` with preserved annotations and added a developer note pointing to the catalogue for future reference.
-
-**References**:
-- docs/link_collection.md
-- docs/developer_notes.md
-
----
 ## 2025-10-16 13:50 – Reference UI Overlay State
 
 **Author**: agent
@@ -71,532 +272,6 @@ and patch notes document the automatic caching behaviour and opt-out flow.【F:t
 **Summary**: Collapsed duplicate overlay attribute initialisation in the preview shell and introduced `_reset_reference_overlay_state()` so every clear path shares a single bookkeeping helper, keeping the payload dictionary and annotation list stable across toggles.【F:app/main.py†L60-L75】【F:app/main.py†L174-L192】【F:app/main.py†L229-L244】 Added a GUI regression test that flips the overlay checkbox to assert the payload object survives clears, preventing future refactors from dropping labels mid-session.【F:tests/test_reference_ui.py†L8-L118】 Updated the plotting guide and patch notes to call out the single-source overlay state for operators tracking behaviour changes.【F:docs/user/plot_tools.md†L58-L74】【F:docs/history/PATCH_NOTES.md†L1-L12】
 
 **References**: `app/main.py`, `tests/test_reference_ui.py`, `docs/user/plot_tools.md`, `docs/history/PATCH_NOTES.md`.
-
----
-## 2025-10-16 13:03 – Import
-
-**Author**: automation
-
-**Context**: Spectra Desktop Session
-
-**Summary**: Ingested CO2 - 500 torr (b6c0342c-37b2-4a95-a263-0c5d2dfe7511) via CsvImporter from CO2 - 500 torr.csv.
-
-**References**:
-- C:\Code\spectra-app-beta\samples\CO2 - 500 torr.csv
-- b6c0342c-37b2-4a95-a263-0c5d2dfe7511
-- 7ee9228c5b4561d33a03ce5469d0824905fa0f62354ee5e482eb42e86ea53e1d
-
----
-## 2025-10-16 13:03 – Import
-
-**Author**: automation
-
-**Context**: Spectra Desktop Session
-
-**Summary**: Ingested bckgr (1a631fd4-94b4-4405-9dfe-d2b3c260c4ae) via CsvImporter from bckgr.csv.
-
-**References**:
-- C:\Users\brett\OneDrive - Georgia Gwinnett College\---  SCHOOL ---\Anfuso_Bell STEC Research (Fall 2025) - Documents\General\Data\DATA\IR - CO2\bckgr.csv
-- 1a631fd4-94b4-4405-9dfe-d2b3c260c4ae
-- 042361f17459ddde4a54b3bb206d5156aa4263f0c0aacc645eb730c456b753dd
-
----
-## 2025-10-16 13:03 – Import
-
-**Author**: automation
-
-**Context**: Spectra Desktop Session
-
-**Summary**: Ingested CO2 - 300 torr (84b85db7-b2c4-42da-b52d-939172a05e22) via CsvImporter from CO2 - 300 torr.csv.
-
-**References**:
-- C:\Users\brett\OneDrive - Georgia Gwinnett College\---  SCHOOL ---\Anfuso_Bell STEC Research (Fall 2025) - Documents\General\Data\DATA\IR - CO2\CO2 - 300 torr.csv
-- 84b85db7-b2c4-42da-b52d-939172a05e22
-- e1faaf0ab4753f05a8ebcb1fc55dcf1b747e0d46f5e6bb0883d003fe85977e02
-
----
-## 2025-10-16 13:03 – Import
-
-**Author**: automation
-
-**Context**: Spectra Desktop Session
-
-**Summary**: Ingested open air (e02fa452-f4f0-4749-a2a7-e43971b7c642) via CsvImporter from open air.csv.
-
-**References**:
-- C:\Users\brett\OneDrive - Georgia Gwinnett College\---  SCHOOL ---\Anfuso_Bell STEC Research (Fall 2025) - Documents\General\Data\DATA\IR - CO2\open air.csv
-- e02fa452-f4f0-4749-a2a7-e43971b7c642
-- e346732d62d0ae4a677fef7aa314486e6df0437e76ac5dd7a4ee80d892a23af3
-
----
-## 2025-10-16 13:03 – Import
-
-**Author**: automation
-
-**Context**: Spectra Desktop Session
-
-**Summary**: Ingested Run1 no co2 (35d9fd51-1bb7-4897-8c5e-5977c7688836) via CsvImporter from Run1 no co2.csv.
-
-**References**:
-- C:\Users\brett\OneDrive - Georgia Gwinnett College\---  SCHOOL ---\Anfuso_Bell STEC Research (Fall 2025) - Documents\General\Data\DATA\IR - CO2\Run1 no co2.csv
-- 35d9fd51-1bb7-4897-8c5e-5977c7688836
-- 914eb7f9f1715e8794cf61a1e7be53c89e76f545146e2189cf745c4972386b8c
-
----
-## 2025-10-16 13:03 – Import
-
-**Author**: automation
-
-**Context**: Spectra Desktop Session
-
-**Summary**: Ingested run2 (8a4f5c84-706f-47df-898b-20054644743d) via CsvImporter from run2.csv.
-
-**References**:
-- C:\Users\brett\OneDrive - Georgia Gwinnett College\---  SCHOOL ---\Anfuso_Bell STEC Research (Fall 2025) - Documents\General\Data\DATA\IR - CO2\run2.csv
-- 8a4f5c84-706f-47df-898b-20054644743d
-- 169dbf5375303ef621a33643b74917d6ebdbf0236b253b4f70ed81cb4d743103
-
----
-## 2025-10-16 13:03 – Import
-
-**Author**: automation
-
-**Context**: Spectra Desktop Session
-
-**Summary**: Ingested run4 (1c093cee-eb95-45f4-a210-2bd8188152eb) via CsvImporter from run4.csv.
-
-**References**:
-- C:\Users\brett\OneDrive - Georgia Gwinnett College\---  SCHOOL ---\Anfuso_Bell STEC Research (Fall 2025) - Documents\General\Data\DATA\IR - CO2\run4.csv
-- 1c093cee-eb95-45f4-a210-2bd8188152eb
-- 5068b4acfbcc9ef7ac3ea7585b1f56d3197b489a2c0968c01de2efcedb6f9395
-
----
-## 2025-10-16 10:59 – Import
-
-**Author**: automation
-
-**Context**: Spectra Desktop Session
-
-**Summary**: Ingested CO2 - 500 torr (d4317dab-5054-4467-8834-a9b53309b846) via CsvImporter from CO2 - 500 torr.csv.
-
-**References**:
-- C:\Users\brett\OneDrive - Georgia Gwinnett College\---  SCHOOL ---\Anfuso_Bell STEC Research (Fall 2025) - Documents\General\Data\DATA\IR - CO2\CO2 - 500 torr.csv
-- d4317dab-5054-4467-8834-a9b53309b846
-- 7ee9228c5b4561d33a03ce5469d0824905fa0f62354ee5e482eb42e86ea53e1d
-
----
-## 2025-10-16 10:59 – Overlay
-
-**Author**: automation
-
-**Context**: Spectra Desktop Session
-
-**Summary**: Enabled reference overlay reference::ir_groups.
-
-**References**:
-- reference::ir_groups
-
----
-## 2025-10-16 10:59 – Import
-
-**Author**: automation
-
-**Context**: Spectra Desktop Session
-
-**Summary**: Ingested CO2 - 300 torr (817126e1-f338-4210-a656-a5445fab1450) via CsvImporter from CO2 - 300 torr.csv.
-
-**References**:
-- C:\Code\spectra-app-beta\samples\CO2 - 300 torr.csv
-- 817126e1-f338-4210-a656-a5445fab1450
-- e1faaf0ab4753f05a8ebcb1fc55dcf1b747e0d46f5e6bb0883d003fe85977e02
-
----
-## 2025-10-16 10:58 – Import
-
-**Author**: automation
-
-**Context**: Spectra Desktop Session
-
-**Summary**: Ingested Good Sun reading (65395b8b-691e-4b00-856b-40cba70b60ec) via CsvImporter from Good Sun reading.txt.
-
-**References**:
-- C:\Users\brett\OneDrive - Georgia Gwinnett College\---  SCHOOL ---\STEC\DATA\Sun\Good Sun reading.txt
-- 65395b8b-691e-4b00-856b-40cba70b60ec
-- 283417d0db257f60e458765472c01550f5af2dfdfd2daf0f151c7e6710d7bf52
-
----
-## 2025-10-16 10:58 – Overlay
-
-**Author**: automation
-
-**Context**: Spectra Desktop Session
-
-**Summary**: Enabled reference overlay reference::hydrogen_lines.
-
-**References**:
-- reference::hydrogen_lines
-
----
-## 2025-10-16 10:57 – Import
-
-**Author**: automation
-
-**Context**: Spectra Desktop Session
-
-**Summary**: Ingested sample_reference (90717cd0-75ac-4e7e-bad4-911f0c2a0e5f) via CsvImporter from sample_reference.csv.
-
-**References**:
-- C:\Code\spectra-app-beta\samples\sample_reference.csv
-- 90717cd0-75ac-4e7e-bad4-911f0c2a0e5f
-- 76a5a1d2fdaaee20d3a89ac3af382df9f42c2727a01afde5462688e9a2633425
-
----
-## 2025-10-16 10:57 – Import
-
-**Author**: automation
-
-**Context**: Spectra Desktop Session
-
-**Summary**: Ingested sample_spectrum (2afaca74-0e78-4426-a2ea-fdaff59c1ab1) via CsvImporter from sample_spectrum.csv.
-
-**References**:
-- C:\Code\spectra-app-beta\samples\sample_spectrum.csv
-- 2afaca74-0e78-4426-a2ea-fdaff59c1ab1
-- b0cf809fb461459e6fae989a24e45ffb65fbc797884b69edf2bf3c44a4acfeac
-
----
-## 2025-10-16 10:57 – Import
-
-**Author**: automation
-
-**Context**: Spectra Desktop Session
-
-**Summary**: Ingested sample_transmittance (fdd91df4-6481-4d23-aaec-e777e5523d0d) via CsvImporter from sample_transmittance.csv.
-
-**References**:
-- C:\Code\spectra-app-beta\samples\sample_transmittance.csv
-- fdd91df4-6481-4d23-aaec-e777e5523d0d
-- 9e7be442cbab35d2ba254c8a90bbaa994fb8d734af9de203453a283476618260
-
----
-## 2025-10-15 23:55 – Import
-
-**Author**: automation
-
-**Context**: Spectra Desktop Session
-
-**Summary**: Ingested sample_reference (594a8105-9884-4b86-a939-303cf078678c) via CsvImporter from sample_reference.csv.
-
-**References**:
-- C:\Code\spectra-app-beta\samples\sample_reference.csv
-- 594a8105-9884-4b86-a939-303cf078678c
-- 76a5a1d2fdaaee20d3a89ac3af382df9f42c2727a01afde5462688e9a2633425
-
----
-## 2025-10-15 23:55 – Import
-
-**Author**: automation
-
-**Context**: Spectra Desktop Session
-
-**Summary**: Ingested sample_spectrum (721b881e-1746-4284-b10d-2377c30a2756) via CsvImporter from sample_spectrum.csv.
-
-**References**:
-- C:\Code\spectra-app-beta\samples\sample_spectrum.csv
-- 721b881e-1746-4284-b10d-2377c30a2756
-- b0cf809fb461459e6fae989a24e45ffb65fbc797884b69edf2bf3c44a4acfeac
-
----
-## 2025-10-15 23:55 – Import
-
-**Author**: automation
-
-**Context**: Spectra Desktop Session
-
-**Summary**: Ingested sample_transmittance (67d7c558-61dc-4e70-b14b-507fe301ff2b) via CsvImporter from sample_transmittance.csv.
-
-**References**:
-- C:\Code\spectra-app-beta\samples\sample_transmittance.csv
-- 67d7c558-61dc-4e70-b14b-507fe301ff2b
-- 9e7be442cbab35d2ba254c8a90bbaa994fb8d734af9de203453a283476618260
-
----
-## 2025-10-15 23:53 – Import
-
-**Author**: automation
-
-**Context**: Spectra Desktop Session
-
-**Summary**: Ingested sample_reference (4e4dc3bc-9b13-4e25-bbde-91d0edb4fd07) via CsvImporter from sample_reference.csv.
-
-**References**:
-- C:\Code\spectra-app-beta\samples\sample_reference.csv
-- 4e4dc3bc-9b13-4e25-bbde-91d0edb4fd07
-- 76a5a1d2fdaaee20d3a89ac3af382df9f42c2727a01afde5462688e9a2633425
-
----
-## 2025-10-15 23:53 – Import
-
-**Author**: automation
-
-**Context**: Spectra Desktop Session
-
-**Summary**: Ingested sample_spectrum (a79133e1-42a4-4120-bb44-c3642ef1abee) via CsvImporter from sample_spectrum.csv.
-
-**References**:
-- C:\Code\spectra-app-beta\samples\sample_spectrum.csv
-- a79133e1-42a4-4120-bb44-c3642ef1abee
-- b0cf809fb461459e6fae989a24e45ffb65fbc797884b69edf2bf3c44a4acfeac
-
----
-## 2025-10-15 23:53 – Import
-
-**Author**: automation
-
-**Context**: Spectra Desktop Session
-
-**Summary**: Ingested sample_transmittance (ee1de311-1457-497e-be4a-a74c77af1fd2) via CsvImporter from sample_transmittance.csv.
-
-**References**:
-- C:\Code\spectra-app-beta\samples\sample_transmittance.csv
-- ee1de311-1457-497e-be4a-a74c77af1fd2
-- 9e7be442cbab35d2ba254c8a90bbaa994fb8d734af9de203453a283476618260
-
----
-## 2025-10-15 23:46 – Import
-
-**Author**: automation
-
-**Context**: Spectra Desktop Session
-
-**Summary**: Ingested 10.8 Test 1 (c6cc7a5d-27f9-47b5-afbc-0bb94790758b) via CsvImporter from 10.8 Test 1.csv.
-
-**References**:
-- C:\Users\brett\OneDrive - Georgia Gwinnett College\---  SCHOOL ---\Anfuso_Bell STEC Research (Fall 2025) - Documents\General\Data\DATA\IR - CO2\10.8 Test 1.csv
-- c6cc7a5d-27f9-47b5-afbc-0bb94790758b
-- cfc395d30fa942ad7635a5c86fe7a66cae623431f2030fe7ae9cadde7593df6a
-
----
-## 2025-10-15 23:46 – Import
-
-**Author**: automation
-
-**Context**: Spectra Desktop Session
-
-**Summary**: Ingested 10.8 Test 2 (354f5bcd-e17f-4b06-9262-e517c6dc2073) via CsvImporter from 10.8 Test 2.csv.
-
-**References**:
-- C:\Users\brett\OneDrive - Georgia Gwinnett College\---  SCHOOL ---\Anfuso_Bell STEC Research (Fall 2025) - Documents\General\Data\DATA\IR - CO2\10.8 Test 2.csv
-- 354f5bcd-e17f-4b06-9262-e517c6dc2073
-- 902c970295e926b624a3c88e546522d98b332dd27c14247cd5005421e9caec19
-
----
-## 2025-10-15 23:46 – Import
-
-**Author**: automation
-
-**Context**: Spectra Desktop Session
-
-**Summary**: Ingested bckgr (b2c6802b-1704-40dc-89c8-174b6b61f112) via CsvImporter from bckgr.csv.
-
-**References**:
-- C:\Users\brett\OneDrive - Georgia Gwinnett College\---  SCHOOL ---\Anfuso_Bell STEC Research (Fall 2025) - Documents\General\Data\DATA\IR - CO2\bckgr.csv
-- b2c6802b-1704-40dc-89c8-174b6b61f112
-- 042361f17459ddde4a54b3bb206d5156aa4263f0c0aacc645eb730c456b753dd
-
----
-## 2025-10-15 23:46 – Import
-
-**Author**: automation
-
-**Context**: Spectra Desktop Session
-
-**Summary**: Ingested bkgrd A (819348eb-6f8f-4f3e-807a-645d4b7f7d0c) via CsvImporter from bkgrd A.csv.
-
-**References**:
-- C:\Users\brett\OneDrive - Georgia Gwinnett College\---  SCHOOL ---\Anfuso_Bell STEC Research (Fall 2025) - Documents\General\Data\DATA\IR - CO2\bkgrd A.csv
-- 819348eb-6f8f-4f3e-807a-645d4b7f7d0c
-- ef5fc5dcaf2c111311bc4cae0aa13f185ebd43c1aa8853c23e812624f666f904
-
----
-## 2025-10-15 23:46 – Import
-
-**Author**: automation
-
-**Context**: Spectra Desktop Session
-
-**Summary**: Ingested bkgrd (68dd778b-5ef9-4388-a6b4-1541397e7d3e) via CsvImporter from bkgrd.csv.
-
-**References**:
-- C:\Users\brett\OneDrive - Georgia Gwinnett College\---  SCHOOL ---\Anfuso_Bell STEC Research (Fall 2025) - Documents\General\Data\DATA\IR - CO2\bkgrd.csv
-- 68dd778b-5ef9-4388-a6b4-1541397e7d3e
-- 4e1b11d3f87b90a783af0041076ab1cdb93acb2f651c380891a081383eb00b4a
-
----
-## 2025-10-15 23:46 – Import
-
-**Author**: automation
-
-**Context**: Spectra Desktop Session
-
-**Summary**: Ingested CO2 - 300 torr A (502cc0c1-427f-466b-b483-792482b12054) via CsvImporter from CO2 - 300 torr A.csv.
-
-**References**:
-- C:\Users\brett\OneDrive - Georgia Gwinnett College\---  SCHOOL ---\Anfuso_Bell STEC Research (Fall 2025) - Documents\General\Data\DATA\IR - CO2\CO2 - 300 torr A.csv
-- 502cc0c1-427f-466b-b483-792482b12054
-- 00a3a8e11206a00aed9b71257bb11fcb417f881777f32cee462a83901a809d83
-
----
-## 2025-10-15 23:46 – Import
-
-**Author**: automation
-
-**Context**: Spectra Desktop Session
-
-**Summary**: Ingested CO2 - 300 torr (4598867a-2e29-4246-a781-2c9996e936f6) via CsvImporter from CO2 - 300 torr.csv.
-
-**References**:
-- C:\Users\brett\OneDrive - Georgia Gwinnett College\---  SCHOOL ---\Anfuso_Bell STEC Research (Fall 2025) - Documents\General\Data\DATA\IR - CO2\CO2 - 300 torr.csv
-- 4598867a-2e29-4246-a781-2c9996e936f6
-- e1faaf0ab4753f05a8ebcb1fc55dcf1b747e0d46f5e6bb0883d003fe85977e02
-
----
-## 2025-10-15 23:46 – Import
-
-**Author**: automation
-
-**Context**: Spectra Desktop Session
-
-**Summary**: Ingested CO2 - 500 torr A (ac216301-6cd5-4640-8148-20502f85268a) via CsvImporter from CO2 - 500 torr A.csv.
-
-**References**:
-- C:\Users\brett\OneDrive - Georgia Gwinnett College\---  SCHOOL ---\Anfuso_Bell STEC Research (Fall 2025) - Documents\General\Data\DATA\IR - CO2\CO2 - 500 torr A.csv
-- ac216301-6cd5-4640-8148-20502f85268a
-- 6df2ac3618a5de6e47c64418efebc237b0ecfacb35fa72bc6315babfca95331c
-
----
-## 2025-10-15 23:46 – Import
-
-**Author**: automation
-
-**Context**: Spectra Desktop Session
-
-**Summary**: Ingested CO2 - 500 torr (5f51fabc-da4b-4b6f-b2a5-e07142ccb5bd) via CsvImporter from CO2 - 500 torr.csv.
-
-**References**:
-- C:\Users\brett\OneDrive - Georgia Gwinnett College\---  SCHOOL ---\Anfuso_Bell STEC Research (Fall 2025) - Documents\General\Data\DATA\IR - CO2\CO2 - 500 torr.csv
-- 5f51fabc-da4b-4b6f-b2a5-e07142ccb5bd
-- 7ee9228c5b4561d33a03ce5469d0824905fa0f62354ee5e482eb42e86ea53e1d
-
----
-## 2025-10-15 23:46 – Import
-
-**Author**: automation
-
-**Context**: Spectra Desktop Session
-
-**Summary**: Ingested open air A (8d10f837-77d3-4308-9b02-0071cd5c3d28) via CsvImporter from open air A.csv.
-
-**References**:
-- C:\Users\brett\OneDrive - Georgia Gwinnett College\---  SCHOOL ---\Anfuso_Bell STEC Research (Fall 2025) - Documents\General\Data\DATA\IR - CO2\open air A.csv
-- 8d10f837-77d3-4308-9b02-0071cd5c3d28
-- 50a551cffc313ec16b1e2d49bbfda4322536a1ab46d7d6697d69e5be63adfe29
-
----
-## 2025-10-15 23:46 – Import
-
-**Author**: automation
-
-**Context**: Spectra Desktop Session
-
-**Summary**: Ingested open air (d245016c-72cc-459b-8972-4a3606a81ed4) via CsvImporter from open air.csv.
-
-**References**:
-- C:\Users\brett\OneDrive - Georgia Gwinnett College\---  SCHOOL ---\Anfuso_Bell STEC Research (Fall 2025) - Documents\General\Data\DATA\IR - CO2\open air.csv
-- d245016c-72cc-459b-8972-4a3606a81ed4
-- e346732d62d0ae4a677fef7aa314486e6df0437e76ac5dd7a4ee80d892a23af3
-
----
-## 2025-10-15 23:46 – Import
-
-**Author**: automation
-
-**Context**: Spectra Desktop Session
-
-**Summary**: Ingested Run1 no co2 (59fdfb18-84dc-4073-9364-ea7c33804d66) via CsvImporter from Run1 no co2.csv.
-
-**References**:
-- C:\Users\brett\OneDrive - Georgia Gwinnett College\---  SCHOOL ---\Anfuso_Bell STEC Research (Fall 2025) - Documents\General\Data\DATA\IR - CO2\Run1 no co2.csv
-- 59fdfb18-84dc-4073-9364-ea7c33804d66
-- 914eb7f9f1715e8794cf61a1e7be53c89e76f545146e2189cf745c4972386b8c
-
----
-## 2025-10-15 23:46 – Import
-
-**Author**: automation
-
-**Context**: Spectra Desktop Session
-
-**Summary**: Ingested run2 (17b4117d-8186-4a24-9073-f3d6a8c931c4) via CsvImporter from run2.csv.
-
-**References**:
-- C:\Users\brett\OneDrive - Georgia Gwinnett College\---  SCHOOL ---\Anfuso_Bell STEC Research (Fall 2025) - Documents\General\Data\DATA\IR - CO2\run2.csv
-- 17b4117d-8186-4a24-9073-f3d6a8c931c4
-- 169dbf5375303ef621a33643b74917d6ebdbf0236b253b4f70ed81cb4d743103
-
----
-## 2025-10-15 23:46 – Import
-
-**Author**: automation
-
-**Context**: Spectra Desktop Session
-
-**Summary**: Ingested run4 (c8ad13d7-f899-40ae-9457-e7fe228bd37f) via CsvImporter from run4.csv.
-
-**References**:
-- C:\Users\brett\OneDrive - Georgia Gwinnett College\---  SCHOOL ---\Anfuso_Bell STEC Research (Fall 2025) - Documents\General\Data\DATA\IR - CO2\run4.csv
-- c8ad13d7-f899-40ae-9457-e7fe228bd37f
-- 5068b4acfbcc9ef7ac3ea7585b1f56d3197b489a2c0968c01de2efcedb6f9395
-## 2025-10-15 23:41 – Import
-
-**Author**: automation
-
-**Context**: Spectra Desktop Session
-
-**Summary**: Ingested sample_reference (d060391c-d6fd-4a89-9f30-256489984855) via CsvImporter from sample_reference.csv.
-
-**References**:
-- C:\Code\spectra-app-beta\samples\sample_reference.csv
-- d060391c-d6fd-4a89-9f30-256489984855
-- 76a5a1d2fdaaee20d3a89ac3af382df9f42c2727a01afde5462688e9a2633425
-
----
-## 2025-10-15 23:41 – Import
-
-**Author**: automation
-
-**Context**: Spectra Desktop Session
-
-**Summary**: Ingested sample_spectrum (3e8147af-ca4e-40ff-befc-9c84631e9fd6) via CsvImporter from sample_spectrum.csv.
-
-**References**:
-- C:\Code\spectra-app-beta\samples\sample_spectrum.csv
-- 3e8147af-ca4e-40ff-befc-9c84631e9fd6
-- b0cf809fb461459e6fae989a24e45ffb65fbc797884b69edf2bf3c44a4acfeac
-
----
-## 2025-10-15 23:41 – Import
-
-**Author**: automation
-
-**Context**: Spectra Desktop Session
-
-**Summary**: Ingested sample_transmittance (35dabeb1-39e5-468a-8c67-0bea2cc1d353) via CsvImporter from sample_transmittance.csv.
-
-**References**:
-- C:\Code\spectra-app-beta\samples\sample_transmittance.csv
-- 35dabeb1-39e5-468a-8c67-0bea2cc1d353
-- 9e7be442cbab35d2ba254c8a90bbaa994fb8d734af9de203453a283476618260
 
 ---
 ## 2025-10-15 23:41 – Overlay
@@ -752,5 +427,3 @@ and patch notes document the automatic caching behaviour and opt-out flow.【F:t
 **Summary**: Expanded export bundles to emit per-spectrum CSVs, copy source uploads, and write a structured activity log so downstream reviewers can trace every spectrum back to its canonical and raw forms.【F:app/services/provenance_service.py†L50-L108】 Regression coverage now confirms the manifest, CSVs, PNG snapshot, and log travel together and that canonical/exported paths are reflected inside the manifest for auditing.【F:tests/test_provenance_manifest.py†L24-L74】 Updated the importing guide’s provenance appendix so operators know what to expect in the bundle until the roadmap/workplan refresh lands, at which point I’ll backfill a direct planning link here.【F:docs/user/importing.md†L92-L111】【F:docs/reviews/workplan.md†L81-L85】
 
 **References**: `app/services/provenance_service.py`, `tests/test_provenance_manifest.py`, `docs/user/importing.md`, `docs/reviews/workplan.md`.
-
----

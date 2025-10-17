@@ -551,3 +551,15 @@ Import/Remote Import entries remain after the cleanup.
 - `docs/reviews/workplan.md`
 
 ---
+## 2025-10-17 16:22 – Overlay
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Enabled reference overlay reference::hydrogen_lines.
+
+**References**:
+- reference::hydrogen_lines
+
+---
