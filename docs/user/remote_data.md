@@ -21,7 +21,17 @@ them even when offline.
    - **NIST ASD** (line lists via the Atomic Spectra Database)
    - **MAST** (MAST data products via `astroquery.mast`)
 3. Enter a keyword, element symbol, or target name in the search field and click
-   **Search**.
+   **Search**. The dialog adapts the criteria to the selected provider before it
+   reaches the service layer:
+   - **NIST ASD** maps the text to the `spectra` parameter that powers the
+     Atomic Spectra Database line search.
+   - **MAST** converts free-form text into a `target_name`, or you can provide
+     comma-separated `key=value` pairs for supported `astroquery.mast`
+     parameters (for example `instrument_name=NIRSpec, dataproduct_type=spectrum`).
+4. Reference the hint banner below the buttons for provider-specific examples.
+   The dialog surfaces the mapping so you know when NIST expects an element/ion
+   such as `Fe II`, and when MAST accepts target names or comma-separated
+   arguments like `instrument_name=NIRSpec`.
 
 The results table displays identifiers, titles, and the source URI for each
 match. Selecting a row shows the raw metadata payload in the preview panel so
@@ -35,10 +45,14 @@ you can confirm provenance before downloading.
 
 Behind the scenes the application:
 
-* Streams the remote file through the HTTP/MAST client and writes it to a
-  temporary location.
+* Streams HTTP/HTTPS downloads through the bundled `requests` session, or uses
+  `astroquery.mast.Observations.download_file` directly when a MAST record is
+  selected so provenance matches the upstream archive and the raw HTTP session
+  stays idle.
 * Copies the artefact into the `LocalStore`, recording the provider, URI,
-  checksum, and fetch timestamp in the cache index.
+  checksum, and fetch timestamp in the cache index. MAST downloads normalise the
+  returned astroquery path before copying so cached imports are reused even when
+  the original file lives in the astroquery cache.
 * Hands the stored path to `DataIngestService` so the file benefits from the
   existing importer registry, unit normalisation, and provenance hooks.
 

@@ -113,6 +113,81 @@ def test_download_uses_cache_and_records_provenance(store: LocalStore) -> None:
     assert Path(cached.cache_entry["stored_path"]) == stored_path
 
 
+def test_download_mast_uses_astroquery_and_records_provenance(
+    store: LocalStore, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    session = DummySession()
+    service = RemoteDataService(store, session=session)
+
+    downloaded = tmp_path / "mast-product.fits"
+    payload = b"mastdata"
+    downloaded.write_bytes(payload)
+
+    mast_calls: list[dict[str, Any]] = []
+
+    class DummyObservations:
+        @staticmethod
+        def download_file(uri: str, cache: bool = True) -> str:
+            mast_calls.append({"uri": uri, "cache": cache})
+            return str(downloaded)
+
+    class DummyMast:
+        Observations = DummyObservations
+
+    monkeypatch.setattr(remote_module, "astroquery_mast", DummyMast, raising=False)
+
+    record = RemoteRecord(
+        provider=RemoteDataService.PROVIDER_MAST,
+        identifier="mast-1",
+        title="MAST Observation",
+        download_url="mast:JWST/product.fits",
+        metadata={"units": {"x": "um", "y": "flux"}},
+        units={"x": "um", "y": "flux"},
+    )
+
+    result = service.download(record)
+
+    assert session.calls == []
+    assert mast_calls == [{"uri": record.download_url, "cache": False}]
+    assert result.cached is False
+    stored_path = Path(result.cache_entry["stored_path"])
+    assert stored_path.exists()
+    assert stored_path.read_bytes() == payload
+    assert result.cache_entry["original_path"] == str(downloaded.resolve())
+
+    remote_meta = result.cache_entry.get("source", {}).get("remote", {})
+    assert remote_meta.get("provider") == RemoteDataService.PROVIDER_MAST
+    assert remote_meta.get("uri") == record.download_url
+    assert remote_meta.get("mast", {}).get("downloaded_via") == (
+        "astroquery.mast.Observations.download_file"
+    )
+
+    before = len(mast_calls)
+    cached = service.download(record)
+    assert cached.cached is True
+    assert len(mast_calls) == before
+    assert Path(cached.cache_entry["stored_path"]) == stored_path
+    assert cached.cache_entry["original_path"] == str(downloaded.resolve())
+
+
+def test_download_rejects_unknown_protocol(store: LocalStore) -> None:
+    session = DummySession()
+    service = RemoteDataService(store, session=session)
+    record = RemoteRecord(
+        provider=RemoteDataService.PROVIDER_NIST,
+        identifier="mystery",
+        title="Unsupported",
+        download_url="ftp://example.invalid/data.bin",
+        metadata={},
+        units={"x": "nm", "y": "flux"},
+    )
+
+    with pytest.raises(ValueError):
+        service.download(record)
+
+    assert session.calls == []
+
+
 def test_search_mast_table_conversion(store: LocalStore, monkeypatch: pytest.MonkeyPatch) -> None:
     class DummyObservations:
         @staticmethod

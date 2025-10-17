@@ -118,13 +118,34 @@ class RemoteDataService:
                 cached=True,
             )
 
-        session = self._ensure_session()
-        response = session.get(record.download_url, timeout=60)
-        response.raise_for_status()
+        mast_provenance: Dict[str, Any] | None = None
+        cleanup_tmp = False
+        parsed_url = urlparse(record.download_url)
+        scheme = (parsed_url.scheme or "").lower()
 
-        with tempfile.NamedTemporaryFile(delete=False) as handle:
-            handle.write(response.content)
-            tmp_path = Path(handle.name)
+        if record.provider == self.PROVIDER_MAST:
+            tmp_path = self._download_via_mast(record)
+            mast_provenance = {
+                "mast": {
+                    "downloaded_via": "astroquery.mast.Observations.download_file",
+                }
+            }
+        elif scheme in {"http", "https"}:
+            session = self._ensure_session()
+            response = session.get(record.download_url, timeout=60)
+            response.raise_for_status()
+
+            with tempfile.NamedTemporaryFile(delete=False) as handle:
+                handle.write(response.content)
+                tmp_path = Path(handle.name)
+            cleanup_tmp = True
+        else:
+            raise ValueError(
+                "Unsupported download protocol for remote record: "
+                f"{record.download_url!r}"
+            )
+
+        tmp_path = self._normalise_download_path(tmp_path)
 
         x_unit, y_unit = record.resolved_units()
         remote_metadata = {
@@ -134,6 +155,8 @@ class RemoteDataService:
             "fetched_at": self._timestamp(),
             "metadata": json.loads(json.dumps(record.metadata)),
         }
+        if mast_provenance is not None:
+            remote_metadata.update(mast_provenance)
         store_entry = self.store.record(
             tmp_path,
             x_unit=x_unit,
@@ -141,7 +164,8 @@ class RemoteDataService:
             source={"remote": remote_metadata},
             alias=record.suggested_filename(),
         )
-        tmp_path.unlink(missing_ok=True)
+        if cleanup_tmp:
+            tmp_path.unlink(missing_ok=True)
 
         return RemoteDownloadResult(
             record=record,
@@ -155,7 +179,7 @@ class RemoteDataService:
         session = self._ensure_session()
         params: Dict[str, Any] = {
             "format": "json",
-            "spectra": query.get("element") or query.get("text") or "",
+            "spectra": query.get("element") or query.get("spectra") or query.get("text") or "",
         }
         if query.get("wavelength_min") is not None:
             params["wavemin"] = query["wavelength_min"]
@@ -206,6 +230,21 @@ class RemoteDataService:
     def _search_mast(self, query: Mapping[str, Any]) -> List[RemoteRecord]:
         observations = self._ensure_mast()
         criteria = dict(query)
+        if "text" in criteria:
+            text_value = criteria.pop("text")
+            normalized_text = self._normalize_mast_text(text_value)
+            if normalized_text is not None:
+                existing = self._normalize_mast_text(criteria.get("target_name"))
+                if existing is None:
+                    criteria["target_name"] = normalized_text
+                else:
+                    criteria["target_name"] = existing
+        if "target_name" in criteria:
+            normalized_target = self._normalize_mast_text(criteria.get("target_name"))
+            if normalized_target is None:
+                criteria.pop("target_name")
+            else:
+                criteria["target_name"] = normalized_target
         table = observations.Observations.query_criteria(**criteria)
         rows = self._table_to_records(table)
         records: List[RemoteRecord] = []
@@ -230,6 +269,20 @@ class RemoteDataService:
                 )
             )
         return records
+
+    @staticmethod
+    def _normalize_mast_text(value: Any) -> str | None:
+        if value is None:
+            return None
+        if isinstance(value, str):
+            stripped = value.strip()
+            return stripped or None
+        try:
+            text = str(value)
+        except Exception:
+            return None
+        stripped = text.strip()
+        return stripped or None
 
     # ------------------------------------------------------------------
     def _find_cached(self, uri: str) -> Dict[str, Any] | None:
