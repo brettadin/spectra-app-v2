@@ -119,6 +119,16 @@ To migrate existing `brains` and `atlas` logs, follow these steps:
 
 **References**: `app/services/provenance_service.py`, `tests/test_provenance_manifest.py`, `docs/user/importing.md`, `docs/reviews/workplan.md`.
 
+## 2025-10-17 13:05 – Remote Data Service
+
+**Author**: agent
+
+**Context**: MAST download pipeline normalisation and regression coverage.
+
+**Summary**: Routed `RemoteDataService.download` through `astroquery.mast.Observations.download_file` for MAST records and normalised the returned path before persisting it via the shared `LocalStore`, keeping cached imports deduplicated alongside HTTP downloads.【F:app/services/remote_data_service.py†L109-L154】 Added a regression test that monkeypatches the astroquery client to assert the HTTP session remains untouched and the cached path retains its provenance, plus refreshed the user guide to document the flow.【F:tests/test_remote_data_service.py†L102-L164】【F:docs/user/remote_data.md†L47-L63】
+
+**References**: `app/services/remote_data_service.py`, `tests/test_remote_data_service.py`, `docs/user/remote_data.md`.
+
 ---
 
 ## 2025-10-15 00:37 – Importer Heuristics & In-App Docs

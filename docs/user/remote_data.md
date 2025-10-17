@@ -46,12 +46,13 @@ you can confirm provenance before downloading.
 Behind the scenes the application:
 
 * Streams HTTP/HTTPS downloads through the bundled `requests` session, or uses
-  `astroquery.mast.Observations.download_file` when a MAST record is selected so
-  provenance matches the upstream archive.
+  `astroquery.mast.Observations.download_file` directly when a MAST record is
+  selected so provenance matches the upstream archive and the raw HTTP session
+  stays idle.
 * Copies the artefact into the `LocalStore`, recording the provider, URI,
-  checksum, and fetch timestamp in the cache index. MAST downloads are
-  normalised the same way, ensuring cached imports are reused even when the
-  original file lives in the astroquery cache.
+  checksum, and fetch timestamp in the cache index. MAST downloads normalise the
+  returned astroquery path before copying so cached imports are reused even when
+  the original file lives in the astroquery cache.
 * Hands the stored path to `DataIngestService` so the file benefits from the
   existing importer registry, unit normalisation, and provenance hooks.
 
