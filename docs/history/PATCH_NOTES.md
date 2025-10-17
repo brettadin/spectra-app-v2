@@ -1,5 +1,14 @@
 # Patch Notes
 
+## 2025-10-17 (Atlas architectural log restoration) (16:20 UTC)
+
+- Authored `docs/atlas/brains.md` to capture the current ingest pipeline,
+  caching policy, and remote-service defaults referenced by the Master Prompt.
+- Linked the restored log from the developer notes, onboarding guide, and link
+  collection so new contributors land on the canonical architectural guidance.
+- Removed the empty atlas placeholder file to prevent future agents from
+  missing the maintained log.
+
 ## 2025-10-17 (Library provenance preview) (14:19 UTC)
 
 - Expanded the Library dock with a metadata preview splitter so selecting a cache

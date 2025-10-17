@@ -5,7 +5,10 @@ handbooks that underpin Spectra’s analysis workflows. Use it alongside the
 Inspector’s **Reference** tab, the **Remote Data** dialog, and the Library dock
 to keep imported datasets focused on calibrated spectroscopic products. Every
 entry lists the primary URL plus integration notes so future agents can wire the
-resource into build scripts or documentation updates quickly.
+resource into build scripts or documentation updates quickly. Architectural
+constraints for the ingest/cache/remote stack now live in
+[`docs/atlas/brains.md`](./atlas/brains.md); consult it when planning new
+integrations.
 
 ## Remote catalogues (API ready)
 

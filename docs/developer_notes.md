@@ -4,6 +4,8 @@
 - `AGENTS.md` – Top-level operating manual; review before editing code or docs.
 - `docs/link_collection.md` – Curated spectroscopy datasets, standards, and
   instrument handbooks. Start here when sourcing new material.
+- `docs/atlas/brains.md` – Architectural decisions for ingest, caching, and
+  remote services.
 - `docs/user/*.md` – User guides (importing, remote data, reference overlays,
   plot tools). Keep behaviour changes in sync.
 - `docs/dev/reference_build.md` – Scripts and manifests for regenerating the
