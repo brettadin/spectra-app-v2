@@ -11,6 +11,9 @@ Welcome to the Spectra App project! This guide will help you get started with de
   - Defines the application's vision, architecture, and scientific goals
   - Outlines non-negotiable principles and technical constraints
   - Contains detailed feature requirements and validation criteria
+- **`docs/atlas/brains.md`** - Current architectural decisions for ingest, caching, and remote services
+  - Summarises the production pipeline and cache policies referenced by the Master Prompt
+  - Keep this log in sync when altering importer wiring or remote integrations
 
 - **`docs/history/RUNNER_PROMPT.md`** - Development workflow and iteration loop
   - Describes the plan → implement → test → document → PR cycle

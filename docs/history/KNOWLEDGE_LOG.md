@@ -33,6 +33,24 @@ Each entry in this document should follow this structure:
 
 ---
 
+## 2025-10-17 16:20 – Atlas architectural log
+
+**Author**: agent
+
+**Context**: Architectural documentation continuity.
+
+**Summary**: Restored the atlas/brains log as `docs/atlas/brains.md`, capturing
+the production ingest pipeline, cache policy, and remote-service defaults so the
+Master Prompt references a living source. Linked the log from the developer
+notes, onboarding guide, and link collection, and removed the empty placeholder
+that previously obscured the canonical record. Patch notes document the
+restoration for traceability.
+
+**References**: `docs/atlas/brains.md`, `docs/developer_notes.md`,
+`START_HERE.md`, `docs/link_collection.md`, `docs/history/PATCH_NOTES.md`.
+
+---
+
 ## 2025-10-17 14:19 – Library metadata preview
 
 **Author**: agent
