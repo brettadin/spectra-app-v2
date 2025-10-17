@@ -159,6 +159,29 @@ To migrate existing `brains` and `atlas` logs, follow these steps:
 
 ---
 
+## 2025-10-17 01:45 – Remote data focus & cache library
+
+**Author**: agent
+
+**Context**: Remote catalogue reliability, cache UX, and documentation hygiene.
+
+**Summary**: Rewired the Remote Data dialog to send provider-specific queries
+(`spectra` vs `target_name`) and patched the download path so `mast:` URIs flow
+through `astroquery.Observations.download_file`. Added regression coverage for
+the translation/downloader. Introduced a Library dock that lists cached
+artefacts via `LocalStore.list_entries()` so we can reload spectra without
+polluting the knowledge log with raw file paths; updated `_ingest_path` and the
+remote import hook to log concise summaries instead. Added a trace-colour mode
+toggle (palette vs uniform) and refreshed user docs plus `docs/link_collection.md`
+to keep the spectroscopy focus explicit.
+
+**References**: `app/ui/remote_data_dialog.py`, `app/services/remote_data_service.py`,
+`app/main.py`, `tests/test_remote_data_service.py`, `docs/user/remote_data.md`,
+`docs/user/importing.md`, `docs/user/plot_tools.md`, `docs/user/reference_data.md`,
+`docs/link_collection.md`, `docs/reviews/workplan.md`.
+
+---
+
 ## 2025-10-16 23:10 – Remote Data Ingestion
 
 **Author**: agent
@@ -319,5 +342,17 @@ and patch notes document the automatic caching behaviour and opt-out flow.【F:t
 **Summary**: Added a persisted "LOD point budget" spinner to the Inspector Style tab so analysts can adjust the downsampling envelope between 1k and 1M samples without leaving the session; the control writes through `QSettings` and immediately refreshes visible traces.【F:app/main.py†L76-L116】【F:app/main.py†L214-L275】【F:app/main.py†L410-L520】 Updated `PlotPane` to accept a constructor-provided limit, clamp invalid values, and expose a setter that re-renders existing traces on change.【F:app/ui/plot_pane.py†L35-L304】 Extended the plot performance stub to assert overrides and clamping, keeping the peak-envelope decimator aligned with the configured budget.【F:tests/test_plot_perf_stub.py†L14-L63】 Documented the new preference in the plotting guide and patch notes for operator awareness.【F:docs/user/plot_tools.md†L56-L65】【F:docs/history/PATCH_NOTES.md†L3-L8】
 
 **References**: `app/main.py`, `app/ui/plot_pane.py`, `tests/test_plot_perf_stub.py`, `docs/user/plot_tools.md`, `docs/history/PATCH_NOTES.md`.
+
+---
+
+## 2025-10-17 02:30 – Remote Data & Documentation Map
+
+**Author**: agent
+
+**Context**: Remote catalogue UX hardening and documentation continuity.
+
+**Summary**: Fixed the Remote Data dialog crash triggered by an undefined provider-change slot, enforced spectroscopic defaults for MAST searches (`dataproduct_type="spectrum"`, `intentType="SCIENCE"`, `calib_level=[2, 3]`), and filtered out imaging products via `_is_spectroscopic` so remote results stay aligned with laboratory comparisons.【F:app/ui/remote_data_dialog.py†L30-L219】【F:app/services/remote_data_service.py†L111-L212】 Added a Qt smoke test plus extended regression coverage to assert the injected filters, refreshed the remote-data user guide with the new hints, and published a developer documentation map so future agents can locate the operating manual, link collection, and workplan without guesswork.【F:tests/test_remote_data_dialog.py†L1-L75】【F:tests/test_remote_data_service.py†L1-L125】【F:docs/user/remote_data.md†L1-L99】【F:docs/developer_notes.md†L1-L42】【F:docs/history/PATCH_NOTES.md†L1-L17】
+
+**References**: `app/ui/remote_data_dialog.py`, `app/services/remote_data_service.py`, `tests/test_remote_data_dialog.py`, `tests/test_remote_data_service.py`, `docs/user/remote_data.md`, `docs/developer_notes.md`, `docs/history/PATCH_NOTES.md`.
 
 ---
