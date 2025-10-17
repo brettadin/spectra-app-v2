@@ -28,6 +28,7 @@ from .services import (
     RemoteDataService,
 )
 from .ui.plot_pane import PlotPane, TraceStyle
+from .ui.palettes import PaletteDefinition
 from .ui.remote_data_dialog import RemoteDataDialog
 
 QtCore: Any
@@ -38,6 +39,7 @@ QtCore, QtGui, QtWidgets, QT_BINDING = get_qt()
 
 SAMPLES_DIR = Path(__file__).resolve().parent.parent / "samples"
 PLOT_MAX_POINTS_KEY = "plot/max_points"
+PLOT_PALETTE_KEY = "plot/palette"
 
 
 class SpectraMainWindow(QtWidgets.QMainWindow):
@@ -94,15 +96,24 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self._suppress_overlay_refresh = False
         self._display_y_units: Dict[str, str] = {}
         self._line_shape_rows: List[Mapping[str, Any]] = []
+        self._palette_definitions: Sequence[PaletteDefinition] = list(PlotPane.palette_definitions())
+        self._palette_lookup: Dict[str, PaletteDefinition] = {
+            definition.key: definition for definition in self._palette_definitions
+        }
+        self._default_palette_key = PlotPane.default_palette_key()
+        fallback_palette = self._palette_lookup.get(self._default_palette_key)
+        if fallback_palette is None:
+            fallback_palette = next(iter(self._palette_lookup.values()), None)
+        if fallback_palette is None:
+            raise RuntimeError("No palette definitions registered.")
+        initial_palette_key = self._load_palette_key()
+        self._active_palette: PaletteDefinition = self._palette_lookup.get(
+            initial_palette_key,
+            fallback_palette,
+        )
+        self._palette_key = self._active_palette.key
         self._palette: List[QtGui.QColor] = [
-            QtGui.QColor("#4F6D7A"),
-            QtGui.QColor("#C0D6DF"),
-            QtGui.QColor("#C72C41"),
-            QtGui.QColor("#2F4858"),
-            QtGui.QColor("#33658A"),
-            QtGui.QColor("#758E4F"),
-            QtGui.QColor("#6D597A"),
-            QtGui.QColor("#EE964B"),
+            QtGui.QColor(code) for code in self._active_palette.sequence()
         ]
         self._palette_index = 0
 
@@ -126,8 +137,8 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.library_detail: QtWidgets.QPlainTextEdit | None = None
         self.library_hint: QtWidgets.QLabel | None = None
         self._library_entries: Dict[str, Mapping[str, Any]] = {}
-        self._use_uniform_palette = False
-        self._uniform_color = QtGui.QColor("#4F6D7A")
+        self._use_uniform_palette = bool(self._active_palette.uniform)
+        self._uniform_color = QtGui.QColor(self._active_palette.resolved_uniform_color())
 
         self._setup_ui()
         self._setup_menu()
@@ -214,6 +225,17 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
     def _save_plot_max_points(self, value: int) -> None:
         settings = QtCore.QSettings("SpectraApp", "DesktopPreview")
         settings.setValue(PLOT_MAX_POINTS_KEY, int(value))
+
+    def _load_palette_key(self) -> str:
+        settings = QtCore.QSettings("SpectraApp", "DesktopPreview")
+        stored = settings.value(PLOT_PALETTE_KEY, PlotPane.default_palette_key(), type=str)
+        if not stored:
+            return PlotPane.default_palette_key()
+        return cast(str, stored)
+
+    def _save_palette_key(self, key: str) -> None:
+        settings = QtCore.QSettings("SpectraApp", "DesktopPreview")
+        settings.setValue(PLOT_PALETTE_KEY, key)
 
     def _on_persistence_toggled(self, enabled: bool) -> None:
         if self._persistence_env_disabled:
@@ -860,10 +882,11 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         palette_form = QtWidgets.QFormLayout()
         style_layout.addLayout(palette_form)
         self.color_mode_combo = QtWidgets.QComboBox()
-        self.color_mode_combo.addItems([
-            "High-contrast palette",
-            "Uniform (single colour)",
-        ])
+        for definition in self._palette_definitions:
+            self.color_mode_combo.addItem(definition.label, definition.key)
+        index = self.color_mode_combo.findData(self._palette_key)
+        if index != -1:
+            self.color_mode_combo.setCurrentIndex(index)
         self.color_mode_combo.currentIndexChanged.connect(self._on_color_mode_changed)
         palette_form.addRow("Trace colouring:", self.color_mode_combo)
 
@@ -959,13 +982,75 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.plot.set_max_points(coerced)
         self._save_plot_max_points(coerced)
 
+    def _set_active_palette(self, palette: PaletteDefinition, *, persist: bool) -> None:
+        self._active_palette = palette
+        self._palette_key = palette.key
+        self._palette = [QtGui.QColor(code) for code in palette.sequence()]
+        self._palette_index = 0
+        self._use_uniform_palette = bool(palette.uniform)
+        self._uniform_color = QtGui.QColor(palette.resolved_uniform_color())
+        if persist:
+            self._save_palette_key(palette.key)
+        if self.color_mode_combo is not None:
+            index = self.color_mode_combo.findData(palette.key)
+            if index != -1 and self.color_mode_combo.currentIndex() != index:
+                self.color_mode_combo.blockSignals(True)
+                self.color_mode_combo.setCurrentIndex(index)
+                self.color_mode_combo.blockSignals(False)
+
+    def _apply_palette(self, palette_key: str, *, persist: bool = True) -> None:
+        definition = self._palette_lookup.get(palette_key)
+        if definition is None:
+            definition = self._palette_lookup[self._default_palette_key]
+        if definition.key == self._palette_key and persist:
+            self._save_palette_key(definition.key)
+            return
+        self._set_active_palette(definition, persist=persist)
+        self._reapply_palette_to_traces()
+
+    def _reapply_palette_to_traces(self) -> None:
+        if not hasattr(self, "plot"):
+            return
+        spectra = self.overlay_service.list()
+        if not spectra:
+            return
+        previous_styles: Dict[str, TraceStyle] = {}
+        traces: Dict[str, Dict[str, Any]] = getattr(self.plot, "_traces", {})  # type: ignore[attr-defined]
+        for spectrum in spectra:
+            trace = traces.get(spectrum.id)
+            if not trace:
+                continue
+            style = trace.get("style")
+            if isinstance(style, TraceStyle):
+                previous_styles[spectrum.id] = style
+        self._spectrum_colors.clear()
+        self._palette_index = 0
+        for spectrum in spectra:
+            base_color = self._assign_color(spectrum)
+            display_color = self._display_color(base_color)
+            self._update_dataset_icon(spectrum.id, display_color)
+            prev_style = previous_styles.get(spectrum.id)
+            if prev_style is None:
+                continue
+            new_style = TraceStyle(
+                color=QtGui.QColor(display_color),
+                width=prev_style.width,
+                antialias=prev_style.antialias,
+                show_in_legend=prev_style.show_in_legend,
+                fill_brush=prev_style.fill_brush,
+                fill_level=prev_style.fill_level,
+            )
+            self.plot.update_style(spectrum.id, new_style)
+
     def _on_color_mode_changed(self) -> None:
         if self.color_mode_combo is None:
             return
-        use_uniform = self.color_mode_combo.currentIndex() == 1
-        if use_uniform == self._use_uniform_palette:
+        key = self.color_mode_combo.currentData()
+        if not isinstance(key, str):
             return
-        self._use_uniform_palette = use_uniform
+        if key == self._palette_key:
+            return
+        self._apply_palette(key)
         for spec_id, base_color in self._spectrum_colors.items():
             self._update_dataset_icon(spec_id, self._display_color(base_color))
         self.refresh_overlay()

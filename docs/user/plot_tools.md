@@ -42,15 +42,20 @@ The data table and provenance metadata mirror the active normalisation, and the 
 ## Trace colouring modes
 
 Heavy overlay sessions can get visually noisy when every spectrum shares the same palette. The Inspector’s **Style** tab now ships
-with a *Trace colouring* combo box:
+with a *Trace colouring* combo box sourced from the shared palette registry:
 
-- **High-contrast palette** (default) cycles through a curated set of colours and automatically lightens derived traces so
+- **High-contrast palette** (default) cycles through a balanced sequence and automatically lightens derived traces so
   relationships stay legible.
-- **Uniform (single colour)** renders every dataset in a consistent hue when you need to evaluate absolute alignment without
-  colour-coding.
+- **Colour-blind friendly** applies the Okabe–Ito palette so red/green contrasts remain distinguishable under common
+  colour-vision deficiencies.
+- **Light-on-dark** uses bright accents intended for dark backgrounds when you dock Spectra beside a terminal or other
+  dark-themed tools.
+- **Uniform (single colour)** renders every dataset in a consistent hue when you need to evaluate alignment without any
+  colour-coding cues.
 
-Switching modes updates both the plot and the Datasets dock icons immediately without mutating provenance metadata. Rename traces
-or toggle visibility as usual—returning to the palette restores each spectrum’s original colour assignment.
+Switching modes updates both the plot traces and the Datasets dock icons immediately and Spectra remembers your choice between
+sessions. Rename traces or toggle visibility as usual—returning to a palette restores each spectrum’s original colour assignment
+without touching provenance metadata.
 
 ## Overlay alignment and troubleshooting
 

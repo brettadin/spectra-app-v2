@@ -9,10 +9,13 @@ import pytest
 try:
     from app.main import SpectraMainWindow
     from app.qt_compat import get_qt
+    from app.ui.plot_pane import PlotPane, TraceStyle
 except ImportError as exc:  # pragma: no cover - optional on headless CI
     SpectraMainWindow = None  # type: ignore[assignment]
     _qt_import_error = exc
     QtCore = QtGui = QtWidgets = None  # type: ignore[assignment]
+    PlotPane = None  # type: ignore[assignment]
+    TraceStyle = None  # type: ignore[assignment]
 else:  # pragma: no cover - exercised via smoke test
     _qt_import_error = None
     QtCore, QtGui, QtWidgets, _ = get_qt()
@@ -151,6 +154,72 @@ def test_library_dock_populates_and_previews(tmp_path: Path) -> None:
         assert str(log_service.log_path) in detail
         if window.library_hint is not None:
             assert window.library_hint.text()
+    finally:
+        window.close()
+        window.deleteLater()
+        app.processEvents()
+
+
+def test_palette_presets_update_trace_colours(tmp_path: Path) -> None:
+    if SpectraMainWindow is None or QtWidgets is None or PlotPane is None or TraceStyle is None:
+        pytest.skip(f"Qt stack unavailable: {_qt_import_error}")
+
+    app = _ensure_app()
+    log_service = KnowledgeLogService(log_path=tmp_path / "history.md", author="pytest")
+    window = SpectraMainWindow(knowledge_log_service=log_service)
+    try:
+        csv_path = tmp_path / "palette.csv"
+        csv_path.write_text("wavelength_nm,absorbance\n500,0.4\n510,0.5\n", encoding="utf-8")
+
+        spectrum = window.ingest_service.ingest(csv_path)
+        window.overlay_service.add(spectrum)
+        window._add_spectrum(spectrum)
+        window._update_math_selectors()
+        window.refresh_overlay()
+        app.processEvents()
+
+        assert window.color_mode_combo is not None
+        definitions = PlotPane.palette_definitions()
+        assert window.color_mode_combo.count() == len(definitions)
+
+        def _icon_rgb(item: QtGui.QStandardItem) -> tuple[int, int, int]:
+            icon = item.icon()
+            pixmap = icon.pixmap(16, 16)
+            image = pixmap.toImage()
+            colour = image.pixelColor(0, 0)
+            return (colour.red(), colour.green(), colour.blue())
+
+        observed_colours: set[tuple[int, int, int]] = set()
+        colour_item = window._dataset_color_items[spectrum.id]
+        for definition in definitions:
+            index = window.color_mode_combo.findData(definition.key)
+            assert index != -1
+            window.color_mode_combo.setCurrentIndex(index)
+            app.processEvents()
+
+            expected_display = QtGui.QColor(
+                definition.resolved_uniform_color() if definition.uniform else definition.colors[0]
+            )
+            icon_rgb = _icon_rgb(colour_item)
+            assert icon_rgb == (
+                expected_display.red(),
+                expected_display.green(),
+                expected_display.blue(),
+            )
+
+            trace = window.plot._traces[spectrum.id]
+            style = trace.get("style")
+            assert isinstance(style, TraceStyle)
+            pen_colour = style.color
+            assert (
+                pen_colour.red(),
+                pen_colour.green(),
+                pen_colour.blue(),
+            ) == icon_rgb
+            assert window._use_uniform_palette is definition.uniform
+            observed_colours.add(icon_rgb)
+
+        assert len(observed_colours) >= 2
     finally:
         window.close()
         window.deleteLater()

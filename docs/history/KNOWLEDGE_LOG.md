@@ -33,6 +33,18 @@ Each entry in this document should follow this structure:
 
 ---
 
+## 2025-10-20 10:15 – Palette registry & persistence
+
+**Author**: agent
+
+**Context**: Trace colouring presets and inspector integration.
+
+**Summary**: Centralised the trace palettes in `app/ui/palettes.py` and exposed them through `PlotPane.palette_definitions()` so the Inspector’s Style tab can list shared presets while keeping dataset icons and plot pens in sync. `SpectraMainWindow` now loads the stored palette from `QSettings`, reapplies colours to existing overlays when users switch modes, and persists the selection for future sessions. Coverage exercises each preset in the Qt smoke workflow, and the plotting guide documents the new colour-blind and dark-friendly options alongside the uniform mode.
+
+**References**: `app/ui/palettes.py`, `app/ui/plot_pane.py`, `app/main.py`, `tests/test_smoke_workflow.py`, `docs/user/plot_tools.md`, `docs/history/PATCH_NOTES.md`.
+
+---
+
 ## 2025-10-19 08:30 – Remote search guard rails
 
 **Author**: agent

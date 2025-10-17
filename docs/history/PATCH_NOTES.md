@@ -1,5 +1,11 @@
 # Patch Notes
 
+## 2025-10-20 (Palette presets & persistence) (10:15 UTC)
+
+- Extended the Inspector Style tab with additional trace-colouring presets so dataset icons and plot pens stay aligned while cycling between high-contrast, colour-blind friendly, light-on-dark, and uniform modes.
+- Centralised palette definitions under `app/ui/palettes.py`, taught `PlotPane` to expose the registry, and persisted the user’s selection with `QSettings` so new overlays adopt the chosen scheme automatically.
+- Expanded the Qt smoke test to iterate every preset and assert the icon/trace colours update together, then refreshed the plotting guide with documentation for each new preset.
+
 ## 2025-10-19 (Remote search input validation) (08:30 UTC)
 
 - Blocked empty submissions for every provider in the Remote Data dialog so the
