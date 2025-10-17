@@ -442,3 +442,111 @@ and patch notes document the automatic caching behaviour and opt-out flow.【F:t
 - 3fdb2deb-171a-47c5-9624-c13c0c8659a8
 
 ---
+## 2025-10-16 23:42 – Import
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested sample_reference via CsvImporter.
+
+**References**:
+- 4c6359ac-629c-4f1f-9d68-18e638bb898b
+
+---
+## 2025-10-16 23:42 – Import
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested sample_spectrum via CsvImporter.
+
+**References**:
+- 3930f40b-e9d5-4fc5-891f-725d643fc267
+
+---
+## 2025-10-16 23:42 – Import
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested sample_transmittance via CsvImporter.
+
+**References**:
+- 34f29a19-158b-4e4e-9eb7-f10f631e176f
+
+---
+## 2025-10-16 23:43 – Overlay
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Enabled reference overlay reference::jwst::jwst_wasp96b_nirspec_prism.
+
+**References**:
+- reference::jwst::jwst_wasp96b_nirspec_prism
+
+---
+## 2025-10-16 23:45 – Import
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested Helium via CsvImporter.
+
+**References**:
+- 77033e41-f8d9-44ef-b21b-3ac4f54fe315
+
+---
+## 2025-10-16 23:45 – Import
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested Mercury via CsvImporter.
+
+**References**:
+- a74fae46-f5db-47cc-9557-02ebd4bfcac0
+
+---
+## 2025-10-16 23:45 – Import
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested Neon via CsvImporter.
+
+**References**:
+- fe382236-04fd-482d-ad5b-4f59610a2a8e
+
+---
+## 2025-10-16 23:45 – Import
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested Xenon via CsvImporter.
+
+**References**:
+- 37d59e38-2e7c-4c47-b85b-b74fe16c16c5
+
+---
+## 2025-10-16 23:45 – Overlay
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Reference overlay cleared.
+
+**References**:
+- reference::jwst::jwst_neptune_nircam
+
+---
