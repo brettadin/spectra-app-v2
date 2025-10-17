@@ -26,6 +26,7 @@ class KnowledgeLogService:
     """Append and query provenance-ready entries for the knowledge log."""
 
     HEADER_PATTERN = re.compile(r"^##\s+(?P<timestamp>[^–]+) – (?P<component>.+)$", re.MULTILINE)
+    DEFAULT_RUNTIME_ONLY_COMPONENTS = frozenset({"import", "remote import"})
 
     def __init__(
         self,
@@ -33,6 +34,7 @@ class KnowledgeLogService:
         *,
         author: str | None = "automation",
         default_context: str | None = None,
+        runtime_only_components: Iterable[str] | None = None,
     ) -> None:
         root = Path(__file__).resolve().parents[2]
         default_path = root / "docs" / "history" / "KNOWLEDGE_LOG.md"
@@ -40,6 +42,16 @@ class KnowledgeLogService:
         self.log_path.parent.mkdir(parents=True, exist_ok=True)
         self.author = author
         self.default_context = default_context
+        components = (
+            runtime_only_components
+            if runtime_only_components is not None
+            else self.DEFAULT_RUNTIME_ONLY_COMPONENTS
+        )
+        self._runtime_only_components = {
+            component.strip().lower()
+            for component in components
+            if component and component.strip()
+        }
 
     # ------------------------------------------------------------------
     def record_event(
@@ -50,13 +62,26 @@ class KnowledgeLogService:
         *,
         context: str | None = None,
         timestamp: datetime | None = None,
+        persist: bool = True,
     ) -> KnowledgeLogEntry:
-        """Append a structured entry to the knowledge log."""
+        """Create and optionally persist a structured knowledge-log entry.
+
+        Parameters
+        ----------
+        persist:
+            When ``True`` (default) the entry is appended to ``self.log_path``
+            unless the ``component`` is registered as runtime-only (e.g.
+            ``"Import"`` or ``"Remote Import"``).
+            When ``False`` the entry is returned for in-memory history display
+            without mutating the on-disk log.
+        """
 
         moment = (timestamp or datetime.now(timezone.utc)).astimezone()
         stamp = moment.strftime("%Y-%m-%d %H:%M")
         entry_context = context or self.default_context
         references = tuple(ref for ref in references or () if ref)
+        normalized_component = component.strip().lower()
+        should_persist = persist and normalized_component not in self._runtime_only_components
 
         blocks: List[str] = [f"## {stamp} – {component}", ""]
         if self.author:
@@ -77,8 +102,9 @@ class KnowledgeLogService:
         blocks.append("")
 
         payload = "\n".join(blocks)
-        with self.log_path.open("a", encoding="utf-8") as stream:
-            stream.write(payload)
+        if should_persist:
+            with self.log_path.open("a", encoding="utf-8") as stream:
+                stream.write(payload)
 
         return KnowledgeLogEntry(
             timestamp=moment,
