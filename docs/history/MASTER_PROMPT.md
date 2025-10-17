@@ -95,11 +95,11 @@ app/
 docs/
 ├── user/                 # Quickstart, File Types, Units & Conversions, Plot Tools
 ├── dev/                  # Ingest pipeline, Fetcher contracts, Provenance schema
-├── edu/                  # Spectroscopy primers, analysis techniques, references
-├── patch_notes/v*.md     # Version-specific release notes
-├── ai_log/               # AI development log with rationale
-└── atlas/brains.md       # Architectural decisions and reasoning
-
+├── atlas/       		  # Long term thinking and project managment, also serves as basis for the human developers report.
+├── reviews
+├── history
+├── reference_sources
+└── brains/
 
 ### Documentation Requirements by Category
 
@@ -138,9 +138,8 @@ docs/
 
 ### Version Management & Release Process
 - **Version Incrementation**: Update app/version.json for every change
-- **Change Logging**: Write detailed patch notes in docs/patch_notes/v*.md
-- **AI Activity Tracking**: Append comprehensive entries to docs/ai_log/
-- **Rationale Documentation**: Record design decisions in atlas/brains.md
+- **Change Logging**: Write detailed patch notes in docs/history/PATCHNOTES.md
+- **Rationale Documentation**: Record design decisions in appropriate locations.
 
 ## Implementation Best Practices
 
