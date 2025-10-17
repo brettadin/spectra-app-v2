@@ -1,5 +1,17 @@
 # Patch Notes
 
+## 2025-10-17 (Knowledge log hygiene) (03:45 am UTC)
+
+- Added a non-persistent mode to `KnowledgeLogService.record_event` so routine
+  Import/Remote Import notifications stay in the History dock without appending
+  to `docs/history/KNOWLEDGE_LOG.md`.
+- Updated the Spectra shell ingest hooks to call the new flag, preventing cache
+  loads from spamming the canonical log while still surfacing activity in the
+  UI.
+- Extended the knowledge-log regression suite to assert that `persist=False`
+  avoids creating a log file and retains the returned entry for in-memory
+  display.
+
 ## 2025-10-17 (Spectroscopy-focused remote catalogue pass) (02:30 am UTC)
 
 - Fixed the **Fetch Remote Data…** crash caused by a missing provider-change

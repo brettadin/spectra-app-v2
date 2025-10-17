@@ -28,6 +28,18 @@ def test_record_and_load_round_trip(tmp_path: Path) -> None:
     assert entry.summary == first.summary
 
 
+def test_record_without_persist(tmp_path: Path) -> None:
+    log_path = tmp_path / "knowledge_log.md"
+    service = KnowledgeLogService(log_path=log_path, author="tester", default_context="Unit Test")
+
+    entry = service.record_event("Import", "Loaded calibration frame", persist=False)
+
+    assert not log_path.exists()
+    assert entry.component == "Import"
+    assert entry.summary == "Loaded calibration frame"
+    assert entry.references == ()
+
+
 def test_load_filters_and_export(tmp_path: Path) -> None:
     log_path = tmp_path / "knowledge_log.md"
     service = KnowledgeLogService(log_path=log_path, author="tester")

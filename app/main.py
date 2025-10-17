@@ -1053,7 +1053,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         references: List[str] = []
         if spectrum.id:
             references.append(spectrum.id)
-        self._record_history_event("Import", summary, references)
+        self._record_history_event("Import", summary, references, persist=False)
         self._refresh_library_view()
 
     def _add_spectrum(self, spectrum: Spectrum) -> None:
@@ -1436,9 +1436,16 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         component: str,
         summary: str,
         references: Sequence[str] | None = None,
+        *,
+        persist: bool = True,
     ) -> None:
         try:
-            entry = self.knowledge_log.record_event(component, summary, references)
+            entry = self.knowledge_log.record_event(
+                component,
+                summary,
+                references,
+                persist=persist,
+            )
         except Exception as exc:  # pragma: no cover - filesystem feedback
             self._log("History", f"Failed to record event: {exc}")
             return
@@ -1462,7 +1469,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         uri = str(remote.get("uri")) if remote and remote.get("uri") else None
         summary = f"Imported {spectrum.name} via {provider}."
         references = [ref for ref in [spectrum.id] if ref]
-        self._record_history_event("Remote Import", summary, references)
+        self._record_history_event("Remote Import", summary, references, persist=False)
         return {"provider": provider, "uri": uri}
 
     def _populate_data_table(self, views: Iterable[dict]) -> None:

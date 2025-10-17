@@ -31,6 +31,8 @@ Each entry in this document should follow this structure:
   citation markers like 【875267955107972†L29-L41】 for primary documentation where
   applicable).
 
+---
+
 ```
 
 Entries should be appended chronologically.  Older logs imported from the
@@ -406,147 +408,20 @@ and patch notes document the automatic caching behaviour and opt-out flow.【F:t
 **References**: `app/ui/remote_data_dialog.py`, `app/services/remote_data_service.py`, `tests/test_remote_data_dialog.py`, `tests/test_remote_data_service.py`, `docs/user/remote_data.md`, `docs/developer_notes.md`, `docs/history/PATCH_NOTES.md`.
 
 ---
-## 2025-10-16 23:42 – Import
 
-**Author**: automation
+## 2025-10-17 03:45 – Knowledge Log Hygiene
 
-**Context**: Spectra Desktop Session
+**Author**: agent
 
-**Summary**: Ingested sample_reference via CsvImporter.
+**Context**: Import bookkeeping and history retention.
 
-**References**:
-- 4ab52a7d-387b-465c-8886-bdb65700bdcb
+**Summary**: Added a non-persistent mode to `KnowledgeLogService.record_event` so
+routine Import/Remote Import notifications stay in the in-app History dock
+without appending to the canonical log. Updated `SpectraMainWindow` ingest hooks
+to call `persist=False`, refreshed the regression suite to cover the new flag,
+and confirmed the knowledge log contains only curated summaries.
 
----
-## 2025-10-16 23:42 – Import
-
-**Author**: automation
-
-**Context**: Spectra Desktop Session
-
-**Summary**: Ingested sample_spectrum via CsvImporter.
-
-**References**:
-- eab14690-03fa-401c-aedf-2658bf14590a
-
----
-## 2025-10-16 23:42 – Import
-
-**Author**: automation
-
-**Context**: Spectra Desktop Session
-
-**Summary**: Ingested sample_transmittance via CsvImporter.
-
-**References**:
-- 3fdb2deb-171a-47c5-9624-c13c0c8659a8
-
----
-## 2025-10-16 23:42 – Import
-
-**Author**: automation
-
-**Context**: Spectra Desktop Session
-
-**Summary**: Ingested sample_reference via CsvImporter.
-
-**References**:
-- 4c6359ac-629c-4f1f-9d68-18e638bb898b
-
----
-## 2025-10-16 23:42 – Import
-
-**Author**: automation
-
-**Context**: Spectra Desktop Session
-
-**Summary**: Ingested sample_spectrum via CsvImporter.
-
-**References**:
-- 3930f40b-e9d5-4fc5-891f-725d643fc267
-
----
-## 2025-10-16 23:42 – Import
-
-**Author**: automation
-
-**Context**: Spectra Desktop Session
-
-**Summary**: Ingested sample_transmittance via CsvImporter.
-
-**References**:
-- 34f29a19-158b-4e4e-9eb7-f10f631e176f
-
----
-## 2025-10-16 23:43 – Overlay
-
-**Author**: automation
-
-**Context**: Spectra Desktop Session
-
-**Summary**: Enabled reference overlay reference::jwst::jwst_wasp96b_nirspec_prism.
-
-**References**:
-- reference::jwst::jwst_wasp96b_nirspec_prism
-
----
-## 2025-10-16 23:45 – Import
-
-**Author**: automation
-
-**Context**: Spectra Desktop Session
-
-**Summary**: Ingested Helium via CsvImporter.
-
-**References**:
-- 77033e41-f8d9-44ef-b21b-3ac4f54fe315
-
----
-## 2025-10-16 23:45 – Import
-
-**Author**: automation
-
-**Context**: Spectra Desktop Session
-
-**Summary**: Ingested Mercury via CsvImporter.
-
-**References**:
-- a74fae46-f5db-47cc-9557-02ebd4bfcac0
-
----
-## 2025-10-16 23:45 – Import
-
-**Author**: automation
-
-**Context**: Spectra Desktop Session
-
-**Summary**: Ingested Neon via CsvImporter.
-
-**References**:
-- fe382236-04fd-482d-ad5b-4f59610a2a8e
-
----
-## 2025-10-16 23:45 – Import
-
-**Author**: automation
-
-**Context**: Spectra Desktop Session
-
-**Summary**: Ingested Xenon via CsvImporter.
-
-**References**:
-- 37d59e38-2e7c-4c47-b85b-b74fe16c16c5
-
----
-## 2025-10-16 23:45 – Overlay
-
-**Author**: automation
-
-**Context**: Spectra Desktop Session
-
-**Summary**: Reference overlay cleared.
-
-**References**:
-- reference::jwst::jwst_neptune_nircam
+**References**: `app/services/knowledge_log_service.py`, `app/main.py`,
+`tests/test_knowledge_log_service.py`.
 
 ---

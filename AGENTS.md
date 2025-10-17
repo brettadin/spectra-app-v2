@@ -28,10 +28,11 @@ below—future agents rely on these conventions to maintain continuity.
 - **Downloads**: MAST products must flow through
   `astroquery.mast.Observations.download_file`; HTTP URLs still use
   `requests`. Honour `_fetch_remote` when wiring new sources.
-- **Cache & Library**: `_ingest_path` and `_record_remote_history_event` only log
-  concise summaries. File-level metadata appears in the Library dock (tabified
-  with the Datasets view). Keep this separation intact and refresh the Library
-  after any ingest pipeline changes.
+- **Cache & Library**: `_ingest_path` and `_record_remote_history_event` record
+  runtime history entries with `persist=False`; the canonical knowledge log
+  stays focused on curated insights. File-level metadata appears in the Library
+  dock (tabified with the Datasets view). Keep this separation intact and
+  refresh the Library after any ingest pipeline changes.
 - **Trace colouring**: The Style tab exposes high-contrast and uniform colour
   modes. Respect `_use_uniform_palette` / `_display_color` when touching plot
   rendering or dataset icon logic.

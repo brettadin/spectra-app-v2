@@ -15,14 +15,6 @@ directly against laboratory references.
 > dependency is missing the dialog will list the provider as unavailable and the
 > search controls remain disabled until the package is installed.
 
-> **Optional dependencies**
->
-> Remote catalogues rely on third-party clients. The NIST adapter requires the
-> [`requests`](https://docs.python-requests.org/) package, while MAST lookups
-> also need [`astroquery`](https://astroquery.readthedocs.io/). If either
-> dependency is missing the dialog will list the provider as unavailable and the
-> search controls remain disabled until the package is installed.
-
 ## Opening the dialog
 
 1. Choose **File → Fetch Remote Data…** (or press `Ctrl+Shift+R`).
@@ -53,6 +45,22 @@ When you switch between catalogues the banner updates in real time:
   `astroquery.mast.Observations.query_criteria` arguments (for example
   `obs_collection=JWST`, `proposal_id=1076`, or numerical sky positions via
   `s_ra`, `s_dec`, and `radius`).
+
+### Provider-specific search tips
+
+- **NIST ASD** – The query box maps to the catalogue’s `spectra` filter. Enter
+  an element/ion (e.g. `Fe II`) or a transition label (`H-alpha`) to retrieve
+  laboratory line lists that align with the bundled reference overlays.
+- **MAST** – Free-text input is rewritten to `target_name` before invoking
+  `astroquery.mast.Observations.query_criteria`, and the adapter injects
+  `dataproduct_type="spectrum"`, `intentType="SCIENCE"`, and
+  `calib_level=[2, 3]` filters automatically. Supply JWST target names or
+  instrument identifiers (e.g. `WASP-96 b`, `NIRSpec grism`) to favour
+  calibrated spectroscopic products (IFS cubes, slit/grism/prism extractions)
+  instead of broad-band imaging or photometric light curves.
+
+The hint banner beneath the results table updates as you switch providers and
+also surfaces dependency warnings when optional clients are missing.
 
 ### Provider-specific search tips
 

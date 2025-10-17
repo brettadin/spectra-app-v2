@@ -50,8 +50,17 @@ class KnowledgeLogService:
         *,
         context: str | None = None,
         timestamp: datetime | None = None,
+        persist: bool = True,
     ) -> KnowledgeLogEntry:
-        """Append a structured entry to the knowledge log."""
+        """Create and optionally persist a structured knowledge-log entry.
+
+        Parameters
+        ----------
+        persist:
+            When ``True`` (default) the entry is appended to ``self.log_path``.
+            When ``False`` the entry is returned for in-memory history display
+            without mutating the on-disk log.
+        """
 
         moment = (timestamp or datetime.now(timezone.utc)).astimezone()
         stamp = moment.strftime("%Y-%m-%d %H:%M")
@@ -77,8 +86,9 @@ class KnowledgeLogService:
         blocks.append("")
 
         payload = "\n".join(blocks)
-        with self.log_path.open("a", encoding="utf-8") as stream:
-            stream.write(payload)
+        if persist:
+            with self.log_path.open("a", encoding="utf-8") as stream:
+                stream.write(payload)
 
         return KnowledgeLogEntry(
             timestamp=moment,
