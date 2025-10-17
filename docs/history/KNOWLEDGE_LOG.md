@@ -406,3 +406,39 @@ and patch notes document the automatic caching behaviour and opt-out flow.【F:t
 **References**: `app/ui/remote_data_dialog.py`, `app/services/remote_data_service.py`, `tests/test_remote_data_dialog.py`, `tests/test_remote_data_service.py`, `docs/user/remote_data.md`, `docs/developer_notes.md`, `docs/history/PATCH_NOTES.md`.
 
 ---
+## 2025-10-16 23:42 – Import
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested sample_reference via CsvImporter.
+
+**References**:
+- 4ab52a7d-387b-465c-8886-bdb65700bdcb
+
+---
+## 2025-10-16 23:42 – Import
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested sample_spectrum via CsvImporter.
+
+**References**:
+- eab14690-03fa-401c-aedf-2658bf14590a
+
+---
+## 2025-10-16 23:42 – Import
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested sample_transmittance via CsvImporter.
+
+**References**:
+- 3fdb2deb-171a-47c5-9624-c13c0c8659a8
+
+---
