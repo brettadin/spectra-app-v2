@@ -120,6 +120,9 @@ class RemoteDataService:
 
         mast_provenance: Dict[str, Any] | None = None
         cleanup_tmp = False
+        parsed_url = urlparse(record.download_url)
+        scheme = (parsed_url.scheme or "").lower()
+
         if record.provider == self.PROVIDER_MAST:
             tmp_path = self._download_via_mast(record)
             mast_provenance = {
@@ -127,7 +130,7 @@ class RemoteDataService:
                     "downloaded_via": "astroquery.mast.Observations.download_file",
                 }
             }
-        else:
+        elif scheme in {"http", "https"}:
             session = self._ensure_session()
             response = session.get(record.download_url, timeout=60)
             response.raise_for_status()
@@ -136,6 +139,11 @@ class RemoteDataService:
                 handle.write(response.content)
                 tmp_path = Path(handle.name)
             cleanup_tmp = True
+        else:
+            raise ValueError(
+                "Unsupported download protocol for remote record: "
+                f"{record.download_url!r}"
+            )
 
         tmp_path = Path(tmp_path)
 
