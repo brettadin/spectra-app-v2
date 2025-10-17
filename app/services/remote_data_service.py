@@ -222,14 +222,12 @@ class RemoteDataService:
     def _search_mast(self, query: Mapping[str, Any]) -> List[RemoteRecord]:
         observations = self._ensure_mast()
         criteria = dict(query)
-        text = criteria.get("text")
-        if isinstance(text, str):
-            stripped = text.strip()
-            if stripped:
-                criteria.setdefault("target_name", stripped)
-            criteria.pop("text", None)
-        elif "text" in criteria:
-            criteria.pop("text", None)
+        if "text" in criteria:
+            text_value = criteria.pop("text")
+            if "target_name" not in criteria:
+                normalized = self._normalize_mast_text(text_value)
+                if normalized is not None:
+                    criteria["target_name"] = normalized
         table = observations.Observations.query_criteria(**criteria)
         rows = self._table_to_records(table)
         records: List[RemoteRecord] = []
@@ -254,6 +252,20 @@ class RemoteDataService:
                 )
             )
         return records
+
+    @staticmethod
+    def _normalize_mast_text(value: Any) -> str | None:
+        if value is None:
+            return None
+        if isinstance(value, str):
+            stripped = value.strip()
+            return stripped or None
+        try:
+            text = str(value)
+        except Exception:
+            return None
+        stripped = text.strip()
+        return stripped or None
 
     # ------------------------------------------------------------------
     def _find_cached(self, uri: str) -> Dict[str, Any] | None:

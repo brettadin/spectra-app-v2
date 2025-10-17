@@ -28,6 +28,16 @@ class RemoteDataDialog(QtWidgets.QDialog):
         "radius",
     }
     _MAST_NUMERIC_CRITERIA = {"s_ra", "s_dec", "radius"}
+    _PROVIDER_HINTS = {
+        RemoteDataService.PROVIDER_NIST: (
+            "NIST ASD: enter an element symbol or atom (for example 'Fe II'). "
+            "Advanced searches accept wavelength ranges via the toolbar."
+        ),
+        RemoteDataService.PROVIDER_MAST: (
+            "MAST: supply a target name or comma-separated key=value pairs such as "
+            "'instrument_name=NIRSpec, dataproduct_type=spectrum'."
+        ),
+    }
 
     def __init__(
         self,
@@ -59,6 +69,7 @@ class RemoteDataDialog(QtWidgets.QDialog):
         self.provider_combo = QtWidgets.QComboBox(self)
         controls.addWidget(QtWidgets.QLabel("Catalogue:"))
         controls.addWidget(self.provider_combo)
+        self.provider_combo.currentIndexChanged.connect(self._on_provider_changed)
 
         self.search_edit = QtWidgets.QLineEdit(self)
         self.search_edit.setPlaceholderText("Element, target name, or keyword…")
@@ -222,13 +233,7 @@ class RemoteDataDialog(QtWidgets.QDialog):
             self.search_button.setEnabled(False)
 
         unavailable = self.remote_service.unavailable_providers()
-        if unavailable:
-            messages = []
-            for provider, reason in unavailable.items():
-                messages.append(f"{provider}: {reason}")
-            self.hint_label.setText("\n".join(messages))
-        else:
-            self.hint_label.clear()
+        self._update_hint_label(unavailable)
 
         if not providers:
             if not unavailable:
@@ -239,4 +244,24 @@ class RemoteDataDialog(QtWidgets.QDialog):
                 )
         else:
             self.status_label.clear()
+
+    def _on_provider_changed(self) -> None:
+        self._update_hint_label()
+
+    def _update_hint_label(self, unavailable: Dict[str, str] | None = None) -> None:
+        if unavailable is None:
+            unavailable = self.remote_service.unavailable_providers()
+        if unavailable:
+            messages = [f"{provider}: {reason}" for provider, reason in unavailable.items()]
+            self.hint_label.setText("\n".join(messages))
+            return
+
+        hint = self._provider_hint_text(self.provider_combo.currentText())
+        if hint:
+            self.hint_label.setText(hint)
+        else:
+            self.hint_label.clear()
+
+    def _provider_hint_text(self, provider: str) -> str:
+        return self._PROVIDER_HINTS.get(provider, "")
 

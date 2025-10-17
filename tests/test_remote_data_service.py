@@ -251,6 +251,31 @@ def test_search_mast_rewrites_text_to_target_name(store: LocalStore, monkeypatch
     assert "text" not in captured
 
 
+def test_search_mast_converts_non_string_text(store: LocalStore, monkeypatch: pytest.MonkeyPatch) -> None:
+    captured: dict[str, Any] = {}
+
+    class DummyObservations:
+        @staticmethod
+        def query_criteria(**criteria: Any) -> list[dict[str, Any]]:
+            captured.update(criteria)
+            return []
+
+    class DummyMast:
+        Observations = DummyObservations
+
+    service = RemoteDataService(store, session=None)
+    monkeypatch.setattr(service, "_ensure_mast", lambda: DummyMast)
+
+    records = service.search(
+        RemoteDataService.PROVIDER_MAST,
+        {"text": 413.2},
+    )
+
+    assert records == []
+    assert captured.get("target_name") == "413.2"
+    assert "text" not in captured
+
+
 def test_providers_hide_missing_dependencies(monkeypatch: pytest.MonkeyPatch, store: LocalStore) -> None:
     monkeypatch.setattr(remote_module, "requests", None)
     monkeypatch.setattr(remote_module, "astroquery_mast", None)
