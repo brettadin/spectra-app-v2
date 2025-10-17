@@ -33,6 +33,17 @@ them even when offline.
    such as `Fe II`, and when MAST accepts target names or comma-separated
    arguments like `instrument_name=NIRSpec`.
 
+When you switch between catalogues the banner updates in real time:
+
+* **NIST ASD** highlights that searches revolve around element symbols or ion
+  designations and reminds you that wavelength filters live in the advanced
+  toolbar.
+* **MAST** clarifies that the free-text box becomes a `target_name` by default
+  and that you can provide comma-separated `key=value` pairs for supported
+  `astroquery.mast.Observations.query_criteria` arguments (for example
+  `obs_collection=JWST`, `proposal_id=1076`, or numerical sky positions via
+  `s_ra`, `s_dec`, and `radius`).
+
 The results table displays identifiers, titles, and the source URI for each
 match. Selecting a row shows the raw metadata payload in the preview panel so
 you can confirm provenance before downloading.
