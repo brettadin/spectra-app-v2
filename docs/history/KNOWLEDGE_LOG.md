@@ -33,6 +33,26 @@ Each entry in this document should follow this structure:
 
 ---
 
+## 2025-10-17 14:19 – Library metadata preview
+
+**Author**: agent
+
+**Context**: Cache inspection UX and provenance traceability.
+
+**Summary**: Added a detail pane to the Library dock so selecting a cached
+spectra entry now reveals its provenance, canonical units, and storage path
+inline. Hooked selection changes to the preview, refreshed the empty-state
+messaging, and documented the workflow in the importing guide. A new smoke test
+guards the dock, ensuring metadata appears even in headless CI runs.
+
+**References**:
+- `app/main.py`
+- `tests/test_smoke_workflow.py`
+- `docs/user/importing.md`
+- `docs/history/PATCH_NOTES.md`
+
+---
+
 ```
 
 Entries should be appended chronologically.  Older logs imported from the

@@ -121,6 +121,8 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.library_dock: QtWidgets.QDockWidget | None = None
         self.library_list: QtWidgets.QTreeWidget | None = None
         self.library_search: QtWidgets.QLineEdit | None = None
+        self.library_detail: QtWidgets.QPlainTextEdit | None = None
+        self.library_hint: QtWidgets.QLabel | None = None
         self._library_entries: Dict[str, Mapping[str, Any]] = {}
         self._use_uniform_palette = False
         self._uniform_color = QtGui.QColor("#4F6D7A")
@@ -344,22 +346,35 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.library_search.textChanged.connect(self._on_library_filter_changed)
         layout.addWidget(self.library_search)
 
+        splitter = QtWidgets.QSplitter(QtCore.Qt.Orientation.Vertical)
+
         self.library_list = QtWidgets.QTreeWidget()
         self.library_list.setColumnCount(4)
         self.library_list.setHeaderLabels(["Alias", "Units", "Updated", "Source"])
         self.library_list.setSelectionMode(QtWidgets.QAbstractItemView.SelectionMode.SingleSelection)
         self.library_list.itemDoubleClicked.connect(self._on_library_item_activated)
+        self.library_list.itemSelectionChanged.connect(self._on_library_selection_changed)
         self.library_list.header().setSectionResizeMode(0, QtWidgets.QHeaderView.Stretch)
         self.library_list.header().setSectionResizeMode(1, QtWidgets.QHeaderView.ResizeToContents)
         self.library_list.header().setSectionResizeMode(2, QtWidgets.QHeaderView.ResizeToContents)
         self.library_list.header().setSectionResizeMode(3, QtWidgets.QHeaderView.Stretch)
-        layout.addWidget(self.library_list, 1)
+        splitter.addWidget(self.library_list)
 
-        hint = QtWidgets.QLabel(
+        self.library_detail = QtWidgets.QPlainTextEdit()
+        self.library_detail.setObjectName("library-detail")
+        self.library_detail.setReadOnly(True)
+        self.library_detail.setPlaceholderText("Select a cached entry to inspect metadata and provenance.")
+        splitter.addWidget(self.library_detail)
+        splitter.setStretchFactor(0, 3)
+        splitter.setStretchFactor(1, 2)
+
+        layout.addWidget(splitter, 1)
+
+        self.library_hint = QtWidgets.QLabel(
             "Double-click a cached entry to load it into the workspace without re-downloading."
         )
-        hint.setWordWrap(True)
-        layout.addWidget(hint)
+        self.library_hint.setWordWrap(True)
+        layout.addWidget(self.library_hint)
 
         dock.setWidget(container)
         self.addDockWidget(QtCore.Qt.DockWidgetArea.LeftDockWidgetArea, dock)
@@ -384,7 +399,14 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         if self.library_search is not None:
             filter_text = self.library_search.text().strip().lower()
 
+        selected_sha = None
+        if self.library_list is not None and self.library_list.currentItem() is not None:
+            selected_sha = str(
+                self.library_list.currentItem().data(0, QtCore.Qt.ItemDataRole.UserRole) or ""
+            )
+
         self.library_list.setUpdatesEnabled(False)
+        blocker = QtCore.QSignalBlocker(self.library_list)
         self.library_list.clear()
 
         def entry_tokens(entry: Mapping[str, Any]) -> str:
@@ -428,7 +450,39 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
 
         if items:
             self.library_list.sortItems(2, QtCore.Qt.SortOrder.DescendingOrder)
+            target_item: QtWidgets.QTreeWidgetItem | None = None
+            if selected_sha:
+                for row in range(self.library_list.topLevelItemCount()):
+                    candidate = self.library_list.topLevelItem(row)
+                    if not candidate:
+                        continue
+                    sha_value = str(
+                        candidate.data(0, QtCore.Qt.ItemDataRole.UserRole) or ""
+                    )
+                    if sha_value == selected_sha:
+                        target_item = candidate
+                        break
+            if target_item is None:
+                target_item = self.library_list.topLevelItem(0)
+            if target_item is not None:
+                self.library_list.setCurrentItem(target_item)
+        else:
+            if self.library_list is not None:
+                self.library_list.setCurrentItem(None)
+        del blocker
         self.library_list.setUpdatesEnabled(True)
+
+        if self.library_hint is not None:
+            if items:
+                self.library_hint.setText(
+                    "Select a cached entry to inspect metadata or double-click to reload it into the session."
+                )
+            else:
+                self.library_hint.setText(
+                    "No cached spectra available yet. Import data or fetch a remote record to populate the library."
+                )
+
+        self._update_library_detail()
 
     def _describe_library_source(self, entry: Mapping[str, Any]) -> str:
         source = entry.get("source")
@@ -475,6 +529,63 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             self._ingest_path(path)
         finally:
             self.plot.end_bulk_update()
+
+    def _on_library_selection_changed(self) -> None:
+        self._update_library_detail()
+
+    def _update_library_detail(self) -> None:
+        if self.library_detail is None:
+            return
+        if self.library_list is None or self.library_list.currentItem() is None:
+            self.library_detail.clear()
+            if self.library_hint is not None:
+                self.library_hint.setText(
+                    "Select a cached entry to inspect metadata or double-click to reload it into the session."
+                )
+            return
+
+        item = self.library_list.currentItem()
+        sha = item.data(0, QtCore.Qt.ItemDataRole.UserRole)
+        entry = self._library_entries.get(str(sha)) if sha else None
+        if not isinstance(entry, Mapping):
+            self.library_detail.clear()
+            if self.library_hint is not None:
+                self.library_hint.setText(
+                    "The selected cache entry could not be read from disk."
+                )
+            return
+
+        detail = self._format_library_entry(entry)
+        self.library_detail.setPlainText(detail)
+        if self.library_hint is not None:
+            stored_path = entry.get("stored_path")
+            if stored_path:
+                self.library_hint.setText(f"Cached at: {stored_path}")
+            else:
+                self.library_hint.setText(
+                    "Double-click the entry to load it into the workspace without re-downloading."
+                )
+
+    def _format_library_entry(self, entry: Mapping[str, Any]) -> str:
+        payload: Dict[str, Any] = {
+            "alias": entry.get("filename"),
+            "sha256": entry.get("sha256"),
+            "stored_path": entry.get("stored_path"),
+            "bytes": entry.get("bytes"),
+            "units": entry.get("units"),
+            "created": entry.get("created"),
+            "updated": entry.get("updated"),
+        }
+        manifest = entry.get("manifest_path")
+        if manifest:
+            payload["manifest_path"] = manifest
+        source = entry.get("source")
+        if isinstance(source, Mapping):
+            payload["source"] = source
+        provenance = entry.get("provenance")
+        if isinstance(provenance, Mapping):
+            payload["provenance"] = provenance
+        return json_pretty(payload)
 
     def _build_history_dock(self) -> None:
         self.history_dock = QtWidgets.QDockWidget("History", self)

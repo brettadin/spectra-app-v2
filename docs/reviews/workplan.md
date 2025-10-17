@@ -15,6 +15,9 @@ This document tracks feature batches, validation status, and outstanding backlog
       inject spectroscopic defaults (`dataproduct_type="spectrum"`,
       `intentType="SCIENCE"`, `calib_level=[2, 3]`) so MAST queries prioritise
       calibrated spectra with matching documentation updates.
+- [x] Extend the Library dock with a metadata preview pane, search-aware
+      filtering, and documentation/test coverage so cached spectra can be
+      inspected without re-ingesting files.
 
 ### Batch 14 QA Log
 

@@ -1,5 +1,14 @@
 # Patch Notes
 
+## 2025-10-17 (Library provenance preview) (14:19 UTC)
+
+- Expanded the Library dock with a metadata preview splitter so selecting a cache
+  entry reveals provenance, unit, and storage details without leaving the app.
+- Updated the importing guide to document the new preview pane and search
+  filtering, keeping the user workflow in sync with the UI.
+- Added a smoke regression ensuring the dock populates and surfaces metadata in
+  headless test runs.
+
 ## 2025-10-17 (Knowledge log runtime guard) (04:30 am UTC)
 
 - Registered Import/Remote Import as runtime-only components inside
