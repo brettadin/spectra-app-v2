@@ -113,6 +113,10 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self._displayed_history_entries: List[KnowledgeLogEntry] = []
         self._history_ui_ready = False
 
+        self.dataset_tabs: Optional[QtWidgets.QTabWidget] = None
+        self.library_view: Optional[QtWidgets.QTreeWidget] = None
+        self._library_items: Dict[str, QtWidgets.QTreeWidgetItem] = {}
+
         self._plot_max_points = self._load_plot_max_points()
         self.library_dock: QtWidgets.QDockWidget | None = None
         self.library_list: QtWidgets.QTreeWidget | None = None
@@ -280,7 +284,14 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.dataset_tree.header().setSectionResizeMode(2, QtWidgets.QHeaderView.ResizeToContents)
         self.dataset_tree.selectionModel().selectionChanged.connect(self._on_dataset_selection_changed)
         self.dataset_model.dataChanged.connect(self._on_dataset_data_changed)
-        self.dataset_dock.setWidget(self.dataset_tree)
+        self.dataset_tabs = QtWidgets.QTabWidget()
+        self.dataset_tabs.setObjectName("dataset-tabs")
+        self.dataset_tabs.addTab(self.dataset_tree, "Session")
+
+        self.library_view = self._build_library_view()
+        self.dataset_tabs.addTab(self.library_view, "Library")
+
+        self.dataset_dock.setWidget(self.dataset_tabs)
         self.addDockWidget(QtCore.Qt.DockWidgetArea.LeftDockWidgetArea, self.dataset_dock)
 
         self._build_library_dock()
@@ -311,6 +322,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
 
         # Load documentation entries after all dock widgets (including the log view)
         # have been initialised so that the initial selection can log status safely.
+        self._refresh_library_view()
         self._load_documentation_index()
 
     def _build_library_dock(self) -> None:
@@ -736,6 +748,23 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.dataset_model.appendRow([alias_item, visible_item, color_item])
         return alias_item
 
+    def _build_library_view(self) -> QtWidgets.QTreeWidget:
+        view = QtWidgets.QTreeWidget()
+        view.setObjectName("library-view")
+        view.setRootIsDecorated(False)
+        view.setUniformRowHeights(True)
+        view.setAlternatingRowColors(True)
+        view.setSelectionMode(QtWidgets.QAbstractItemView.SelectionMode.SingleSelection)
+        view.setHeaderLabels(["File", "Origin", "SHA256", "Stored Path", "Size", "Importer"])
+        header = view.header()
+        header.setSectionResizeMode(0, QtWidgets.QHeaderView.Stretch)
+        header.setSectionResizeMode(1, QtWidgets.QHeaderView.ResizeToContents)
+        header.setSectionResizeMode(2, QtWidgets.QHeaderView.ResizeToContents)
+        header.setSectionResizeMode(3, QtWidgets.QHeaderView.Stretch)
+        header.setSectionResizeMode(4, QtWidgets.QHeaderView.ResizeToContents)
+        header.setSectionResizeMode(5, QtWidgets.QHeaderView.ResizeToContents)
+        return view
+
     def _wire_shortcuts(self) -> None:
         QtGui.QShortcut(QtGui.QKeySequence("Ctrl+O"), self, activated=self.open_file)
         QtGui.QShortcut(QtGui.QKeySequence("U"), self, activated=self._cycle_units)
@@ -809,6 +838,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.refresh_overlay()
         self._show_metadata(spectra[-1])
         self._show_provenance(spectra[-1])
+        self._refresh_library_view()
         message = f"Imported {len(spectra)} remote spectrum(s)."
         self.status_bar.showMessage(message, 5000)
         self._log("Remote", message)
@@ -1083,6 +1113,142 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.plot.set_y_label(self._format_y_axis_label(display_y_unit))
         self.plot.autoscale()
 
+    # Library helpers --------------------------------------------------
+    def _refresh_library_view(self) -> None:
+        view = getattr(self, "library_view", None)
+        if view is None:
+            return
+
+        view.setUpdatesEnabled(False)
+        view.clear()
+        self._library_items.clear()
+
+        store = self.store or self.ingest_service.store
+        if store is None:
+            self._add_library_placeholder("Persistent cache is disabled. Enable it to build the library.")
+            view.setEnabled(False)
+            view.setUpdatesEnabled(True)
+            return
+
+        view.setEnabled(True)
+        try:
+            entries = store.list_entries()
+        except Exception as exc:  # pragma: no cover - filesystem feedback
+            self._add_library_placeholder(f"Unable to read cache: {exc}")
+            view.setEnabled(False)
+            view.setUpdatesEnabled(True)
+            return
+
+        if not entries:
+            self._add_library_placeholder("No cached files yet. Import spectra to build the library.")
+            view.setUpdatesEnabled(True)
+            return
+
+        sorter = lambda item: str(item[1].get("updated") or item[1].get("created") or "")
+        for sha, record in sorted(entries.items(), key=sorter, reverse=True):
+            columns = self._library_columns(record)
+            item = QtWidgets.QTreeWidgetItem(columns)
+            self._decorate_library_item(item, record)
+            view.addTopLevelItem(item)
+            if sha:
+                self._library_items[str(sha)] = item
+
+        view.setUpdatesEnabled(True)
+
+    def _library_columns(self, record: Mapping[str, Any]) -> list[str]:
+        filename = record.get("filename") if isinstance(record, Mapping) else None
+        stored_path = record.get("stored_path") if isinstance(record, Mapping) else None
+        original_path = record.get("original_path") if isinstance(record, Mapping) else None
+        sha = record.get("sha256") if isinstance(record, Mapping) else None
+        size = self._format_bytes(record.get("bytes") if isinstance(record, Mapping) else None)
+
+        if isinstance(filename, str) and filename:
+            label = filename
+        elif isinstance(original_path, str) and original_path:
+            label = Path(original_path).name
+        elif isinstance(stored_path, str) and stored_path:
+            label = Path(stored_path).name
+        elif isinstance(sha, str) and sha:
+            label = sha
+        else:
+            label = "Cached file"
+
+        stored_display = str(stored_path) if isinstance(stored_path, str) else ""
+
+        importer = ""
+        source = record.get("source") if isinstance(record, Mapping) else None
+        origin = "Local import"
+        if isinstance(source, Mapping):
+            ingest = source.get("ingest")
+            if isinstance(ingest, Mapping):
+                importer = str(ingest.get("importer") or "")
+            remote = source.get("remote")
+            if isinstance(remote, Mapping):
+                provider = str(remote.get("provider") or "Remote source")
+                identifier = remote.get("identifier")
+                origin = provider if not identifier else f"{provider} ({identifier})"
+                stored_display = stored_display or str(remote.get("uri") or "")
+
+        return [
+            label,
+            origin,
+            str(sha or ""),
+            stored_display,
+            size,
+            importer,
+        ]
+
+    def _decorate_library_item(self, item: QtWidgets.QTreeWidgetItem, record: Mapping[str, Any]) -> None:
+        stored_path = record.get("stored_path") if isinstance(record, Mapping) else None
+        original_path = record.get("original_path") if isinstance(record, Mapping) else None
+        source = record.get("source") if isinstance(record, Mapping) else None
+        remote = source.get("remote") if isinstance(source, Mapping) else None
+        tooltip_lines = [item.text(0)]
+        if isinstance(stored_path, str) and stored_path:
+            tooltip_lines.append(f"Stored at: {stored_path}")
+        if (
+            isinstance(original_path, str)
+            and original_path
+            and original_path != stored_path
+        ):
+            tooltip_lines.append(f"Original path: {original_path}")
+        if isinstance(remote, Mapping):
+            provider = remote.get("provider")
+            if provider:
+                tooltip_lines.append(f"Provider: {provider}")
+            uri = remote.get("uri")
+            if uri:
+                tooltip_lines.append(f"URI: {uri}")
+        item.setToolTip(0, "\n".join(filter(None, tooltip_lines)))
+
+        for col in range(1, item.columnCount()):
+            text = item.text(col)
+            if text:
+                item.setToolTip(col, text)
+
+    def _add_library_placeholder(self, message: str) -> None:
+        view = getattr(self, "library_view", None)
+        if view is None:
+            return
+        placeholder = QtWidgets.QTreeWidgetItem([message, "", "", "", "", ""])
+        placeholder.setFlags(QtCore.Qt.ItemFlag.NoItemFlags)
+        view.addTopLevelItem(placeholder)
+        view.setFirstColumnSpanned(placeholder, True)
+
+    @staticmethod
+    def _format_bytes(value: object) -> str:
+        if not isinstance(value, (int, float)):
+            return ""
+        size = float(value)
+        units = ["B", "KB", "MB", "GB", "TB"]
+        for unit in units:
+            if size < 1024 or unit == units[-1]:
+                if unit == "B":
+                    return f"{int(size)} {unit}"
+                return f"{size:.1f} {unit}"
+            size /= 1024
+        return f"{int(value)} B"
+
     def _show_metadata(self, spectrum: Spectrum | None) -> None:
         if spectrum is None:
             self.info_panel.hide()
@@ -1290,6 +1456,9 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                 if isinstance(candidate, Mapping):
                     remote = candidate
         provider = str(remote.get("provider", "remote source")) if remote else "remote source"
+        summary = f"Imported {spectrum.name} ({spectrum.id}) from {provider}; cached in Library."
+        references = [spectrum.id] if spectrum.id else []
+        self._record_history_event("Remote Import", summary, references)
         uri = str(remote.get("uri")) if remote and remote.get("uri") else None
         summary = f"Imported {spectrum.name} via {provider}."
         references = [ref for ref in [spectrum.id] if ref]

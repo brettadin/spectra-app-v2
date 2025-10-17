@@ -75,6 +75,22 @@ class RemoteDataService:
     PROVIDER_NIST = "NIST ASD"
     PROVIDER_MAST = "MAST"
 
+    _MAST_SUPPORTED_CRITERIA = frozenset(
+        {
+            "target_name",
+            "obs_collection",
+            "dataproduct_type",
+            "instrument_name",
+            "proposal_id",
+            "proposal_pi",
+            "filters",
+            "s_ra",
+            "s_dec",
+            "radius",
+        }
+    )
+    _MAST_NUMERIC_CRITERIA = frozenset({"s_ra", "s_dec", "radius"})
+
     def providers(self) -> List[str]:
         """Return the list of remote providers whose dependencies are satisfied."""
 
@@ -128,6 +144,8 @@ class RemoteDataService:
             "fetched_at": self._timestamp(),
             "metadata": json.loads(json.dumps(record.metadata)),
         }
+        if mast_provenance is not None:
+            remote_metadata.update(mast_provenance)
         store_entry = self.store.record(
             fetch_path,
             x_unit=x_unit,
@@ -150,7 +168,7 @@ class RemoteDataService:
         session = self._ensure_session()
         params: Dict[str, Any] = {
             "format": "json",
-            "spectra": query.get("element") or query.get("text") or "",
+            "spectra": query.get("element") or query.get("spectra") or query.get("text") or "",
         }
         if query.get("wavelength_min") is not None:
             params["wavemin"] = query["wavelength_min"]
