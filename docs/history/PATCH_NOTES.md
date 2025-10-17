@@ -1,5 +1,17 @@
 # Patch Notes
 
+## 2025-10-19 (Remote search input validation) (08:30 UTC)
+
+- Blocked empty submissions for every provider in the Remote Data dialog so the
+  UI now highlights when NIST or MAST requests are missing required criteria
+  before the service layer is invoked.
+- Raised explicit `ValueError` exceptions in the NIST and MAST adapters when
+  automation callers omit narrowing filters, keeping legacy entry points from
+  issuing unbounded catalogue queries.
+- Documented the stricter troubleshooting guidance, refreshed the dialog smoke
+  tests to drive button clicks, and added a service regression that expects the
+  new error path for NIST.
+
 ## 2025-10-18 (MAST search validation) (09:10 UTC)
 
 - Blocked empty MAST submissions in the Remote Data dialog, surfacing a validation

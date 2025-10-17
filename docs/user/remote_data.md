@@ -66,6 +66,20 @@ When you switch between catalogues the banner updates in real time:
 The hint banner beneath the results table updates as you switch providers and
 also surfaces dependency warnings when optional clients are missing.
 
+## Troubleshooting
+
+- **NIST ASD** – Leave the field blank and the dialog will stop the request,
+  explaining that the catalogue needs an element, ion, or keyword. The backing
+  service now raises a `ValueError` for automation callers that bypass the UI,
+  so scripts must always supply meaningful `spectra`/`element` text before
+  contacting the endpoint.
+- **MAST** – Searches must include a target name or one of the supported
+  `astroquery.mast.Observations.query_criteria` filters:
+  `target_name`, `obs_collection`, `dataproduct_type`, `instrument_name`,
+  `proposal_id`, `proposal_pi`, `filters`, `s_ra`, `s_dec`, or `radius`.
+  The dialog surfaces the warning immediately and the adapter raises a
+  `ValueError` if automation code submits an empty or whitespace-only payload.
+
 ### Provider-specific search tips
 
 - **NIST ASD** – The query box maps to the catalogue’s `spectra` filter. Enter

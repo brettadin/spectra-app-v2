@@ -86,10 +86,35 @@ def test_mast_blank_query_surfaces_validation(monkeypatch: Any) -> None:
     index = dialog.provider_combo.findText(RemoteDataService.PROVIDER_MAST)
     dialog.provider_combo.setCurrentIndex(index)
     dialog.search_edit.setText("   ")
-    dialog._on_search()
+    dialog.search_button.click()
+    app.processEvents()
 
     assert remote.search_calls == 0
     assert "MAST searches require" in dialog.status_label.text()
+
+    dialog.deleteLater()
+    if QtWidgets.QApplication.instance() is app and not app.topLevelWidgets():
+        app.quit()
+
+
+def test_nist_blank_query_surfaces_validation(monkeypatch: Any) -> None:
+    app = _ensure_app()
+    ingest = IngestServiceStub()
+    remote = StubRemoteService()
+    dialog = RemoteDataDialog(
+        None,
+        remote_service=remote,
+        ingest_service=ingest,
+    )
+
+    index = dialog.provider_combo.findText(RemoteDataService.PROVIDER_NIST)
+    dialog.provider_combo.setCurrentIndex(index)
+    dialog.search_edit.clear()
+    dialog.search_button.click()
+    app.processEvents()
+
+    assert remote.search_calls == 0
+    assert "NIST ASD searches require" in dialog.status_label.text()
 
     dialog.deleteLater()
     if QtWidgets.QApplication.instance() is app and not app.topLevelWidgets():
