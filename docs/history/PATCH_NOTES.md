@@ -1,5 +1,41 @@
 # Patch Notes
 
+## 2025-10-17 (Remote data MAST download normalisation) (1:05 pm UTC)
+
+- Taught `RemoteDataService.download` to hand MAST records to
+  `astroquery.mast.Observations.download_file`, normalising the resolved path
+  before persisting it through the `LocalStore` so cached imports stay
+  deduplicated.
+- Added regression coverage confirming the astroquery downloader is invoked and
+  the raw HTTP session stays untouched when fetching MAST artefacts.
+- Updated the remote data user guide and recorded the work in the knowledge log
+  to document the corrected provenance flow.
+
+## 2025-10-17 (Remote data provider query mapping) (11:15 am UTC)
+
+- Mapped the Remote Data dialog's free-text input to provider-specific kwargs so NIST searches supply `spectra` while MAST
+  queries populate `target_name` before calling the service.
+- Added a legacy `text` safeguard in `RemoteDataService._search_mast` that normalises explicit or blank `target_name` values,
+  keeping older integrations compatible with the astroquery client.
+- Expanded remote-data regression coverage and refreshed the user docs/knowledge log to describe the surfaced provider hints.
+
+## 2025-10-17 (Remote data MAST fixes) (9:30 am UTC)
+
+- Patched `RemoteDataService.download` to route MAST URIs through `astroquery.mast.Observations.download_file` while preserving the HTTP branch for direct URLs.
+- Normalised the astroquery result through `LocalStore.record` so cache reuse and provenance hashing stay consistent with HTTP downloads.
+- Added regression coverage and refreshed the remote-data user guide plus knowledge log entry to highlight the corrected flow.
+
+## 2025-10-16 (Remote catalogue hinting & MAST text translation) (11:58 pm UTC)
+
+- Surfaced provider-specific search hints in the Remote Data dialog so the banner
+  explains when to enter NIST element symbols versus MAST target names or
+  `key=value` pairs.
+- Updated the MAST adapter to translate free-text queries into `target_name`
+  arguments before calling `astroquery.mast.Observations.query_criteria`, with
+  defensive coercion for non-string inputs.
+- Extended the remote data tests to cover the new translation path and refreshed
+  the user guide/knowledge log to document the hint banner behaviour.
+
 ## 2025-10-16 (Adjustable plot LOD budget) (11:55 pm UTC)
 
 - Added a configurable "LOD point budget" control to the Inspector Style tab so users can raise or lower the plot downsampling threshold from 1k to 1M samples while Spectra persists the preference via `QSettings`.

@@ -45,6 +45,18 @@ Imported spectra always appear in canonical units inside the application. Use
  underlying data. The raw source file remains untouched in the provenance
  bundle created during export.
 
+### Reviewing cached artefacts
+
+- Open the **Datasets** dock and switch to the **Library** tab to inspect
+  everything the LocalStore cache has captured. Each entry lists the stored
+  filename, SHA256 digest, on-disk location, byte size, and importer ID.
+- Use this view to confirm that repeated ingests map to the same digest or to
+  browse previously cached files without scrolling through the knowledge log.
+- The **History** dock now focuses on summarised insights (for example “Batch
+  of calibration frames loaded for detector QA”). Per-file import noise no
+  longer lands in `docs/history/KNOWLEDGE_LOG.md`, keeping the log readable
+  while the Library surfaces the low-level provenance.
+
 ## Intelligent parsing of messy tables
 
 Field notebooks and vendor exports rarely follow a pristine two-column layout.

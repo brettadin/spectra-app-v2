@@ -84,6 +84,22 @@ class LocalStore:
         entry = dict(items.get(checksum, {}))
         created = entry.get("created", self._timestamp())
 
+        merged_source: Dict[str, Any] = {}
+        existing_source = entry.get("source")
+        if isinstance(existing_source, Mapping):
+            merged_source.update(existing_source)
+        if source:
+            for key, value in source.items():
+                if (
+                    isinstance(value, Mapping)
+                    and isinstance(merged_source.get(key), Mapping)
+                ):
+                    nested = dict(merged_source[key])  # type: ignore[index]
+                    nested.update(value)
+                    merged_source[key] = nested
+                else:
+                    merged_source[key] = value
+
         entry.update(
             {
                 "sha256": checksum,
@@ -92,7 +108,7 @@ class LocalStore:
                 "original_path": str(source_path),
                 "bytes": stored_path.stat().st_size,
                 "units": {"x": x_unit, "y": y_unit},
-                "source": dict(source or {}),
+                "source": merged_source,
                 "created": created,
                 "updated": self._timestamp(),
             }

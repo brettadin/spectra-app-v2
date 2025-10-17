@@ -75,6 +75,22 @@ class RemoteDataService:
     PROVIDER_NIST = "NIST ASD"
     PROVIDER_MAST = "MAST"
 
+    _MAST_SUPPORTED_CRITERIA = frozenset(
+        {
+            "target_name",
+            "obs_collection",
+            "dataproduct_type",
+            "instrument_name",
+            "proposal_id",
+            "proposal_pi",
+            "filters",
+            "s_ra",
+            "s_dec",
+            "radius",
+        }
+    )
+    _MAST_NUMERIC_CRITERIA = frozenset({"s_ra", "s_dec", "radius"})
+
     def providers(self) -> List[str]:
         """Return the list of remote providers whose dependencies are satisfied."""
 
@@ -131,6 +147,8 @@ class RemoteDataService:
             "fetched_at": self._timestamp(),
             "metadata": json.loads(json.dumps(record.metadata)),
         }
+        if mast_provenance is not None:
+            remote_metadata.update(mast_provenance)
         store_entry = self.store.record(
             download_path,
             x_unit=x_unit,
@@ -157,7 +175,7 @@ class RemoteDataService:
         session = self._ensure_session()
         params: Dict[str, Any] = {
             "format": "json",
-            "spectra": query.get("element") or query.get("text") or "",
+            "spectra": query.get("element") or query.get("spectra") or query.get("text") or "",
         }
         if query.get("wavelength_min") is not None:
             params["wavemin"] = query["wavelength_min"]
@@ -234,6 +252,87 @@ class RemoteDataService:
                 )
             )
         return records
+
+    def _download_via_mast(self, record: RemoteRecord) -> Path:
+        observations = self._ensure_mast().Observations
+        downloaded = observations.download_file(record.download_url, cache=False)
+        return Path(downloaded)
+
+    @staticmethod
+    def _normalize_mast_text(value: Any) -> str | None:
+        if value is None:
+            return None
+        if isinstance(value, str):
+            stripped = value.strip()
+            return stripped or None
+        try:
+            text = str(value)
+        except Exception:
+            return None
+        stripped = text.strip()
+        return stripped or None
+
+    @staticmethod
+    def _normalise_download_path(path: Path | str) -> Path:
+        candidate = Path(path)
+        try:
+            resolved = candidate.resolve(strict=True)
+        except FileNotFoundError:
+            return candidate
+        return resolved
+
+    # ------------------------------------------------------------------
+    def _normalise_mast_criteria(self, criteria: Dict[str, Any]) -> Dict[str, Any]:
+        parsed_from_text = self._parse_mast_text(criteria.pop("text", None))
+        for key, value in parsed_from_text.items():
+            criteria.setdefault(key, value)
+
+        if "target_name" in criteria:
+            normalized_target = self._normalize_mast_text(criteria.get("target_name"))
+            if normalized_target is None:
+                criteria.pop("target_name", None)
+            else:
+                criteria["target_name"] = normalized_target
+
+        return criteria
+
+    def _parse_mast_text(self, text: Any) -> Dict[str, Any]:
+        normalized = self._normalize_mast_text(text)
+        if normalized is None:
+            return {}
+
+        tokens = [token.strip() for token in normalized.split(",") if token.strip()]
+        if not tokens:
+            return {"target_name": normalized}
+
+        criteria: Dict[str, Any] = {}
+        for token in tokens:
+            key, value = self._split_mast_token(token)
+            if key is None or value is None:
+                return {"target_name": normalized}
+            if key not in self._MAST_SUPPORTED_CRITERIA:
+                return {"target_name": normalized}
+            if key in self._MAST_NUMERIC_CRITERIA:
+                try:
+                    criteria[key] = float(value)
+                except ValueError:
+                    return {"target_name": normalized}
+            else:
+                criteria[key] = value
+
+        return criteria or {"target_name": normalized}
+
+    @staticmethod
+    def _split_mast_token(token: str) -> tuple[str | None, str | None]:
+        if "=" in token:
+            key, _, value = token.partition("=")
+        else:
+            key, _, value = token.partition(":")
+        key = key.strip()
+        value = value.strip()
+        if not key or not value:
+            return None, None
+        return key, value
 
     # ------------------------------------------------------------------
     def _find_cached(self, uri: str) -> Dict[str, Any] | None:
