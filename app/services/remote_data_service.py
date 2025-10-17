@@ -167,9 +167,22 @@ class RemoteDataService:
     # ------------------------------------------------------------------
     def _search_nist(self, query: Mapping[str, Any]) -> List[RemoteRecord]:
         session = self._ensure_session()
+        spectra = (
+            query.get("element")
+            or query.get("spectra")
+            or query.get("text")
+            or ""
+        )
+        if isinstance(spectra, str):
+            spectra = spectra.strip()
+        if not spectra:
+            raise ValueError(
+                "NIST ASD searches require an element, ion, or keyword to narrow the catalogue request."
+            )
+
         params: Dict[str, Any] = {
             "format": "json",
-            "spectra": query.get("element") or query.get("spectra") or query.get("text") or "",
+            "spectra": spectra,
         }
         if query.get("wavelength_min") is not None:
             params["wavemin"] = query["wavelength_min"]
@@ -224,6 +237,19 @@ class RemoteDataService:
         if legacy_text and "target_name" not in criteria:
             if isinstance(legacy_text, str) and legacy_text.strip():
                 criteria["target_name"] = legacy_text.strip()
+
+        cleaned_criteria: Dict[str, Any] = {}
+        for key, value in criteria.items():
+            if value is None:
+                continue
+            if isinstance(value, str):
+                value = value.strip()
+                if not value:
+                    continue
+            if isinstance(value, (list, tuple, set, dict)) and not value:
+                continue
+            cleaned_criteria[key] = value
+        criteria = cleaned_criteria
 
         provided_narrowing_keys = [
             key for key in criteria if key in self._MAST_SUPPORTED_CRITERIA

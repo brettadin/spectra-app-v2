@@ -33,6 +33,25 @@ Each entry in this document should follow this structure:
 
 ---
 
+## 2025-10-19 08:30 – Remote search guard rails
+
+**Author**: agent
+
+**Context**: Remote catalogue validation UX and service safety nets.
+
+**Summary**: Hardened the Remote Data workflow so blank submissions stop in the
+dialog with provider-specific guidance while the NIST/MAST adapters raise
+`ValueError` when automation callers omit narrowing terms. Regression coverage
+now clicks the UI button for empty queries and asserts the NIST service refuses
+empty payloads, and the troubleshooting guide documents the required filters.
+
+**References**: `app/ui/remote_data_dialog.py`,
+`app/services/remote_data_service.py`, `tests/test_remote_data_dialog.py`,
+`tests/test_remote_data_service.py`, `docs/user/remote_data.md`,
+`docs/history/PATCH_NOTES.md`.
+
+---
+
 ## 2025-10-18 09:10 – Remote MAST validation
 
 **Author**: agent

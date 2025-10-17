@@ -70,6 +70,17 @@ def test_search_mast_requires_target_or_filters(store: LocalStore, monkeypatch: 
     assert DummyObservations.called is False
 
 
+def test_search_nist_requires_element(store: LocalStore) -> None:
+    session = DummySession()
+    service = RemoteDataService(store, session=session)
+
+    with pytest.raises(ValueError) as excinfo:
+        service.search(RemoteDataService.PROVIDER_NIST, {})
+
+    assert "element" in str(excinfo.value)
+    assert session.calls == []
+
+
 def test_search_nist_constructs_url_and_params(store: LocalStore) -> None:
     session = DummySession()
     session.queue(

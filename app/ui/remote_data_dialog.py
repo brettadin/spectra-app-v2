@@ -127,6 +127,23 @@ class RemoteDataDialog(QtWidgets.QDialog):
         provider = self.provider_combo.currentText()
         query = self._build_provider_query(provider, self.search_edit.text())
 
+        if not query:
+            if provider == RemoteDataService.PROVIDER_MAST:
+                message = (
+                    "MAST searches require a target name or supported key=value filters before running a query."
+                )
+            elif provider == RemoteDataService.PROVIDER_NIST:
+                message = (
+                    "NIST ASD searches require an element, ion, or keyword before running a query."
+                )
+            else:
+                message = "Enter search terms before querying the selected catalogue."
+            self.status_label.setText(message)
+            self._records = []
+            self.results.setRowCount(0)
+            self.preview.clear()
+            return
+
         if provider == RemoteDataService.PROVIDER_MAST and not any(
             key in self._MAST_SUPPORTED_CRITERIA for key in query
         ):
