@@ -113,7 +113,18 @@ def test_download_uses_cache_and_records_provenance(store: LocalStore) -> None:
     assert Path(cached.cache_entry["stored_path"]) == stored_path
 
 
-def test_search_mast_table_conversion(store: LocalStore, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_download_mast_uses_astroquery_and_records_provenance(
+    store: LocalStore, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    session = DummySession()
+    service = RemoteDataService(store, session=session)
+
+    downloaded = tmp_path / "mast-product.fits"
+    payload = b"mastdata"
+    downloaded.write_bytes(payload)
+
+    mast_calls: list[dict[str, Any]] = []
+
     class DummyObservations:
         criteria: dict[str, Any] | None = None
 
