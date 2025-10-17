@@ -294,6 +294,56 @@ def test_search_mast_converts_non_string_text(store: LocalStore, monkeypatch: py
     assert "text" not in captured
 
 
+def test_search_mast_preserves_explicit_target_name(store: LocalStore, monkeypatch: pytest.MonkeyPatch) -> None:
+    captured: dict[str, Any] = {}
+
+    class DummyObservations:
+        @staticmethod
+        def query_criteria(**criteria: Any) -> list[dict[str, Any]]:
+            captured.update(criteria)
+            return []
+
+    class DummyMast:
+        Observations = DummyObservations
+
+    service = RemoteDataService(store, session=None)
+    monkeypatch.setattr(service, "_ensure_mast", lambda: DummyMast)
+
+    records = service.search(
+        RemoteDataService.PROVIDER_MAST,
+        {"text": "WASP-96 b", "target_name": "TOI-178"},
+    )
+
+    assert records == []
+    assert captured.get("target_name") == "TOI-178"
+    assert "text" not in captured
+
+
+def test_search_mast_replaces_blank_target_name(store: LocalStore, monkeypatch: pytest.MonkeyPatch) -> None:
+    captured: dict[str, Any] = {}
+
+    class DummyObservations:
+        @staticmethod
+        def query_criteria(**criteria: Any) -> list[dict[str, Any]]:
+            captured.update(criteria)
+            return []
+
+    class DummyMast:
+        Observations = DummyObservations
+
+    service = RemoteDataService(store, session=None)
+    monkeypatch.setattr(service, "_ensure_mast", lambda: DummyMast)
+
+    records = service.search(
+        RemoteDataService.PROVIDER_MAST,
+        {"text": "WASP-96 b", "target_name": "   "},
+    )
+
+    assert records == []
+    assert captured.get("target_name") == "WASP-96 b"
+    assert "text" not in captured
+
+
 def test_providers_hide_missing_dependencies(monkeypatch: pytest.MonkeyPatch, store: LocalStore) -> None:
     monkeypatch.setattr(remote_module, "requests", None)
     monkeypatch.setattr(remote_module, "astroquery_mast", None)

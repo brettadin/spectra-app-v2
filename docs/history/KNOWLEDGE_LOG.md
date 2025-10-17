@@ -31,7 +31,6 @@ Each entry in this document should follow this structure:
   citation markers like 【875267955107972†L29-L41】 for primary documentation where
   applicable).
 
----
 ```
 
 Entries should be appended chronologically.  Older logs imported from the
@@ -1431,5 +1430,21 @@ and patch notes document the automatic caching behaviour and opt-out flow.【F:t
 - app/services/remote_data_service.py
 - tests/test_remote_data_service.py
 - docs/user/remote_data.md
+
+---
+## 2025-10-17 11:15 – Remote data search hints
+
+**Author**: documentation
+
+**Context**: RemoteDataService
+
+**Summary**: Routed the Remote Data dialog's free-text searches through provider-specific keywords, added a legacy `text` safeguard for MAST, expanded regression coverage, and refreshed the user docs plus patch notes.
+
+**References**:
+- app/ui/remote_data_dialog.py
+- app/services/remote_data_service.py
+- tests/test_remote_data_service.py
+- docs/user/remote_data.md
+- docs/history/PATCH_NOTES.md
 
 ---

@@ -1,5 +1,13 @@
 # Patch Notes
 
+## 2025-10-17 (Remote data provider query mapping) (11:15 am UTC)
+
+- Mapped the Remote Data dialog's free-text input to provider-specific kwargs so NIST searches supply `spectra` while MAST
+  queries populate `target_name` before calling the service.
+- Added a legacy `text` safeguard in `RemoteDataService._search_mast` that normalises explicit or blank `target_name` values,
+  keeping older integrations compatible with the astroquery client.
+- Expanded remote-data regression coverage and refreshed the user docs/knowledge log to describe the surfaced provider hints.
+
 ## 2025-10-17 (Remote data MAST fixes) (9:30 am UTC)
 
 - Patched `RemoteDataService.download` to route MAST URIs through `astroquery.mast.Observations.download_file` while preserving the HTTP branch for direct URLs.
