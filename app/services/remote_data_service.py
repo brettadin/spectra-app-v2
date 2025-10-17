@@ -232,10 +232,19 @@ class RemoteDataService:
         criteria = dict(query)
         if "text" in criteria:
             text_value = criteria.pop("text")
-            if "target_name" not in criteria:
-                normalized = self._normalize_mast_text(text_value)
-                if normalized is not None:
-                    criteria["target_name"] = normalized
+            normalized_text = self._normalize_mast_text(text_value)
+            if normalized_text is not None:
+                existing = self._normalize_mast_text(criteria.get("target_name"))
+                if existing is None:
+                    criteria["target_name"] = normalized_text
+                else:
+                    criteria["target_name"] = existing
+        if "target_name" in criteria:
+            normalized_target = self._normalize_mast_text(criteria.get("target_name"))
+            if normalized_target is None:
+                criteria.pop("target_name")
+            else:
+                criteria["target_name"] = normalized_target
         table = observations.Observations.query_criteria(**criteria)
         rows = self._table_to_records(table)
         records: List[RemoteRecord] = []
