@@ -1,8 +1,10 @@
 # Workplan Overview
 
-This document tracks feature batches, validation status, and outstanding backlog items for the Spectra app.
+This document tracks feature batches and validation status for the Spectra app.
+Refer to `\docs\reviews\workplan_backlog.md` and proceed as instructed.
+(see: C:\Code\spectra-app-beta\docs\reviews)
 
-## Batch 14 (2025-10-17) — In Progress
+## Batch 14 (2025-10-17) 
 
 - [x] Block blank MAST queries by validating Remote Data input, adding service
       guards, documentation, and regression tests so astroquery calls stay
@@ -66,18 +68,7 @@ This document tracks feature batches, validation status, and outstanding backlog
 ## Batch 10 (Backlog)
 
 - [x] Wire Doppler, pressure, and Stark broadening models into the overlay service and provide inspector previews with regression tests.
-- [ ] Replace digitised JWST tables with calibrated FITS ingestion and provenance links once the pipeline can access MAST data.
-- [ ] Expand the spectral-line catalogue beyond hydrogen (e.g., He I, O III, Fe II) with citations and regression coverage.
-- [ ] Integrate IR functional-group heuristics into importer header parsing for automated axis validation.
 - [x] Plot bundled reference datasets inside the Reference tab and allow overlay toggles on the main plot pane.
-- [ ] Prototype a native extension hook (e.g., `pybind11`/C++) for high-throughput spectral transforms and document the Windows build toolchain.
-
-## Documentation Alignment Queue
-
-- [ ] Capture refreshed IR overlay screenshots for `docs/user/reference_data.md` after anchored rendering changes land on Windows builds.
-- [ ] Publish Markdown summaries for historic QA reviews (e.g., launch-debugging PDF) with citations and source links.
-- [ ] Reconcile `reports/roadmap.md` with the current importer, overlay, and documentation backlog, adding longer-term research goals.
-- [ ] Schedule a documentation sweep covering reference data, patch notes, and roadmap updates with acceptance criteria tied to regression tests.
 
 ## Batch 9 (2025-10-15)
 
