@@ -33,6 +33,24 @@ Each entry in this document should follow this structure:
 
 ---
 
+## 2025-10-17 18:40 – Library knowledge-log surfacing
+
+**Author**: agent
+
+**Context**: Cache inspection UX and provenance traceability.
+
+**Summary**: Expanded the Library dock detail pane so selecting a cache record
+now lists canonical units, provenance, and knowledge-log matches inline. The
+preview links to the consolidated log, while documentation and smoke tests were
+updated to describe and guard the workflow so auditing no longer requires
+double-click re-imports.
+
+**References**: `app/main.py`, `tests/test_smoke_workflow.py`,
+`docs/user/importing.md`, `docs/user/remote_data.md`,
+`docs/history/PATCH_NOTES.md`.
+
+---
+
 ## 2025-10-17 16:20 – Atlas architectural log
 
 **Author**: agent

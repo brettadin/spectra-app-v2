@@ -6,6 +6,7 @@ import os
 import sys
 import tempfile
 from pathlib import Path
+from textwrap import indent
 from typing import Any, Dict, Iterable, List, Mapping, Optional, Sequence, cast
 
 import numpy as np
@@ -72,6 +73,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.knowledge_log = knowledge_log_service or KnowledgeLogService(
             default_context="Spectra Desktop Session"
         )
+        self._knowledge_log_cache: list[KnowledgeLogEntry] | None = None
 
         self.unit_combo: Optional[QtWidgets.QComboBox] = None
         self.plot_toolbar: Optional[QtWidgets.QToolBar] = None
@@ -512,6 +514,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         entry = self._library_entries.get(str(sha))
         if not isinstance(entry, Mapping):
             return
+        self._update_library_detail(entry)
         stored_path = entry.get("stored_path")
         if not stored_path:
             QtWidgets.QMessageBox.warning(self, "Missing file", "The cached file is not available.")
@@ -533,20 +536,21 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
     def _on_library_selection_changed(self) -> None:
         self._update_library_detail()
 
-    def _update_library_detail(self) -> None:
+    def _update_library_detail(self, entry: Mapping[str, Any] | None = None) -> None:
         if self.library_detail is None:
             return
-        if self.library_list is None or self.library_list.currentItem() is None:
-            self.library_detail.clear()
-            if self.library_hint is not None:
-                self.library_hint.setText(
-                    "Select a cached entry to inspect metadata or double-click to reload it into the session."
-                )
-            return
+        if entry is None:
+            if self.library_list is None or self.library_list.currentItem() is None:
+                self.library_detail.clear()
+                if self.library_hint is not None:
+                    self.library_hint.setText(
+                        "Select a cached entry to inspect metadata or double-click to reload it into the session."
+                    )
+                return
+            item = self.library_list.currentItem()
+            sha = item.data(0, QtCore.Qt.ItemDataRole.UserRole) if item is not None else None
+            entry = self._library_entries.get(str(sha)) if sha else None
 
-        item = self.library_list.currentItem()
-        sha = item.data(0, QtCore.Qt.ItemDataRole.UserRole)
-        entry = self._library_entries.get(str(sha)) if sha else None
         if not isinstance(entry, Mapping):
             self.library_detail.clear()
             if self.library_hint is not None:
@@ -567,25 +571,151 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                 )
 
     def _format_library_entry(self, entry: Mapping[str, Any]) -> str:
-        payload: Dict[str, Any] = {
-            "alias": entry.get("filename"),
-            "sha256": entry.get("sha256"),
-            "stored_path": entry.get("stored_path"),
-            "bytes": entry.get("bytes"),
-            "units": entry.get("units"),
-            "created": entry.get("created"),
-            "updated": entry.get("updated"),
+        alias = str(entry.get("filename") or Path(entry.get("stored_path", "")).name or "(unknown)")
+        sha_value = str(entry.get("sha256") or "unknown")
+        stored_path = str(entry.get("stored_path") or "")
+        manifest_path = str(entry.get("manifest_path") or "")
+        byte_count = entry.get("bytes")
+        created = str(entry.get("created") or "")
+        updated = str(entry.get("updated") or "")
+        units_map = entry.get("units") if isinstance(entry.get("units"), Mapping) else {}
+        x_unit = str(units_map.get("x") or "unknown") if isinstance(units_map, Mapping) else "unknown"
+        y_unit = str(units_map.get("y") or "unknown") if isinstance(units_map, Mapping) else "unknown"
+
+        lines: list[str] = []
+        lines.append(f"Alias: {alias}")
+        lines.append(f"SHA256: {sha_value}")
+        if isinstance(byte_count, (int, float)):
+            lines.append(f"Size: {int(byte_count)} bytes")
+        elif byte_count:
+            lines.append(f"Size: {byte_count}")
+        if stored_path:
+            lines.append(f"Stored path: {stored_path}")
+        if manifest_path:
+            lines.append(f"Manifest: {manifest_path}")
+        if created:
+            lines.append(f"Created: {created}")
+        if updated and updated != created:
+            lines.append(f"Updated: {updated}")
+
+        lines.append("")
+        lines.append("Canonical units:")
+        lines.append(f"  X: {x_unit}")
+        lines.append(f"  Y: {y_unit}")
+
+        source = entry.get("source") if isinstance(entry.get("source"), Mapping) else None
+        if isinstance(source, Mapping) and source:
+            ingest = source.get("ingest") if isinstance(source.get("ingest"), Mapping) else None
+            source_units = source.get("source_units") if isinstance(source.get("source_units"), Mapping) else None
+            remote = source.get("remote") if isinstance(source.get("remote"), Mapping) else None
+
+            if ingest:
+                lines.append("")
+                lines.append("Import provenance:")
+                importer = ingest.get("importer")
+                if importer:
+                    lines.append(f"  Importer: {importer}")
+                source_path = ingest.get("source_path")
+                if source_path:
+                    lines.append(f"  Source path: {source_path}")
+
+            if source_units:
+                lines.append("")
+                lines.append("Source units:")
+                for axis, unit in source_units.items():
+                    axis_label = str(axis).upper()
+                    lines.append(f"  {axis_label}: {unit}")
+
+            if remote:
+                lines.append("")
+                lines.append("Remote provenance:")
+                provider = remote.get("provider")
+                if provider:
+                    lines.append(f"  Provider: {provider}")
+                identifier = remote.get("identifier")
+                if identifier:
+                    lines.append(f"  Identifier: {identifier}")
+                uri = remote.get("uri")
+                if uri:
+                    lines.append(f"  URI: {uri}")
+                fetched = remote.get("fetched_at")
+                if fetched:
+                    lines.append(f"  Fetched: {fetched}")
+                metadata = remote.get("metadata")
+                if isinstance(metadata, Mapping) and metadata:
+                    lines.append("  Metadata:")
+                    try:
+                        lines.append(indent(json_pretty(dict(metadata)), "    "))
+                    except Exception:  # pragma: no cover - defensive formatting
+                        lines.append("    [unavailable]")
+
+        lines.append("")
+        lines.append("Knowledge log:")
+        matches = self._knowledge_log_entries_for_cache_entry(entry)
+        if matches:
+            for log_entry in matches:
+                stamp = log_entry.timestamp.strftime("%Y-%m-%d %H:%M")
+                summary = log_entry.summary or "(no summary)"
+                lines.append(f"  - {stamp} – {log_entry.component}: {summary}")
+                if log_entry.references:
+                    joined = ", ".join(log_entry.references)
+                    lines.append(f"    References: {joined}")
+        else:
+            lines.append("  - No knowledge-log entries mention this cache record yet.")
+        if getattr(self.knowledge_log, "log_path", None):
+            lines.append(f"  Log file: {self.knowledge_log.log_path}")
+
+        return "\n".join(lines)
+
+    def _knowledge_log_entries_for_cache_entry(
+        self, entry: Mapping[str, Any]
+    ) -> list[KnowledgeLogEntry]:
+        if not hasattr(self, "knowledge_log") or self.knowledge_log is None:
+            return []
+
+        cache = self._load_knowledge_log_index()
+        if not cache:
+            return []
+
+        search_terms: set[str] = {
+            str(entry.get("sha256") or ""),
+            str(entry.get("filename") or ""),
         }
-        manifest = entry.get("manifest_path")
-        if manifest:
-            payload["manifest_path"] = manifest
-        source = entry.get("source")
+        stored = entry.get("stored_path")
+        if stored:
+            try:
+                search_terms.add(Path(str(stored)).name)
+            except Exception:  # pragma: no cover - defensive
+                search_terms.add(str(stored))
+        source = entry.get("source") if isinstance(entry.get("source"), Mapping) else None
         if isinstance(source, Mapping):
-            payload["source"] = source
-        provenance = entry.get("provenance")
-        if isinstance(provenance, Mapping):
-            payload["provenance"] = provenance
-        return json_pretty(payload)
+            remote = source.get("remote") if isinstance(source.get("remote"), Mapping) else None
+            if isinstance(remote, Mapping):
+                search_terms.add(str(remote.get("identifier") or ""))
+                search_terms.add(str(remote.get("provider") or ""))
+        search_terms = {term.strip().lower() for term in search_terms if term and term.strip()}
+        if not search_terms:
+            return []
+
+        matches: list[KnowledgeLogEntry] = []
+        for log_entry in cache:
+            haystack_parts = [
+                log_entry.summary or "",
+                log_entry.component or "",
+                " ".join(log_entry.references or ()),
+            ]
+            haystack = " ".join(part for part in haystack_parts if part).lower()
+            if any(term in haystack for term in search_terms):
+                matches.append(log_entry)
+        return matches
+
+    def _load_knowledge_log_index(self) -> list[KnowledgeLogEntry]:
+        if self._knowledge_log_cache is None:
+            try:
+                self._knowledge_log_cache = self.knowledge_log.load_entries()
+            except Exception:
+                self._knowledge_log_cache = []
+        return self._knowledge_log_cache
 
     def _build_history_dock(self) -> None:
         self.history_dock = QtWidgets.QDockWidget("History", self)
@@ -1560,6 +1690,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         except Exception as exc:  # pragma: no cover - filesystem feedback
             self._log("History", f"Failed to record event: {exc}")
             return
+        self._knowledge_log_cache = None
         if getattr(self, "_history_ui_ready", False):
             self._append_history_entry(entry)
 

@@ -16,12 +16,13 @@ This document tracks feature batches, validation status, and outstanding backlog
       `intentType="SCIENCE"`, `calib_level=[2, 3]`) so MAST queries prioritise
       calibrated spectra with matching documentation updates.
 - [x] Extend the Library dock with a metadata preview pane, search-aware
-      filtering, and documentation/test coverage so cached spectra can be
-      inspected without re-ingesting files.
+      filtering, knowledge-log cross-links, and documentation/test coverage so
+      cached spectra can be inspected without re-ingesting files.
 
 ### Batch 14 QA Log
 
 - 2025-10-17: ✅ `pytest`
+- 2025-10-17: ✅ `pytest` (library detail refresh)
 
 ## Batch 13 (2025-10-15)
 

@@ -17,7 +17,13 @@ else:  # pragma: no cover - exercised via smoke test
     _qt_import_error = None
     QtCore, QtGui, QtWidgets, _ = get_qt()
 
-from app.services import DataIngestService, KnowledgeLogService, ProvenanceService, UnitsService
+from app.services import (
+    DataIngestService,
+    KnowledgeLogService,
+    LocalStore,
+    ProvenanceService,
+    UnitsService,
+)
 
 def _ensure_app() -> QtWidgets.QApplication:
     os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
@@ -109,23 +115,40 @@ def test_library_dock_populates_and_previews(tmp_path: Path) -> None:
     log_service = KnowledgeLogService(log_path=tmp_path / "history.md", author="pytest")
     window = SpectraMainWindow(knowledge_log_service=log_service)
     try:
+        store = LocalStore(base_dir=tmp_path / "store")
+        window.store = store
+        window.ingest_service.store = store
+        if hasattr(window, "remote_data_service"):
+            window.remote_data_service.store = store
+
+        csv_path = tmp_path / "library.csv"
+        csv_path.write_text("wavelength_nm,absorbance\n500,0.5\n505,0.6\n", encoding="utf-8")
+
+        window._ingest_path(csv_path)
         app.processEvents()
+        window._refresh_library_view()
+
         if window.library_list is None or window.library_detail is None:
             pytest.skip("Persistence disabled: library dock not available")
 
-        count = window.library_list.topLevelItemCount()
-        assert count >= 0
-        if count == 0:
-            pytest.skip("Library is empty in this environment")
+        target_item: QtWidgets.QTreeWidgetItem | None = None
+        for index in range(window.library_list.topLevelItemCount()):
+            item = window.library_list.topLevelItem(index)
+            if item is not None and item.text(0) == "library.csv":
+                target_item = item
+                break
+        if target_item is None:
+            pytest.skip("Library ingest did not register test file")
 
-        first_item = window.library_list.topLevelItem(0)
-        assert first_item is not None
-        window.library_list.setCurrentItem(first_item)
+        window.library_list.setCurrentItem(target_item)
         app.processEvents()
 
         detail = window.library_detail.toPlainText()
         assert detail, "Selecting a cached entry should display metadata"
-        assert "sha256" in detail
+        assert "Alias: library.csv" in detail
+        assert "Canonical units:" in detail
+        assert "Knowledge log:" in detail
+        assert str(log_service.log_path) in detail
         if window.library_hint is not None:
             assert window.library_hint.text()
     finally:

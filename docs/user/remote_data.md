@@ -143,11 +143,14 @@ on high-level insights.
 
 The **Library** dock (tabified with the Datasets view) lists every cached
 artefact recorded by `LocalStore`. Use the filter box to search by alias,
-provider, or units. Double-clicking an entry re-ingests the stored file without
-touching the original download location—handy when reviewing spectra offline or
-comparing multiple normalisations. The table mirrors cache metadata (provider,
-checksum, timestamps) so you can audit provenance without sifting through raw
-log entries.
+provider, or units. Selecting an entry now fills the detail pane beneath the
+table with provenance, unit, and storage metadata plus any knowledge-log
+summaries that reference the cached record. This replaces the old "double-click
+only" workflow—auditing doesn’t require re-ingesting files, while a
+double-click still reloads the spectrum into the session when you do want it
+back on the plot. The table mirrors cache metadata (provider, checksum,
+timestamps) so you can audit provenance without sifting through raw log
+entries.
 
 ## Offline behaviour and caching
 

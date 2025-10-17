@@ -1,5 +1,15 @@
 # Patch Notes
 
+## 2025-10-17 (Library detail knowledge-log links) (18:40 UTC)
+
+- Extended the Library dock detail pane so selecting a cache record surfaces
+  canonical units, provenance, and matching knowledge-log summaries without
+  re-ingesting files.
+- Updated the importing and remote-data guides to explain the new inspection
+  workflow and note that auditing no longer requires double-clicking entries.
+- Augmented the Qt smoke test suite to exercise the detail pane, ensuring the
+  metadata preview renders in headless CI runs.
+
 ## 2025-10-17 (Atlas architectural log restoration) (16:20 UTC)
 
 - Authored `docs/atlas/brains.md` to capture the current ingest pipeline,

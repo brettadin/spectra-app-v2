@@ -137,6 +137,7 @@ class RemoteDataService:
         fetch_path, cleanup = self._fetch_remote(record)
 
         x_unit, y_unit = record.resolved_units()
+        mast_provenance = None
         remote_metadata = {
             "provider": record.provider,
             "uri": record.download_url,
