@@ -1459,3 +1459,15 @@ and patch notes document the automatic caching behaviour and opt-out flow.【F:t
 - docs/history/PATCH_NOTES.md
 
 ---
+## 2025-10-16 22:32 – Overlay
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Enabled reference overlay reference::jwst::jwst_wasp96b_nirspec_prism.
+
+**References**:
+- reference::jwst::jwst_wasp96b_nirspec_prism
+
+---
