@@ -5,7 +5,12 @@ This file serves as the single entry point for all historical notes, patches,
 information in many places (e.g. `brains`, `atlas`, `PATCHLOG.txt`) and often
 used confusing naming schemes (sometimes based on the day of the month)【875267955107972†L63-L74】.
 To avoid further fragmentation, every meaningful change or insight should be
-recorded here with a timestamp and a clear description.
+recorded here with a timestamp and a clear description. Routine ingest
+metadata now lives in the in-app **Library** view (Datasets dock → Library tab),
+which is backed by the persistent cache. Use that panel to audit file-level
+details such as SHA256 hashes, source paths, and importer provenance. The
+knowledge log captures the why behind changes and high-level operational
+decisions rather than enumerating every imported file.
 
 ## Log Format
 
@@ -40,7 +45,10 @@ The desktop preview now ships with a `KnowledgeLogService` that writes
 automation events into this file by default.  The service can also be pointed
 at an alternative runtime location (e.g. a temporary path during tests) by
 passing a custom `log_path`, ensuring automated provenance never tramples the
-canonical history while still following the structure defined here.
+canonical history while still following the structure defined here. Import
+actions are summarised at the session level; per-file cache entries are stored
+in the Library view so the log remains focused on insights and operator
+decisions.
 
 ## Example Entry
 
@@ -85,6 +93,9 @@ To migrate existing `brains` and `atlas` logs, follow these steps:
 * **Completeness**: Include enough information for future developers or
   agents to understand the context without having to search through commit
   history.  When in doubt, write more rather than less.
+* **Operational focus**: Keep per-file provenance (paths, hashes, importer
+  IDs) in the Library view. The knowledge log should summarise what changed,
+  why it matters, and how it affects workflows.
 * **Citation**: Use tether IDs to cite official documents, academic papers or
   authoritative resources.  This ensures that claims can be verified.
 
