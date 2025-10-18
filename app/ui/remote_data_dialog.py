@@ -99,7 +99,7 @@ class RemoteDataDialog(QtWidgets.QDialog):
 
     # ------------------------------------------------------------------
     def _on_search(self) -> None:
-        provider = self.provider_combo.currentText()
+        provider = self._current_provider_key()
         query = self._build_provider_query(provider, self.search_edit.text())
         try:
             records = self.remote_service.search(provider, query)
@@ -127,7 +127,7 @@ class RemoteDataDialog(QtWidgets.QDialog):
             # Qt passes the numeric index; the logic below derives values from
             # the provider string so the argument is intentionally ignored.
             pass
-        provider = self.provider_combo.currentText()
+        provider = self._current_provider_key()
         placeholder = self._provider_placeholders.get(provider)
         if placeholder:
             self.search_edit.setPlaceholderText(placeholder)
@@ -138,6 +138,13 @@ class RemoteDataDialog(QtWidgets.QDialog):
             parts = [part for part in (hint, self._dependency_hint) if part]
             hint = "\n".join(parts)
         self.hint_label.setText(hint)
+
+    def _current_provider_key(self) -> str:
+        """Return canonical provider key (userData) for current selection."""
+        data = self.provider_combo.currentData()
+        if isinstance(data, str) and data:
+            return data
+        return str(self.provider_combo.currentText() or "")
 
     def _build_provider_query(self, provider: str, text: str) -> dict[str, str]:
         stripped = text.strip()
@@ -186,15 +193,13 @@ class RemoteDataDialog(QtWidgets.QDialog):
         # the user can still select and inspect catalogue descriptions. The
         # availability state controls whether searches are permitted.
         self.provider_combo.clear()
-        items: list[str] = []
-        # Add available providers first
+        # Add available providers first (store canonical key as userData)
         for p in sorted(available):
-            items.append(p)
-        # Add unavailable providers (annotated)
+            self.provider_combo.addItem(p, p)
+        # Add unavailable providers (annotated display text), keep key in userData
         for p in sorted(unavailable.keys()):
             if p not in available:
-                items.append(f"{p} (dependencies missing)")
-        self.provider_combo.addItems(items)
+                self.provider_combo.addItem(f"{p} (dependencies missing)", p)
 
         # The combo and search box should remain enabled so users can choose a
         # provider and type queries. The search button is enabled only when the
@@ -236,12 +241,10 @@ class RemoteDataDialog(QtWidgets.QDialog):
         else:
             self.status_label.clear()
 
-        # Adjust the Search button enablement based on the currently selected
-        # provider's availability. If provider name includes our annotation,
-        # treat it as unavailable.
-        self._on_provider_changed()
-        sel = self.provider_combo.currentText() or ""
-        # Normalize selection to provider key (strip annotations)
-        key = sel.replace(" (dependencies missing)", "")
-        self.search_button.setEnabled(key in available)
+    # Adjust the Search button enablement based on the currently selected
+    # provider's availability. If provider name includes our annotation,
+    # treat it as unavailable.
+    self._on_provider_changed()
+    key = self._current_provider_key()
+    self.search_button.setEnabled(bool(key) and key in available)
 
