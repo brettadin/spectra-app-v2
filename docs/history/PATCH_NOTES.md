@@ -1,5 +1,16 @@
 # Patch Notes
 
+## 2025-10-18 (Remote dependency guidance) (00:26 EDT / 04:26 UTC)
+
+- Pinned `requests` and `astroquery` in the developer requirements and exposed a
+  `remote` Poetry extra so NIST and MAST clients install with the default
+  workflow.
+- Updated the onboarding, agent, and remote-data guides with pip/Poetry commands
+  that enable remote catalogue workflows, plus runtime guards that surface the
+  same guidance when dependencies are absent.
+- Extended the remote data service tests to fail fast with actionable error
+  messages whenever the optional dependencies are missing.
+
 ## 2025-10-18 (Remote Data examples & validation) (00:08 EDT)
 
 - Added curated example queries to the Remote Data dialog for both NIST and MAST

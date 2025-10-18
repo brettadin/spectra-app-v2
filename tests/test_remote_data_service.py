@@ -230,3 +230,39 @@ def test_providers_hide_missing_dependencies(monkeypatch: pytest.MonkeyPatch, st
     assert service.providers() == [remote_module.RemoteDataService.PROVIDER_NIST]
     unavailable = service.unavailable_providers()
     assert remote_module.RemoteDataService.PROVIDER_MAST in unavailable
+
+
+def test_missing_dependencies_raise_actionable_errors(
+    monkeypatch: pytest.MonkeyPatch, store: LocalStore
+) -> None:
+    monkeypatch.setattr(remote_module, "requests", None)
+    service = RemoteDataService(store, session=None)
+
+    with pytest.raises(RuntimeError) as http_error:
+        service._ensure_session()
+
+    message = str(http_error.value)
+    assert "requests" in message
+    assert "pip install -r requirements.txt" in message
+    assert "poetry install --with remote" in message
+
+    class DummyRequests:
+        class Session:
+            def __call__(self) -> None:  # pragma: no cover - defensive
+                return None
+
+        @staticmethod
+        def Session():  # type: ignore[override]
+            return object()
+
+    monkeypatch.setattr(remote_module, "requests", DummyRequests)
+    monkeypatch.setattr(remote_module, "astroquery_mast", None)
+    service = RemoteDataService(store, session=None)
+
+    with pytest.raises(RuntimeError) as mast_error:
+        service._ensure_mast()
+
+    mast_message = str(mast_error.value)
+    assert "astroquery" in mast_message
+    assert "pip install -r requirements.txt" in mast_message
+    assert "poetry install --with remote" in mast_message
