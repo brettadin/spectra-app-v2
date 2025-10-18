@@ -271,3 +271,9 @@
 - RemoteDataService: tightened provider-specific input validation and confirmed dependency guards for `requests`/`astroquery`.
 - Knowledge Log: corrected persistence behaviour so intentional import events persist to `docs/history/KNOWLEDGE_LOG.md` when requested; runtime-only components remain filterable.
 - Test fixtures: `samples/sample_spectrum.csv` and `samples/sample_transmittance.csv` were added to satisfy tests that expect those fixtures.
+
+## 2025-10-17 (Remote data validation guard) (11:36 pm est)
+
+- Remote Data dialog: empty submissions now surface provider-specific guidance and avoid hitting remote catalogues until required filters are supplied.
+- RemoteDataService: `_search_nist` and `_search_mast` raise `ValueError` when invoked with empty criteria maps, preventing accidental broad queries.
+- Documentation & planning: updated `docs/user/remote_data.md` and marked the Batch 15 workplan item complete alongside refreshed regression coverage.

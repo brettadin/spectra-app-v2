@@ -9,9 +9,9 @@ Historic batches remain at the bottom for reference. Use
       real-time (America/New_York) logging guidance across docs.
 - [x] Document brains-ledger usage so architectural notes have a single source
       (`docs/brains/README.md`).
-- [ ] Block empty provider submissions in the Remote Data dialog and service
-      (`_build_provider_query` + `_search_mast`) with regression coverage and UI
-      messaging.
+- [x] Block empty provider submissions in the Remote Data dialog and service
+      (`_build_provider_query` + `_search_mast`) with regression coverage, UI
+      validation messaging, and documentation updates.
 - [ ] Extend Library dock actions so cached entries expose manifest/log shortcuts
       and provenance links without re-importing.
 - [ ] Draft calibration-manager RFC outline (service, dock, banner, provenance)
