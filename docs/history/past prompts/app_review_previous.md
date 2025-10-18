@@ -45,13 +45,13 @@ Based on the roadmap and documentation, the following upgrades and features shou
 7 Testing, documentation and CI improvements
 •	Expand regression tests – Add tests for new importer formats, remote fetchers, math operations, and overlay functions. Use the existing tests/ structure as a model[31].
 •	Performance benchmarks – Write performance tests to ensure the UI remains responsive with multi‑megabyte datasets and remote downloads. Use pytest markers and timeouts to track regressions.
-•	Documentation sweep – The roadmap emphasises refreshing screenshots and guides once new features land[32]. Update user guides (docs/user/) and specs (specs/ui_contract/) in tandem with code changes.
-•	Patch notes and versioning – Create patch notes in docs/patch_notes/ for each release, summarising new features, bug fixes and known limitations. Bump the version in app/version.json and update the quickstart accordingly.
+•	Documentation sweep – The roadmap emphasises refreshing screenshots and guides once new features land[32]. Update user guides (docs/user/) and specs (specs/ui_contract.md) in tandem with code changes.
+•	Patch notes and versioning – Append release notes to docs/history/PATCH_NOTES.md for each release, summarising new features, bug fixes and known limitations. Bump the version in pyproject.toml (and update any mirrored defaults) before refreshing the quickstart.
 High‑level recommendations for the STEC project
 1.	Align with docs‑first workflow – Use the START_HERE.md guidelines to plan work sessions: review existing context, create a workplan with atomic tasks and acceptance criteria, implement, test, document and then prepare PRs[33].
 2.	Focus on stability and performance – Ensure that the base application (ingestion, plotting, UI responsiveness) is rock solid before adding advanced analytics. Prioritise caching, error handling and interactive feedback.
 3.	Use the roadmap to prioritise – Implement near‑term priorities from the October 2025 roadmap before exploring future horizons[34]. Document any deviations and record rationale in the Knowledge Log.
-4.	Review AI logs and past conversations – When available, consult docs/ai_log/ to ensure continuity with previous STEC discussions. If tasks were discussed earlier (e.g., remote fetchers, plugin system), cross‑link them in your workplan.
+4.	Review knowledge logs and past conversations – When available, consult docs/history/KNOWLEDGE_LOG.md to ensure continuity with previous STEC discussions. If tasks were discussed earlier (e.g., remote fetchers, plugin system), cross‑link them in your workplan.
 5.	Engage with test-driven development – For each new feature or bug fix, write tests first to define expected behaviour and prevent regressions. Use the existing regression suite as a template.
 6.	Collaborate via codex dev agent – Provide this analysis to your codex dev agent to guide implementation. Encourage them to trace each improvement back to the relevant documentation lines (cited above) and maintain the docs‑first ethos.
 By addressing the missing importer formats, implementing remote data integration and caching, enriching the inspector and reference tools, adding a knowledge‑log history tab, designing a plugin system and strengthening testing and documentation, the Spectra App can evolve from a solid beta into a comprehensive tool for spectroscopic analysis.

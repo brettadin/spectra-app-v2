@@ -215,9 +215,9 @@ Documentation Requirements for AI Work
    ```
 
 2. **Version Management**
-   - Always bump version in `app/version.json`
-   - Follow semantic versioning principles
-   - Update patch notes with user-visible changes
+   - Bump the semantic version in `pyproject.toml`
+   - Update any mirrored defaults (e.g. `ProvenanceService.app_version`)
+   - Record user-visible changes in `docs/history/PATCH_NOTES.md`
 
 3. **Provenance Tracking**
    - Ensure all data operations record source and transformations
@@ -308,8 +308,8 @@ git commit -m "feat: describe specific change
 - **User Documentation**: `docs/user/` - Guides, tutorials, FAQs
 - **Developer Documentation**: `docs/dev/` - API references, architecture
 - **Educational Content**: `docs/edu/` - Spectroscopy primers
-- **Patch Notes**: `docs/patch_notes/` - User-visible changes
-- **AI Log**: `docs/ai_log/` - Development rationale and decisions
+- **Patch Notes**: `docs/history/PATCH_NOTES.md` - User-visible changes
+- **Knowledge Log**: `docs/history/KNOWLEDGE_LOG.md` - Development rationale and decisions
 
 ### Documentation Quality Checklist
 
@@ -343,7 +343,7 @@ git commit -m "feat: describe specific change
 - **Technical Questions**: Check `docs/dev/` and `specs/`
 - **Process Questions**: Review `agents.md` and RUNNER_PROMPT
 - **Scientific Context**: Consult `docs/edu/` and MASTER_PROMPT
-- **Existing Patterns**: Study `docs/ai_log/` for similar work
+  - **Existing Patterns**: Study `docs/history/KNOWLEDGE_LOG.md` for similar work
 
 ## 🎯 Remember Our Mission
 

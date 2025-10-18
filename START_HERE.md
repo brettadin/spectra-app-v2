@@ -98,8 +98,13 @@ Follow the **RUNNER_PROMPT** workflow for each development session:
 - **Run Full Test Suite**: `pytest -v`
 - **Verify UI Responsiveness**: Test with 1M+ point datasets
 - **Check Documentation**: Ensure all changes are documented
-- **Update Version**: Bump version in `app/version.json`
-- **Write Patch Notes**: Add entry in `docs/patch_notes/`
+- **Update Version Metadata**: Bump the semantic version in `pyproject.toml` and align
+  any hard-coded defaults (e.g. `ProvenanceService.app_version` in
+  `app/services/provenance_service.py`) so runtime manifests report the same value.
+- **Write Patch Notes**: Add an entry to `docs/history/PATCH_NOTES.md` that cites
+  user-visible changes and the tests you ran.
+- **Log Knowledge Updates**: Summarise key decisions in `docs/history/KNOWLEDGE_LOG.md`
+  with the same timestamps you used for the patch notes.
 
 ## 📝 Creating Your Workplan
 
@@ -167,14 +172,14 @@ Brief description of the feature or fix being implemented.
 ## 🔍 Exploring Further
 
 ### For UI Development
-- Review `specs/ui_contract/` for component specifications
+- Review `specs/ui_contract.md` for component specifications
 - Study existing UI patterns in `app/ui/`
 - Verify against the UI contract in `agents.md`
 
 ### For Data Processing
 - Examine `app/services/` for ingestion and analysis services
-- Review unit conversion patterns in `app/services/units/`
-- Study provenance tracking in `app/services/provenance/`
+- Review unit conversion patterns in `app/services/units_service.py`
+- Study provenance tracking in `app/services/provenance_service.py`
 
 ### For Testing
 - Explore existing tests in `tests/` for patterns
@@ -184,7 +189,7 @@ Brief description of the feature or fix being implemented.
 ## 🆘 Getting Help
 
 - **Documentation**: Check `docs/` directory first
-- **AI Logs**: Review `docs/ai_log/` for similar past work
+- **Knowledge Log**: Review `docs/history/KNOWLEDGE_LOG.md` for similar past work
 - **Technical Specs**: Consult `specs/` for architecture decisions
 - **Test Suite**: Use tests as living documentation
 

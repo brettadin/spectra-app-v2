@@ -1,5 +1,15 @@
 # Patch Notes
 
+## 2025-10-18 (Onboarding doc path refresh) (18:58 EDT / 22:58 UTC)
+
+- Replaced outdated quick-start references so `START_HERE.md` now points to
+  `docs/history/PATCH_NOTES.md`, `docs/history/KNOWLEDGE_LOG.md`, and the
+  version metadata fields in `pyproject.toml`/`ProvenanceService`, clarifying
+  how to keep release notes and manifests aligned.
+- Updated `CONTRIBUTING.md` and the historical app review prompt to cite the
+  same patch-note and knowledge-log locations, avoiding conflicting guidance
+  for new contributors.
+
 ## 2025-10-18 (Cross-platform timestamp commands) (18:48 EDT / 22:48 UTC)
 
 - Replaced the single-shell timestamp example in `AGENTS.md` with parallel
