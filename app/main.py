@@ -1134,7 +1134,12 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         references: List[str] = []
         if spectrum.id:
             references.append(spectrum.id)
-        self._record_history_event("Import", summary, references, persist=False)
+
+        # Import events should be persisted to the canonical knowledge log so
+        # provenance survives across sessions. The KnowledgeLogService treats
+        # runtime-only components (e.g. "Remote Import") specially; leave the
+        # default persistence behaviour here.
+        self._record_history_event("Import", summary, references)
         self._refresh_library_view()
 
     def _add_spectrum(self, spectrum: Spectrum) -> None:
