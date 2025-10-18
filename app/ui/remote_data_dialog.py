@@ -179,34 +179,44 @@ class RemoteDataDialog(QtWidgets.QDialog):
         self.accept()
 
     def _refresh_provider_state(self) -> None:
-        providers = self.remote_service.providers()
-        self.provider_combo.clear()
-        if providers:
-            self.provider_combo.addItems(providers)
-            self.provider_combo.setEnabled(True)
-            self.search_edit.setEnabled(True)
-            self.search_button.setEnabled(True)
-            self._provider_placeholders = {
-                RemoteDataService.PROVIDER_NIST: "Fe II, H-alpha, or ion symbol…",
-                RemoteDataService.PROVIDER_MAST: "JWST spectroscopic target (e.g. WASP-96 b, NIRSpec)…",
-            }
-            self._provider_hints = {
-                RemoteDataService.PROVIDER_NIST: (
-                    "Searches target laboratory-grade spectral line lists from the NIST ASD."
-                ),
-                RemoteDataService.PROVIDER_MAST: (
-                    "MAST requests favour calibrated spectra (IFS cubes, slits, prisms) using the "
-                    "`dataproduct_type=spectrum` filter so results align with lab references."
-                ),
-            }
-        else:
-            self.provider_combo.setEnabled(False)
-            self.search_edit.setEnabled(False)
-            self.search_button.setEnabled(False)
-            self._provider_placeholders = {}
-            self._provider_hints = {}
-
+        available = set(self.remote_service.providers())
         unavailable = self.remote_service.unavailable_providers()
+
+        # Populate the combo with both available and unavailable providers so
+        # the user can still select and inspect catalogue descriptions. The
+        # availability state controls whether searches are permitted.
+        self.provider_combo.clear()
+        items: list[str] = []
+        # Add available providers first
+        for p in sorted(available):
+            items.append(p)
+        # Add unavailable providers (annotated)
+        for p in sorted(unavailable.keys()):
+            if p not in available:
+                items.append(f"{p} (dependencies missing)")
+        self.provider_combo.addItems(items)
+
+        # The combo and search box should remain enabled so users can choose a
+        # provider and type queries. The search button is enabled only when the
+        # currently selected provider has its dependencies satisfied.
+        self.provider_combo.setEnabled(True)
+        self.search_edit.setEnabled(True)
+        # placeholders and hints for known providers (without annotations)
+        self._provider_placeholders = {
+            RemoteDataService.PROVIDER_NIST: "Fe II, H-alpha, or ion symbol…",
+            RemoteDataService.PROVIDER_MAST: "JWST spectroscopic target (e.g. WASP-96 b, NIRSpec)…",
+        }
+        self._provider_hints = {
+            RemoteDataService.PROVIDER_NIST: (
+                "Searches target laboratory-grade spectral line lists from the NIST ASD."
+            ),
+            RemoteDataService.PROVIDER_MAST: (
+                "MAST requests favour calibrated spectra (IFS cubes, slits, prisms) using the "
+                "`dataproduct_type=spectrum` filter so results align with lab references."
+            ),
+        }
+
+        # Compose dependency hint text (if any)
         if unavailable:
             messages = []
             for provider, reason in unavailable.items():
@@ -215,7 +225,8 @@ class RemoteDataDialog(QtWidgets.QDialog):
         else:
             self._dependency_hint = ""
 
-        if not providers:
+        # Update status depending on whether any providers are available.
+        if not available:
             if not unavailable:
                 self.status_label.setText("Remote catalogues are temporarily unavailable.")
             else:
@@ -225,5 +236,12 @@ class RemoteDataDialog(QtWidgets.QDialog):
         else:
             self.status_label.clear()
 
+        # Adjust the Search button enablement based on the currently selected
+        # provider's availability. If provider name includes our annotation,
+        # treat it as unavailable.
         self._on_provider_changed()
+        sel = self.provider_combo.currentText() or ""
+        # Normalize selection to provider key (strip annotations)
+        key = sel.replace(" (dependencies missing)", "")
+        self.search_button.setEnabled(key in available)
 

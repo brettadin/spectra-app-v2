@@ -27,6 +27,25 @@ Each entry in this document should follow this structure:
   applicable).
 
 ---
+## 2025-10-18 09:24 – Remote data UX & knowledge-log hygiene
+
+**Author**: agent
+
+**Context**: Remote catalogue UI, optional dependency handling, knowledge-log persistence, and test fixtures.
+
+**Summary**: Implemented multiple changes to improve developer and user experience:
+
+- Remote Data dialog: made provider dropdown and search input resilient when optional dependencies (e.g. `astroquery`) are missing. The combo now lists available providers and annotates those missing dependencies (`(dependencies missing)`), while keeping the provider combo and search edit enabled so users can select and compose queries. The Search button is enabled only for providers whose dependencies are satisfied. (See `app/ui/remote_data_dialog.py`.)
+
+- RemoteDataService: validated provider-specific query inputs (NIST requires `element` or `text`; MAST requires `target_name` or non-empty `text`) and ensured `providers()`/`unavailable_providers()` reflect installed packages (requests/astroquery guards). (See `app/services/remote_data_service.py`.)
+
+- Knowledge Log: fixed persistence so import events are recorded correctly when intended (removed inadvertent `persist=False` use and adjusted runtime-only defaults). This restores import entries to the canonical `docs/history/KNOWLEDGE_LOG.md` when persistence is requested. (See `app/main.py`, `app/services/knowledge_log_service.py`.)
+
+- Test fixtures & samples: added `samples/sample_spectrum.csv` and `samples/sample_transmittance.csv` to satisfy tests expecting those fixtures and to avoid false negatives in the regression suite.
+
+**References**: `app/ui/remote_data_dialog.py`, `app/services/remote_data_service.py`, `app/services/knowledge_log_service.py`, `app/main.py`, `samples/`
+
+---
 ## 2025-10-17T20:11:24-04:00 – Documentation alignment
 
 **Author**: agent

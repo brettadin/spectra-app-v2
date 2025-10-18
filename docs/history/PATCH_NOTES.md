@@ -264,3 +264,10 @@
 - Added an automated smoke workflow test that instantiates the preview shell, ingests CSV/FITS data, exercises unit toggles, and exports a provenance bundle.
 - Centralised the reusable FITS fixture under `tests/conftest.py` to support regression suites.
 - Documented the new smoke validation loop for developers and provided a matching user checklist.
+
+## 2025-10-18 (Remote data UX & knowledge-log hygiene)
+
+- Remote Data dialog: provider dropdown and search input now remain interactive even when optional dependencies are missing. Unavailable providers are annotated as `(dependencies missing)` and the Search button is enabled only when dependencies are satisfied.
+- RemoteDataService: tightened provider-specific input validation and confirmed dependency guards for `requests`/`astroquery`.
+- Knowledge Log: corrected persistence behaviour so intentional import events persist to `docs/history/KNOWLEDGE_LOG.md` when requested; runtime-only components remain filterable.
+- Test fixtures: `samples/sample_spectrum.csv` and `samples/sample_transmittance.csv` were added to satisfy tests that expect those fixtures.
