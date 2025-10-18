@@ -260,10 +260,10 @@ class RemoteDataDialog(QtWidgets.QDialog):
         else:
             self.status_label.clear()
 
-    # Adjust the Search button enablement based on the currently selected
-    # provider's availability. If provider name includes our annotation,
-    # treat it as unavailable.
-    self._on_provider_changed()
-    key = self._current_provider_key()
-    self.search_button.setEnabled(bool(key) and key in available)
+        # Adjust the Search button enablement based on the currently selected
+        # provider's availability. If provider name includes our annotation,
+        # treat it as unavailable.
+        self._on_provider_changed()
+        key = self._current_provider_key()
+        self.search_button.setEnabled(bool(key) and key in available)
 
