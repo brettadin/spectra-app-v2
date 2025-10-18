@@ -553,3 +553,19 @@ Import/Remote Import entries remain after the cleanup.
 - 3f0c5491-e9bd-4865-9505-24a8cc5e6154
 
 ---
+## 2025-10-17 23:36 – Remote data validation
+
+**Author**: automation
+
+**Context**: Remote Data guard
+
+**Summary**: Added provider-specific empty-query messaging to the Remote Data dialog, enforced empty-criteria guards inside `_search_nist`/`_search_mast`, and extended the regression/docs suite.
+
+**References**:
+- app/ui/remote_data_dialog.py
+- app/services/remote_data_service.py
+- tests/test_remote_data_dialog.py
+- tests/test_remote_data_service.py
+- docs/user/remote_data.md
+
+---

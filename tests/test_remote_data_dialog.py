@@ -27,12 +27,17 @@ class StubRemoteService(RemoteDataService):
             RemoteDataService.PROVIDER_NIST,
             RemoteDataService.PROVIDER_MAST,
         ]
+        self.search_calls: List[tuple[str, dict[str, Any]]] = []
 
     def providers(self) -> List[str]:
         return list(self._providers)
 
     def unavailable_providers(self) -> dict[str, str]:
         return {}
+
+    def search(self, provider: str, query: dict[str, Any]) -> list[RemoteRecord]:  # type: ignore[override]
+        self.search_calls.append((provider, dict(query)))
+        return []
 
 
 def _ensure_app() -> QtWidgets.QApplication:
@@ -59,6 +64,45 @@ def test_dialog_initialises_without_missing_slots(monkeypatch: Any) -> None:
     assert "JWST" in dialog.search_edit.placeholderText()
 
     # Clean up the dialog explicitly for Qt stability in headless tests.
+    dialog.deleteLater()
+    if QtWidgets.QApplication.instance() is app and not app.topLevelWidgets():
+        app.quit()
+
+
+@pytest.mark.parametrize(
+    "provider, expected_phrase",
+    [
+        (RemoteDataService.PROVIDER_NIST, "element"),
+        (RemoteDataService.PROVIDER_MAST, "target"),
+    ],
+)
+def test_dialog_blocks_empty_search(provider: str, expected_phrase: str, monkeypatch: Any) -> None:
+    app = _ensure_app()
+    ingest = IngestServiceStub()
+    remote = StubRemoteService()
+    dialog = RemoteDataDialog(None, remote_service=remote, ingest_service=ingest)
+
+    index = dialog.provider_combo.findData(provider)
+    assert index != -1
+    dialog.provider_combo.setCurrentIndex(index)
+
+    captured: dict[str, str] = {}
+
+    def _capture(parent, title, message, *args, **kwargs):  # type: ignore[override]
+        captured["title"] = title
+        captured["message"] = message
+        return QtWidgets.QMessageBox.StandardButton.Ok
+
+    monkeypatch.setattr(QtWidgets.QMessageBox, "information", staticmethod(_capture))
+
+    dialog.search_edit.clear()
+    dialog._on_search()
+
+    assert remote.search_calls == []
+    assert expected_phrase in captured.get("message", "")
+    assert captured.get("title") == "Search criteria required"
+    assert dialog.status_label.text() == captured["message"]
+
     dialog.deleteLater()
     if QtWidgets.QApplication.instance() is app and not app.topLevelWidgets():
         app.quit()
