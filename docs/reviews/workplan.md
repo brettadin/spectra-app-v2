@@ -1,106 +1,195 @@
 # Workplan Overview
 
-This document tracks active batches, QA runs, and recently completed work.
-Historic batches remain at the bottom for reference. Use
-`docs/reviews/workplan_backlog.md` for initiatives that are not yet scheduled.
+This document tracks feature batches, validation status, and outstanding backlog items for the Spectra app.
 
-## Batch 15 (2025-10-17) — Active
-- [x] Realign coordinator/agent prompts with brains-ledger restructure and enforce
-      real-time (America/New_York) logging guidance across docs.
-- [x] Document brains-ledger usage so architectural notes have a single source
-      (`docs/brains/README.md`).
-- [x] Block empty provider submissions in the Remote Data dialog and service
-      (`_build_provider_query` + `_search_mast`) with regression coverage, UI
-      validation messaging, and documentation updates.
-- [ ] Extend Library dock actions so cached entries expose manifest/log shortcuts
-      and provenance links without re-importing.
-- [ ] Draft calibration-manager RFC outline (service, dock, banner, provenance)
-      based on Pass 3 findings and schedule implementation tasks.
+## Batch 14 (2025-10-17) — In Progress
 
-### Batch 15 QA Log
-- *(pending next feature delivery)*
+- [ ] Land the calibration service (`app/services/calibration_service.py`) and
+      calibration dock with non-dismissable banner, FWHM targets, frame/RV
+      controls, and σ propagation. Update documentation and schema accordingly.
+- [ ] Implement the identification stack (peak/similarity/scoring services,
+      identification dock, explainable score cards) with provenance + tests.
+- [ ] Add snap-to-peak, brush-to-mask, uncertainty ribbons, palette presets, and
+      persistence for crosshair/teaching mode as outlined in `docs/reviews/pass2.md`.
+- [ ] Achieve export/view parity: manifest view-state, replay test, and Library
+      actions for opening manifests/logs/re-exporting the current state.
+- [ ] Reorganise datasets/library presentation so cached entries, sample data,
+      and user ingests are categorised by instrument/type with working search.
+- [ ] Validate remote catalogue UX: expand the provider roster beyond NIST/MAST
+      once dependency checks stabilise and new spectroscopy sources are vetted.
+- [ ] Refresh START_HERE, MASTER PROMPT, AGENTS, and brains documentation so
+      onboarding instructions match the current repository layout.
+- [ ] Document dependency prerequisites (astroquery, astropy, requests) and add
+      installation verification guidance for Windows 11 users.
 
-## Batch 14 (2025-10-17) — Completed
-- [x] Align Remote Data searches with provider-specific criteria so MAST queries
-      pass `target_name` while NIST continues to use `spectra` filters, extending
-      the regression suite to cover the translation.
-- [x] Route MAST downloads through `astroquery.mast.Observations.download_file`,
-      retaining the HTTP code path for direct URLs and persisting results via
-      `LocalStore`.
-- [x] Separate routine ingest bookkeeping from the Knowledge Log by introducing a
-      cached-library view backed by `LocalStore` and limiting the log to distilled
-      insights. Update the documentation to reflect the new policy.
-- [x] Ensure Import/Remote Import history entries no longer persist to the
-      canonical knowledge log by adding a non-persistent flag to
-      `KnowledgeLogService` and updating ingest hooks plus regression tests.
-- [x] Harden the knowledge-log runtime guard so Import/Remote Import components
-      are treated as runtime-only even if callers omit `persist=False`, with
-      regression coverage and a log audit to confirm the cleanup.
-- [x] Restore the Remote Data provider-change slot, assert it under pytest, and
-      inject spectroscopic defaults (`dataproduct_type="spectrum"`,
-      `intentType="SCIENCE"`, `calib_level=[2, 3]`) so MAST queries prioritise
-      calibrated spectra with matching documentation updates.
-- [x] Extend the Library dock with a metadata preview pane, search-aware
-      filtering, and documentation/test coverage so cached spectra can be
-      inspected without re-ingesting files.
+### Recently Completed (2025-10-17)
+
+- [x] Align Remote Data searches with provider-specific criteria so MAST queries pass `target_name` while NIST continues to use `spectra` filters, and extend the regression suite to cover the translation.
+- [x] Route MAST downloads through `astroquery.mast.Observations.download_file`, retaining the HTTP code path for direct URLs and persisting results via `LocalStore`.
+- [x] Separate routine ingest bookkeeping from the Knowledge Log by introducing a cached-library view backed by `LocalStore` and limiting the log to distilled insights. Update the documentation to reflect the new policy.
+- [x] Ensure Import/Remote Import history entries no longer persist to the canonical knowledge log by adding a non-persistent flag to `KnowledgeLogService` and updating ingest hooks plus regression tests.
+- [x] Harden the knowledge-log runtime guard so Import/Remote Import components are treated as runtime-only even if callers omit `persist=False`, with regression coverage and a log audit to confirm the cleanup.
+- [x] Restore the Remote Data provider-change slot, assert it under pytest, and inject spectroscopic defaults (`dataproduct_type="spectrum"`, `intentType="SCIENCE"`, `calib_level=[2, 3]`) so MAST queries prioritise calibrated spectra with matching documentation updates.
+- [x] Extend the Library dock with a metadata preview pane, search-aware filtering, and documentation/test coverage so cached spectra can be inspected without re-ingesting files.
+- [x] Block empty Remote Data submissions, surface curated example queries per
+      provider, and raise service-level errors for missing criteria so remote
+      searches stay scoped to spectroscopy use-cases.
 
 ### Batch 14 QA Log
+
 - 2025-10-17: ✅ `pytest`
 
-## Batch 13 (2025-10-15) — Completed
-- [x] Capture QA background spectra that still swapped axes and extend
-      `CsvImporter` heuristics, fixtures, and cache coverage to eliminate the
-      regression.
-- [x] Improve IR functional-group overlay readability with legible
-      legends/tooltips across themes.
-- [x] Deduplicate duplicate Inspector dock panes on Windows and consolidate
-      documentation log events.
-- [x] Ensure reference overlays respect combo changes after multi-file ingest so
-      hydrogen/IR/JWST traces stay in sync.
-- [x] Confirm normalization/unit toolbar visibility persists across sessions and
-      document the manual re-normalization workflow for QA operators.
+## Batch 13 (2025-10-15)
+
+- [x] Capture QA background spectra that still swapped axes and extend `CsvImporter` heuristics, fixtures, and cache coverage to eliminate the regression.
+- [x] Improve IR functional-group overlay readability with legible legends/tooltips across themes.
+- [x] Deduplicate duplicate Inspector dock panes on Windows and consolidate documentation log events.
+- [x] Ensure reference overlays respect combo changes after multi-file ingest so hydrogen/IR/JWST traces stay in sync.
+- [x] Confirm normalization/unit toolbar visibility persists across sessions and document the manual re-normalization workflow for QA operators.
 
 ### Batch 13 QA Log
+
 - 2025-10-16: ✅ `pytest`
 
-## Batch 12 (2025-10-15) — Completed
-- [x] Keep the Reference inspector combo synchronised with the preview plot and
-      overlay toggle.
-- [x] Restore normalization controls with a View-menu toggle and support Unicode
-      `cm⁻¹` unit inputs.
-- [x] Add profile-based axis swapping so monotonic intensity columns no longer
-      displace jittery wavenumber exports.
+## Batch 12 (2025-10-15)
+
+- [x] Keep the Reference inspector combo synchronised with the preview plot and overlay toggle.
+- [x] Restore normalization controls with a View-menu toggle and support Unicode `cm⁻¹` unit inputs.
+- [x] Add profile-based axis swapping so monotonic intensity columns no longer displace jittery wavenumber exports.
 
 ### Batch 12 QA Log
+
 - 2025-10-15: ✅ `ruff check app tests`
 - 2025-10-15: ✅ `mypy app --ignore-missing-imports`
 - 2025-10-15: ✅ `pytest -q --maxfail=1 --disable-warnings`
 
-## Batch 11 (2025-10-15) — Completed
+## Batch 11 (2025-10-15)
+
 - [x] Ensure Reference combo-box selection and overlays track the active dataset.
-- [x] Restore JWST overlay payloads so quick-look curves display both in the
-      inspector and main workspace.
-- [x] Let sample loading and File → Open queue multiple files while throttling
-      redraws.
-- [x] Document normalization toolbar placement and the updated reference
-      workflow.
+- [x] Restore JWST overlay payloads so quick-look curves display both in the inspector and main workspace.
+- [x] Let sample loading and File → Open queue multiple files while throttling redraws.
+- [x] Document normalization toolbar placement and the updated reference workflow.
 
 ### Batch 11 QA Log
+
 - 2025-10-15: ✅ `pytest -q`
 
-## Batch 10 (Backlog items moved to backlog file)
-- [x] Wire Doppler, pressure, and Stark broadening models into the overlay
-      service and provide inspector previews with regression tests.
-- [ ] Remaining tasks now tracked in `docs/reviews/workplan_backlog.md`.
+## Batch 10 (Backlog)
 
-## Documentation Alignment Queue — In Progress
-- [ ] Capture refreshed IR overlay screenshots for `docs/user/reference_data.md`
-      after anchored rendering changes land on Windows builds.
-- [ ] Publish Markdown summaries for historic QA reviews (e.g., launch-debugging
-      PDF) with citations and source links.
-- [ ] Reconcile `reports/roadmap.md` with the current importer, overlay, and
-      documentation backlog, adding longer-term research goals.
-- [ ] Schedule a documentation sweep covering reference data, patch notes, and
-      roadmap updates with acceptance criteria tied to regression tests.
+- [x] Wire Doppler, pressure, and Stark broadening models into the overlay service and provide inspector previews with regression tests.
+- [ ] Replace digitised JWST tables with calibrated FITS ingestion and provenance links once the pipeline can access MAST data.
+- [ ] Expand the spectral-line catalogue beyond hydrogen (e.g., He I, O III, Fe II) with citations and regression coverage.
+- [ ] Integrate IR functional-group heuristics into importer header parsing for automated axis validation.
+- [x] Plot bundled reference datasets inside the Reference tab and allow overlay toggles on the main plot pane.
+- [ ] Prototype a native extension hook (e.g., `pybind11`/C++) for high-throughput spectral transforms and document the Windows build toolchain.
 
-Historic batches (8 and earlier) are unchanged from prior revisions.
+## Documentation Alignment Queue
+
+- [ ] Capture refreshed IR overlay screenshots for `docs/user/reference_data.md` after anchored rendering changes land on Windows builds.
+- [ ] Publish Markdown summaries for historic QA reviews (e.g., launch-debugging PDF) with citations and source links.
+- [ ] Reconcile `reports/roadmap.md` with the current importer, overlay, and documentation backlog, adding longer-term research goals.
+- [ ] Schedule a documentation sweep covering reference data, patch notes, and roadmap updates with acceptance criteria tied to regression tests.
+
+## Batch 9 (2025-10-15)
+
+- [x] Add reproducible build scripts for NIST hydrogen lines, IR functional groups, and JWST quick-look spectra.
+- [x] Propagate provenance (generator, retrieval timestamps, planned MAST URIs) into the reference JSON assets and inspector UI.
+- [x] Expand spectroscopy documentation (primer, reference guide) to explain the provenance and regeneration flow.
+
+### Batch 9 QA Log
+
+- 2025-10-15: ✅ `ruff check app tests`
+- 2025-10-15: ✅ `mypy app --ignore-missing-imports`
+- 2025-10-15: ✅ `pytest -q --maxfail=1 --disable-warnings`
+
+## Batch 8 (2025-10-15)
+
+- [x] Bundle NIST hydrogen spectral lines and IR functional group references into the application data store.
+- [x] Stage JWST quick-look spectra (WASP-96 b, Jupiter, Mars, Neptune, HD 84406) with resolution metadata for offline use.
+- [x] Surface the reference library through a new Inspector tab and publish spectroscopy/JWST documentation.
+
+### Batch 8 QA Log
+
+- 2025-10-15: ✅ `ruff check app tests`
+- 2025-10-15: ✅ `mypy app --ignore-missing-imports`
+- 2025-10-15: ✅ `pytest -q --maxfail=1 --disable-warnings`
+
+## Batch 7 (2025-10-15)
+
+- [x] Honour wavelength/wavenumber units embedded in headers to prevent swapped axes.
+- [x] Record column-selection rationale in importer metadata with regression coverage.
+- [x] Update user documentation and patch notes to describe the new safeguards.
+
+### Batch 7 QA Log
+
+- 2025-10-15: ✅ `ruff check app tests`
+- 2025-10-15: ✅ `mypy app --ignore-missing-imports`
+- 2025-10-15: ✅ `pytest -q --maxfail=1 --disable-warnings`
+
+## Batch 6 (2025-10-15)
+
+- [x] Correct importer axis selection when intensity columns precede wavelength data.
+- [x] Wire the Normalize toolbar to overlay scaling (None/Max/Area) and document the behaviour.
+
+### Batch 6 QA Log
+
+- 2025-10-15: ✅ `ruff check app tests`
+- 2025-10-15: ✅ `mypy app --ignore-missing-imports`
+- 2025-10-15: ✅ `pytest -q --maxfail=1 --disable-warnings`
+
+## Batch 5 (2025-10-15)
+
+- [x] Teach the CSV/TXT importer to recover wavelength/intensity pairs from messy reports with heuristic unit detection.
+- [x] Surface user documentation inside the app via a Docs inspector tab and Help menu entry.
+
+### Batch 5 QA Log
+
+- 2025-10-15: ✅ `ruff check app tests`
+- 2025-10-15: ✅ `mypy app --ignore-missing-imports`
+- 2025-10-15: ✅ `pytest -q --maxfail=1 --disable-warnings`
+
+## Batch 4 (2025-10-15)
+
+- [x] Harden provenance export bundles by copying sources and per-spectrum CSVs with regression coverage.
+
+### Batch 4 QA Log
+
+- 2025-10-15: ✅ `pytest -q`
+
+## Batch 3 (2025-10-14)
+
+- [x] Draft a user quickstart walkthrough covering launch → ingest → unit toggle → export.
+- [x] Author a units & conversions reference with idempotency callouts.
+- [x] Document plot interaction tools and LOD expectations.
+- [x] Expand the importing guide with a provenance export appendix.
+
+### Batch 3 QA Log
+
+- 2025-10-14: ✅ `pytest -q`
+
+## Batch 2 (2025-10-14)
+
+- [x] Close out the Batch 1 smoke-check and capture the state of CI gates on the latest branch.
+- [x] Inventory pending documentation deltas before the next feature work.
+
+### Batch 2 QA Log
+
+- 2025-10-14: ✅ `ruff check app tests`
+- 2025-10-14: ✅ `mypy app --ignore-missing-imports`
+- 2025-10-14: ✅ `pytest -q --maxfail=1 --disable-warnings`
+
+## Batch 1 (2025-10-14)
+
+- [x] Seed tiny fixtures for tests (`tests/data/mini.*`).
+- [x] Lock in unit round-trip behaviour and implement the LocalStore service with cache index tests.
+- [x] Ensure provenance export emits a manifest bundle and guard plot performance with an LOD cap test.
+- [x] Update user/developer documentation for importing and the ingest pipeline.
+- [x] Run lint/type/test suites locally and smoke-check app launch, CSV/FITS ingest, unit toggle, and export manifest.
+
+### Batch 1 QA Log
+
+- 2025-10-14: ✅ `ruff check app tests`
+- 2025-10-14: ✅ `mypy app --ignore-missing-imports`
+- 2025-10-14: ✅ `pytest -q --maxfail=1 --disable-warnings`
+- 2025-10-14: ⚠️ `pytest -q --maxfail=1 --disable-warnings --cov=app --cov-report=term-missing` (fails: coverage plugin unavailable)
+- 2025-10-14: ✅ `pip install -r requirements.txt`

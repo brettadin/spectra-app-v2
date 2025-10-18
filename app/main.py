@@ -6,7 +6,7 @@ import os
 import sys
 import tempfile
 from pathlib import Path
-from typing import Any, Dict, Iterable, List, Mapping, Optional, Sequence, TYPE_CHECKING, cast
+from typing import Any, Dict, Iterable, List, Mapping, Optional, Sequence, cast
 
 import numpy as np
 import pyqtgraph as pg
@@ -34,14 +34,6 @@ QtGui: Any
 QtWidgets: Any
 QT_BINDING: str
 QtCore, QtGui, QtWidgets, QT_BINDING = get_qt()
-
-if TYPE_CHECKING:
-    # Provide Qt symbols to the type-checker (these imports are skipped at runtime).
-    # This avoids "Variable not allowed in type expression" when annotating with
-    # Qt types while the runtime binding is provided by get_qt().
-    from PySide6 import QtCore as QtCore  # type: ignore
-    from PySide6 import QtGui as QtGui  # type: ignore
-    from PySide6 import QtWidgets as QtWidgets  # type: ignore
 
 SAMPLES_DIR = Path(__file__).resolve().parent.parent / "samples"
 PLOT_MAX_POINTS_KEY = "plot/max_points"
@@ -81,14 +73,14 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             default_context="Spectra Desktop Session"
         )
 
-        self.unit_combo: Optional[Any] = None
-        self.plot_toolbar: Optional[Any] = None
-        self.plot_max_points_control: Optional[Any] = None
-        self.color_mode_combo: Optional[Any] = None
+        self.unit_combo: Optional[QtWidgets.QComboBox] = None
+        self.plot_toolbar: Optional[QtWidgets.QToolBar] = None
+        self.plot_max_points_control: Optional[QtWidgets.QSpinBox] = None
+        self.color_mode_combo: Optional[QtWidgets.QComboBox] = None
 
-        self._dataset_items: Dict[str, Any] = {}
-        self._dataset_color_items: Dict[str, Any] = {}
-        self._spectrum_colors: Dict[str, Any] = {}
+        self._dataset_items: Dict[str, QtGui.QStandardItem] = {}
+        self._dataset_color_items: Dict[str, QtGui.QStandardItem] = {}
+        self._spectrum_colors: Dict[str, QtGui.QColor] = {}
         self._visibility: Dict[str, bool] = {}
         self._normalization_mode: str = "None"
         self._doc_entries: List[tuple[str, Path]] = []
@@ -100,7 +92,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self._suppress_overlay_refresh = False
         self._display_y_units: Dict[str, str] = {}
         self._line_shape_rows: List[Mapping[str, Any]] = []
-        self._palette: List[Any] = [
+        self._palette: List[QtGui.QColor] = [
             QtGui.QColor("#4F6D7A"),
             QtGui.QColor("#C0D6DF"),
             QtGui.QColor("#C72C41"),
@@ -112,7 +104,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         ]
         self._palette_index = 0
 
-        self.log_view: Optional[Any] = None
+        self.log_view: QtWidgets.QPlainTextEdit | None = None
         self._log_buffer: list[tuple[str, str]] = []
         self._log_ready = False
 
@@ -122,11 +114,11 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self._history_ui_ready = False
 
         self._plot_max_points = self._load_plot_max_points()
-        self.library_dock: Optional[Any] = None
-        self.library_list: Optional[Any] = None
-        self.library_search: Optional[Any] = None
-        self.library_detail: Optional[Any] = None
-        self.library_hint: Optional[Any] = None
+        self.library_dock: QtWidgets.QDockWidget | None = None
+        self.library_list: QtWidgets.QTreeWidget | None = None
+        self.library_search: QtWidgets.QLineEdit | None = None
+        self.library_detail: QtWidgets.QPlainTextEdit | None = None
+        self.library_hint: QtWidgets.QLabel | None = None
         self._library_entries: Dict[str, Mapping[str, Any]] = {}
         self._use_uniform_palette = False
         self._uniform_color = QtGui.QColor("#4F6D7A")
@@ -422,7 +414,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                     tokens.extend(str(value) for value in ingest.values())
             return " ".join(tokens).lower()
 
-        items: List[Any] = []
+        items: List[QtWidgets.QTreeWidgetItem] = []
         for sha, entry in sorted(self._library_entries.items(), key=lambda kv: kv[0]):
             text_blob = entry_tokens(entry)
             if filter_text and filter_text not in text_blob:
@@ -446,7 +438,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
 
         if items:
             self.library_list.sortItems(2, QtCore.Qt.SortOrder.DescendingOrder)
-            target_item: Optional[Any] = None
+            target_item: QtWidgets.QTreeWidgetItem | None = None
             if selected_sha:
                 for row in range(self.library_list.topLevelItemCount()):
                     candidate = self.library_list.topLevelItem(row)
@@ -500,7 +492,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         return ""
 
     def _on_library_item_activated(
-        self, item: Any, column: int
+        self, item: QtWidgets.QTreeWidgetItem, column: int
     ) -> None:
         sha = item.data(0, QtCore.Qt.ItemDataRole.UserRole)
         if not sha:
@@ -843,7 +835,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         if hasattr(self, "reference_dataset_combo"):
             self._refresh_reference_dataset()
 
-    def _create_group_row(self, title: str) -> Any:
+    def _create_group_row(self, title: str) -> QtGui.QStandardItem:
         alias_item = QtGui.QStandardItem(title)
         alias_item.setEditable(False)
         alias_item.setSelectable(False)
@@ -1142,12 +1134,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         references: List[str] = []
         if spectrum.id:
             references.append(spectrum.id)
-
-        # Import events should be persisted to the canonical knowledge log so
-        # provenance survives across sessions. The KnowledgeLogService treats
-        # runtime-only components (e.g. "Remote Import") specially; leave the
-        # default persistence behaviour here.
-        self._record_history_event("Import", summary, references)
+        self._record_history_event("Import", summary, references, persist=False)
         self._refresh_library_view()
 
     def _add_spectrum(self, spectrum: Spectrum) -> None:
@@ -1179,7 +1166,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self._display_y_units[spectrum.id] = source_y
         self._add_plot_trace(spectrum, base_color)
 
-    def _add_plot_trace(self, spectrum: Spectrum, base_color: Any) -> None:
+    def _add_plot_trace(self, spectrum: Spectrum, base_color: QtGui.QColor) -> None:
         alias_item = self._dataset_items.get(spectrum.id)
         alias = alias_item.text() if alias_item else spectrum.name
         x_nm = self._to_nm(spectrum.x, spectrum.x_unit)
@@ -1512,10 +1499,11 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             return f"Intensity ({unit_label}, normalized: {normalised})"
         return f"Intensity ({unit_label})"
 
-    def _assign_color(self, spectrum: Spectrum) -> Any:
+    def _assign_color(self, spectrum: Spectrum) -> QtGui.QColor:
         if spectrum.id in self._spectrum_colors:
             return self._spectrum_colors[spectrum.id]
-        color: Optional[Any] = None
+
+        color: QtGui.QColor | None = None
         metadata = spectrum.metadata if isinstance(spectrum.metadata, dict) else {}
         operation = metadata.get('operation') if isinstance(metadata, dict) else None
         parents: List[str] = []
@@ -1533,12 +1521,12 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self._spectrum_colors[spectrum.id] = color
         return color
 
-    def _display_color(self, base: Any) -> Any:
+    def _display_color(self, base: QtGui.QColor) -> QtGui.QColor:
         if self._use_uniform_palette:
             return QtGui.QColor(self._uniform_color)
         return QtGui.QColor(base)
 
-    def _update_dataset_icon(self, spectrum_id: str, color: Any) -> None:
+    def _update_dataset_icon(self, spectrum_id: str, color: QtGui.QColor) -> None:
         color_item = self._dataset_color_items.get(spectrum_id)
         if color_item is None:
             return
@@ -1588,8 +1576,8 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
 
     def _on_dataset_data_changed(
         self,
-        top_left: Any,
-        bottom_right: Any,
+        top_left: QtCore.QModelIndex,
+        bottom_right: QtCore.QModelIndex,
         roles: List[int],
     ) -> None:
         if top_left.column() != 1:

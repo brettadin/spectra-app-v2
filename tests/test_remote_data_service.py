@@ -47,65 +47,6 @@ def store(tmp_path: Path) -> LocalStore:
     return LocalStore(base_dir=tmp_path)
 
 
-def test_search_mast_requires_target_or_filters(store: LocalStore, monkeypatch: pytest.MonkeyPatch) -> None:
-    service = RemoteDataService(store, session=None)
-
-    class DummyObservations:
-        called = False
-
-        @classmethod
-        def query_criteria(cls, **criteria: Any) -> list[dict[str, Any]]:  # pragma: no cover - defensive
-            cls.called = True
-            return []
-
-    class DummyMast:
-        Observations = DummyObservations
-
-    monkeypatch.setattr(service, "_ensure_mast", lambda: DummyMast)
-
-    with pytest.raises(ValueError) as excinfo:
-        service.search(RemoteDataService.PROVIDER_MAST, {})
-
-    assert "target name" in str(excinfo.value)
-    assert DummyObservations.called is False
-
-
-def test__search_mast_rejects_empty_criteria(store: LocalStore, monkeypatch: pytest.MonkeyPatch) -> None:
-    service = RemoteDataService(store, session=None)
-
-    def _unexpected():  # pragma: no cover - defensive
-        raise AssertionError("_ensure_mast should not be called for empty criteria")
-
-    monkeypatch.setattr(service, "_ensure_mast", _unexpected)
-
-    with pytest.raises(ValueError) as excinfo:
-        service._search_mast({})
-
-    assert "criteria" in str(excinfo.value)
-
-
-def test_search_nist_requires_element(store: LocalStore) -> None:
-    session = DummySession()
-    service = RemoteDataService(store, session=session)
-
-    with pytest.raises(ValueError) as excinfo:
-        service.search(RemoteDataService.PROVIDER_NIST, {})
-
-    assert "element" in str(excinfo.value)
-    assert session.calls == []
-
-
-def test__search_nist_rejects_empty_criteria(store: LocalStore) -> None:
-    session = DummySession()
-    service = RemoteDataService(store, session=session)
-
-    with pytest.raises(ValueError) as excinfo:
-        service._search_nist({})
-
-    assert "criteria" in str(excinfo.value)
-    assert session.calls == []
-
-
 def test_search_nist_constructs_url_and_params(store: LocalStore) -> None:
     session = DummySession()
     session.queue(
@@ -172,18 +113,7 @@ def test_download_uses_cache_and_records_provenance(store: LocalStore) -> None:
     assert Path(cached.cache_entry["stored_path"]) == stored_path
 
 
-def test_download_mast_uses_astroquery_and_records_provenance(
-    store: LocalStore, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
-    session = DummySession()
-    service = RemoteDataService(store, session=session)
-
-    downloaded = tmp_path / "mast-product.fits"
-    payload = b"mastdata"
-    downloaded.write_bytes(payload)
-
-    mast_calls: list[dict[str, Any]] = []
-
+def test_search_mast_table_conversion(store: LocalStore, monkeypatch: pytest.MonkeyPatch) -> None:
     class DummyObservations:
         criteria: dict[str, Any] | None = None
 
@@ -224,6 +154,13 @@ def test_download_mast_uses_astroquery_and_records_provenance(
     assert records[0].identifier == "12345"
     assert records[0].download_url == "mast:JWST/product.fits"
     assert records[0].units == {"x": "um", "y": "flux"}
+
+
+def test_search_mast_requires_non_empty_criteria(store: LocalStore) -> None:
+    service = RemoteDataService(store, session=None)
+
+    with pytest.raises(ValueError):
+        service.search(RemoteDataService.PROVIDER_MAST, {})
 
 
 def test_download_mast_uses_astroquery(

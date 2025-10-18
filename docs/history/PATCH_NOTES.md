@@ -1,11 +1,25 @@
 # Patch Notes
 
+## 2025-10-18 (Remote Data examples & validation) (00:08 EDT)
 
-## 2025-10-17T20:11:18-04:00 (Coordinator prompts realigned)
+- Added curated example queries to the Remote Data dialog for both NIST and MAST
+  so operators can fetch spectroscopy targets without retyping common names.
+- Blocked empty submissions in the dialog and raised a service-level error when
+  MAST criteria are missing, preventing unbounded archive sweeps.
+- Updated the remote data user guide and workplan to document the scoped searches
+  and new example menu.
 
-- Revised the master prompt, runner prompt, and agent manual to reference the new brains ledger, backlog file, and real-time logging requirements.
-- Added `docs/brains/README.md` plus backlog documentation so architectural decisions and scheduling tasks stay discoverable.
-- Updated developer notes, START_HERE, and the active workplan to point agents at the refreshed docs and outstanding remote-data safeguards.
+## 2025-10-17 (Onboarding docs realignment) (20:10 EDT / 00:10 UTC)
+
+- Rewrote the master prompt to reflect the decomposed brains directory, pass
+  review priorities, and spectroscopy-first guardrails, including explicit time
+  discipline for all documentation updates.
+- Updated `AGENTS.md` and `START_HERE.md` so new agents read the correct
+  artefacts (pass dossiers, brains README, link collection) and know how to
+  capture real timestamps for patch notes and knowledge-log entries.
+- Added `docs/brains/README.md` plus pass review summaries (`pass1.md` –
+  `pass4.md`) and refreshed the workplan backlog to focus on calibration,
+  identification, provenance parity, and UI polish milestones.
 
 ## 2025-10-17 (Library provenance preview) (14:19 UTC)
 
@@ -224,6 +238,16 @@
 - Allowed **File → Open** and **File → Load Sample** to queue multiple files at once while batching plot refreshes.
 - Documented the toolbar location for normalization modes and refreshed the reference-data walkthrough with the new overlay behaviour.
 
+# 2025-10-18 (Remote Data examples & validation) (12:04 am EDT)
+
+- Added curated example queries to the Remote Data dialog for both NIST and
+  MAST so operators can fetch spectroscopy targets without retyping common
+  names.
+- Blocked empty submissions in the dialog and raised a service-level error when
+  MAST criteria are missing, preventing unbounded archive sweeps.
+- Updated the remote data user guide and workplan to document the scoped
+  searches and new example menu.
+
 ## 2025-10-15 (Importing Guide Provenance Appendix) (9:10 am)
 
 - Expanded `docs/user/importing.md` with a provenance export appendix covering the structure of the manifest bundle.
@@ -264,16 +288,3 @@
 - Added an automated smoke workflow test that instantiates the preview shell, ingests CSV/FITS data, exercises unit toggles, and exports a provenance bundle.
 - Centralised the reusable FITS fixture under `tests/conftest.py` to support regression suites.
 - Documented the new smoke validation loop for developers and provided a matching user checklist.
-
-## 2025-10-18 (Remote data UX & knowledge-log hygiene)
-
-- Remote Data dialog: provider dropdown and search input now remain interactive even when optional dependencies are missing. Unavailable providers are annotated as `(dependencies missing)` and the Search button is enabled only when dependencies are satisfied.
-- RemoteDataService: tightened provider-specific input validation and confirmed dependency guards for `requests`/`astroquery`.
-- Knowledge Log: corrected persistence behaviour so intentional import events persist to `docs/history/KNOWLEDGE_LOG.md` when requested; runtime-only components remain filterable.
-- Test fixtures: `samples/sample_spectrum.csv` and `samples/sample_transmittance.csv` were added to satisfy tests that expect those fixtures.
-
-## 2025-10-17 (Remote data validation guard) (11:36 pm est)
-
-- Remote Data dialog: empty submissions now surface provider-specific guidance and avoid hitting remote catalogues until required filters are supplied.
-- RemoteDataService: `_search_nist` and `_search_mast` raise `ValueError` when invoked with empty criteria maps, preventing accidental broad queries.
-- Documentation & planning: updated `docs/user/remote_data.md` and marked the Batch 15 workplan item complete alongside refreshed regression coverage.

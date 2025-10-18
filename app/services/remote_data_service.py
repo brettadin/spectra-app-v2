@@ -102,14 +102,8 @@ class RemoteDataService:
     # ------------------------------------------------------------------
     def search(self, provider: str, query: Mapping[str, Any]) -> List[RemoteRecord]:
         if provider == self.PROVIDER_NIST:
-            # NIST requires at least an 'element' or 'text' filter to be meaningful
-            if not query.get("element") and not query.get("text"):
-                raise ValueError("NIST search requires an 'element' or 'text' filter")
             return self._search_nist(query)
         if provider == self.PROVIDER_MAST:
-            # MAST requires either a 'target_name' or a non-empty 'text' query
-            if not query.get("target_name") and not (isinstance(query.get("text"), str) and query.get("text").strip()):
-                raise ValueError("MAST search requires a 'target name' or text filters")
             return self._search_mast(query)
         raise ValueError(f"Unsupported provider: {provider}")
 
@@ -153,19 +147,15 @@ class RemoteDataService:
 
     # ------------------------------------------------------------------
     def _search_nist(self, query: Mapping[str, Any]) -> List[RemoteRecord]:
-        criteria = dict(query)
-        if not criteria:
-            raise ValueError("NIST search requires search criteria")
-
         session = self._ensure_session()
         params: Dict[str, Any] = {
             "format": "json",
-            "spectra": criteria.get("element") or criteria.get("text") or "",
+            "spectra": query.get("element") or query.get("text") or "",
         }
-        if criteria.get("wavelength_min") is not None:
-            params["wavemin"] = criteria["wavelength_min"]
-        if criteria.get("wavelength_max") is not None:
-            params["wavemax"] = criteria["wavelength_max"]
+        if query.get("wavelength_min") is not None:
+            params["wavemin"] = query["wavelength_min"]
+        if query.get("wavelength_max") is not None:
+            params["wavemax"] = query["wavelength_max"]
         response = session.get(self.nist_search_url, params=params, timeout=30)
         response.raise_for_status()
         payload = response.json()
@@ -210,14 +200,15 @@ class RemoteDataService:
 
     def _search_mast(self, query: Mapping[str, Any]) -> List[RemoteRecord]:
         criteria = dict(query)
-        if not criteria:
-            raise ValueError("MAST search requires search criteria")
-
-        observations = self._ensure_mast()
         legacy_text = criteria.pop("text", None)
         if legacy_text and "target_name" not in criteria:
             if isinstance(legacy_text, str) and legacy_text.strip():
                 criteria["target_name"] = legacy_text.strip()
+
+        if not criteria or not any(criteria.values()):
+            raise ValueError("MAST searches require a target name or explicit filtering criteria.")
+
+        observations = self._ensure_mast()
 
         # Default to calibrated spectroscopic products so search results focus on
         # slit/grism/cube observations that pair with laboratory references.

@@ -1,59 +1,62 @@
-# Brains Ledger (Architecture & Reasoning Notes)
+# Brains Log Index
 
-The legacy `docs/atlas/brains.md` file has been replaced by this directory so we
-can capture design decisions and scientific rationale as focused, timestamped
-entries.  Each note documents one architectural topic (e.g., calibration
-pipelines, identification scoring, cache layout) with links back to the code,
-Atlas chapters, and user documentation it affects.
+The `docs/brains/` directory replaces the old single `atlas/brains.md` file. Each
+entry documents a single architectural, scientific, or workflow decision with
+the context required for future agents to reason about it.
 
-## How to add a new entry
+## File Naming
 
-1. **Create a markdown file** named `YYYY-MM-DDTHHMM-topic.md` (24-hour clock,
-   America/New_York timezone).  Example: `2025-10-17T1930-calibration-dock.md`.
-2. **Populate the header** using this template:
-   ```markdown
-   # Title
-   _Recorded: 2025-10-17T19:30:00-04:00 (America/New_York)_
+Use ISO-8601 timestamps in UTC for every file:
 
-   ## Context
-   Reference the relevant Atlas chapters (see below), specs, tests, and any
-   external research links or DOIs.
+```
+YYYY-MM-DDTHH-MM-SSZ-topic.md
+```
 
-   ## Decisions
-   - Bullet the agreed constraints or selected approach.
+Example: `2025-10-17T23-30-00Z-remote-data-spectroscopy.md`.
 
-   ## Follow-up
-   - List tasks that must appear in `docs/reviews/workplan.md` or the backlog.
-   ```
-3. **Cross-link** the entry from:
-   - `docs/history/KNOWLEDGE_LOG.md` (summary of what changed, why).
-   - Any affected user or developer documentation.
-4. **Update the workplan** so actionable items land in Batch planning or the
-   backlog.
+The timestamp reflects when the decision was finalised. Always compute the value
+at runtime and convert to UTC before writing.
 
-## Atlas alignment
+## Template
 
-The Atlas still provides canonical guidance for units, calibration, provenance,
-UI ergonomics, and programming standards.  Before writing or revising a brains
-entry, review:
+Each entry must follow this structure:
 
-- `docs/atlas/0_index_stec_master_canvas_index_numbered.md`
-- Chapter 5 (Units), 6 (Calibration/LSF/frames), 7 (Identification),
-  8 (Provenance), 10 (Campus workflows), 11 (Rubric), 14 (Application),
-  22 (UI design), 29 (Programming standards)
+```markdown
+# Decision Title
 
-If a chapter is missing or outdated, document the gap and add a workplan task to
-refresh it.  The brains entries are meant to complement—not replace—the Atlas.
+**Timestamp (UTC)**: 2025-10-17T23:30:00Z
+**Authors**: Spectra Agent, Human Reviewer
+**Related Atlas Chapters**: 5 (Units), 6 (Calibration), 7 (Identification)
+**Source Docs**: docs/history/KNOWLEDGE_LOG.md, docs/reviews/pass3.md
 
-## File naming & housekeeping
+## Context
+Why the decision was necessary. Summarise the motivating bugs, scientific
+requirements, or UI concerns and link to specific files (e.g.
+`app/services/calibration_service.py`).
 
-- Keep filenames lowercase with hyphens; avoid spaces so cross-links stay
-  shell-friendly.
-- Delete or archive superseded entries instead of editing history silently;
-  record the supersession in the knowledge log for traceability.
-- The old `placeholder.txt` remains only to remind editors that entries now live
-  here.  Do not store decisions back in `docs/atlas/`.
+## Decision
+State the agreed approach and list any constraints (unit canon, calibration
+honesty, provenance requirements, UI expectations).
 
-By funnelling architectural reasoning through this directory, agents can trace
-why a decision was made, which experiments were run, and where to plug follow-up
-work into the planning documents.
+## Consequences
+Capture expected follow-up work, tests to add, and any documentation impacts.
+
+## References
+Cite external standards, academic papers, or internal documents using the same
+citation markers used elsewhere in the repo (e.g. 【F:docs/user/remote_data.md†L12-L34】).
+```
+
+## Relationship to Other Logs
+
+- Summaries of these decisions should still flow into
+  `docs/history/KNOWLEDGE_LOG.md` so the consolidated log stays comprehensive.
+- The Atlas index (`docs/atlas/0_index_stec_master_canvas_index_numbered.md`)
+  cross-links to the relevant brain entries.
+- When a decision is superseded, update the original file with a note pointing
+  to the replacement and log the change in the knowledge log.
+
+## Migration Guidance
+
+Legacy `atlas/brains.md` content should be migrated into individual files here.
+When porting a section, keep the original text in the commit history but add a
+summary entry following the template above.

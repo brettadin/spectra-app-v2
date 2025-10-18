@@ -26,10 +26,7 @@ class KnowledgeLogService:
     """Append and query provenance-ready entries for the knowledge log."""
 
     HEADER_PATTERN = re.compile(r"^##\s+(?P<timestamp>[^–]+) – (?P<component>.+)$", re.MULTILINE)
-    # Only remote imports are considered runtime-only by default.  Local
-    # imports should persist to the consolidated KNOWNLEDGE_LOG so provenance
-    # is retained between sessions.
-    DEFAULT_RUNTIME_ONLY_COMPONENTS = frozenset({"remote import"})
+    DEFAULT_RUNTIME_ONLY_COMPONENTS = frozenset({"import", "remote import"})
 
     def __init__(
         self,

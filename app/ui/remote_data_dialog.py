@@ -32,7 +32,7 @@ class RemoteDataDialog(QtWidgets.QDialog):
         self._ingested: List[object] = []
         self._provider_hints: dict[str, str] = {}
         self._provider_placeholders: dict[str, str] = {}
-        self._provider_validation_messages: dict[str, str] = {}
+        self._provider_examples: dict[str, list[tuple[str, str]]] = {}
         self._dependency_hint: str = ""
 
         self._build_ui()
@@ -54,6 +54,15 @@ class RemoteDataDialog(QtWidgets.QDialog):
         self.search_edit = QtWidgets.QLineEdit(self)
         self.search_edit.setPlaceholderText("Element, target name, or keyword…")
         controls.addWidget(self.search_edit, 1)
+
+        self.example_combo = QtWidgets.QComboBox(self)
+        self.example_combo.setSizeAdjustPolicy(
+            QtWidgets.QComboBox.SizeAdjustPolicy.AdjustToContents
+        )
+        self.example_combo.addItem("Examples…")
+        self.example_combo.setEnabled(False)
+        self.example_combo.activated.connect(self._on_example_selected)
+        controls.addWidget(self.example_combo)
 
         self.search_button = QtWidgets.QPushButton("Search", self)
         self.search_button.clicked.connect(self._on_search)
@@ -100,18 +109,16 @@ class RemoteDataDialog(QtWidgets.QDialog):
 
     # ------------------------------------------------------------------
     def _on_search(self) -> None:
-        provider = self._current_provider_key()
+        provider = self.provider_combo.currentText()
         query = self._build_provider_query(provider, self.search_edit.text())
         if not query:
-            message = self._provider_validation_messages.get(
-                provider,
-                "Enter search criteria before querying remote catalogues.",
+            QtWidgets.QMessageBox.information(
+                self,
+                "Enter search criteria",
+                "Provide provider-specific search text before querying the remote catalogue.",
             )
-            QtWidgets.QMessageBox.information(self, "Search criteria required", message)
-            self.status_label.setText(message)
-            self.results.setRowCount(0)
-            self.preview.clear()
             return
+
         try:
             records = self.remote_service.search(provider, query)
         except Exception as exc:  # pragma: no cover - UI feedback
@@ -138,7 +145,7 @@ class RemoteDataDialog(QtWidgets.QDialog):
             # Qt passes the numeric index; the logic below derives values from
             # the provider string so the argument is intentionally ignored.
             pass
-        provider = self._current_provider_key()
+        provider = self.provider_combo.currentText()
         placeholder = self._provider_placeholders.get(provider)
         if placeholder:
             self.search_edit.setPlaceholderText(placeholder)
@@ -150,12 +157,15 @@ class RemoteDataDialog(QtWidgets.QDialog):
             hint = "\n".join(parts)
         self.hint_label.setText(hint)
 
-    def _current_provider_key(self) -> str:
-        """Return canonical provider key (userData) for current selection."""
-        data = self.provider_combo.currentData()
-        if isinstance(data, str) and data:
-            return data
-        return str(self.provider_combo.currentText() or "")
+        examples = self._provider_examples.get(provider, [])
+        self.example_combo.blockSignals(True)
+        self.example_combo.clear()
+        self.example_combo.addItem("Examples…")
+        for label, query in examples:
+            self.example_combo.addItem(label, userData=query)
+        self.example_combo.setCurrentIndex(0)
+        self.example_combo.setEnabled(bool(examples))
+        self.example_combo.blockSignals(False)
 
     def _build_provider_query(self, provider: str, text: str) -> dict[str, str]:
         stripped = text.strip()
@@ -164,6 +174,14 @@ class RemoteDataDialog(QtWidgets.QDialog):
         if provider == RemoteDataService.PROVIDER_NIST:
             return {"element": stripped} if stripped else {}
         return {"text": stripped} if stripped else {}
+
+    def _on_example_selected(self, index: int) -> None:
+        if index <= 0:
+            return
+        query_text = self.example_combo.itemData(index)
+        if isinstance(query_text, str):
+            self.search_edit.setText(query_text)
+            self._on_search()
 
     def _update_preview(self) -> None:
         indexes = self.results.selectionModel().selectedRows()
@@ -197,50 +215,48 @@ class RemoteDataDialog(QtWidgets.QDialog):
         self.accept()
 
     def _refresh_provider_state(self) -> None:
-        available = set(self.remote_service.providers())
-        unavailable = self.remote_service.unavailable_providers()
-
-        # Populate the combo with both available and unavailable providers so
-        # the user can still select and inspect catalogue descriptions. The
-        # availability state controls whether searches are permitted.
+        providers = self.remote_service.providers()
         self.provider_combo.clear()
-        # Add available providers first (store canonical key as userData)
-        for p in sorted(available):
-            self.provider_combo.addItem(p, p)
-        # Add unavailable providers (annotated display text), keep key in userData
-        for p in sorted(unavailable.keys()):
-            if p not in available:
-                self.provider_combo.addItem(f"{p} (dependencies missing)", p)
+        if providers:
+            self.provider_combo.addItems(providers)
+            self.provider_combo.setEnabled(True)
+            self.search_edit.setEnabled(True)
+            self.search_button.setEnabled(True)
+            self._provider_placeholders = {
+                RemoteDataService.PROVIDER_NIST: "Fe II, H-alpha, or ion symbol…",
+                RemoteDataService.PROVIDER_MAST: "JWST spectroscopic target (e.g. WASP-96 b, NIRSpec)…",
+            }
+            self._provider_hints = {
+                RemoteDataService.PROVIDER_NIST: (
+                    "Searches target laboratory-grade spectral line lists from the NIST ASD."
+                ),
+                RemoteDataService.PROVIDER_MAST: (
+                    "MAST requests favour calibrated spectra (IFS cubes, slits, prisms) using the "
+                    "`dataproduct_type=spectrum` filter so results align with lab references."
+                ),
+            }
+            self._provider_examples = {
+                RemoteDataService.PROVIDER_NIST: [
+                    ("Fe II UV multiplet", "Fe II"),
+                    ("Ca II K resonance line", "Ca II"),
+                    ("Hydrogen Balmer Hα", "H I 656.28 nm"),
+                ],
+                RemoteDataService.PROVIDER_MAST: [
+                    ("WASP-96 b – JWST/NIRSpec", "WASP-96 b"),
+                    ("WASP-39 b – JWST/NIRSpec", "WASP-39 b"),
+                    ("HD 189733 – JWST/NIRISS", "HD 189733"),
+                ],
+            }
+        else:
+            self.provider_combo.setEnabled(False)
+            self.search_edit.setEnabled(False)
+            self.search_button.setEnabled(False)
+            self.example_combo.setEnabled(False)
+            self._provider_placeholders = {}
+            self._provider_hints = {}
+            self._provider_examples = {}
 
-        # The combo and search box should remain enabled so users can choose a
-        # provider and type queries. The search button is enabled only when the
-        # currently selected provider has its dependencies satisfied.
-        self.provider_combo.setEnabled(True)
-        self.search_edit.setEnabled(True)
-        # placeholders and hints for known providers (without annotations)
-        self._provider_placeholders = {
-            RemoteDataService.PROVIDER_NIST: "Fe II, H-alpha, or ion symbol…",
-            RemoteDataService.PROVIDER_MAST: "JWST spectroscopic target (e.g. WASP-96 b, NIRSpec)…",
-        }
-        self._provider_hints = {
-            RemoteDataService.PROVIDER_NIST: (
-                "Searches target laboratory-grade spectral line lists from the NIST ASD."
-            ),
-            RemoteDataService.PROVIDER_MAST: (
-                "MAST requests favour calibrated spectra (IFS cubes, slits, prisms) using the "
-                "`dataproduct_type=spectrum` filter so results align with lab references."
-            ),
-        }
-        self._provider_validation_messages = {
-            RemoteDataService.PROVIDER_NIST: (
-                "Enter an element, ion, or transition label before searching the NIST ASD."
-            ),
-            RemoteDataService.PROVIDER_MAST: (
-                "MAST searches require a target name or instrument keyword (e.g. WASP-96 b, NIRSpec)."
-            ),
-        }
-
-        # Compose dependency hint text (if any)
+        unavailable = self.remote_service.unavailable_providers()
         if unavailable:
             messages = []
             for provider, reason in unavailable.items():
@@ -249,8 +265,7 @@ class RemoteDataDialog(QtWidgets.QDialog):
         else:
             self._dependency_hint = ""
 
-        # Update status depending on whether any providers are available.
-        if not available:
+        if not providers:
             if not unavailable:
                 self.status_label.setText("Remote catalogues are temporarily unavailable.")
             else:
@@ -260,10 +275,5 @@ class RemoteDataDialog(QtWidgets.QDialog):
         else:
             self.status_label.clear()
 
-        # Adjust the Search button enablement based on the currently selected
-        # provider's availability. If provider name includes our annotation,
-        # treat it as unavailable.
         self._on_provider_changed()
-        key = self._current_provider_key()
-        self.search_button.setEnabled(bool(key) and key in available)
 

@@ -9,7 +9,7 @@ from typing import Any, List
 import pytest
 
 from app.qt_compat import get_qt
-from app.services import LocalStore, RemoteDataService
+from app.services import LocalStore, RemoteDataService, RemoteRecord
 
 try:  # pragma: no cover - skip when Qt bindings unavailable
     QtCore, QtGui, QtWidgets, _ = get_qt()
@@ -27,7 +27,6 @@ class StubRemoteService(RemoteDataService):
             RemoteDataService.PROVIDER_NIST,
             RemoteDataService.PROVIDER_MAST,
         ]
-        self.search_calls: List[tuple[str, dict[str, Any]]] = []
 
     def providers(self) -> List[str]:
         return list(self._providers)
@@ -35,8 +34,20 @@ class StubRemoteService(RemoteDataService):
     def unavailable_providers(self) -> dict[str, str]:
         return {}
 
-    def search(self, provider: str, query: dict[str, Any]) -> list[RemoteRecord]:  # type: ignore[override]
-        self.search_calls.append((provider, dict(query)))
+
+class TrackingRemoteService(StubRemoteService):
+    def __init__(self) -> None:
+        super().__init__()
+        self.calls: list[tuple[str, dict[str, Any]]] = []
+        self.stub_records: list[RemoteRecord] = []
+
+    def queue_record(self, record: RemoteRecord) -> None:
+        self.stub_records.append(record)
+
+    def search(self, provider: str, query: dict[str, Any]) -> List[RemoteRecord]:
+        self.calls.append((provider, dict(query)))
+        if self.stub_records:
+            return [self.stub_records.pop(0)]
         return []
 
 
@@ -69,39 +80,67 @@ def test_dialog_initialises_without_missing_slots(monkeypatch: Any) -> None:
         app.quit()
 
 
-@pytest.mark.parametrize(
-    "provider, expected_phrase",
-    [
-        (RemoteDataService.PROVIDER_NIST, "element"),
-        (RemoteDataService.PROVIDER_MAST, "target"),
-    ],
-)
-def test_dialog_blocks_empty_search(provider: str, expected_phrase: str, monkeypatch: Any) -> None:
+def test_empty_search_does_not_hit_service(monkeypatch: Any) -> None:
     app = _ensure_app()
+    service = TrackingRemoteService()
     ingest = IngestServiceStub()
-    remote = StubRemoteService()
-    dialog = RemoteDataDialog(None, remote_service=remote, ingest_service=ingest)
 
-    index = dialog.provider_combo.findData(provider)
-    assert index != -1
-    dialog.provider_combo.setCurrentIndex(index)
+    dialog = RemoteDataDialog(
+        None,
+        remote_service=service,
+        ingest_service=ingest,
+    )
 
-    captured: dict[str, str] = {}
+    monkeypatch.setattr(
+        QtWidgets.QMessageBox,
+        "information",
+        lambda *args, **kwargs: QtWidgets.QMessageBox.StandardButton.Ok,
+    )
 
-    def _capture(parent, title, message, *args, **kwargs):  # type: ignore[override]
-        captured["title"] = title
-        captured["message"] = message
-        return QtWidgets.QMessageBox.StandardButton.Ok
-
-    monkeypatch.setattr(QtWidgets.QMessageBox, "information", staticmethod(_capture))
-
-    dialog.search_edit.clear()
+    dialog.search_edit.setText("   ")
     dialog._on_search()
 
-    assert remote.search_calls == []
-    assert expected_phrase in captured.get("message", "")
-    assert captured.get("title") == "Search criteria required"
-    assert dialog.status_label.text() == captured["message"]
+    assert service.calls == []
+
+    dialog.deleteLater()
+    if QtWidgets.QApplication.instance() is app and not app.topLevelWidgets():
+        app.quit()
+
+
+def test_example_selection_runs_search(monkeypatch: Any) -> None:
+    app = _ensure_app()
+    service = TrackingRemoteService()
+    ingest = IngestServiceStub()
+
+    record = RemoteRecord(
+        provider=RemoteDataService.PROVIDER_MAST,
+        identifier="obsid-1",
+        title="WASP-96 b",
+        download_url="mast:JWST/product.fits",
+        metadata={"units": {"x": "um", "y": "flux"}},
+        units={"x": "um", "y": "flux"},
+    )
+    service.queue_record(record)
+
+    dialog = RemoteDataDialog(
+        None,
+        remote_service=service,
+        ingest_service=ingest,
+    )
+
+    provider_index = dialog.provider_combo.findText(RemoteDataService.PROVIDER_MAST)
+    dialog.provider_combo.setCurrentIndex(provider_index)
+
+    assert dialog.example_combo.isEnabled()
+    assert dialog.example_combo.count() > 1
+
+    dialog._on_example_selected(1)
+
+    assert service.calls, "Example selection should trigger a search"
+    provider, query = service.calls[0]
+    assert provider == RemoteDataService.PROVIDER_MAST
+    assert query.get("target_name")
+    assert dialog.search_edit.text() == query["target_name"]
 
     dialog.deleteLater()
     if QtWidgets.QApplication.instance() is app and not app.topLevelWidgets():

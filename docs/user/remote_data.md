@@ -22,8 +22,27 @@ directly against laboratory references.
    with:
    - **NIST ASD** (line lists via the Atomic Spectra Database)
    - **MAST** (MAST data products via `astroquery.mast`)
-3. Enter a keyword, element symbol, or target name in the search field and click
-   **Search**.
+3. Enter a keyword, element symbol, or target name in the search field (or pick
+   one of the curated **Examples…** entries) and click **Search**. The dialog
+   blocks empty submissions so you always send provider-specific filters rather
+   than unbounded catalogue sweeps.
+
+### Provider-specific search tips
+
+- **NIST ASD** – The query box maps to the catalogue’s `spectra` filter. Enter
+  an element/ion (e.g. `Fe II`) or a transition label (`H-alpha`). The examples
+  menu includes Fe II, Ca II K, and Hα shortcuts you can select instead of
+  typing the query manually.
+- **MAST** – Free-text input is rewritten to `target_name` before invoking
+  `astroquery.mast.Observations.query_criteria`, and the adapter injects
+  `dataproduct_type="spectrum"`, `intentType="SCIENCE"`, and
+  `calib_level=[2, 3]` filters automatically. Supply JWST target names or
+  instrument identifiers (e.g. `WASP-96 b`, `NIRSpec grism`). The examples menu
+  preloads spectroscopy-friendly targets such as WASP‑96 b, WASP‑39 b, and
+  HD 189733 so you can trigger a query without retyping common names.
+
+The hint banner beneath the results table updates as you switch providers and
+also surfaces dependency warnings when optional clients are missing.
 
 ### Provider-specific search tips
 

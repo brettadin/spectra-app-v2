@@ -27,34 +27,40 @@ Each entry in this document should follow this structure:
   applicable).
 
 ---
-## 2025-10-18 09:24 – Remote data UX & knowledge-log hygiene
+
+## 2025-10-18 00:08 – Remote Data
 
 **Author**: agent
 
-**Context**: Remote catalogue UI, optional dependency handling, knowledge-log persistence, and test fixtures.
+**Context**: Remote catalogue UX hardening and spectroscopy-focused presets.
 
-**Summary**: Implemented multiple changes to improve developer and user experience:
+**Summary**: Added curated example queries to the Remote Data dialog, prevented
+empty submissions from reaching the service, and raised a guard inside the MAST
+adapter so archive calls always include spectroscopy filters. Updated the user
+guide, workplan, and patch notes to reflect the scoped workflow.
 
-- Remote Data dialog: made provider dropdown and search input resilient when optional dependencies (e.g. `astroquery`) are missing. The combo now lists available providers and annotates those missing dependencies (`(dependencies missing)`), while keeping the provider combo and search edit enabled so users can select and compose queries. The Search button is enabled only for providers whose dependencies are satisfied. (See `app/ui/remote_data_dialog.py`.)
-
-- RemoteDataService: validated provider-specific query inputs (NIST requires `element` or `text`; MAST requires `target_name` or non-empty `text`) and ensured `providers()`/`unavailable_providers()` reflect installed packages (requests/astroquery guards). (See `app/services/remote_data_service.py`.)
-
-- Knowledge Log: fixed persistence so import events are recorded correctly when intended (removed inadvertent `persist=False` use and adjusted runtime-only defaults). This restores import entries to the canonical `docs/history/KNOWLEDGE_LOG.md` when persistence is requested. (See `app/main.py`, `app/services/knowledge_log_service.py`.)
-
-- Test fixtures & samples: added `samples/sample_spectrum.csv` and `samples/sample_transmittance.csv` to satisfy tests expecting those fixtures and to avoid false negatives in the regression suite.
-
-**References**: `app/ui/remote_data_dialog.py`, `app/services/remote_data_service.py`, `app/services/knowledge_log_service.py`, `app/main.py`, `samples/`
+**References**: `app/ui/remote_data_dialog.py`,
+`app/services/remote_data_service.py`, `docs/user/remote_data.md`,
+`docs/reviews/workplan.md`, `docs/history/PATCH_NOTES.md`.
 
 ---
-## 2025-10-17T20:11:24-04:00 – Documentation alignment
+
+## 2025-10-17 20:10 – Documentation
 
 **Author**: agent
 
-**Context**: Coordinator prompts, brains ledger guidance, and planning docs.
+**Context**: Onboarding manuals, pass-review visibility, and brains directory
+alignment.
 
-**Summary**: Realigned the master prompt, runner prompt, agent manual, and Start Here guide with the new brains-ledger workflow, created a backlog document, and refreshed developer notes/workplan so agents follow spectroscopy-first priorities with real New York timestamps.
+**Summary**: Realigned the onboarding trailheads so agents read the decomposed
+brains log, pass-review dossiers, and spectroscopy resources before coding.
+Updated the master prompt, AGENTS manual, START_HERE guide, and workplan to
+stress calibration/identification priorities and real-time timestamp
+discipline. Added brains README plus pass1–pass4 summaries for continuity.
 
-**References**: `docs/history/MASTER PROMPT.md`, `AGENTS.md`, `docs/brains/README.md`, `docs/reviews/workplan.md`, `docs/reviews/workplan_backlog.md`
+**References**: `docs/history/MASTER PROMPT.md`, `AGENTS.md`, `START_HERE.md`,
+`docs/brains/README.md`, `docs/reviews/pass1.md`–`pass4.md`,
+`docs/reviews/workplan.md`, `docs/history/PATCH_NOTES.md`.
 
 ---
 
@@ -443,129 +449,5 @@ Import/Remote Import entries remain after the cleanup.
 - `tests/test_knowledge_log_service.py`
 - `docs/history/PATCH_NOTES.md`
 - `docs/reviews/workplan.md`
-
----
-## 2025-10-17 22:20 – Import
-
-**Author**: automation
-
-**Context**: Spectra Desktop Session
-
-**Summary**: Ingested sample_spectrum via CsvImporter.
-
-**References**:
-- 335d22fe-2717-426e-b9fa-af5024966795
-
----
-## 2025-10-17 22:20 – Import
-
-**Author**: automation
-
-**Context**: Spectra Desktop Session
-
-**Summary**: Ingested sample_transmittance via CsvImporter.
-
-**References**:
-- 3e4bfad1-68de-4f5e-a690-a738cd3b2269
-
----
-## 2025-10-17 22:20 – Import
-
-**Author**: automation
-
-**Context**: Spectra Desktop Session
-
-**Summary**: Ingested low vapor for the road via CsvImporter.
-
-**References**:
-- 7758eb16-05dc-4876-ae8c-734d25b28979
-
----
-## 2025-10-17 22:20 – Import
-
-**Author**: automation
-
-**Context**: Spectra Desktop Session
-
-**Summary**: Ingested sample_reference via CsvImporter.
-
-**References**:
-- b83b71be-b2bc-4d66-84f4-3d2f47e63cfa
-
----
-## 2025-10-17 22:20 – Import
-
-**Author**: automation
-
-**Context**: Spectra Desktop Session
-
-**Summary**: Ingested ozone_USB4F034991__1__23-10-19-605 via CsvImporter.
-
-**References**:
-- 16108a64-b684-482c-90c4-3d99fd370359
-
----
-## 2025-10-17 22:20 – Import
-
-**Author**: automation
-
-**Context**: Spectra Desktop Session
-
-**Summary**: Ingested 10.8 Test 1 via CsvImporter.
-
-**References**:
-- 2bea1847-da41-42c0-981e-89cce11f2f4d
-
----
-## 2025-10-17 22:20 – Import
-
-**Author**: automation
-
-**Context**: Spectra Desktop Session
-
-**Summary**: Ingested okay sun file via CsvImporter.
-
-**References**:
-- 01a497fb-7e52-4f99-a794-e964e0978265
-
----
-## 2025-10-17 22:20 – Import
-
-**Author**: automation
-
-**Context**: Spectra Desktop Session
-
-**Summary**: Ingested bckgr via CsvImporter.
-
-**References**:
-- 4b7dcf39-d144-4811-9baf-3f40bdc01d4c
-
----
-## 2025-10-17 22:20 – Import
-
-**Author**: automation
-
-**Context**: Spectra Desktop Session
-
-**Summary**: Ingested new h lamp 4 via CsvImporter.
-
-**References**:
-- 3f0c5491-e9bd-4865-9505-24a8cc5e6154
-
----
-## 2025-10-17 23:36 – Remote data validation
-
-**Author**: automation
-
-**Context**: Remote Data guard
-
-**Summary**: Added provider-specific empty-query messaging to the Remote Data dialog, enforced empty-criteria guards inside `_search_nist`/`_search_mast`, and extended the regression/docs suite.
-
-**References**:
-- app/ui/remote_data_dialog.py
-- app/services/remote_data_service.py
-- tests/test_remote_data_dialog.py
-- tests/test_remote_data_service.py
-- docs/user/remote_data.md
 
 ---
