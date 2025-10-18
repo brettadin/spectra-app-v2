@@ -126,6 +126,27 @@ pytest
 
 Explore the `samples/` directory for example datasets and provenance manifests.
 
+### Optional remote providers
+
+MAST (JWST/HST) support requires the `astroquery` package. If you want the
+`File → Fetch Remote Data…` dialog to enable MAST searches, install the
+dependency in your virtualenv:
+
+```bash
+pip install astroquery
+```
+
+The Remote Data dialog will list available providers and annotate any missing
+dependencies (e.g. `MAST (dependencies missing)`). The Search button is only
+enabled when the provider's optional dependencies are present.
+
+### Knowledge Log
+
+The consolidated knowledge log (operational patch history, architecture notes,
+and agent entries) lives at `docs/history/KNOWLEDGE_LOG.md`. Append entries
+there when you make cross-cutting changes so future contributors can trace the
+rationale.
+
 ## 🔬 Scientific Mission
 
 The Spectra App is designed for rigorous spectroscopic analysis with particular focus on:
@@ -175,7 +196,7 @@ python -m PyInstaller spectra_app.spec
 - `docs/user/units_reference.md` - Unit system guarantees and toggle guidance
 
 ### Developer Resources
-- `docs/dev/architecture.md` - System architecture overview
+- `specs/architecture.md` - System architecture overview
 - `docs/dev/data_pipeline.md` - Ingestion and processing flow
 - `docs/dev/ui_contract.md` - UI component specifications
 - `docs/dev/testing_guide.md` - Test development procedures

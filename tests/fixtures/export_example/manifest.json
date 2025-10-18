@@ -1,0 +1,33 @@
+{
+  "schema_version": "1.2.0",
+  "app_version": "v1.1.8",
+  "manifest_id": "demo-20251017-001",
+  "created_at_et": "2025-10-17T19:30:00-04:00",
+  "inputs": [
+    {
+      "id": "ds_demo_001",
+      "kind": "upload",
+      "source_path_or_uri": "sources/sun_demo.csv",
+      "hash_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+      "units": {
+        "x_unit": "nm",
+        "y_unit": "absorbance"
+      },
+      "instrument": {
+        "name": "OceanView USB Spectrometer",
+        "resolution_fwhm_nm": 0.5
+      },
+      "metadata": {
+        "observer": "demo",
+        "notes": "Minimal fixture for schema validation"
+      }
+    }
+  ],
+  "outputs": [
+    {
+      "path": "spectra/ds_demo_001.csv",
+      "kind": "csv",
+      "hash_sha256": "1111111111111111111111111111111111111111111111111111111111111111"
+    }
+  ]
+}

@@ -1,88 +1,179 @@
 # Contributing to Spectra App
 
-Welcome to the Spectra App project! This guide covers contribution guidelines for both human developers and AI agents. We follow a **docs-first, test-driven** approach to ensure scientific accuracy and maintainable code.
+This concise guide covers the essentials for human and AI contributors. For full policies, historical context, templates, and extended guides see the `docs/` directory.
 
-## 🎯 Essential Reading (All Contributors)
+## Essential reading
 
-### Required Reading for All Work
-- **`docs/history/MASTER_PROMPT.md`** - Complete product specification, architecture, and acceptance criteria
-- **`docs/history/RUNNER_PROMPT.md`** - Development workflow and iteration loop
-- **`agents.md`** - Development guidelines, UI contract, and safety rules
-- **`README.md`** - Project overview and setup instructions
+- Required: `docs/history/MASTER_PROMPT.md`, `docs/history/RUNNER_PROMPT.md`
+- Reference: `README.md`, `START_HERE.md`, `specs/architecture.md`
 
-### Quick Reference
-- **`START_HERE.md`** - Getting started guide
-- **`docs/architecture.md`** - Technical architecture decisions
-- **`specs/ui_contract/`** - UI component specifications
+## For human contributors
 
-## 👥 For Human Contributors
+### Set up environment
 
-### Getting Started
-1. **Set Up Environment**
-   ```bash
-   # Use the quick launch script
-   RunSpectraApp.cmd
-   
-   # Or manual setup
-   py -3.11 -m venv .venv
-   .\.venv\Scripts\activate
-   pip install -r requirements.txt
-   ```
+```bash
+# quick-launch (Windows)
+RunSpectraApp.cmd
 
-2. **Verify Installation**
-   ```bash
-   pytest  # Run test suite
-   python -m app.main  # Launch application
-   ```
+# manual (cross-platform)
+python -m venv .venv
+. .venv/bin/activate  # or run the Windows activate script
+pip install -r requirements.txt
+```
 
-3. **Create Work Plan**
-   - Create/update `docs/reviews/workplan.md` with your task breakdown
-   - Define clear acceptance criteria
-   - Identify documentation and testing requirements
+### Verify installation
 
-### Development Workflow
-1. **Create Feature Branch**
-   ```bash
-   git checkout -b feature/descriptive-name
-   ```
+```bash
+pytest
+python -m app.main
+```
 
-2. **Follow Atomic PR Principles**
-   - Small, focused changes (single feature/bug fix)
-   - Complete test coverage
-   - Comprehensive documentation
-   - Clear commit messages
+### Work plan & branching
 
-3. **PR Checklist**
-   - [ ] All tests pass (`pytest`)
-   - [ ] UI remains responsive with 1M+ point datasets
-   - [ ] Documentation updated (user + developer)
-   - [ ] Version bumped in `app/version.json`
-   - [ ] Patch notes added to `docs/patch_notes/`
-   - [ ] AI log updated in `docs/ai_log/`
-   - [ ] No regression in existing functionality
+- Update `docs/reviews/workplan.md` with task breakdown and acceptance criteria.
+- Create a feature branch: `git checkout -b feature/short-desc`
 
-## 🤖 For AI Agent Contributors
+### PR checklist
 
-### Special Guidelines for AI Development
+- [ ] All tests pass
+- [ ] Documentation updated (user + developer)
+- [ ] Focused tests added for new behavior
+- [ ] Version bumped when user-visible changes occur
+
+## For AI contributors
+
+Follow the agent operating manual (`AGENTS.md`) and the repository `docs/` before editing code. Minimum requirements:
+
+1. Load `docs/history/MASTER_PROMPT.md` and `docs/history/RUNNER_PROMPT.md`.
+1. Record changes in `docs/ai_log/` with a short rationale and tests added.
+1. Use branch pattern `ai/feature-YYYYMMDD` and make small, test-covered commits.
+
+### AI session protocol (brief)
+
+- PLAN → IMPLEMENT → TEST → DOCUMENT → VALIDATE
+- Declare session start in the work plan and list goals and constraints.
+- Run the full test suite before finalizing a PR.
+
+## Technical standards (summary)
+
+- Formatting: Black
+- Linting: flake8
+- Tests: pytest
+- Type hints encouraged
+
+## Submission
+
+### Pre-submission checks
+
+```bash
+pytest
+python -m app.main --test-large
+```
+
+### PR creation
+
+- Use the PR template: `.github/pull_request_template.md`.
+- Link to work plan and related issues; tag reviewers.
+
+## Getting help
+
+- Technical: `docs/dev/`, `specs/`
+- Process: `AGENTS.md`, `docs/history/RUNNER_PROMPT.md`
+- Scientific context: `docs/edu/`, `MASTER_PROMPT.md`
+
+---
+
+For a more comprehensive contribution guide and AI-specific templates, see `docs/CONTRIBUTING_FULL.md` and `docs/ai_log/`
+
+For the full contribution guide and AI-specific templates, see `docs/CONTRIBUTING_FULL.md` and `docs/ai_log/`.
+
+- Verify UI contract compliance
+   pytest                           # All tests pass
+% This file intentionally simplified to resolve lint warnings. See docs/ for full policy.
+
+Essential reading
+
+1. **Required**: `docs/history/MASTER_PROMPT.md`, `docs/history/RUNNER_PROMPT.md`, `docs/atlas/read
+1. **Reference**: `README.md`, `START_HERE.md`, `specs/architecture.md`
+
+For human contributors
+
+1. Set up environment
+
+```bash
+# quick-launch (Windows)
+RunSpectraApp.cmd
+
+# manual (cross-platform)
+python -m venv .venv
+. .venv/bin/activate  # or activate script on Windows
+pip install -r requirements.txt
+```
+
+1. Verify install
+
+```bash
+pytest
+python -m app.main
+```
+
+1. Create a work plan and small feature branch
+
+- Update `docs/reviews/workplan.md`
+- Create branch: `git checkout -b feature/short-desc`
+
+Checklist before PR
+
+- All tests pass
+- Add/update docs and patch notes
+- Include focused tests for new behavior
+
+For AI contributors
+
+Follow the agent operating manual in `AGENTS.md` and the repository `docs/` before editing code. Minimal requirements:
+
+1. Start by loading `docs/history/MASTER_PROMPT.md` and `docs/history/RUNNER_PROMPT.md`.
+1. Record changes in `docs/ai_log/` with a short rationale and tests added.
+
+Use the standard branch pattern `ai/feature-YYYYMMDD` and make small, test-covered commits.
+
+Technical standards (summary)
+
+- Formatting: Black
+- Linting: flake8
+- Tests: pytest
+- Type hints encouraged
+
+Submission
+
+1. Run tests and CI locally where possible.
+1. Open PR with work plan and tests.
+
+---
+
+If you need a longer contribution guide, please see `docs/CONTRIBUTING_FULL.md` or ask maintainers.
 
 AI agents must adhere to additional guidelines to ensure consistency and maintainability:
 
-#### Pre-Development Phase
+Pre-Development Phase
+
 1. **Context Loading**
    - Always start by loading the MASTER_PROMPT and RUNNER_PROMPT
    - Review recent entries in `docs/ai_log/` for context
    - Check `reports/feature_parity_matrix.md` for legacy compatibility
 
 2. **Work Plan Creation**
+
    ```bash
    # Create detailed work plan
    docs/reviews/workplan_AI_[timestamp].md
    ```
+
    - Include specific file changes and implementations
    - Define test cases and validation criteria
    - List documentation that needs updating
 
-#### Development Session Protocol
+Development Session Protocol
 
 1. **Session Initialization**
    - Declare session start in work plan
@@ -90,18 +181,18 @@ AI agents must adhere to additional guidelines to ensure consistency and maintai
    - Confirm understanding of non-negotiable principles
 
 2. **Implementation Loop**
-   ```
+
    PLAN → IMPLEMENT → TEST → DOCUMENT → VALIDATE
-   ```
 
 3. **Quality Gates**
    - **Before Coding**: Verify against UI contract and architecture boundaries
    - **During Coding**: Follow existing patterns in `app/services/`
    - **After Coding**: Run full test suite and performance validation
 
-#### Documentation Requirements for AI Work
+Documentation Requirements for AI Work
 
 1. **AI Log Entry** (`docs/ai_log/`)
+
    ```markdown
    # YYYY-MM-DD-HHMM - [Feature Description]
    
@@ -133,7 +224,7 @@ AI agents must adhere to additional guidelines to ensure consistency and maintai
    - Maintain unit conversion integrity
    - Preserve citation and attribution information
 
-#### Safety and Validation Rules
+Safety and Validation Rules
 
 1. **Non-Negotiable Checks**
    - [ ] Desktop-first (PySide6/Qt only)
@@ -190,18 +281,21 @@ git commit -m "feat: describe specific change
 ## 🛠 Technical Standards
 
 ### Code Quality
+
 - **Formatting**: Black code formatter
 - **Linting**: flake8 compliance
 - **Type Checking**: mypy (where applicable)
 - **Testing**: pytest with ≥80% coverage
 
 ### Scientific Accuracy
+
 - **Unit Conversions**: Mathematically sound and idempotent
 - **Algorithm Validation**: Peer-reviewed methods preferred
 - **Data Provenance**: Complete lineage tracking
 - **Citation Integrity**: Proper attribution of data sources
 
 ### Performance Requirements
+
 - **UI Responsiveness**: Smooth interaction with 1M+ point datasets
 - **Memory Efficiency**: Smart caching and data management
 - **Startup Time**: <5 seconds for application launch
@@ -210,6 +304,7 @@ git commit -m "feat: describe specific change
 ## 📚 Documentation Standards
 
 ### Required Updates for Every Change
+
 - **User Documentation**: `docs/user/` - Guides, tutorials, FAQs
 - **Developer Documentation**: `docs/dev/` - API references, architecture
 - **Educational Content**: `docs/edu/` - Spectroscopy primers
@@ -217,6 +312,7 @@ git commit -m "feat: describe specific change
 - **AI Log**: `docs/ai_log/` - Development rationale and decisions
 
 ### Documentation Quality Checklist
+
 - [ ] Clear, concise language
 - [ ] Examples provided where helpful
 - [ ] Cross-references to related content
@@ -226,6 +322,7 @@ git commit -m "feat: describe specific change
 ## 🚀 Submission Process
 
 1. **Pre-Submission Validation**
+
    ```bash
    pytest                           # All tests pass
    python -m app.main --test-large  # Performance validation
@@ -253,6 +350,7 @@ git commit -m "feat: describe specific change
 > **Spectroscopic analysis of celestial bodies, and the many ways in which we may approach it.**
 
 Keep the application:
+
 - 🔬 **Scientifically accurate**
 - 💻 **Technically robust**  
 - 👥 **User-friendly**
