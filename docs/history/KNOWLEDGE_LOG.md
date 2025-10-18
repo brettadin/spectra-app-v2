@@ -27,6 +27,38 @@ Each entry in this document should follow this structure:
   applicable).
 
 ---
+## 2025-10-17T20:11:24-04:00 – Documentation alignment
+
+**Author**: agent
+
+**Context**: Coordinator prompts, brains ledger guidance, and planning docs.
+
+**Summary**: Realigned the master prompt, runner prompt, agent manual, and Start Here guide with the new brains-ledger workflow, created a backlog document, and refreshed developer notes/workplan so agents follow spectroscopy-first priorities with real New York timestamps.
+
+**References**: `docs/history/MASTER PROMPT.md`, `AGENTS.md`, `docs/brains/README.md`, `docs/reviews/workplan.md`, `docs/reviews/workplan_backlog.md`
+
+---
+
+## 2025-10-17 14:19 – Library metadata preview
+
+**Author**: agent
+
+**Context**: Cache inspection UX and provenance traceability.
+
+**Summary**: Added a detail pane to the Library dock so selecting a cached
+spectra entry now reveals its provenance, canonical units, and storage path
+inline. Hooked selection changes to the preview, refreshed the empty-state
+messaging, and documented the workflow in the importing guide. A new smoke test
+guards the dock, ensuring metadata appears even in headless CI runs.
+
+**References**:
+- `app/main.py`
+- `tests/test_smoke_workflow.py`
+- `docs/user/importing.md`
+- `docs/history/PATCH_NOTES.md`
+
+---
+
 ```
 
 Entries should be appended chronologically.  Older logs imported from the
@@ -156,6 +188,29 @@ To migrate existing `brains` and `atlas` logs, follow these steps:
 **Summary**: Staged hydrogen line lists, IR functional groups, line-shape placeholders, and digitised JWST spectra in the ReferenceLibrary so offline users can browse curated datasets with provenance metadata intact.【F:app/services/reference_library.py†L11-L126】 Regression coverage now asserts the catalogues include expected IDs, generators, and JWST quick-look metadata, while the reference guide narrates how overlays behave and calls out the planned swap to calibrated JWST pipelines—will backfill the roadmap/workplan link referencing that migration as soon as it lands.【F:tests/test_reference_library.py†L5-L45】【F:docs/user/reference_data.md†L1-L85】【F:docs/reviews/workplan.md†L150-L155】
 
 **References**: `app/services/reference_library.py`, `tests/test_reference_library.py`, `docs/user/reference_data.md`, `docs/reviews/workplan.md`.
+
+---
+
+## 2025-10-17 01:45 – Remote data focus & cache library
+
+**Author**: agent
+
+**Context**: Remote catalogue reliability, cache UX, and documentation hygiene.
+
+**Summary**: Rewired the Remote Data dialog to send provider-specific queries
+(`spectra` vs `target_name`) and patched the download path so `mast:` URIs flow
+through `astroquery.Observations.download_file`. Added regression coverage for
+the translation/downloader. Introduced a Library dock that lists cached
+artefacts via `LocalStore.list_entries()` so we can reload spectra without
+polluting the knowledge log with raw file paths; updated `_ingest_path` and the
+remote import hook to log concise summaries instead. Added a trace-colour mode
+toggle (palette vs uniform) and refreshed user docs plus `docs/link_collection.md`
+to keep the spectroscopy focus explicit.
+
+**References**: `app/ui/remote_data_dialog.py`, `app/services/remote_data_service.py`,
+`app/main.py`, `tests/test_remote_data_service.py`, `docs/user/remote_data.md`,
+`docs/user/importing.md`, `docs/user/plot_tools.md`, `docs/user/reference_data.md`,
+`docs/link_collection.md`, `docs/reviews/workplan.md`.
 
 ---
 
@@ -319,5 +374,55 @@ and patch notes document the automatic caching behaviour and opt-out flow.【F:t
 **Summary**: Added a persisted "LOD point budget" spinner to the Inspector Style tab so analysts can adjust the downsampling envelope between 1k and 1M samples without leaving the session; the control writes through `QSettings` and immediately refreshes visible traces.【F:app/main.py†L76-L116】【F:app/main.py†L214-L275】【F:app/main.py†L410-L520】 Updated `PlotPane` to accept a constructor-provided limit, clamp invalid values, and expose a setter that re-renders existing traces on change.【F:app/ui/plot_pane.py†L35-L304】 Extended the plot performance stub to assert overrides and clamping, keeping the peak-envelope decimator aligned with the configured budget.【F:tests/test_plot_perf_stub.py†L14-L63】 Documented the new preference in the plotting guide and patch notes for operator awareness.【F:docs/user/plot_tools.md†L56-L65】【F:docs/history/PATCH_NOTES.md†L3-L8】
 
 **References**: `app/main.py`, `app/ui/plot_pane.py`, `tests/test_plot_perf_stub.py`, `docs/user/plot_tools.md`, `docs/history/PATCH_NOTES.md`.
+
+---
+
+## 2025-10-17 02:30 – Remote Data & Documentation Map
+
+**Author**: agent
+
+**Context**: Remote catalogue UX hardening and documentation continuity.
+
+**Summary**: Fixed the Remote Data dialog crash triggered by an undefined provider-change slot, enforced spectroscopic defaults for MAST searches (`dataproduct_type="spectrum"`, `intentType="SCIENCE"`, `calib_level=[2, 3]`), and filtered out imaging products via `_is_spectroscopic` so remote results stay aligned with laboratory comparisons.【F:app/ui/remote_data_dialog.py†L30-L219】【F:app/services/remote_data_service.py†L111-L212】 Added a Qt smoke test plus extended regression coverage to assert the injected filters, refreshed the remote-data user guide with the new hints, and published a developer documentation map so future agents can locate the operating manual, link collection, and workplan without guesswork.【F:tests/test_remote_data_dialog.py†L1-L75】【F:tests/test_remote_data_service.py†L1-L125】【F:docs/user/remote_data.md†L1-L99】【F:docs/developer_notes.md†L1-L42】【F:docs/history/PATCH_NOTES.md†L1-L17】
+
+**References**: `app/ui/remote_data_dialog.py`, `app/services/remote_data_service.py`, `tests/test_remote_data_dialog.py`, `tests/test_remote_data_service.py`, `docs/user/remote_data.md`, `docs/developer_notes.md`, `docs/history/PATCH_NOTES.md`.
+
+---
+
+## 2025-10-17 03:45 – Knowledge Log Hygiene
+
+**Author**: agent
+
+**Context**: Import bookkeeping and history retention.
+
+**Summary**: Added a non-persistent mode to `KnowledgeLogService.record_event` so
+routine Import/Remote Import notifications stay in the in-app History dock
+without appending to the canonical log. Updated `SpectraMainWindow` ingest hooks
+to call `persist=False`, refreshed the regression suite to cover the new flag,
+and confirmed the knowledge log contains only curated summaries.
+
+**References**: `app/services/knowledge_log_service.py`, `app/main.py`,
+`tests/test_knowledge_log_service.py`.
+
+---
+
+## 2025-10-17 04:30 – Knowledge Log Runtime Guard
+
+**Author**: agent
+
+**Context**: Knowledge-log policy enforcement and historical cleanup.
+
+**Summary**: Hardened `KnowledgeLogService.record_event` so Import/Remote Import
+components are always treated as runtime-only—even if callers forget to disable
+persistence—by registering a default runtime-only component set. Extended the
+regression suite to verify the guard and to allow opt-in overrides for tests,
+then audited `docs/history/KNOWLEDGE_LOG.md` to ensure no automation-generated
+Import/Remote Import entries remain after the cleanup.
+
+**References**:
+- `app/services/knowledge_log_service.py`
+- `tests/test_knowledge_log_service.py`
+- `docs/history/PATCH_NOTES.md`
+- `docs/reviews/workplan.md`
 
 ---
