@@ -426,3 +426,111 @@ Import/Remote Import entries remain after the cleanup.
 - `docs/reviews/workplan.md`
 
 ---
+## 2025-10-17 22:20 – Import
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested sample_spectrum via CsvImporter.
+
+**References**:
+- 335d22fe-2717-426e-b9fa-af5024966795
+
+---
+## 2025-10-17 22:20 – Import
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested sample_transmittance via CsvImporter.
+
+**References**:
+- 3e4bfad1-68de-4f5e-a690-a738cd3b2269
+
+---
+## 2025-10-17 22:20 – Import
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested low vapor for the road via CsvImporter.
+
+**References**:
+- 7758eb16-05dc-4876-ae8c-734d25b28979
+
+---
+## 2025-10-17 22:20 – Import
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested sample_reference via CsvImporter.
+
+**References**:
+- b83b71be-b2bc-4d66-84f4-3d2f47e63cfa
+
+---
+## 2025-10-17 22:20 – Import
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested ozone_USB4F034991__1__23-10-19-605 via CsvImporter.
+
+**References**:
+- 16108a64-b684-482c-90c4-3d99fd370359
+
+---
+## 2025-10-17 22:20 – Import
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested 10.8 Test 1 via CsvImporter.
+
+**References**:
+- 2bea1847-da41-42c0-981e-89cce11f2f4d
+
+---
+## 2025-10-17 22:20 – Import
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested okay sun file via CsvImporter.
+
+**References**:
+- 01a497fb-7e52-4f99-a794-e964e0978265
+
+---
+## 2025-10-17 22:20 – Import
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested bckgr via CsvImporter.
+
+**References**:
+- 4b7dcf39-d144-4811-9baf-3f40bdc01d4c
+
+---
+## 2025-10-17 22:20 – Import
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested new h lamp 4 via CsvImporter.
+
+**References**:
+- 3f0c5491-e9bd-4865-9505-24a8cc5e6154
+
+---
