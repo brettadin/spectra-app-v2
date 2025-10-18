@@ -11,9 +11,23 @@ directly against laboratory references.
 >
 > Remote catalogues rely on third-party clients. The NIST adapter requires the
 > [`requests`](https://docs.python-requests.org/) package, while MAST lookups
-> also need [`astroquery`](https://astroquery.readthedocs.io/). If either
-> dependency is missing the dialog will list the provider as unavailable and the
-> search controls remain disabled until the package is installed.
+> also need [`astroquery`](https://astroquery.readthedocs.io/). Both packages
+> are pinned in `requirements.txt`, so running the standard developer install
+> brings them in automatically:
+>
+> ```bash
+> pip install -r requirements.txt
+> ```
+>
+> If you use Poetry, the `remote` extra replicates the same dependency set:
+>
+> ```bash
+> poetry install --with remote
+> ```
+>
+> If either dependency is missing the dialog will list the provider as
+> unavailable and the search controls remain disabled until the package is
+> installed.
 
 ## Opening the dialog
 

@@ -309,13 +309,19 @@ class RemoteDataService:
         if self.session is not None:
             return self.session
         if requests is None:
-            raise RuntimeError("The 'requests' package is required for remote downloads")
+            raise RuntimeError(
+                "The 'requests' package is required for remote downloads. "
+                "Install it via `pip install -r requirements.txt` or `poetry install --with remote`."
+            )
         self.session = requests.Session()
         return self.session
 
     def _ensure_mast(self):
         if astroquery_mast is None:
-            raise RuntimeError("The 'astroquery' package is required for MAST searches")
+            raise RuntimeError(
+                "The 'astroquery' package is required for MAST searches. "
+                "Install it via `pip install -r requirements.txt` or `poetry install --with remote`."
+            )
         return astroquery_mast
 
     def _has_requests(self) -> bool:
