@@ -32,6 +32,7 @@ class RemoteDataDialog(QtWidgets.QDialog):
         self._ingested: List[object] = []
         self._provider_hints: dict[str, str] = {}
         self._provider_placeholders: dict[str, str] = {}
+        self._provider_validation_messages: dict[str, str] = {}
         self._dependency_hint: str = ""
 
         self._build_ui()
@@ -101,6 +102,16 @@ class RemoteDataDialog(QtWidgets.QDialog):
     def _on_search(self) -> None:
         provider = self._current_provider_key()
         query = self._build_provider_query(provider, self.search_edit.text())
+        if not query:
+            message = self._provider_validation_messages.get(
+                provider,
+                "Enter search criteria before querying remote catalogues.",
+            )
+            QtWidgets.QMessageBox.information(self, "Search criteria required", message)
+            self.status_label.setText(message)
+            self.results.setRowCount(0)
+            self.preview.clear()
+            return
         try:
             records = self.remote_service.search(provider, query)
         except Exception as exc:  # pragma: no cover - UI feedback
@@ -220,6 +231,14 @@ class RemoteDataDialog(QtWidgets.QDialog):
                 "`dataproduct_type=spectrum` filter so results align with lab references."
             ),
         }
+        self._provider_validation_messages = {
+            RemoteDataService.PROVIDER_NIST: (
+                "Enter an element, ion, or transition label before searching the NIST ASD."
+            ),
+            RemoteDataService.PROVIDER_MAST: (
+                "MAST searches require a target name or instrument keyword (e.g. WASP-96 b, NIRSpec)."
+            ),
+        }
 
         # Compose dependency hint text (if any)
         if unavailable:
@@ -241,10 +260,10 @@ class RemoteDataDialog(QtWidgets.QDialog):
         else:
             self.status_label.clear()
 
-    # Adjust the Search button enablement based on the currently selected
-    # provider's availability. If provider name includes our annotation,
-    # treat it as unavailable.
-    self._on_provider_changed()
-    key = self._current_provider_key()
-    self.search_button.setEnabled(bool(key) and key in available)
+        # Adjust the Search button enablement based on the currently selected
+        # provider's availability. If provider name includes our annotation,
+        # treat it as unavailable.
+        self._on_provider_changed()
+        key = self._current_provider_key()
+        self.search_button.setEnabled(bool(key) and key in available)
 

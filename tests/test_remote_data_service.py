@@ -70,6 +70,20 @@ def test_search_mast_requires_target_or_filters(store: LocalStore, monkeypatch: 
     assert DummyObservations.called is False
 
 
+def test__search_mast_rejects_empty_criteria(store: LocalStore, monkeypatch: pytest.MonkeyPatch) -> None:
+    service = RemoteDataService(store, session=None)
+
+    def _unexpected():  # pragma: no cover - defensive
+        raise AssertionError("_ensure_mast should not be called for empty criteria")
+
+    monkeypatch.setattr(service, "_ensure_mast", _unexpected)
+
+    with pytest.raises(ValueError) as excinfo:
+        service._search_mast({})
+
+    assert "criteria" in str(excinfo.value)
+
+
 def test_search_nist_requires_element(store: LocalStore) -> None:
     session = DummySession()
     service = RemoteDataService(store, session=session)
@@ -78,6 +92,17 @@ def test_search_nist_requires_element(store: LocalStore) -> None:
         service.search(RemoteDataService.PROVIDER_NIST, {})
 
     assert "element" in str(excinfo.value)
+    assert session.calls == []
+
+
+def test__search_nist_rejects_empty_criteria(store: LocalStore) -> None:
+    session = DummySession()
+    service = RemoteDataService(store, session=session)
+
+    with pytest.raises(ValueError) as excinfo:
+        service._search_nist({})
+
+    assert "criteria" in str(excinfo.value)
     assert session.calls == []
 
 

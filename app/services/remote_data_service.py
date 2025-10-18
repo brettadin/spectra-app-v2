@@ -153,15 +153,19 @@ class RemoteDataService:
 
     # ------------------------------------------------------------------
     def _search_nist(self, query: Mapping[str, Any]) -> List[RemoteRecord]:
+        criteria = dict(query)
+        if not criteria:
+            raise ValueError("NIST search requires search criteria")
+
         session = self._ensure_session()
         params: Dict[str, Any] = {
             "format": "json",
-            "spectra": query.get("element") or query.get("text") or "",
+            "spectra": criteria.get("element") or criteria.get("text") or "",
         }
-        if query.get("wavelength_min") is not None:
-            params["wavemin"] = query["wavelength_min"]
-        if query.get("wavelength_max") is not None:
-            params["wavemax"] = query["wavelength_max"]
+        if criteria.get("wavelength_min") is not None:
+            params["wavemin"] = criteria["wavelength_min"]
+        if criteria.get("wavelength_max") is not None:
+            params["wavemax"] = criteria["wavelength_max"]
         response = session.get(self.nist_search_url, params=params, timeout=30)
         response.raise_for_status()
         payload = response.json()
@@ -205,8 +209,11 @@ class RemoteDataService:
         return records
 
     def _search_mast(self, query: Mapping[str, Any]) -> List[RemoteRecord]:
-        observations = self._ensure_mast()
         criteria = dict(query)
+        if not criteria:
+            raise ValueError("MAST search requires search criteria")
+
+        observations = self._ensure_mast()
         legacy_text = criteria.pop("text", None)
         if legacy_text and "target_name" not in criteria:
             if isinstance(legacy_text, str) and legacy_text.strip():

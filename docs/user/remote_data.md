@@ -38,6 +38,10 @@ directly against laboratory references.
   calibrated spectroscopic products (IFS cubes, slit/grism/prism extractions)
   instead of broad-band imaging or photometric light curves.
 
+Submitting an empty search displays a provider-specific validation message (for
+example, MAST insists on a target name or instrument keyword) and the dialog
+will not contact the remote catalogue until those fields are populated.
+
 The hint banner beneath the results table updates as you switch providers and
 also surfaces dependency warnings when optional clients are missing.
 
