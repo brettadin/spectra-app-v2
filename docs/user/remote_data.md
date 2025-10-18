@@ -11,9 +11,23 @@ directly against laboratory references.
 >
 > Remote catalogues rely on third-party clients. The NIST adapter requires the
 > [`requests`](https://docs.python-requests.org/) package, while MAST lookups
-> also need [`astroquery`](https://astroquery.readthedocs.io/). If either
-> dependency is missing the dialog will list the provider as unavailable and the
-> search controls remain disabled until the package is installed.
+> also need [`astroquery`](https://astroquery.readthedocs.io/). Both packages
+> are pinned in `requirements.txt`, so running the standard developer install
+> brings them in automatically:
+>
+> ```bash
+> pip install -r requirements.txt
+> ```
+>
+> If you use Poetry, the `remote` extra replicates the same dependency set:
+>
+> ```bash
+> poetry install --with remote
+> ```
+>
+> If either dependency is missing the dialog will list the provider as
+> unavailable and the search controls remain disabled until the package is
+> installed.
 
 ## Opening the dialog
 
@@ -29,10 +43,13 @@ directly against laboratory references.
 
 ### Provider-specific search tips
 
-- **NIST ASD** – The query box maps to the catalogue’s `spectra` filter. Enter
-  an element/ion (e.g. `Fe II`) or a transition label (`H-alpha`). The examples
-  menu includes Fe II, Ca II K, and Hα shortcuts you can select instead of
-  typing the query manually.
+- **NIST ASD** – The query box maps to the catalogue’s `spectra` filter and
+  relays the request to the refreshed `lines1.pl` CSV endpoint. Enter an
+  element/ion (e.g. `Fe II`) or a transition label (`H-alpha`). Spectra limits
+  default to the first 100 transitions ordered by wavelength; provide explicit
+  wavelength bounds to focus the response. Each download retrieves the same CSV
+  page the UI previews and the metadata panel records the row index so you can
+  isolate the selected line after import.
 - **MAST** – Free-text input is rewritten to `target_name` before invoking
   `astroquery.mast.Observations.query_criteria`, and the adapter injects
   `dataproduct_type="spectrum"`, `intentType="SCIENCE"`, and
@@ -46,9 +63,14 @@ also surfaces dependency warnings when optional clients are missing.
 
 ### Provider-specific search tips
 
-- **NIST ASD** – The query box maps to the catalogue’s `spectra` filter. Enter
-  an element/ion (e.g. `Fe II`) or a transition label (`H-alpha`) to retrieve
-  laboratory line lists that align with the bundled reference overlays.
+- **NIST ASD** – The query box maps to the catalogue’s `spectra` filter and
+  relays the request to the refreshed `lines1.pl` CSV endpoint. Enter an
+  element/ion (e.g. `Fe II`) or a transition label (`H-alpha`) to retrieve
+  laboratory line lists that align with the bundled reference overlays. Results
+  include the first 100 transitions for the supplied range; narrow the
+  wavelength bounds when you need a smaller subset. Downloads mirror the CSV
+  export and the preview highlights the selected row so you can find it inside
+  the saved file.
 - **MAST** – Free-text input is rewritten to `target_name` before invoking
   `astroquery.mast.Observations.query_criteria`, and the adapter injects
   `dataproduct_type="spectrum"`, `intentType="SCIENCE"`, and

@@ -34,7 +34,10 @@ RunSpectraApp.cmd
 # Manual setup
 py -3.11 -m venv .venv
 .\.venv\Scripts\activate
-pip install -r requirements.txt
+pip install -r requirements.txt  # includes requests/astroquery for remote catalogues
+
+# Poetry workflow (installs the same remote extras)
+poetry install --with remote
 ```
 
 ### 2. Verify Installation

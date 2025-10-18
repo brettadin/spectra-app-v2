@@ -451,3 +451,47 @@ Import/Remote Import entries remain after the cleanup.
 - `docs/reviews/workplan.md`
 
 ---
+
+## 2025-10-18 04:26 – Remote dependency guidance
+
+**Author**: agent
+
+**Context**: Remote catalogue enablement and onboarding docs.
+
+**Summary**: Documented how to install the NIST/MAST dependencies via pip or
+Poetry, added a `remote` extra to `pyproject.toml`, and pinned `requests` plus
+`astroquery` alongside runtime guards that surface the same instructions when
+imports fail. Extended the remote data service tests to assert the guidance is
+emitted whenever dependencies are missing.
+
+**References**:
+- `requirements.txt`
+- `pyproject.toml`
+- `AGENTS.md`
+- `START_HERE.md`
+- `docs/user/remote_data.md`
+- `app/services/remote_data_service.py`
+- `tests/test_remote_data_service.py`
+- `docs/history/PATCH_NOTES.md`
+
+---
+
+## 2025-10-18 17:25 – Remote Data (UTC)
+
+**Author**: agent
+
+**Context**: Restoring the NIST ASD search pipeline after the API migration.
+
+**Summary**: Pointed the NIST adapter at the `lines1.pl` CSV export, normalised
+the returned rows so wavelengths, intensities, and level metadata survive the
+Excel-style quoting, and recorded the row index so downloads mirror the selected
+transition. Updated the regression suite, AGENTS manual, and remote data guide
+to document the page-sized CSV workflow and dependency expectations. Logged the
+change in the patch notes for provenance.
+
+**References**:
+- `app/services/remote_data_service.py`
+- `tests/test_remote_data_service.py`
+- `docs/user/remote_data.md`
+- `AGENTS.md`
+- `docs/history/PATCH_NOTES.md`

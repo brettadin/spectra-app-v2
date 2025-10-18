@@ -31,10 +31,16 @@ below—future agents rely on these conventions to maintain continuity.
 ## 1. Implementation guidelines
 
 - **Remote catalogues**: The dialog now sends provider-specific queries. NIST
-  expects `spectra`; MAST expects `target_name`. If you add providers, extend
+  expects `spectra`; MAST expects `target_name`. The NIST adapter fronts the
+  refreshed `lines1.pl` CSV export—leave the default page size at 100 rows and
+  preserve the row index in metadata when you tweak parsing so downloads still
+  highlight the chosen transition. If you add providers, extend
   `app/services/remote_data_service.py`, update
   `tests/test_remote_data_service.py`, and refresh the user guide. Never fire
-  an empty query—validate inputs in the dialog and service.
+  an empty query—validate inputs in the dialog and service. Remote dependencies
+  (`requests`, `astroquery`) are pinned in `requirements.txt`; install them via
+  `pip install -r requirements.txt` or `poetry install --with remote` before
+  exercising NIST/MAST workflows.
 - **Downloads**: MAST products must flow through
   `astroquery.mast.Observations.download_file`; HTTP URLs still use
   `requests`. Honour `_fetch_remote` when wiring new sources.
