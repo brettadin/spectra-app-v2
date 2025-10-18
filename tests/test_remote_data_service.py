@@ -14,10 +14,26 @@ from app.services import remote_data_service as remote_module
 
 
 class DummyResponse:
-    def __init__(self, *, json_payload: Any | None = None, content: bytes = b"", status: int = 200):
+    def __init__(
+        self,
+        *,
+        json_payload: Any | None = None,
+        content: bytes = b"",
+        text: str | None = None,
+        status: int = 200,
+    ):
         self._json = json_payload or {}
         self.content = content
         self.status_code = status
+        if text is not None:
+            self.text = text
+        elif content:
+            try:
+                self.text = content.decode("utf-8")
+            except UnicodeDecodeError:
+                self.text = ""
+        else:
+            self.text = ""
 
     def json(self) -> Any:
         return self._json
@@ -49,20 +65,11 @@ def store(tmp_path: Path) -> LocalStore:
 
 def test_search_nist_constructs_url_and_params(store: LocalStore) -> None:
     session = DummySession()
-    session.queue(
-        DummyResponse(
-            json_payload={
-                "results": [
-                    {
-                        "id": "FeII-1",
-                        "species": "Fe II",
-                        "download_uri": "https://example.test/FeII-1.csv",
-                        "units": {"x": "nm", "y": "absorbance"},
-                    }
-                ]
-            }
-        )
-    )
+    csv_text = '''obs_wl_vac(A),ritz_wl_vac(A),wn(cm-1),intens,Aki(s^-1),Acc,Ei(cm-1),Ek(cm-1),conf_i,term_i,J_i,conf_k,term_k,J_k,Type,ID_i,ID_k,
+=""923.878""",=""923.87821""",=""108239.4""",=""8000""",=""2.8e+07""",D,=""0.0000""",=""108239.375""",=""3d6.(5D).4s""",=""a 6D""",=""9/2""",=""3d5.(2F1).4s.4p.(3P*)""",=""4D*""",=""7/2""",E,=""026002.000001""",=""026002.000812""",
+<form action="https://physics.nist.gov/cgi-bin/ASD/lines1.pl" method="post">
+'''
+    session.queue(DummyResponse(text=csv_text))
     service = RemoteDataService(store, session=session)
 
     records = service.search(
@@ -74,10 +81,20 @@ def test_search_nist_constructs_url_and_params(store: LocalStore) -> None:
     call = session.calls[0]
     assert call["url"] == service.nist_search_url
     assert call["params"]["spectra"] == "Fe II"
-    assert call["params"]["wavemin"] == 250.0
-    assert call["params"]["wavemax"] == 260.0
+    assert call["params"]["low_w"] == "250"
+    assert call["params"]["upp_w"] == "260"
+    assert call["params"]["format"] == "2"
+    assert call["params"]["output"] == "1"
+    assert call["params"]["page_size"] == str(service.nist_page_size)
+    assert call["params"]["output_type"] == "0"
     assert len(records) == 1
-    assert records[0].download_url == "https://example.test/FeII-1.csv"
+    record = records[0]
+    assert record.provider == RemoteDataService.PROVIDER_NIST
+    assert record.download_url.startswith(service.nist_search_url)
+    assert record.units == {"x": "Angstrom (vacuum)", "y": "relative intensity (arbitrary)"}
+    assert record.metadata["wavelength_ritz_A"] == pytest.approx(923.87821)
+    assert record.metadata["lower_level"]["term"] == "a 6D"
+    assert record.metadata["download"]["parameters"]["spectra"] == "Fe II"
 
 
 def test_download_uses_cache_and_records_provenance(store: LocalStore) -> None:

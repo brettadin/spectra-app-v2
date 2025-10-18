@@ -1,5 +1,15 @@
 # Patch Notes
 
+## 2025-10-18 (NIST remote search restored) (13:25 EDT / 17:25 UTC)
+
+- Repointed the remote data service at NIST’s `lines1.pl` CSV export, normalised
+  the new output structure, and tracked row indexes in the record metadata so
+  downloads surface the selected transition.
+- Tightened the NIST regression suite to cover the refreshed query parameters
+  and ensure the download URL mirrors the previewed results.
+- Documented the page-sized CSV workflow in the remote data guide and agent
+  manual so catalog queries and provenance expectations stay aligned.
+
 ## 2025-10-18 (Remote dependency guidance) (00:26 EDT / 04:26 UTC)
 
 - Pinned `requests` and `astroquery` in the developer requirements and exposed a

@@ -2,13 +2,15 @@
 
 from __future__ import annotations
 
+import csv
+import io
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 import json
 import tempfile
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Mapping
-from urllib.parse import urlparse
+from urllib.parse import urlencode, urlparse
 
 from .store import LocalStore
 
@@ -67,10 +69,11 @@ class RemoteDataService:
     store: LocalStore
     session: Any | None = None
     clock: Any = datetime.now
-    nist_search_url: str = "https://physics.nist.gov/cgi-bin/ASD/lines/linesearch.pl"
+    nist_search_url: str = "https://physics.nist.gov/cgi-bin/ASD/lines1.pl"
     mast_product_fields: Iterable[str] = field(
         default_factory=lambda: ("obsid", "target_name", "productFilename", "dataURI")
     )
+    nist_page_size: int = 100
 
     PROVIDER_NIST = "NIST ASD"
     PROVIDER_MAST = "MAST"
@@ -148,54 +151,44 @@ class RemoteDataService:
     # ------------------------------------------------------------------
     def _search_nist(self, query: Mapping[str, Any]) -> List[RemoteRecord]:
         session = self._ensure_session()
-        params: Dict[str, Any] = {
-            "format": "json",
-            "spectra": query.get("element") or query.get("text") or "",
-        }
-        if query.get("wavelength_min") is not None:
-            params["wavemin"] = query["wavelength_min"]
-        if query.get("wavelength_max") is not None:
-            params["wavemax"] = query["wavelength_max"]
-        response = session.get(self.nist_search_url, params=params, timeout=30)
+
+        search_term = str(query.get("element") or query.get("text") or "").strip()
+        if not search_term:
+            raise ValueError("NIST searches require an element or ion query.")
+
+        params = self._build_nist_params(search_term, query)
+        response = session.get(self.nist_search_url, params=params, timeout=60)
         response.raise_for_status()
-        payload = response.json()
-        results = payload.get("results") or payload.get("lines") or []
+
+        text = response.text
+        if self._nist_response_is_error(text):
+            message = self._extract_nist_error_message(text)
+            raise RuntimeError(message or "NIST ASD returned an error for the query.")
+
+        rows = self._parse_nist_csv(text)
         records: List[RemoteRecord] = []
-        for idx, entry in enumerate(results):
-            if not isinstance(entry, Mapping):
-                continue
-            metadata = dict(entry)
-            identifier = str(
-                metadata.get("id")
-                or metadata.get("identifier")
-                or metadata.get("transition")
-                or idx
+        if not rows:
+            return records
+
+        base_metadata = {
+            "search_term": search_term,
+            "wavelength_min_nm": self._as_float(query.get("wavelength_min")),
+            "wavelength_max_nm": self._as_float(query.get("wavelength_max")),
+            "page_no": int(params.get("page_no", 1)),
+            "page_size": int(params.get("page_size", self.nist_page_size)),
+        }
+        offset = (base_metadata["page_no"] - 1) * base_metadata["page_size"]
+
+        for index, row in enumerate(rows):
+            record = self._build_nist_record(
+                search_term=search_term,
+                row=row,
+                base_params=params,
+                base_metadata=base_metadata,
+                row_index=index,
+                absolute_index=offset + index,
             )
-            title = str(
-                metadata.get("species")
-                or metadata.get("title")
-                or metadata.get("transition")
-                or identifier
-            )
-            download_uri = (
-                metadata.get("download_uri")
-                or metadata.get("data_uri")
-                or metadata.get("url")
-                or metadata.get("uri")
-            )
-            if not download_uri:
-                download_uri = f"{self.nist_search_url}?download={identifier}"
-            units = metadata.get("units")
-            records.append(
-                RemoteRecord(
-                    provider=self.PROVIDER_NIST,
-                    identifier=identifier,
-                    title=title,
-                    download_url=str(download_uri),
-                    metadata=metadata,
-                    units=units if isinstance(units, Mapping) else None,
-                )
-            )
+            records.append(record)
         return records
 
     def _search_mast(self, query: Mapping[str, Any]) -> List[RemoteRecord]:
@@ -243,6 +236,254 @@ class RemoteDataService:
                 )
                 )
         return records
+
+    # ------------------------------------------------------------------
+    def _build_nist_params(self, search_term: str, query: Mapping[str, Any]) -> Dict[str, str]:
+        page_size = int(query.get("page_size") or self.nist_page_size)
+        page_size = max(1, min(page_size, 500))
+        page_no = int(query.get("page_no") or 1)
+        page_no = max(page_no, 1)
+
+        low = self._as_float(query.get("wavelength_min"))
+        high = self._as_float(query.get("wavelength_max"))
+
+        params: Dict[str, str] = {
+            "spectra": search_term,
+            "format": "2",
+            "output": "1",
+            "page_size": str(page_size),
+            "page_no": str(page_no),
+            "A_out": "0",
+            "allowed_out": "1",
+            "forbid_out": "1",
+            "show_obs_wl": "1",
+            "show_calc_wl": "1",
+            "show_diff_obs_calc": "1",
+            "show_wn": "1",
+            "unc_out": "1",
+            "conf_out": "1",
+            "term_out": "1",
+            "enrg_out": "1",
+            "J_out": "1",
+            "intens_out": "1",
+            "ids_out": "1",
+            "show_av": "2",
+            "output_type": "0",
+            "unit": "0",
+            "line_out": "0",
+            "order_out": "0",
+        }
+        params["low_w"] = f"{low:g}" if low is not None else "1"
+        params["upp_w"] = f"{high:g}" if high is not None else "100000"
+        return params
+
+    def _nist_response_is_error(self, text: str) -> bool:
+        snippet = text.lstrip()
+        if snippet.startswith("<!DOCTYPE html") and "Error Message:" in text:
+            return True
+        return "Software error" in text
+
+    def _extract_nist_error_message(self, text: str) -> str | None:
+        marker = "<FONT COLOR=red>"
+        if marker in text:
+            start = text.index(marker) + len(marker)
+            end = text.find("</FONT>", start)
+            message = text[start:end] if end != -1 else text[start:]
+            return self._clean_nist_value(message)
+        if "Software error" in text:
+            return "NIST ASD reported a server-side error. Please retry later."
+        return None
+
+    def _parse_nist_csv(self, text: str) -> List[Dict[str, str]]:
+        reader = csv.reader(io.StringIO(text))
+        header: List[str] = []
+        rows: List[Dict[str, str]] = []
+        for raw in reader:
+            if not raw:
+                continue
+            first = raw[0].strip()
+            if first.lower().startswith("<form"):
+                break
+            cleaned = [self._clean_nist_value(value) for value in raw]
+            if not header:
+                header = cleaned
+                continue
+            if all(not value for value in cleaned):
+                continue
+            entry: Dict[str, str] = {}
+            for idx, key in enumerate(header):
+                if not key:
+                    continue
+                if idx >= len(cleaned):
+                    break
+                entry[key] = cleaned[idx]
+            if entry:
+                rows.append(entry)
+        return rows
+
+    def _clean_nist_value(self, value: str | None) -> str:
+        if value is None:
+            return ""
+        text = str(value).strip()
+        if not text:
+            return ""
+        if text.startswith("\"") and text.endswith("\""):
+            text = text[1:-1]
+        text = text.strip()
+        if text.startswith("="):
+            text = text[1:]
+        text = text.replace("\"\"", "\"")
+        while text.startswith("\"") and text.endswith("\"") and len(text) >= 2:
+            text = text[1:-1].strip()
+        text = text.strip("\"")
+        text = text.replace("&nbsp;", " ")
+        return text.strip()
+
+    def _build_nist_record(
+        self,
+        *,
+        search_term: str,
+        row: Mapping[str, str],
+        base_params: Mapping[str, str],
+        base_metadata: Mapping[str, Any],
+        row_index: int,
+        absolute_index: int,
+    ) -> RemoteRecord:
+        download_params = dict(base_params)
+        download_url = f"{self.nist_search_url}?{urlencode(download_params)}"
+
+        obs_wl = self._as_float(row.get("obs_wl_vac(A)"))
+        ritz_wl = self._as_float(row.get("ritz_wl_vac(A)"))
+        representative_wl = ritz_wl or obs_wl
+
+        intensity = self._as_float(row.get("intens"))
+        einstein_a = self._as_float(row.get("Aki(s^-1)"))
+        wavenumber = self._as_float(row.get("wn(cm-1)"))
+
+        lower_level = {
+            "energy_cm-1": self._as_float(row.get("Ei(cm-1)")),
+            "configuration": row.get("conf_i") or None,
+            "term": row.get("term_i") or None,
+            "J": row.get("J_i") or None,
+            "id": row.get("ID_i") or None,
+        }
+        upper_level = {
+            "energy_cm-1": self._as_float(row.get("Ek(cm-1)")),
+            "configuration": row.get("conf_k") or None,
+            "term": row.get("term_k") or None,
+            "J": row.get("J_k") or None,
+            "id": row.get("ID_k") or None,
+        }
+
+        metadata: Dict[str, Any] = {
+            "provider": self.PROVIDER_NIST,
+            "search": dict(base_metadata),
+            "row_index": row_index,
+            "absolute_index": absolute_index,
+            "wavelength_vacuum_A": representative_wl,
+            "wavelength_observed_A": obs_wl,
+            "wavelength_ritz_A": ritz_wl,
+            "observed_minus_ritz_A": self._as_float(row.get("obs-ritz")),
+            "uncertainty_obs_A": self._as_float(row.get("unc_obs_wl")),
+            "uncertainty_ritz_A": self._as_float(row.get("unc_ritz_wl")),
+            "wavenumber_cm-1": wavenumber,
+            "intensity_relative": intensity,
+            "einstein_A_s-1": einstein_a,
+            "accuracy": row.get("Acc") or None,
+            "transition_type": row.get("Type") or None,
+            "lower_level": lower_level,
+            "upper_level": upper_level,
+            "nist_level_ids": {
+                "lower": row.get("ID_i") or None,
+                "upper": row.get("ID_k") or None,
+            },
+            "download": {
+                "url": download_url,
+                "parameters": dict(download_params),
+            },
+        }
+
+        identifier = self._derive_nist_identifier(search_term, row, absolute_index, representative_wl)
+        title = self._derive_nist_title(search_term, row, representative_wl)
+
+        units = {"x": "Angstrom (vacuum)", "y": "relative intensity (arbitrary)"}
+
+        return RemoteRecord(
+            provider=self.PROVIDER_NIST,
+            identifier=identifier,
+            title=title,
+            download_url=download_url,
+            metadata=metadata,
+            units=units,
+        )
+
+    def _derive_nist_identifier(
+        self,
+        search_term: str,
+        row: Mapping[str, str],
+        absolute_index: int,
+        wavelength: float | None,
+    ) -> str:
+        lower_id = row.get("ID_i")
+        upper_id = row.get("ID_k")
+        if lower_id or upper_id:
+            parts = [search_term]
+            if lower_id:
+                parts.append(lower_id)
+            if upper_id:
+                parts.append(f"→{upper_id}")
+            return " ".join(parts)
+        if wavelength is not None:
+            return f"{search_term} λ {wavelength:.3f} Å"
+        return f"{search_term} line {absolute_index + 1}"
+
+    def _derive_nist_title(
+        self,
+        search_term: str,
+        row: Mapping[str, str],
+        wavelength: float | None,
+    ) -> str:
+        parts = [search_term]
+        if wavelength is not None:
+            parts.append(f"λ {wavelength:.3f} Å")
+        transition = self._format_nist_transition(row)
+        if transition:
+            parts.append(transition)
+        return " – ".join(parts)
+
+    def _format_nist_transition(self, row: Mapping[str, str]) -> str | None:
+        lower = row.get("term_i") or ""
+        lower_j = row.get("J_i") or ""
+        upper = row.get("term_k") or ""
+        upper_j = row.get("J_k") or ""
+
+        lower_label = lower.strip()
+        if lower_j:
+            suffix = lower_j.strip()
+            lower_label = f"{lower_label} ({suffix})" if lower_label else suffix
+
+        upper_label = upper.strip()
+        if upper_j:
+            suffix = upper_j.strip()
+            upper_label = f"{upper_label} ({suffix})" if upper_label else suffix
+
+        if lower_label and upper_label:
+            return f"{lower_label} → {upper_label}"
+        return lower_label or upper_label or None
+
+    def _as_float(self, value: Any) -> float | None:
+        if value is None:
+            return None
+        if isinstance(value, (int, float)):
+            return float(value)
+        text = str(value).strip()
+        if not text:
+            return None
+        text = text.replace("\xa0", " ")
+        try:
+            return float(text)
+        except ValueError:
+            return None
 
     def _is_spectroscopic(self, metadata: Mapping[str, Any]) -> bool:
         """Return True when the MAST row represents spectroscopic data."""

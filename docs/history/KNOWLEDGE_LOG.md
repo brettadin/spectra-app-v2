@@ -473,3 +473,25 @@ emitted whenever dependencies are missing.
 - `app/services/remote_data_service.py`
 - `tests/test_remote_data_service.py`
 - `docs/history/PATCH_NOTES.md`
+
+---
+
+## 2025-10-18 17:25 – Remote Data (UTC)
+
+**Author**: agent
+
+**Context**: Restoring the NIST ASD search pipeline after the API migration.
+
+**Summary**: Pointed the NIST adapter at the `lines1.pl` CSV export, normalised
+the returned rows so wavelengths, intensities, and level metadata survive the
+Excel-style quoting, and recorded the row index so downloads mirror the selected
+transition. Updated the regression suite, AGENTS manual, and remote data guide
+to document the page-sized CSV workflow and dependency expectations. Logged the
+change in the patch notes for provenance.
+
+**References**:
+- `app/services/remote_data_service.py`
+- `tests/test_remote_data_service.py`
+- `docs/user/remote_data.md`
+- `AGENTS.md`
+- `docs/history/PATCH_NOTES.md`
