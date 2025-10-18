@@ -22,6 +22,13 @@ try:  # Optional dependency – astroquery is heavy and not always bundled
 except Exception:  # pragma: no cover - handled by dependency guards
     astroquery_mast = None  # type: ignore[assignment]
 
+try:  # Optional dependency – astroquery depends on pandas at runtime
+    import pandas  # type: ignore  # noqa: F401
+except Exception:  # pragma: no cover - handled by dependency guards
+    _HAS_PANDAS = False
+else:  # pragma: no branch - simple flag wiring
+    _HAS_PANDAS = True
+
 
 @dataclass
 class RemoteRecord:
@@ -76,14 +83,41 @@ class RemoteDataService:
     PROVIDER_MAST = "MAST"
 
     def providers(self) -> List[str]:
-        return [self.PROVIDER_NIST, self.PROVIDER_MAST]
+        """Return the list of remote providers whose dependencies are satisfied."""
+
+        providers: List[str] = []
+        if self._has_requests():
+            providers.append(self.PROVIDER_NIST)
+            if self._has_astroquery():
+                providers.append(self.PROVIDER_MAST)
+        return providers
+
+    def unavailable_providers(self) -> Dict[str, str]:
+        """Describe catalogues that cannot be used because dependencies are missing."""
+
+        reasons: Dict[str, str] = {}
+        if not self._has_requests():
+            reasons[self.PROVIDER_NIST] = "Install the 'requests' package to enable remote downloads."
+            reasons[self.PROVIDER_MAST] = (
+                "Install the 'requests', 'astroquery', and 'pandas' packages to enable MAST searches."
+            )
+            return reasons
+        if not self._has_astroquery():
+            reasons[self.PROVIDER_MAST] = "Install the 'astroquery' and 'pandas' packages to enable MAST searches."
+        return reasons
 
     # ------------------------------------------------------------------
-    def search(self, provider: str, query: Mapping[str, Any]) -> List[RemoteRecord]:
+    def search(
+        self,
+        provider: str,
+        query: Mapping[str, Any],
+        *,
+        include_imaging: bool = False,
+    ) -> List[RemoteRecord]:
         if provider == self.PROVIDER_NIST:
             return self._search_nist(query)
         if provider == self.PROVIDER_MAST:
-            return self._search_mast(query)
+            return self._search_mast(query, include_imaging=include_imaging)
         raise ValueError(f"Unsupported provider: {provider}")
 
     # ------------------------------------------------------------------
@@ -97,13 +131,7 @@ class RemoteDataService:
                 cached=True,
             )
 
-        session = self._ensure_session()
-        response = session.get(record.download_url, timeout=60)
-        response.raise_for_status()
-
-        with tempfile.NamedTemporaryFile(delete=False) as handle:
-            handle.write(response.content)
-            tmp_path = Path(handle.name)
+        fetch_path, cleanup = self._fetch_remote(record)
 
         x_unit, y_unit = record.resolved_units()
         remote_metadata = {
@@ -114,13 +142,14 @@ class RemoteDataService:
             "metadata": json.loads(json.dumps(record.metadata)),
         }
         store_entry = self.store.record(
-            tmp_path,
+            fetch_path,
             x_unit=x_unit,
             y_unit=y_unit,
             source={"remote": remote_metadata},
             alias=record.suggested_filename(),
         )
-        tmp_path.unlink(missing_ok=True)
+        if cleanup:
+            fetch_path.unlink(missing_ok=True)
 
         return RemoteDownloadResult(
             record=record,
@@ -182,14 +211,44 @@ class RemoteDataService:
             )
         return records
 
-    def _search_mast(self, query: Mapping[str, Any]) -> List[RemoteRecord]:
-        observations = self._ensure_mast()
+    def _search_mast(
+        self,
+        query: Mapping[str, Any],
+        *,
+        include_imaging: bool = False,
+    ) -> List[RemoteRecord]:
         criteria = dict(query)
+        legacy_text = criteria.pop("text", None)
+        if legacy_text and "target_name" not in criteria:
+            if isinstance(legacy_text, str) and legacy_text.strip():
+                criteria["target_name"] = legacy_text.strip()
+
+        if not criteria or not any(criteria.values()):
+            raise ValueError("MAST searches require a target name or explicit filtering criteria.")
+
+        observations = self._ensure_mast()
+
+        # Default to calibrated spectroscopic products so search results focus on
+        # slit/grism/cube observations that pair with laboratory references.
+        if include_imaging:
+            criteria.setdefault("dataproduct_type", ["spectrum", "image"])
+        else:
+            criteria.setdefault("dataproduct_type", "spectrum")
+        criteria.setdefault("intentType", "SCIENCE")
+        if "calib_level" not in criteria:
+            criteria["calib_level"] = [2, 3]
+
         table = observations.Observations.query_criteria(**criteria)
         rows = self._table_to_records(table)
         records: List[RemoteRecord] = []
         for row in rows:
             metadata = dict(row)
+            if include_imaging:
+                if not (self._is_spectroscopic(metadata) or self._is_imaging(metadata)):
+                    continue
+            else:
+                if not self._is_spectroscopic(metadata):
+                    continue
             identifier = str(metadata.get("obsid") or metadata.get("ObservationID") or metadata.get("id"))
             if not identifier:
                 continue
@@ -207,8 +266,69 @@ class RemoteDataService:
                     metadata=metadata,
                     units=units_map,
                 )
-            )
+                )
         return records
+
+    def _is_spectroscopic(self, metadata: Mapping[str, Any]) -> bool:
+        """Return True when the MAST row represents spectroscopic data."""
+
+        product = str(metadata.get("dataproduct_type") or "").lower()
+        if product in {"spectrum", "spectral_energy_distribution"}:
+            return True
+        if "spect" in product:
+            return True
+
+        product_type = str(metadata.get("productType") or "").lower()
+        spectro_tokens = ("spectrum", "spectroscopy", "grism", "ifu", "slit", "prism")
+        if any(token in product_type for token in spectro_tokens):
+            return True
+
+        description = str(metadata.get("description") or metadata.get("display_name") or "").lower()
+        if any(token in description for token in spectro_tokens):
+            return True
+
+        return False
+
+    def _is_imaging(self, metadata: Mapping[str, Any]) -> bool:
+        product = str(metadata.get("dataproduct_type") or "").lower()
+        if product in {"image", "image_cube", "preview"}:
+            return True
+        product_type = str(metadata.get("productType") or "").lower()
+        if "image" in product_type or "imaging" in product_type:
+            return True
+        description = str(metadata.get("description") or metadata.get("display_name") or "").lower()
+        if "image" in description:
+            return True
+        return False
+
+    def _fetch_remote(self, record: RemoteRecord) -> tuple[Path, bool]:
+        if self._should_use_mast(record):
+            return self._fetch_via_mast(record), True
+        return self._fetch_via_http(record), True
+
+    def _fetch_via_http(self, record: RemoteRecord) -> Path:
+        session = self._ensure_session()
+        response = session.get(record.download_url, timeout=60)
+        response.raise_for_status()
+
+        with tempfile.NamedTemporaryFile(delete=False) as handle:
+            handle.write(response.content)
+            return Path(handle.name)
+
+    def _fetch_via_mast(self, record: RemoteRecord) -> Path:
+        mast = self._ensure_mast()
+        result = mast.Observations.download_file(record.download_url, cache=False)
+        if not result:
+            raise RuntimeError("MAST download did not return a file path")
+        path = Path(result)
+        if not path.exists():
+            raise FileNotFoundError(f"MAST download missing: {path}")
+        return path
+
+    def _should_use_mast(self, record: RemoteRecord) -> bool:
+        if record.provider == self.PROVIDER_MAST:
+            return True
+        return record.download_url.startswith("mast:")
 
     # ------------------------------------------------------------------
     def _find_cached(self, uri: str) -> Dict[str, Any] | None:
@@ -231,9 +351,17 @@ class RemoteDataService:
         return self.session
 
     def _ensure_mast(self):
-        if astroquery_mast is None:
-            raise RuntimeError("The 'astroquery' package is required for MAST searches")
+        if not self._has_astroquery():
+            raise RuntimeError(
+                "The 'astroquery' and 'pandas' packages are required for MAST searches"
+            )
         return astroquery_mast
+
+    def _has_requests(self) -> bool:
+        return requests is not None or self.session is not None
+
+    def _has_astroquery(self) -> bool:
+        return astroquery_mast is not None and _HAS_PANDAS
 
     def _table_to_records(self, table: Any) -> List[Mapping[str, Any]]:
         if table is None:

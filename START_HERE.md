@@ -7,10 +7,10 @@ Welcome to the Spectra App project! This guide will help you get started with de
 ## 📋 Essential Reading (Start Here)
 
 ### Core Documentation
-- **`docs/history/MASTER_PROMPT.md`** - Comprehensive product specification and acceptance criteria
+- **`docs/history/MASTER PROMPT.md`** - Comprehensive product specification and acceptance criteria
   - Defines the application's vision, architecture, and scientific goals
-  - Outlines non-negotiable principles and technical constraints
-  - Contains detailed feature requirements and validation criteria
+  - Outlines non-negotiable principles, Atlas alignment, and calibration/identification mandates
+  - Contains detailed feature requirements and validation criteria drawn from the pass reviews
 
 - **`docs/history/RUNNER_PROMPT.md`** - Development workflow and iteration loop
   - Describes the plan → implement → test → document → PR cycle
@@ -19,8 +19,10 @@ Welcome to the Spectra App project! This guide will help you get started with de
 
 ### Quick Reference
 - **`README.md`** - Project overview, installation, and basic usage
-- **`docs/architecture.md`** - Technical architecture and system design
-- **`agents.md`** - Development guidelines and UI contract specifications
+- **`AGENTS.md`** - Development guidelines, spectroscopy conventions, UI contract expectations
+- **`docs/brains/README.md`** - How to log architectural decisions now that `atlas/brains.md` has been decomposed
+- **`docs/link_collection.md`** - Curated spectroscopy resources to cite when sourcing new data
+- **`docs/reviews/pass1.md` … `docs/reviews/pass4.md`** - Review dossiers outlining calibration, identification, provenance, and UI priorities
 
 ## 🚀 Getting Started
 
@@ -47,25 +49,26 @@ python -m app.main
 ### 3. Explore the Codebase
 - **`app/`** - Main application code (PySide6/Qt)
 - **`tests/`** - Test suite (pytest)
-- **`samples/`** - Example datasets and manifests
-- **`specs/`** - Technical specifications and architecture
+- **`samples/`** - Spectroscopy sample data (lamps, forthcoming standards) grouped by instrument/type
+- **`specs/`** - Technical specifications (provenance schema, UI contracts)
+- **`docs/brains/`** - Timestamped architectural decisions tied back to the Atlas
 
 ## 🔄 Development Workflow
 
 ### Phase 1: Planning & Documentation
 1. **Review Existing Context**
-   - Consult `docs/ai_log/` for recent development history
-   - Check `reports/feature_parity_matrix.md` for legacy compatibility
-   - Review `specs/ui_contract/` for UI component requirements
+   - Read `docs/history/MASTER PROMPT.md`, `AGENTS.md`, and `docs/reviews/pass*.md`
+   - Consult `docs/history/KNOWLEDGE_LOG.md` and `docs/brains/` for the latest decisions
+   - Review `docs/reviews/workplan.md`, backlog queues, and brainstorming notes before scoping new work
 
 2. **Create Work Plan**
    ```bash
    # Create or update your development workplan
    docs/reviews/workplan.md
    ```
-   - Break down tasks into small, atomic units
-   - Define acceptance criteria for each task
-   - Identify documentation and testing requirements
+   - Break down tasks into small, atomic units aligned with Atlas chapters
+   - Define acceptance criteria (behaviour, docs, tests, provenance) for each task
+   - Identify documentation, brains entries, and test updates before coding
 
 ### Phase 2: Implementation Loop
 Follow the **RUNNER_PROMPT** workflow for each development session:
