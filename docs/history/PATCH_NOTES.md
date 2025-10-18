@@ -1,5 +1,15 @@
 # Patch Notes
 
+## 2025-10-18 (Cross-platform timestamp commands) (18:48 EDT / 22:48 UTC)
+
+- Replaced the single-shell timestamp example in `AGENTS.md` with parallel
+  guidance for PowerShell, macOS/Linux shells, and WSL invocations so every
+  environment prints America/New_York and UTC ISO-8601 strings together.
+- Updated `START_HERE.md`, `docs/history/MASTER PROMPT.md`, and
+  `docs/history/RUNNER_PROMPT.md` to reference the cross-platform commands,
+  keeping onboarding docs aligned on how to capture timestamps before logging
+  patch notes or knowledge entries.
+
 ## 2025-10-18 (Remote data dependencies & imaging toggle) (17:17 EDT / 21:17 UTC)
 
 - Declared `requests`, `astroquery`, and `pandas` in `requirements.txt` and updated

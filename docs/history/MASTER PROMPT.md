@@ -11,10 +11,27 @@ Whenever you record a timestamp (docs, logs, manifests), compute the current
 America/New_York time and express it as ISO-8601 with offset. Pair it with the
 UTC value when writing knowledge-log or brains entries.
 
-```bash
-TZ=America/New_York date --iso-8601=seconds
-date -u --iso-8601=seconds
-```
+- **Windows (PowerShell):**
+
+  ```powershell
+  $nyc = [System.TimeZoneInfo]::FindSystemTimeZoneById("Eastern Standard Time")
+  $utcNow = Get-Date -AsUTC
+  [System.TimeZoneInfo]::ConvertTimeFromUtc($utcNow, $nyc).ToString("o")
+  $utcNow.ToString("o")
+  ```
+
+- **macOS / Linux shells:**
+
+  ```bash
+  TZ=America/New_York date --iso-8601=seconds
+  date -u --iso-8601=seconds
+  ```
+
+- **Windows Subsystem for Linux (triggered from Windows):**
+
+  ```powershell
+  wsl.exe bash -lc 'TZ=America/New_York date --iso-8601=seconds && date -u --iso-8601=seconds'
+  ```
 
 ## Read-First Checklist (each session)
 1. **Atlas** — `docs/atlas/0_index_stec_master_canvas_index_numbered.md` with the
