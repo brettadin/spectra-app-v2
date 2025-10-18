@@ -1,7 +1,0 @@
-# Synthetic spectrum with percent transmittance
-wavelength_nm,percent_transmittance
-400,90
-500,80
-600,70
-700,60
-800,50
