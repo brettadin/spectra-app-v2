@@ -4,6 +4,7 @@ Spectra is documentation-first. Read the required sources before editing code or
 docs so provenance, spectroscopy focus, and UI coherence remain intact.
 
 ## 0. Mandatory reading
+
 - `docs/history/MASTER PROMPT.md` — Coordinator mandate and guardrails.
 - `docs/brains/README.md` plus the most recent entries in `docs/brains/` —
   architectural decisions and follow-ups.
@@ -20,6 +21,7 @@ If any referenced doc is missing or stale, file a workplan task and log the gap
 in the knowledge log before proceeding.
 
 ## 1. Implementation guidelines
+
 - **Remote catalogues**: `_build_provider_query` enforces provider-specific
   criteria. NIST expects `spectra`; MAST requires `target_name` and rejects empty
   submissions. Extend `app/services/remote_data_service.py` and
@@ -40,6 +42,7 @@ in the knowledge log before proceeding.
   relevant chapters in docs and commits.
 
 ## 2. Documentation & logging
+
 - Every change needs matching documentation (user + dev/spec as appropriate).
 - Append patch-note and knowledge-log entries with the actual
   `America/New_York` timestamp (ISO-8601 with offset). Mention the files or
@@ -49,6 +52,7 @@ in the knowledge log before proceeding.
 - Keep the workplan and backlog in sync with delivered tasks and new findings.
 
 ## 3. Testing expectations
+
 - Run `pytest` locally before committing. Add or update regression coverage next
   to the code you touch (remote services → `tests/test_remote_data_service.py`,
   UI tweaks → Qt smoke tests, ingest logic → importer suite).
@@ -56,6 +60,7 @@ in the knowledge log before proceeding.
   targeted tests to avoid breaking minimal installs.
 
 ## 4. Commit & PR etiquette
+
 - Work on branches (`feature/YYMMDD-bN-shortname`).
 - Keep commits scoped; cite documentation updates in commit messages and PR
   bodies.

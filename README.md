@@ -175,7 +175,7 @@ python -m PyInstaller spectra_app.spec
 - `docs/user/units_reference.md` - Unit system guarantees and toggle guidance
 
 ### Developer Resources
-- `docs/dev/architecture.md` - System architecture overview
+- `specs/architecture.md` - System architecture overview
 - `docs/dev/data_pipeline.md` - Ingestion and processing flow
 - `docs/dev/ui_contract.md` - UI component specifications
 - `docs/dev/testing_guide.md` - Test development procedures

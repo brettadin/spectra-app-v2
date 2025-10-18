@@ -102,8 +102,14 @@ class RemoteDataService:
     # ------------------------------------------------------------------
     def search(self, provider: str, query: Mapping[str, Any]) -> List[RemoteRecord]:
         if provider == self.PROVIDER_NIST:
+            # NIST requires at least an 'element' or 'text' filter to be meaningful
+            if not query.get("element") and not query.get("text"):
+                raise ValueError("NIST search requires an 'element' or 'text' filter")
             return self._search_nist(query)
         if provider == self.PROVIDER_MAST:
+            # MAST requires either a 'target_name' or a non-empty 'text' query
+            if not query.get("target_name") and not (isinstance(query.get("text"), str) and query.get("text").strip()):
+                raise ValueError("MAST search requires a 'target name' or text filters")
             return self._search_mast(query)
         raise ValueError(f"Unsupported provider: {provider}")
 
