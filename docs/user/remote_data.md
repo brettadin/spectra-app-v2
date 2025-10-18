@@ -44,6 +44,26 @@ directly against laboratory references.
 The hint banner beneath the results table updates as you switch providers and
 also surfaces dependency warnings when optional clients are missing.
 
+### Provider-specific search tips
+
+- **NIST ASD** – The query box maps to the catalogue’s `spectra` filter. Enter
+  an element/ion (e.g. `Fe II`) or a transition label (`H-alpha`) to retrieve
+  laboratory line lists that align with the bundled reference overlays.
+- **MAST** – Free-text input is rewritten to `target_name` before invoking
+  `astroquery.mast.Observations.query_criteria`, and the adapter injects
+  `dataproduct_type="spectrum"`, `intentType="SCIENCE"`, and
+  `calib_level=[2, 3]` filters automatically. Supply JWST target names or
+  instrument identifiers (e.g. `WASP-96 b`, `NIRSpec grism`) to favour
+  calibrated spectroscopic products (IFS cubes, slit/grism/prism extractions)
+  instead of broad-band imaging or photometric light curves.
+
+Submitting an empty search displays a provider-specific validation message (for
+example, MAST insists on a target name or instrument keyword) and the dialog
+will not contact the remote catalogue until those fields are populated.
+
+The hint banner beneath the results table updates as you switch providers and
+also surfaces dependency warnings when optional clients are missing.
+
 The results table displays identifiers, titles, and the source URI for each
 match. Selecting a row shows the raw metadata payload in the preview panel so
 you can confirm provenance before downloading.
