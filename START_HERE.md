@@ -82,6 +82,18 @@ Follow the **RUNNER_PROMPT** workflow for each development session:
 4. **Document** - Update all relevant documentation
 5. **Review** - Self-review against acceptance criteria
 
+### Recording Real Timestamps
+- Always capture America/New_York and UTC timestamps in ISO-8601 format when
+  updating patch notes, the knowledge log, brains entries, or the workplan.
+- Follow the platform-specific commands in `AGENTS.md` and the MASTER PROMPT to
+  generate the two strings:
+  - **Windows (PowerShell)** converts `Get-Date -AsUTC` into Eastern Time and
+    prints both values in `o` (ISO-8601) format.
+  - **macOS/Linux shells** run `TZ=America/New_York date --iso-8601=seconds`
+    followed by `date -u --iso-8601=seconds`.
+  - **WSL users** can invoke `wsl.exe bash -lc '…'` from Windows to emit both
+    timestamps without leaving the host terminal.
+
 ### Phase 3: Quality Assurance
 - **Run Full Test Suite**: `pytest -v`
 - **Verify UI Responsiveness**: Test with 1M+ point datasets

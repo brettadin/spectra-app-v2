@@ -33,7 +33,9 @@
      provenance change is introduced.
 5. **LOG & SHIP**
    - Update `docs/history/PATCH_NOTES.md` and `docs/history/KNOWLEDGE_LOG.md`
-     using real America/New_York timestamps (ISO-8601 with offset).
+     using real America/New_York timestamps (ISO-8601 with offset). Follow the
+     platform-specific commands in `AGENTS.md`/MASTER PROMPT so both the local
+     (ET) and UTC values are recorded together.
    - Record QA runs (command + timestamp) in the workplan.
    - Verify the backlog reflects new discoveries or follow-ups.
    - Open a PR summarising behaviour changes and executed tests.

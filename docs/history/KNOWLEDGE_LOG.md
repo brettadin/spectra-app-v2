@@ -28,6 +28,25 @@ Each entry in this document should follow this structure:
 
 ---
 
+## 2025-10-18 18:48 – Timestamp Capture Guidance
+
+**Author**: agent
+
+**Context**: Cross-platform documentation for recording America/New_York and UTC
+timestamps before logging work.
+
+**Summary**: Replaced the single-shell timestamp snippet with coordinated
+PowerShell, macOS/Linux, and WSL commands so every agent can emit paired ISO-8601
+strings when updating patch notes, knowledge logs, or brains entries. START_HERE,
+MASTER PROMPT, and RUNNER PROMPT now point to the shared instructions, keeping
+onboarding materials consistent across operating systems. Captured the update in
+patch notes with the same timestamps (22:48 UTC) for traceability.
+
+**References**: `AGENTS.md`, `START_HERE.md`, `docs/history/MASTER PROMPT.md`,
+`docs/history/RUNNER_PROMPT.md`, `docs/history/PATCH_NOTES.md`.
+
+---
+
 ## 2025-10-18 17:17 – Remote Data
 
 **Author**: agent
