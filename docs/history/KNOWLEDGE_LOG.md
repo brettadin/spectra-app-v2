@@ -5,12 +5,7 @@ This file serves as the single entry point for all historical notes, patches,
 information in many places (e.g. `brains`, `atlas`, `PATCHLOG.txt`) and often
 used confusing naming schemes (sometimes based on the day of the month)【875267955107972†L63-L74】.
 To avoid further fragmentation, every meaningful change or insight should be
-recorded here with a timestamp and a clear description. Routine ingest
-metadata now lives in the in-app **Library** view (Datasets dock → Library tab),
-which is backed by the persistent cache. Use that panel to audit file-level
-details such as SHA256 hashes, source paths, and importer provenance. The
-knowledge log captures the why behind changes and high-level operational
-decisions rather than enumerating every imported file.
+recorded here with a timestamp and a clear description.
 
 ## Log Format
 
@@ -32,89 +27,15 @@ Each entry in this document should follow this structure:
   applicable).
 
 ---
-
-## 2025-10-20 10:15 – Palette registry & persistence
-
-**Author**: agent
-
-**Context**: Trace colouring presets and inspector integration.
-
-**Summary**: Centralised the trace palettes in `app/ui/palettes.py` and exposed them through `PlotPane.palette_definitions()` so the Inspector’s Style tab can list shared presets while keeping dataset icons and plot pens in sync. `SpectraMainWindow` now loads the stored palette from `QSettings`, reapplies colours to existing overlays when users switch modes, and persists the selection for future sessions. Coverage exercises each preset in the Qt smoke workflow, and the plotting guide documents the new colour-blind and dark-friendly options alongside the uniform mode.
-
-**References**: `app/ui/palettes.py`, `app/ui/plot_pane.py`, `app/main.py`, `tests/test_smoke_workflow.py`, `docs/user/plot_tools.md`, `docs/history/PATCH_NOTES.md`.
-
----
-
-## 2025-10-19 08:30 – Remote search guard rails
+## 2025-10-17T20:11:24-04:00 – Documentation alignment
 
 **Author**: agent
 
-**Context**: Remote catalogue validation UX and service safety nets.
+**Context**: Coordinator prompts, brains ledger guidance, and planning docs.
 
-**Summary**: Hardened the Remote Data workflow so blank submissions stop in the
-dialog with provider-specific guidance while the NIST/MAST adapters raise
-`ValueError` when automation callers omit narrowing terms. Regression coverage
-now clicks the UI button for empty queries and asserts the NIST service refuses
-empty payloads, and the troubleshooting guide documents the required filters.
+**Summary**: Realigned the master prompt, runner prompt, agent manual, and Start Here guide with the new brains-ledger workflow, created a backlog document, and refreshed developer notes/workplan so agents follow spectroscopy-first priorities with real New York timestamps.
 
-**References**: `app/ui/remote_data_dialog.py`,
-`app/services/remote_data_service.py`, `tests/test_remote_data_dialog.py`,
-`tests/test_remote_data_service.py`, `docs/user/remote_data.md`,
-`docs/history/PATCH_NOTES.md`.
-
----
-
-## 2025-10-18 09:10 – Remote MAST validation
-
-**Author**: agent
-
-**Context**: Remote catalogue guard rails.
-
-**Summary**: Tightened the Remote Data workflow so blank MAST requests are blocked
-in the dialog and the service refuses unbounded astroquery calls. The UI now
-explains why a search was rejected, while the adapter raises a descriptive error
-when no recognised filters are supplied. Regression coverage asserts the guard
-rails and documentation highlights the requirement for bounded MAST criteria.
-
-**References**: `app/ui/remote_data_dialog.py`, `app/services/remote_data_service.py`,
-`tests/test_remote_data_dialog.py`, `tests/test_remote_data_service.py`,
-`docs/user/remote_data.md`, `docs/history/PATCH_NOTES.md`.
-
----
-
-## 2025-10-17 18:40 – Library knowledge-log surfacing
-
-**Author**: agent
-
-**Context**: Cache inspection UX and provenance traceability.
-
-**Summary**: Expanded the Library dock detail pane so selecting a cache record
-now lists canonical units, provenance, and knowledge-log matches inline. The
-preview links to the consolidated log, while documentation and smoke tests were
-updated to describe and guard the workflow so auditing no longer requires
-double-click re-imports.
-
-**References**: `app/main.py`, `tests/test_smoke_workflow.py`,
-`docs/user/importing.md`, `docs/user/remote_data.md`,
-`docs/history/PATCH_NOTES.md`.
-
----
-
-## 2025-10-17 16:20 – Atlas architectural log
-
-**Author**: agent
-
-**Context**: Architectural documentation continuity.
-
-**Summary**: Restored the atlas/brains log as `docs/atlas/brains.md`, capturing
-the production ingest pipeline, cache policy, and remote-service defaults so the
-Master Prompt references a living source. Linked the log from the developer
-notes, onboarding guide, and link collection, and removed the empty placeholder
-that previously obscured the canonical record. Patch notes document the
-restoration for traceability.
-
-**References**: `docs/atlas/brains.md`, `docs/developer_notes.md`,
-`START_HERE.md`, `docs/link_collection.md`, `docs/history/PATCH_NOTES.md`.
+**References**: `docs/history/MASTER PROMPT.md`, `AGENTS.md`, `docs/brains/README.md`, `docs/reviews/workplan.md`, `docs/reviews/workplan_backlog.md`
 
 ---
 
@@ -151,10 +72,7 @@ The desktop preview now ships with a `KnowledgeLogService` that writes
 automation events into this file by default.  The service can also be pointed
 at an alternative runtime location (e.g. a temporary path during tests) by
 passing a custom `log_path`, ensuring automated provenance never tramples the
-canonical history while still following the structure defined here. Import
-actions are summarised at the session level; per-file cache entries (including
-remote URIs and SHA256 digests) are stored in the Library view so the log
-remains focused on insights and operator decisions.
+canonical history while still following the structure defined here.
 
 ## Example Entry
 
@@ -199,10 +117,6 @@ To migrate existing `brains` and `atlas` logs, follow these steps:
 * **Completeness**: Include enough information for future developers or
   agents to understand the context without having to search through commit
   history.  When in doubt, write more rather than less.
-* **Operational focus**: Keep per-file provenance (paths, hashes, importer
-  IDs, remote URIs) in the Library view. The knowledge log should summarise
-  what changed, why it matters, and how it affects workflows without duplicating
-  the cache index.
 * **Citation**: Use tether IDs to cite official documents, academic papers or
   authoritative resources.  This ensures that claims can be verified.
 
@@ -226,16 +140,6 @@ To migrate existing `brains` and `atlas` logs, follow these steps:
 **Summary**: Expanded export bundles to emit per-spectrum CSVs, copy source uploads, and write a structured activity log so downstream reviewers can trace every spectrum back to its canonical and raw forms.【F:app/services/provenance_service.py†L50-L108】 Regression coverage now confirms the manifest, CSVs, PNG snapshot, and log travel together and that canonical/exported paths are reflected inside the manifest for auditing.【F:tests/test_provenance_manifest.py†L24-L74】 Updated the importing guide’s provenance appendix so operators know what to expect in the bundle until the roadmap/workplan refresh lands, at which point I’ll backfill a direct planning link here.【F:docs/user/importing.md†L92-L111】【F:docs/reviews/workplan.md†L81-L85】
 
 **References**: `app/services/provenance_service.py`, `tests/test_provenance_manifest.py`, `docs/user/importing.md`, `docs/reviews/workplan.md`.
-
-## 2025-10-17 13:05 – Remote Data Service
-
-**Author**: agent
-
-**Context**: MAST download pipeline normalisation and regression coverage.
-
-**Summary**: Routed `RemoteDataService.download` through `astroquery.mast.Observations.download_file` for MAST records and normalised the returned path before persisting it via the shared `LocalStore`, keeping cached imports deduplicated alongside HTTP downloads.【F:app/services/remote_data_service.py†L109-L154】 Added a regression test that monkeypatches the astroquery client to assert the HTTP session remains untouched and the cached path retains its provenance, plus refreshed the user guide to document the flow.【F:tests/test_remote_data_service.py†L102-L164】【F:docs/user/remote_data.md†L47-L63】
-
-**References**: `app/services/remote_data_service.py`, `tests/test_remote_data_service.py`, `docs/user/remote_data.md`.
 
 ---
 
@@ -370,24 +274,6 @@ to keep the spectroscopy focus explicit.
 
 ---
 
-## 2025-10-16 23:58 – Remote catalogue hinting & query translation
-
-**Author**: agent
-
-**Context**: Remote catalogue search ergonomics and MAST adapter resilience.
-
-**Summary**: Wired provider-specific hints into the Remote Data dialog so users see
-which query styles NIST and MAST accept while typing, translated the MAST free-text
-field into `target_name` arguments both in the UI and the service layer, and added
-regression coverage that exercises the astroquery stub with the rewritten kwargs.
-Documentation now calls out the hint banner alongside the existing search
-instructions.【F:app/ui/remote_data_dialog.py†L17-L27】【F:app/ui/remote_data_dialog.py†L58-L131】【F:app/services/remote_data_service.py†L222-L279】【F:tests/test_remote_data_service.py†L169-L229】【F:docs/user/remote_data.md†L24-L33】
-
-**References**: `app/ui/remote_data_dialog.py`, `app/services/remote_data_service.py`,
-`tests/test_remote_data_service.py`, `docs/user/remote_data.md`.
-
----
-
 ## 2025-10-16 21:45 – Knowledge Log Automation
 
 **Author**: agent
@@ -478,18 +364,7 @@ and patch notes document the automatic caching behaviour and opt-out flow.【F:t
 `tests/test_cache_index.py`, `docs/user/importing.md`, `docs/history/PATCH_NOTES.md`.
 
 ---
-## 2025-10-15 23:41 – Overlay
 
-**Author**: automation
-
-**Context**: Spectra Desktop Session
-
-**Summary**: Enabled reference overlay reference::jwst::jwst_wasp96b_nirspec_prism.
-
-**References**:
-- reference::jwst::jwst_wasp96b_nirspec_prism
-
----
 ## 2025-10-16 23:55 – Plot LOD Preference Control
 
 **Author**: agent
@@ -549,17 +424,5 @@ Import/Remote Import entries remain after the cleanup.
 - `tests/test_knowledge_log_service.py`
 - `docs/history/PATCH_NOTES.md`
 - `docs/reviews/workplan.md`
-
----
-## 2025-10-17 16:22 – Overlay
-
-**Author**: automation
-
-**Context**: Spectra Desktop Session
-
-**Summary**: Enabled reference overlay reference::hydrogen_lines.
-
-**References**:
-- reference::hydrogen_lines
 
 ---

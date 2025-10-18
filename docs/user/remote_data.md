@@ -23,94 +23,7 @@ directly against laboratory references.
    - **NIST ASD** (line lists via the Atomic Spectra Database)
    - **MAST** (MAST data products via `astroquery.mast`)
 3. Enter a keyword, element symbol, or target name in the search field and click
-   **Search**. The dialog adapts the criteria to the selected provider before it
-   reaches the service layer:
-   - **NIST ASD** maps the text to the `spectra` parameter that powers the
-     Atomic Spectra Database line search.
-   - **MAST** converts free-form text into a `target_name`, or you can provide
-     comma-separated `key=value` pairs for supported `astroquery.mast`
-     parameters (for example `instrument_name=NIRSpec, dataproduct_type=spectrum`).
-     Blank submissions are blocked because MAST requires a target name or
-     narrowing filters to avoid unbounded catalogue scans.
-4. Reference the hint banner below the buttons for provider-specific examples.
-   The dialog surfaces the mapping so you know when NIST expects an element/ion
-   such as `Fe II`, and when MAST accepts target names or comma-separated
-   arguments like `instrument_name=NIRSpec`.
-
-When you switch between catalogues the banner updates in real time:
-
-* **NIST ASD** highlights that searches revolve around element symbols or ion
-  designations and reminds you that wavelength filters live in the advanced
-  toolbar.
-* **MAST** clarifies that the free-text box becomes a `target_name` by default
-  and that you can provide comma-separated `key=value` pairs for supported
-  `astroquery.mast.Observations.query_criteria` arguments (for example
-  `obs_collection=JWST`, `proposal_id=1076`, or numerical sky positions via
-  `s_ra`, `s_dec`, and `radius`).
-
-### Provider-specific search tips
-
-- **NIST ASD** – The query box maps to the catalogue’s `spectra` filter. Enter
-  an element/ion (e.g. `Fe II`) or a transition label (`H-alpha`) to retrieve
-  laboratory line lists that align with the bundled reference overlays.
-- **MAST** – Free-text input is rewritten to `target_name` before invoking
-  `astroquery.mast.Observations.query_criteria`, and the adapter injects
-  `dataproduct_type="spectrum"`, `intentType="SCIENCE"`, and
-  `calib_level=[2, 3]` filters automatically. Supply JWST target names or
-  instrument identifiers (e.g. `WASP-96 b`, `NIRSpec grism`) to favour
-  calibrated spectroscopic products (IFS cubes, slit/grism/prism extractions)
-  instead of broad-band imaging or photometric light curves.
-  The dialog enforces this by refusing empty submissions and explaining why the
-  query was rejected whenever no recognised filter is present.
-
-The hint banner beneath the results table updates as you switch providers and
-also surfaces dependency warnings when optional clients are missing.
-
-## Troubleshooting
-
-- **NIST ASD** – Leave the field blank and the dialog will stop the request,
-  explaining that the catalogue needs an element, ion, or keyword. The backing
-  service now raises a `ValueError` for automation callers that bypass the UI,
-  so scripts must always supply meaningful `spectra`/`element` text before
-  contacting the endpoint.
-- **MAST** – Searches must include a target name or one of the supported
-  `astroquery.mast.Observations.query_criteria` filters:
-  `target_name`, `obs_collection`, `dataproduct_type`, `instrument_name`,
-  `proposal_id`, `proposal_pi`, `filters`, `s_ra`, `s_dec`, or `radius`.
-  The dialog surfaces the warning immediately and the adapter raises a
-  `ValueError` if automation code submits an empty or whitespace-only payload.
-
-### Provider-specific search tips
-
-- **NIST ASD** – The query box maps to the catalogue’s `spectra` filter. Enter
-  an element/ion (e.g. `Fe II`) or a transition label (`H-alpha`) to retrieve
-  laboratory line lists that align with the bundled reference overlays.
-- **MAST** – Free-text input is rewritten to `target_name` before invoking
-  `astroquery.mast.Observations.query_criteria`, and the adapter injects
-  `dataproduct_type="spectrum"`, `intentType="SCIENCE"`, and
-  `calib_level=[2, 3]` filters automatically. Supply JWST target names or
-  instrument identifiers (e.g. `WASP-96 b`, `NIRSpec grism`) to favour
-  calibrated spectroscopic products (IFS cubes, slit/grism/prism extractions)
-  instead of broad-band imaging or photometric light curves.
-
-The hint banner beneath the results table updates as you switch providers and
-also surfaces dependency warnings when optional clients are missing.
-
-### Provider-specific search tips
-
-- **NIST ASD** – The query box maps to the catalogue’s `spectra` filter. Enter
-  an element/ion (e.g. `Fe II`) or a transition label (`H-alpha`) to retrieve
-  laboratory line lists that align with the bundled reference overlays.
-- **MAST** – Free-text input is rewritten to `target_name` before invoking
-  `astroquery.mast.Observations.query_criteria`, and the adapter injects
-  `dataproduct_type="spectrum"`, `intentType="SCIENCE"`, and
-  `calib_level=[2, 3]` filters automatically. Supply JWST target names or
-  instrument identifiers (e.g. `WASP-96 b`, `NIRSpec grism`) to favour
-  calibrated spectroscopic products (IFS cubes, slit/grism/prism extractions)
-  instead of broad-band imaging or photometric light curves.
-
-The hint banner beneath the results table updates as you switch providers and
-also surfaces dependency warnings when optional clients are missing.
+   **Search**.
 
 ### Provider-specific search tips
 
@@ -145,9 +58,7 @@ Behind the scenes the application:
   `astroquery.mast.Observations.download_file` for `mast:` products, which keeps
   the MAST token/auth flow intact).
 * Copies the artefact into the `LocalStore`, recording the provider, URI,
-  checksum, and fetch timestamp in the cache index. MAST downloads normalise the
-  returned astroquery path before copying so cached imports are reused even when
-  the original file lives in the astroquery cache.
+  checksum, and fetch timestamp in the cache index.
 * Hands the stored path to `DataIngestService` so the file benefits from the
   existing importer registry, unit normalisation, and provenance hooks.
 
@@ -161,14 +72,11 @@ on high-level insights.
 
 The **Library** dock (tabified with the Datasets view) lists every cached
 artefact recorded by `LocalStore`. Use the filter box to search by alias,
-provider, or units. Selecting an entry now fills the detail pane beneath the
-table with provenance, unit, and storage metadata plus any knowledge-log
-summaries that reference the cached record. This replaces the old "double-click
-only" workflow—auditing doesn’t require re-ingesting files, while a
-double-click still reloads the spectrum into the session when you do want it
-back on the plot. The table mirrors cache metadata (provider, checksum,
-timestamps) so you can audit provenance without sifting through raw log
-entries.
+provider, or units. Double-clicking an entry re-ingests the stored file without
+touching the original download location—handy when reviewing spectra offline or
+comparing multiple normalisations. The table mirrors cache metadata (provider,
+checksum, timestamps) so you can audit provenance without sifting through raw
+log entries.
 
 ## Offline behaviour and caching
 

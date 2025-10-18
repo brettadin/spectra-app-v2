@@ -1,53 +1,11 @@
 # Patch Notes
 
-## 2025-10-20 (Palette presets & persistence) (10:15 UTC)
 
-- Extended the Inspector Style tab with additional trace-colouring presets so dataset icons and plot pens stay aligned while cycling between high-contrast, colour-blind friendly, light-on-dark, and uniform modes.
-- Centralised palette definitions under `app/ui/palettes.py`, taught `PlotPane` to expose the registry, and persisted the user’s selection with `QSettings` so new overlays adopt the chosen scheme automatically.
-- Expanded the Qt smoke test to iterate every preset and assert the icon/trace colours update together, then refreshed the plotting guide with documentation for each new preset.
+## 2025-10-17T20:11:18-04:00 (Coordinator prompts realigned)
 
-## 2025-10-19 (Remote search input validation) (08:30 UTC)
-
-- Blocked empty submissions for every provider in the Remote Data dialog so the
-  UI now highlights when NIST or MAST requests are missing required criteria
-  before the service layer is invoked.
-- Raised explicit `ValueError` exceptions in the NIST and MAST adapters when
-  automation callers omit narrowing filters, keeping legacy entry points from
-  issuing unbounded catalogue queries.
-- Documented the stricter troubleshooting guidance, refreshed the dialog smoke
-  tests to drive button clicks, and added a service regression that expects the
-  new error path for NIST.
-
-## 2025-10-18 (MAST search validation) (09:10 UTC)
-
-- Blocked empty MAST submissions in the Remote Data dialog, surfacing a validation
-  hint so operators add target names or supported key=value filters before
-  dispatching a search.
-- Guarded the MAST adapter against unbounded astroquery lookups by requiring at
-  least one recognised criterion (`target_name`, `instrument_name`, etc.) and
-  raising a descriptive error when none are provided.
-- Documented the stricter requirements and refreshed the regression suite to
-  cover the UI validation path and ensure blank requests never hit
-  `Observations.query_criteria`.
-
-## 2025-10-17 (Library detail knowledge-log links) (18:40 UTC)
-
-- Extended the Library dock detail pane so selecting a cache record surfaces
-  canonical units, provenance, and matching knowledge-log summaries without
-  re-ingesting files.
-- Updated the importing and remote-data guides to explain the new inspection
-  workflow and note that auditing no longer requires double-clicking entries.
-- Augmented the Qt smoke test suite to exercise the detail pane, ensuring the
-  metadata preview renders in headless CI runs.
-
-## 2025-10-17 (Atlas architectural log restoration) (16:20 UTC)
-
-- Authored `docs/atlas/brains.md` to capture the current ingest pipeline,
-  caching policy, and remote-service defaults referenced by the Master Prompt.
-- Linked the restored log from the developer notes, onboarding guide, and link
-  collection so new contributors land on the canonical architectural guidance.
-- Removed the empty atlas placeholder file to prevent future agents from
-  missing the maintained log.
+- Revised the master prompt, runner prompt, and agent manual to reference the new brains ledger, backlog file, and real-time logging requirements.
+- Added `docs/brains/README.md` plus backlog documentation so architectural decisions and scheduling tasks stay discoverable.
+- Updated developer notes, START_HERE, and the active workplan to point agents at the refreshed docs and outstanding remote-data safeguards.
 
 ## 2025-10-17 (Library provenance preview) (14:19 UTC)
 
@@ -265,12 +223,6 @@
 - Patched the Reference inspector so combo-box selection sticks, JWST datasets draw their sampled spectra, and the overlay toggle mirrors the active dataset instead of the first entry.
 - Allowed **File → Open** and **File → Load Sample** to queue multiple files at once while batching plot refreshes.
 - Documented the toolbar location for normalization modes and refreshed the reference-data walkthrough with the new overlay behaviour.
-
-## 2025-10-16 (Curated link catalogue) (2:30 pm)
-
-- Recovered the JWST and Astropy resource list into `docs/link_collection.md` with preserved annotations and clearer grouping for future documentation sprints.
-- Pointed the developer orientation notes at the refreshed catalogue so contributors can locate upstream references quickly.
-- Logged the addition in the knowledge log to surface the resource in session history.
 
 ## 2025-10-15 (Importing Guide Provenance Appendix) (9:10 am)
 

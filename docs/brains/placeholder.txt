@@ -1,0 +1,2 @@
+See README.md for instructions on adding brains entries.  Do not place decision
+logs in this placeholder; create timestamped files instead.

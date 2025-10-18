@@ -1,35 +1,69 @@
-workplan_backlog
+# Workplan Backlog
 
-## PURPOSE ##
-This file serves as a location to make note of potential fixes, changes, implementations, additions, upgrades, redesigns, adjustments, and any other sensible tasks.
-You will read from the backlog, if you pick a task from the backlog, you will remove it from the backlog and add it to the `workplan.md`
-As you are working, you will outline things you find for future agents to address, and you will document them here in this file.
-This file serves many purposes:
-A) For you (the codex ai agent) to keep track of things you find, possible updates we can implement, and suggestions you have. 
-B) Future AI agents to pick up on tasks, know what to do, where to do it, how to do it, etc. 
-C) Self documenting AI upgrade implementation. 
-	-	By writing your findings here, and adding them to this 'to-do list' of sorts, you are not only documenting what you notice as you work, but you also instruct future AI agents on tasks they should perform.
-D) A way of developing long term goal tracking and implementation.
-E) Temporally based growth and development. 
-	-	This project is being worked on soley by AI agents, with a single human doing back and forth hands on testing. 
-	-	The human cannot keep track of all possible fixes, changes, and ideas. So this also serves as a way to help the human with their growth plans. 
-	
-## NOTES ##
-*All upgrades, updates, fixes, etc. Should all be aligned with good scientific practises, all sources should be cited correctly.*
-*Document as much as you can throughout our varitey of documentation locations/sources. Read as much as you can, dig through directories to find information.*
-*Use all documentation to your advantage. We have laid out a lot of foundations for you to learn from and build upon.*
-*Maintain good UI practices. Check functionality on all tasks performed, to ensure all parts of our code work properly as we make changes.*
-*Continue to expand and add documentation to our in app display as we progress.*
-*The documentation section of the program serves several purposes, mostly for AI-learning/training in the form of long form documentation to train AI agents each time they work on our program. But also for humans who use the application to refer to in app documentation related to spectroscopy, physics, astronomy, astrochemistry, etc. and learn in great detail about each*
-*Always make sure all tasks performed are scientificaly accurate in all fields.*
-*Adjust/update documentation and all relevant files, scripts, tests, UI elements, history, Atlas entries, brain files, tools, specs, reference sources, user and dev documentation, as updates/adjustments are made such that all information stays current and up to date as we develop*
+This backlog tracks initiatives that require scheduling beyond the active batch.
+All timestamps must use America/New_York (ISO-8601). Move items into
+`workplan.md` when they enter an active sprint.
 
-## Backlog ## 
-- [ ] Replace digitised JWST tables with calibrated FITS ingestion and provenance links once the pipeline can access MAST data.
-- [ ] Expand the spectral-line catalogue beyond hydrogen (e.g., He I, O III, Fe II) with citations and regression coverage.
-- [ ] Integrate IR functional-group heuristics into importer header parsing for automated axis validation.
-- [ ] Prototype a native extension hook (e.g., `pybind11`/C++) for high-throughput spectral transforms and document the Windows build toolchain.
-- [ ] Capture refreshed IR overlay screenshots for `docs/user/reference_data.md` after anchored rendering changes land on Windows builds.
-- [ ] Publish Markdown summaries for historic QA reviews (e.g., launch-debugging PDF) with citations and source links.
-- [ ] Reconcile `reports/roadmap.md` with the current importer, overlay, and documentation backlog, adding longer-term research goals.
-- [ ] Schedule a documentation sweep covering reference data, patch notes, and roadmap updates with acceptance criteria tied to regression tests.
+## High-priority epics
+
+### Calibration & fidelity
+- [ ] **Calibration manager service & dock**
+  - Service with kernels/frames/resampling helpers
+  - Dock controls for target FWHM, kernel selection, frame & RV metadata
+  - Non-dismissable calibration banner + per-trace badges
+  - Provenance serialization in manifest `applied_steps`
+  - Tests for FWHM tolerance, RV Δλ, σ propagation, and 1e6-point performance guard
+- [ ] **Uncertainty ribbons everywhere**
+  - Support import, math operations, and exports with propagated σ arrays
+  - Plot toggles + persistence; export parity in manifests and view state
+
+### Identification & scoring
+- [ ] **Peak, similarity, and scoring services**
+  - Deterministic peak lists, cross-correlation RV search, explainable weight breakdown
+  - Library of spectral catalogs (hydrogen + new species) with version hashes
+- [ ] **Identification dock**
+  - Catalog selection, RV grid, bandpass, peak thresholds
+  - Score cards with component weights, clickable matches, manifest logging
+
+### Data foundations
+- [ ] **JWST quick-look regeneration** (requires calibrated FITS access)
+- [ ] **Spectral-line catalogue expansion** (He I, O III, Fe II, etc.)
+- [ ] **IR functional-group heuristics in importer axis detection**
+- [ ] **Content-addressed LocalStore** with manifest cross-links and purge tooling
+- [ ] **Library enhancements**
+  - Faceted browsing (instrument/type)
+  - Actions: open manifest, open knowledge log, re-export current view
+
+### Provenance & replay
+- [ ] **Export parity audit**
+  - Ensure manifests capture view state (units, normalization, smoothing, palette, LOD, masks, calibration banner)
+  - Round-trip replay test reproduces `view.png` within pixel RMSE tolerance
+- [ ] **Manifest validator CI hardening**
+  - Expand `tools/validate_manifest.py` coverage
+  - Enforce schema v1.2.0 through `.github/workflows/provenance.yml`
+
+### UI/UX polish
+- [ ] **Snap-to-peak & brush-to-mask** interactions with persistence
+- [ ] **Accessible palette presets** (colour-blind friendly, dark/light aware)
+- [ ] **Teaching preset** toggling key UI hints, docs integration
+- [ ] **Keybinding audit** with updated shortcuts and documentation
+
+### Research & extensions
+- [ ] **Native extension prototype** (PyO3/pybind11) for convolution/xcorr kernels
+  - Optional build documented in `specs/foreign_language_integration.md`
+  - Benchmarks + equivalence tests
+- [ ] **Machine-learning tagging exploration**
+  - Outline dataset requirements, labelling strategy, and reproducibility plan
+
+## Documentation & knowledge alignment
+- [ ] Refresh Atlas chapters to reflect brains entries and recent code
+- [ ] Summarize external reviews (Pass 1–4) with actionable deltas
+- [ ] Expand docs/user education sections (spectroscopy primers, provenance walkthroughs)
+- [ ] Catalogue remote data dependencies (astroquery, astropy) with install paths and troubleshooting
+
+## Monitoring
+- [ ] Establish regression dashboards for importer accuracy, calibration fidelity, and identification scoring
+- [ ] Track remote data availability (NIST/MAST uptime) and cache refresh cadence
+
+Record movement of each item (scheduled, in progress, done) in the knowledge log
+with ISO timestamps so the backlog remains auditable.

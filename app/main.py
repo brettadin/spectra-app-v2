@@ -6,7 +6,6 @@ import os
 import sys
 import tempfile
 from pathlib import Path
-from textwrap import indent
 from typing import Any, Dict, Iterable, List, Mapping, Optional, Sequence, cast
 
 import numpy as np
@@ -28,7 +27,6 @@ from .services import (
     RemoteDataService,
 )
 from .ui.plot_pane import PlotPane, TraceStyle
-from .ui.palettes import PaletteDefinition
 from .ui.remote_data_dialog import RemoteDataDialog
 
 QtCore: Any
@@ -39,7 +37,6 @@ QtCore, QtGui, QtWidgets, QT_BINDING = get_qt()
 
 SAMPLES_DIR = Path(__file__).resolve().parent.parent / "samples"
 PLOT_MAX_POINTS_KEY = "plot/max_points"
-PLOT_PALETTE_KEY = "plot/palette"
 
 
 class SpectraMainWindow(QtWidgets.QMainWindow):
@@ -75,7 +72,6 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.knowledge_log = knowledge_log_service or KnowledgeLogService(
             default_context="Spectra Desktop Session"
         )
-        self._knowledge_log_cache: list[KnowledgeLogEntry] | None = None
 
         self.unit_combo: Optional[QtWidgets.QComboBox] = None
         self.plot_toolbar: Optional[QtWidgets.QToolBar] = None
@@ -96,24 +92,15 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self._suppress_overlay_refresh = False
         self._display_y_units: Dict[str, str] = {}
         self._line_shape_rows: List[Mapping[str, Any]] = []
-        self._palette_definitions: Sequence[PaletteDefinition] = list(PlotPane.palette_definitions())
-        self._palette_lookup: Dict[str, PaletteDefinition] = {
-            definition.key: definition for definition in self._palette_definitions
-        }
-        self._default_palette_key = PlotPane.default_palette_key()
-        fallback_palette = self._palette_lookup.get(self._default_palette_key)
-        if fallback_palette is None:
-            fallback_palette = next(iter(self._palette_lookup.values()), None)
-        if fallback_palette is None:
-            raise RuntimeError("No palette definitions registered.")
-        initial_palette_key = self._load_palette_key()
-        self._active_palette: PaletteDefinition = self._palette_lookup.get(
-            initial_palette_key,
-            fallback_palette,
-        )
-        self._palette_key = self._active_palette.key
         self._palette: List[QtGui.QColor] = [
-            QtGui.QColor(code) for code in self._active_palette.sequence()
+            QtGui.QColor("#4F6D7A"),
+            QtGui.QColor("#C0D6DF"),
+            QtGui.QColor("#C72C41"),
+            QtGui.QColor("#2F4858"),
+            QtGui.QColor("#33658A"),
+            QtGui.QColor("#758E4F"),
+            QtGui.QColor("#6D597A"),
+            QtGui.QColor("#EE964B"),
         ]
         self._palette_index = 0
 
@@ -126,10 +113,6 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self._displayed_history_entries: List[KnowledgeLogEntry] = []
         self._history_ui_ready = False
 
-        self.dataset_tabs: Optional[QtWidgets.QTabWidget] = None
-        self.library_view: Optional[QtWidgets.QTreeWidget] = None
-        self._library_items: Dict[str, QtWidgets.QTreeWidgetItem] = {}
-
         self._plot_max_points = self._load_plot_max_points()
         self.library_dock: QtWidgets.QDockWidget | None = None
         self.library_list: QtWidgets.QTreeWidget | None = None
@@ -137,8 +120,8 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.library_detail: QtWidgets.QPlainTextEdit | None = None
         self.library_hint: QtWidgets.QLabel | None = None
         self._library_entries: Dict[str, Mapping[str, Any]] = {}
-        self._use_uniform_palette = bool(self._active_palette.uniform)
-        self._uniform_color = QtGui.QColor(self._active_palette.resolved_uniform_color())
+        self._use_uniform_palette = False
+        self._uniform_color = QtGui.QColor("#4F6D7A")
 
         self._setup_ui()
         self._setup_menu()
@@ -226,17 +209,6 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         settings = QtCore.QSettings("SpectraApp", "DesktopPreview")
         settings.setValue(PLOT_MAX_POINTS_KEY, int(value))
 
-    def _load_palette_key(self) -> str:
-        settings = QtCore.QSettings("SpectraApp", "DesktopPreview")
-        stored = settings.value(PLOT_PALETTE_KEY, PlotPane.default_palette_key(), type=str)
-        if not stored:
-            return PlotPane.default_palette_key()
-        return cast(str, stored)
-
-    def _save_palette_key(self, key: str) -> None:
-        settings = QtCore.QSettings("SpectraApp", "DesktopPreview")
-        settings.setValue(PLOT_PALETTE_KEY, key)
-
     def _on_persistence_toggled(self, enabled: bool) -> None:
         if self._persistence_env_disabled:
             return
@@ -310,14 +282,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.dataset_tree.header().setSectionResizeMode(2, QtWidgets.QHeaderView.ResizeToContents)
         self.dataset_tree.selectionModel().selectionChanged.connect(self._on_dataset_selection_changed)
         self.dataset_model.dataChanged.connect(self._on_dataset_data_changed)
-        self.dataset_tabs = QtWidgets.QTabWidget()
-        self.dataset_tabs.setObjectName("dataset-tabs")
-        self.dataset_tabs.addTab(self.dataset_tree, "Session")
-
-        self.library_view = self._build_library_view()
-        self.dataset_tabs.addTab(self.library_view, "Library")
-
-        self.dataset_dock.setWidget(self.dataset_tabs)
+        self.dataset_dock.setWidget(self.dataset_tree)
         self.addDockWidget(QtCore.Qt.DockWidgetArea.LeftDockWidgetArea, self.dataset_dock)
 
         self._build_library_dock()
@@ -348,7 +313,6 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
 
         # Load documentation entries after all dock widgets (including the log view)
         # have been initialised so that the initial selection can log status safely.
-        self._refresh_library_view()
         self._load_documentation_index()
 
     def _build_library_dock(self) -> None:
@@ -536,7 +500,6 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         entry = self._library_entries.get(str(sha))
         if not isinstance(entry, Mapping):
             return
-        self._update_library_detail(entry)
         stored_path = entry.get("stored_path")
         if not stored_path:
             QtWidgets.QMessageBox.warning(self, "Missing file", "The cached file is not available.")
@@ -558,21 +521,20 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
     def _on_library_selection_changed(self) -> None:
         self._update_library_detail()
 
-    def _update_library_detail(self, entry: Mapping[str, Any] | None = None) -> None:
+    def _update_library_detail(self) -> None:
         if self.library_detail is None:
             return
-        if entry is None:
-            if self.library_list is None or self.library_list.currentItem() is None:
-                self.library_detail.clear()
-                if self.library_hint is not None:
-                    self.library_hint.setText(
-                        "Select a cached entry to inspect metadata or double-click to reload it into the session."
-                    )
-                return
-            item = self.library_list.currentItem()
-            sha = item.data(0, QtCore.Qt.ItemDataRole.UserRole) if item is not None else None
-            entry = self._library_entries.get(str(sha)) if sha else None
+        if self.library_list is None or self.library_list.currentItem() is None:
+            self.library_detail.clear()
+            if self.library_hint is not None:
+                self.library_hint.setText(
+                    "Select a cached entry to inspect metadata or double-click to reload it into the session."
+                )
+            return
 
+        item = self.library_list.currentItem()
+        sha = item.data(0, QtCore.Qt.ItemDataRole.UserRole)
+        entry = self._library_entries.get(str(sha)) if sha else None
         if not isinstance(entry, Mapping):
             self.library_detail.clear()
             if self.library_hint is not None:
@@ -593,151 +555,25 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                 )
 
     def _format_library_entry(self, entry: Mapping[str, Any]) -> str:
-        alias = str(entry.get("filename") or Path(entry.get("stored_path", "")).name or "(unknown)")
-        sha_value = str(entry.get("sha256") or "unknown")
-        stored_path = str(entry.get("stored_path") or "")
-        manifest_path = str(entry.get("manifest_path") or "")
-        byte_count = entry.get("bytes")
-        created = str(entry.get("created") or "")
-        updated = str(entry.get("updated") or "")
-        units_map = entry.get("units") if isinstance(entry.get("units"), Mapping) else {}
-        x_unit = str(units_map.get("x") or "unknown") if isinstance(units_map, Mapping) else "unknown"
-        y_unit = str(units_map.get("y") or "unknown") if isinstance(units_map, Mapping) else "unknown"
-
-        lines: list[str] = []
-        lines.append(f"Alias: {alias}")
-        lines.append(f"SHA256: {sha_value}")
-        if isinstance(byte_count, (int, float)):
-            lines.append(f"Size: {int(byte_count)} bytes")
-        elif byte_count:
-            lines.append(f"Size: {byte_count}")
-        if stored_path:
-            lines.append(f"Stored path: {stored_path}")
-        if manifest_path:
-            lines.append(f"Manifest: {manifest_path}")
-        if created:
-            lines.append(f"Created: {created}")
-        if updated and updated != created:
-            lines.append(f"Updated: {updated}")
-
-        lines.append("")
-        lines.append("Canonical units:")
-        lines.append(f"  X: {x_unit}")
-        lines.append(f"  Y: {y_unit}")
-
-        source = entry.get("source") if isinstance(entry.get("source"), Mapping) else None
-        if isinstance(source, Mapping) and source:
-            ingest = source.get("ingest") if isinstance(source.get("ingest"), Mapping) else None
-            source_units = source.get("source_units") if isinstance(source.get("source_units"), Mapping) else None
-            remote = source.get("remote") if isinstance(source.get("remote"), Mapping) else None
-
-            if ingest:
-                lines.append("")
-                lines.append("Import provenance:")
-                importer = ingest.get("importer")
-                if importer:
-                    lines.append(f"  Importer: {importer}")
-                source_path = ingest.get("source_path")
-                if source_path:
-                    lines.append(f"  Source path: {source_path}")
-
-            if source_units:
-                lines.append("")
-                lines.append("Source units:")
-                for axis, unit in source_units.items():
-                    axis_label = str(axis).upper()
-                    lines.append(f"  {axis_label}: {unit}")
-
-            if remote:
-                lines.append("")
-                lines.append("Remote provenance:")
-                provider = remote.get("provider")
-                if provider:
-                    lines.append(f"  Provider: {provider}")
-                identifier = remote.get("identifier")
-                if identifier:
-                    lines.append(f"  Identifier: {identifier}")
-                uri = remote.get("uri")
-                if uri:
-                    lines.append(f"  URI: {uri}")
-                fetched = remote.get("fetched_at")
-                if fetched:
-                    lines.append(f"  Fetched: {fetched}")
-                metadata = remote.get("metadata")
-                if isinstance(metadata, Mapping) and metadata:
-                    lines.append("  Metadata:")
-                    try:
-                        lines.append(indent(json_pretty(dict(metadata)), "    "))
-                    except Exception:  # pragma: no cover - defensive formatting
-                        lines.append("    [unavailable]")
-
-        lines.append("")
-        lines.append("Knowledge log:")
-        matches = self._knowledge_log_entries_for_cache_entry(entry)
-        if matches:
-            for log_entry in matches:
-                stamp = log_entry.timestamp.strftime("%Y-%m-%d %H:%M")
-                summary = log_entry.summary or "(no summary)"
-                lines.append(f"  - {stamp} – {log_entry.component}: {summary}")
-                if log_entry.references:
-                    joined = ", ".join(log_entry.references)
-                    lines.append(f"    References: {joined}")
-        else:
-            lines.append("  - No knowledge-log entries mention this cache record yet.")
-        if getattr(self.knowledge_log, "log_path", None):
-            lines.append(f"  Log file: {self.knowledge_log.log_path}")
-
-        return "\n".join(lines)
-
-    def _knowledge_log_entries_for_cache_entry(
-        self, entry: Mapping[str, Any]
-    ) -> list[KnowledgeLogEntry]:
-        if not hasattr(self, "knowledge_log") or self.knowledge_log is None:
-            return []
-
-        cache = self._load_knowledge_log_index()
-        if not cache:
-            return []
-
-        search_terms: set[str] = {
-            str(entry.get("sha256") or ""),
-            str(entry.get("filename") or ""),
+        payload: Dict[str, Any] = {
+            "alias": entry.get("filename"),
+            "sha256": entry.get("sha256"),
+            "stored_path": entry.get("stored_path"),
+            "bytes": entry.get("bytes"),
+            "units": entry.get("units"),
+            "created": entry.get("created"),
+            "updated": entry.get("updated"),
         }
-        stored = entry.get("stored_path")
-        if stored:
-            try:
-                search_terms.add(Path(str(stored)).name)
-            except Exception:  # pragma: no cover - defensive
-                search_terms.add(str(stored))
-        source = entry.get("source") if isinstance(entry.get("source"), Mapping) else None
+        manifest = entry.get("manifest_path")
+        if manifest:
+            payload["manifest_path"] = manifest
+        source = entry.get("source")
         if isinstance(source, Mapping):
-            remote = source.get("remote") if isinstance(source.get("remote"), Mapping) else None
-            if isinstance(remote, Mapping):
-                search_terms.add(str(remote.get("identifier") or ""))
-                search_terms.add(str(remote.get("provider") or ""))
-        search_terms = {term.strip().lower() for term in search_terms if term and term.strip()}
-        if not search_terms:
-            return []
-
-        matches: list[KnowledgeLogEntry] = []
-        for log_entry in cache:
-            haystack_parts = [
-                log_entry.summary or "",
-                log_entry.component or "",
-                " ".join(log_entry.references or ()),
-            ]
-            haystack = " ".join(part for part in haystack_parts if part).lower()
-            if any(term in haystack for term in search_terms):
-                matches.append(log_entry)
-        return matches
-
-    def _load_knowledge_log_index(self) -> list[KnowledgeLogEntry]:
-        if self._knowledge_log_cache is None:
-            try:
-                self._knowledge_log_cache = self.knowledge_log.load_entries()
-            except Exception:
-                self._knowledge_log_cache = []
-        return self._knowledge_log_cache
+            payload["source"] = source
+        provenance = entry.get("provenance")
+        if isinstance(provenance, Mapping):
+            payload["provenance"] = provenance
+        return json_pretty(payload)
 
     def _build_history_dock(self) -> None:
         self.history_dock = QtWidgets.QDockWidget("History", self)
@@ -882,11 +718,10 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         palette_form = QtWidgets.QFormLayout()
         style_layout.addLayout(palette_form)
         self.color_mode_combo = QtWidgets.QComboBox()
-        for definition in self._palette_definitions:
-            self.color_mode_combo.addItem(definition.label, definition.key)
-        index = self.color_mode_combo.findData(self._palette_key)
-        if index != -1:
-            self.color_mode_combo.setCurrentIndex(index)
+        self.color_mode_combo.addItems([
+            "High-contrast palette",
+            "Uniform (single colour)",
+        ])
         self.color_mode_combo.currentIndexChanged.connect(self._on_color_mode_changed)
         palette_form.addRow("Trace colouring:", self.color_mode_combo)
 
@@ -982,75 +817,13 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.plot.set_max_points(coerced)
         self._save_plot_max_points(coerced)
 
-    def _set_active_palette(self, palette: PaletteDefinition, *, persist: bool) -> None:
-        self._active_palette = palette
-        self._palette_key = palette.key
-        self._palette = [QtGui.QColor(code) for code in palette.sequence()]
-        self._palette_index = 0
-        self._use_uniform_palette = bool(palette.uniform)
-        self._uniform_color = QtGui.QColor(palette.resolved_uniform_color())
-        if persist:
-            self._save_palette_key(palette.key)
-        if self.color_mode_combo is not None:
-            index = self.color_mode_combo.findData(palette.key)
-            if index != -1 and self.color_mode_combo.currentIndex() != index:
-                self.color_mode_combo.blockSignals(True)
-                self.color_mode_combo.setCurrentIndex(index)
-                self.color_mode_combo.blockSignals(False)
-
-    def _apply_palette(self, palette_key: str, *, persist: bool = True) -> None:
-        definition = self._palette_lookup.get(palette_key)
-        if definition is None:
-            definition = self._palette_lookup[self._default_palette_key]
-        if definition.key == self._palette_key and persist:
-            self._save_palette_key(definition.key)
-            return
-        self._set_active_palette(definition, persist=persist)
-        self._reapply_palette_to_traces()
-
-    def _reapply_palette_to_traces(self) -> None:
-        if not hasattr(self, "plot"):
-            return
-        spectra = self.overlay_service.list()
-        if not spectra:
-            return
-        previous_styles: Dict[str, TraceStyle] = {}
-        traces: Dict[str, Dict[str, Any]] = getattr(self.plot, "_traces", {})  # type: ignore[attr-defined]
-        for spectrum in spectra:
-            trace = traces.get(spectrum.id)
-            if not trace:
-                continue
-            style = trace.get("style")
-            if isinstance(style, TraceStyle):
-                previous_styles[spectrum.id] = style
-        self._spectrum_colors.clear()
-        self._palette_index = 0
-        for spectrum in spectra:
-            base_color = self._assign_color(spectrum)
-            display_color = self._display_color(base_color)
-            self._update_dataset_icon(spectrum.id, display_color)
-            prev_style = previous_styles.get(spectrum.id)
-            if prev_style is None:
-                continue
-            new_style = TraceStyle(
-                color=QtGui.QColor(display_color),
-                width=prev_style.width,
-                antialias=prev_style.antialias,
-                show_in_legend=prev_style.show_in_legend,
-                fill_brush=prev_style.fill_brush,
-                fill_level=prev_style.fill_level,
-            )
-            self.plot.update_style(spectrum.id, new_style)
-
     def _on_color_mode_changed(self) -> None:
         if self.color_mode_combo is None:
             return
-        key = self.color_mode_combo.currentData()
-        if not isinstance(key, str):
+        use_uniform = self.color_mode_combo.currentIndex() == 1
+        if use_uniform == self._use_uniform_palette:
             return
-        if key == self._palette_key:
-            return
-        self._apply_palette(key)
+        self._use_uniform_palette = use_uniform
         for spec_id, base_color in self._spectrum_colors.items():
             self._update_dataset_icon(spec_id, self._display_color(base_color))
         self.refresh_overlay()
@@ -1073,23 +846,6 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         color_item.setEditable(False)
         self.dataset_model.appendRow([alias_item, visible_item, color_item])
         return alias_item
-
-    def _build_library_view(self) -> QtWidgets.QTreeWidget:
-        view = QtWidgets.QTreeWidget()
-        view.setObjectName("library-view")
-        view.setRootIsDecorated(False)
-        view.setUniformRowHeights(True)
-        view.setAlternatingRowColors(True)
-        view.setSelectionMode(QtWidgets.QAbstractItemView.SelectionMode.SingleSelection)
-        view.setHeaderLabels(["File", "Origin", "SHA256", "Stored Path", "Size", "Importer"])
-        header = view.header()
-        header.setSectionResizeMode(0, QtWidgets.QHeaderView.Stretch)
-        header.setSectionResizeMode(1, QtWidgets.QHeaderView.ResizeToContents)
-        header.setSectionResizeMode(2, QtWidgets.QHeaderView.ResizeToContents)
-        header.setSectionResizeMode(3, QtWidgets.QHeaderView.Stretch)
-        header.setSectionResizeMode(4, QtWidgets.QHeaderView.ResizeToContents)
-        header.setSectionResizeMode(5, QtWidgets.QHeaderView.ResizeToContents)
-        return view
 
     def _wire_shortcuts(self) -> None:
         QtGui.QShortcut(QtGui.QKeySequence("Ctrl+O"), self, activated=self.open_file)
@@ -1164,7 +920,6 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.refresh_overlay()
         self._show_metadata(spectra[-1])
         self._show_provenance(spectra[-1])
-        self._refresh_library_view()
         message = f"Imported {len(spectra)} remote spectrum(s)."
         self.status_bar.showMessage(message, 5000)
         self._log("Remote", message)
@@ -1439,142 +1194,6 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.plot.set_y_label(self._format_y_axis_label(display_y_unit))
         self.plot.autoscale()
 
-    # Library helpers --------------------------------------------------
-    def _refresh_library_view(self) -> None:
-        view = getattr(self, "library_view", None)
-        if view is None:
-            return
-
-        view.setUpdatesEnabled(False)
-        view.clear()
-        self._library_items.clear()
-
-        store = self.store or self.ingest_service.store
-        if store is None:
-            self._add_library_placeholder("Persistent cache is disabled. Enable it to build the library.")
-            view.setEnabled(False)
-            view.setUpdatesEnabled(True)
-            return
-
-        view.setEnabled(True)
-        try:
-            entries = store.list_entries()
-        except Exception as exc:  # pragma: no cover - filesystem feedback
-            self._add_library_placeholder(f"Unable to read cache: {exc}")
-            view.setEnabled(False)
-            view.setUpdatesEnabled(True)
-            return
-
-        if not entries:
-            self._add_library_placeholder("No cached files yet. Import spectra to build the library.")
-            view.setUpdatesEnabled(True)
-            return
-
-        sorter = lambda item: str(item[1].get("updated") or item[1].get("created") or "")
-        for sha, record in sorted(entries.items(), key=sorter, reverse=True):
-            columns = self._library_columns(record)
-            item = QtWidgets.QTreeWidgetItem(columns)
-            self._decorate_library_item(item, record)
-            view.addTopLevelItem(item)
-            if sha:
-                self._library_items[str(sha)] = item
-
-        view.setUpdatesEnabled(True)
-
-    def _library_columns(self, record: Mapping[str, Any]) -> list[str]:
-        filename = record.get("filename") if isinstance(record, Mapping) else None
-        stored_path = record.get("stored_path") if isinstance(record, Mapping) else None
-        original_path = record.get("original_path") if isinstance(record, Mapping) else None
-        sha = record.get("sha256") if isinstance(record, Mapping) else None
-        size = self._format_bytes(record.get("bytes") if isinstance(record, Mapping) else None)
-
-        if isinstance(filename, str) and filename:
-            label = filename
-        elif isinstance(original_path, str) and original_path:
-            label = Path(original_path).name
-        elif isinstance(stored_path, str) and stored_path:
-            label = Path(stored_path).name
-        elif isinstance(sha, str) and sha:
-            label = sha
-        else:
-            label = "Cached file"
-
-        stored_display = str(stored_path) if isinstance(stored_path, str) else ""
-
-        importer = ""
-        source = record.get("source") if isinstance(record, Mapping) else None
-        origin = "Local import"
-        if isinstance(source, Mapping):
-            ingest = source.get("ingest")
-            if isinstance(ingest, Mapping):
-                importer = str(ingest.get("importer") or "")
-            remote = source.get("remote")
-            if isinstance(remote, Mapping):
-                provider = str(remote.get("provider") or "Remote source")
-                identifier = remote.get("identifier")
-                origin = provider if not identifier else f"{provider} ({identifier})"
-                stored_display = stored_display or str(remote.get("uri") or "")
-
-        return [
-            label,
-            origin,
-            str(sha or ""),
-            stored_display,
-            size,
-            importer,
-        ]
-
-    def _decorate_library_item(self, item: QtWidgets.QTreeWidgetItem, record: Mapping[str, Any]) -> None:
-        stored_path = record.get("stored_path") if isinstance(record, Mapping) else None
-        original_path = record.get("original_path") if isinstance(record, Mapping) else None
-        source = record.get("source") if isinstance(record, Mapping) else None
-        remote = source.get("remote") if isinstance(source, Mapping) else None
-        tooltip_lines = [item.text(0)]
-        if isinstance(stored_path, str) and stored_path:
-            tooltip_lines.append(f"Stored at: {stored_path}")
-        if (
-            isinstance(original_path, str)
-            and original_path
-            and original_path != stored_path
-        ):
-            tooltip_lines.append(f"Original path: {original_path}")
-        if isinstance(remote, Mapping):
-            provider = remote.get("provider")
-            if provider:
-                tooltip_lines.append(f"Provider: {provider}")
-            uri = remote.get("uri")
-            if uri:
-                tooltip_lines.append(f"URI: {uri}")
-        item.setToolTip(0, "\n".join(filter(None, tooltip_lines)))
-
-        for col in range(1, item.columnCount()):
-            text = item.text(col)
-            if text:
-                item.setToolTip(col, text)
-
-    def _add_library_placeholder(self, message: str) -> None:
-        view = getattr(self, "library_view", None)
-        if view is None:
-            return
-        placeholder = QtWidgets.QTreeWidgetItem([message, "", "", "", "", ""])
-        placeholder.setFlags(QtCore.Qt.ItemFlag.NoItemFlags)
-        view.addTopLevelItem(placeholder)
-        view.setFirstColumnSpanned(placeholder, True)
-
-    @staticmethod
-    def _format_bytes(value: object) -> str:
-        if not isinstance(value, (int, float)):
-            return ""
-        size = float(value)
-        units = ["B", "KB", "MB", "GB", "TB"]
-        for unit in units:
-            if size < 1024 or unit == units[-1]:
-                if unit == "B":
-                    return f"{int(size)} {unit}"
-                return f"{size:.1f} {unit}"
-            size /= 1024
-        return f"{int(value)} B"
-
     def _show_metadata(self, spectrum: Spectrum | None) -> None:
         if spectrum is None:
             self.info_panel.hide()
@@ -1775,7 +1394,6 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         except Exception as exc:  # pragma: no cover - filesystem feedback
             self._log("History", f"Failed to record event: {exc}")
             return
-        self._knowledge_log_cache = None
         if getattr(self, "_history_ui_ready", False):
             self._append_history_entry(entry)
 

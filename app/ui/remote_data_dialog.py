@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Dict, List
+from typing import List
 
 from app.qt_compat import get_qt
 from app.services import DataIngestService, RemoteDataService, RemoteRecord
@@ -14,30 +14,6 @@ QtCore, QtGui, QtWidgets, _ = get_qt()
 
 class RemoteDataDialog(QtWidgets.QDialog):
     """Interactive browser for remote catalogue search and download."""
-
-    _MAST_SUPPORTED_CRITERIA = {
-        "target_name",
-        "obs_collection",
-        "dataproduct_type",
-        "instrument_name",
-        "proposal_id",
-        "proposal_pi",
-        "filters",
-        "s_ra",
-        "s_dec",
-        "radius",
-    }
-    _MAST_NUMERIC_CRITERIA = {"s_ra", "s_dec", "radius"}
-    _PROVIDER_HINTS = {
-        RemoteDataService.PROVIDER_NIST: (
-            "NIST ASD: enter an element symbol or atom (for example 'Fe II'). "
-            "Advanced searches accept wavelength ranges via the toolbar."
-        ),
-        RemoteDataService.PROVIDER_MAST: (
-            "MAST: supply a target name or comma-separated key=value pairs such as "
-            "'instrument_name=NIRSpec, dataproduct_type=spectrum'."
-        ),
-    }
 
     def __init__(
         self,
@@ -73,7 +49,6 @@ class RemoteDataDialog(QtWidgets.QDialog):
         self.provider_combo.currentIndexChanged.connect(self._on_provider_changed)
         controls.addWidget(QtWidgets.QLabel("Catalogue:"))
         controls.addWidget(self.provider_combo)
-        self.provider_combo.currentIndexChanged.connect(self._on_provider_changed)
 
         self.search_edit = QtWidgets.QLineEdit(self)
         self.search_edit.setPlaceholderText("Element, target name, or keyword…")
@@ -126,35 +101,6 @@ class RemoteDataDialog(QtWidgets.QDialog):
     def _on_search(self) -> None:
         provider = self.provider_combo.currentText()
         query = self._build_provider_query(provider, self.search_edit.text())
-
-        if not query:
-            if provider == RemoteDataService.PROVIDER_MAST:
-                message = (
-                    "MAST searches require a target name or supported key=value filters before running a query."
-                )
-            elif provider == RemoteDataService.PROVIDER_NIST:
-                message = (
-                    "NIST ASD searches require an element, ion, or keyword before running a query."
-                )
-            else:
-                message = "Enter search terms before querying the selected catalogue."
-            self.status_label.setText(message)
-            self._records = []
-            self.results.setRowCount(0)
-            self.preview.clear()
-            return
-
-        if provider == RemoteDataService.PROVIDER_MAST and not any(
-            key in self._MAST_SUPPORTED_CRITERIA for key in query
-        ):
-            self.status_label.setText(
-                "MAST searches require a target name or supported key=value filters to avoid expansive queries."
-            )
-            self._records = []
-            self.results.setRowCount(0)
-            self.preview.clear()
-            return
-
         try:
             records = self.remote_service.search(provider, query)
         except Exception as exc:  # pragma: no cover - UI feedback
@@ -193,39 +139,10 @@ class RemoteDataDialog(QtWidgets.QDialog):
             hint = "\n".join(parts)
         self.hint_label.setText(hint)
 
-    def _build_provider_query(self, provider: str, text: str) -> dict[str, object]:
+    def _build_provider_query(self, provider: str, text: str) -> dict[str, str]:
         stripped = text.strip()
         if provider == RemoteDataService.PROVIDER_MAST:
-            if not stripped:
-                return {}
-
-            criteria: dict[str, object] = {}
-            names: list[str] = []
-            for raw_part in stripped.split(","):
-                part = raw_part.strip()
-                if not part:
-                    continue
-                if "=" in part:
-                    key, value = (segment.strip() for segment in part.split("=", 1))
-                    if not key or not value:
-                        continue
-                    if key in self._MAST_SUPPORTED_CRITERIA:
-                        if key in self._MAST_NUMERIC_CRITERIA:
-                            try:
-                                criteria[key] = float(value)
-                                continue
-                            except ValueError:
-                                # Fall back to the raw string so users can correct typos
-                                # without the UI discarding the field entirely.
-                                pass
-                        criteria[key] = value
-                    continue
-                names.append(part)
-
-            if names and "target_name" not in criteria:
-                criteria["target_name"] = ", ".join(names)
-
-            return criteria
+            return {"target_name": stripped} if stripped else {}
         if provider == RemoteDataService.PROVIDER_NIST:
             return {"element": stripped} if stripped else {}
         return {"text": stripped} if stripped else {}

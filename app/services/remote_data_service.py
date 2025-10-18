@@ -75,22 +75,6 @@ class RemoteDataService:
     PROVIDER_NIST = "NIST ASD"
     PROVIDER_MAST = "MAST"
 
-    _MAST_SUPPORTED_CRITERIA = frozenset(
-        {
-            "target_name",
-            "obs_collection",
-            "dataproduct_type",
-            "instrument_name",
-            "proposal_id",
-            "proposal_pi",
-            "filters",
-            "s_ra",
-            "s_dec",
-            "radius",
-        }
-    )
-    _MAST_NUMERIC_CRITERIA = frozenset({"s_ra", "s_dec", "radius"})
-
     def providers(self) -> List[str]:
         """Return the list of remote providers whose dependencies are satisfied."""
 
@@ -137,7 +121,6 @@ class RemoteDataService:
         fetch_path, cleanup = self._fetch_remote(record)
 
         x_unit, y_unit = record.resolved_units()
-        mast_provenance = None
         remote_metadata = {
             "provider": record.provider,
             "uri": record.download_url,
@@ -145,8 +128,6 @@ class RemoteDataService:
             "fetched_at": self._timestamp(),
             "metadata": json.loads(json.dumps(record.metadata)),
         }
-        if mast_provenance is not None:
-            remote_metadata.update(mast_provenance)
         store_entry = self.store.record(
             fetch_path,
             x_unit=x_unit,
@@ -167,22 +148,9 @@ class RemoteDataService:
     # ------------------------------------------------------------------
     def _search_nist(self, query: Mapping[str, Any]) -> List[RemoteRecord]:
         session = self._ensure_session()
-        spectra = (
-            query.get("element")
-            or query.get("spectra")
-            or query.get("text")
-            or ""
-        )
-        if isinstance(spectra, str):
-            spectra = spectra.strip()
-        if not spectra:
-            raise ValueError(
-                "NIST ASD searches require an element, ion, or keyword to narrow the catalogue request."
-            )
-
         params: Dict[str, Any] = {
             "format": "json",
-            "spectra": spectra,
+            "spectra": query.get("element") or query.get("text") or "",
         }
         if query.get("wavelength_min") is not None:
             params["wavemin"] = query["wavelength_min"]
@@ -237,29 +205,6 @@ class RemoteDataService:
         if legacy_text and "target_name" not in criteria:
             if isinstance(legacy_text, str) and legacy_text.strip():
                 criteria["target_name"] = legacy_text.strip()
-
-        cleaned_criteria: Dict[str, Any] = {}
-        for key, value in criteria.items():
-            if value is None:
-                continue
-            if isinstance(value, str):
-                value = value.strip()
-                if not value:
-                    continue
-            if isinstance(value, (list, tuple, set, dict)) and not value:
-                continue
-            cleaned_criteria[key] = value
-        criteria = cleaned_criteria
-
-        provided_narrowing_keys = [
-            key for key in criteria if key in self._MAST_SUPPORTED_CRITERIA
-        ]
-        if not provided_narrowing_keys:
-            supported = ", ".join(sorted(self._MAST_SUPPORTED_CRITERIA))
-            raise ValueError(
-                "MAST searches require a target name or one of the supported filters to bound the result set. "
-                f"Recognised filters: {supported}."
-            )
 
         # Default to calibrated spectroscopic products so search results focus on
         # slit/grism/cube observations that pair with laboratory references.

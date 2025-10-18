@@ -55,16 +55,13 @@ Open the **Library** dock (tabified with the Datasets pane) to inspect cached
 uploads. Each row lists the stored alias, units, timestamp, provider/importer,
 and checksum. Selecting a row now fills the metadata preview beneath the table
 with the entry’s provenance, canonical units, byte size, and storage location,
-so you can audit the cache without re-opening the file. The preview also
-surfaces matching knowledge-log entries alongside a direct link to the
-consolidated log, keeping high-level insights curated while still tracing every
-cached artefact. Use the search bar to filter by alias, units, provider, or
-checksum tokens. Double-click an entry to re-load it without touching the
-original path—ideal when you want to compare different normalisations or revisit
-a session offline. Routine imports no longer spam the knowledge log with raw
-file paths; only high-level summaries remain in
-`docs/history/KNOWLEDGE_LOG.md` while the library exposes the full cache index
-for auditability.
+so you can audit the cache without re-opening the file. Use the search bar to
+filter by alias, units, provider, or checksum tokens. Double-click an entry to
+re-load it without touching the original path—ideal when you want to compare
+different normalisations or revisit a session offline. Routine imports no
+longer spam the knowledge log with raw file paths; only high-level summaries
+remain in `docs/history/KNOWLEDGE_LOG.md` while the library exposes the full
+cache index for auditability.
 
 ## Intelligent parsing of messy tables
 
