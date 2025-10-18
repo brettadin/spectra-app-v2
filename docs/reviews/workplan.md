@@ -19,10 +19,10 @@ This document tracks feature batches, validation status, and outstanding backlog
       once dependency checks stabilise and new spectroscopy sources are vetted.
 - [ ] Refresh START_HERE, MASTER PROMPT, AGENTS, and brains documentation so
       onboarding instructions match the current repository layout.
-- [ ] Document dependency prerequisites (astroquery, astropy, requests) and add
-      installation verification guidance for Windows 11 users.
+- [x] Document dependency prerequisites (requests, astroquery, pandas, astropy)
+      and add installation verification guidance for Windows 11 users.
 
-### Recently Completed (2025-10-17)
+### Recently Completed (2025-10-18)
 
 - [x] Align Remote Data searches with provider-specific criteria so MAST queries pass `target_name` while NIST continues to use `spectra` filters, and extend the regression suite to cover the translation.
 - [x] Route MAST downloads through `astroquery.mast.Observations.download_file`, retaining the HTTP code path for direct URLs and persisting results via `LocalStore`.
@@ -34,6 +34,10 @@ This document tracks feature batches, validation status, and outstanding backlog
 - [x] Block empty Remote Data submissions, surface curated example queries per
       provider, and raise service-level errors for missing criteria so remote
       searches stay scoped to spectroscopy use-cases.
+- [x] Declare remote catalogue dependencies (`requests`, `astroquery`,
+      `pandas`), surface pandas-aware availability hints, wire the **Include
+      imaging** toggle into the Remote Data dialog, and expand regression tests
+      and user docs to cover the new mode.
 
 ### Batch 14 QA Log
 

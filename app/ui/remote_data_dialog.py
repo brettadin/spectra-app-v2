@@ -68,6 +68,13 @@ class RemoteDataDialog(QtWidgets.QDialog):
         self.search_button.clicked.connect(self._on_search)
         controls.addWidget(self.search_button)
 
+        self.include_imaging_checkbox = QtWidgets.QCheckBox("Include imaging", self)
+        self.include_imaging_checkbox.setToolTip(
+            "When enabled, MAST results may include calibrated imaging alongside spectroscopic products."
+        )
+        self.include_imaging_checkbox.setVisible(False)
+        controls.addWidget(self.include_imaging_checkbox)
+
         layout.addLayout(controls)
 
         splitter = QtWidgets.QSplitter(QtCore.Qt.Orientation.Horizontal, self)
@@ -119,8 +126,18 @@ class RemoteDataDialog(QtWidgets.QDialog):
             )
             return
 
+        include_imaging = bool(
+            self.include_imaging_checkbox.isVisible()
+            and self.include_imaging_checkbox.isEnabled()
+            and self.include_imaging_checkbox.isChecked()
+        )
+
         try:
-            records = self.remote_service.search(provider, query)
+            records = self.remote_service.search(
+                provider,
+                query,
+                include_imaging=include_imaging,
+            )
         except Exception as exc:  # pragma: no cover - UI feedback
             QtWidgets.QMessageBox.critical(self, "Search failed", str(exc))
             return
@@ -146,6 +163,7 @@ class RemoteDataDialog(QtWidgets.QDialog):
             # the provider string so the argument is intentionally ignored.
             pass
         provider = self.provider_combo.currentText()
+        is_mast = provider == RemoteDataService.PROVIDER_MAST
         placeholder = self._provider_placeholders.get(provider)
         if placeholder:
             self.search_edit.setPlaceholderText(placeholder)
@@ -166,6 +184,13 @@ class RemoteDataDialog(QtWidgets.QDialog):
         self.example_combo.setCurrentIndex(0)
         self.example_combo.setEnabled(bool(examples))
         self.example_combo.blockSignals(False)
+
+        self.include_imaging_checkbox.blockSignals(True)
+        self.include_imaging_checkbox.setVisible(is_mast)
+        self.include_imaging_checkbox.setEnabled(is_mast)
+        if not is_mast:
+            self.include_imaging_checkbox.setChecked(False)
+        self.include_imaging_checkbox.blockSignals(False)
 
     def _build_provider_query(self, provider: str, text: str) -> dict[str, str]:
         stripped = text.strip()
@@ -231,8 +256,8 @@ class RemoteDataDialog(QtWidgets.QDialog):
                     "Searches target laboratory-grade spectral line lists from the NIST ASD."
                 ),
                 RemoteDataService.PROVIDER_MAST: (
-                    "MAST requests favour calibrated spectra (IFS cubes, slits, prisms) using the "
-                    "`dataproduct_type=spectrum` filter so results align with lab references."
+                    "MAST requests favour calibrated spectra (IFS cubes, slits, prisms). Enable "
+                    "\"Include imaging\" to broaden results with calibrated image products."
                 ),
             }
             self._provider_examples = {
@@ -252,6 +277,9 @@ class RemoteDataDialog(QtWidgets.QDialog):
             self.search_edit.setEnabled(False)
             self.search_button.setEnabled(False)
             self.example_combo.setEnabled(False)
+            self.include_imaging_checkbox.setVisible(False)
+            self.include_imaging_checkbox.setEnabled(False)
+            self.include_imaging_checkbox.setChecked(False)
             self._provider_placeholders = {}
             self._provider_hints = {}
             self._provider_examples = {}

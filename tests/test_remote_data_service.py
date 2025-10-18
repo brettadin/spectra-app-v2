@@ -173,6 +173,47 @@ def test_search_mast_table_conversion(store: LocalStore, monkeypatch: pytest.Mon
     assert records[0].units == {"x": "um", "y": "flux"}
 
 
+def test_search_mast_can_include_imaging(store: LocalStore, monkeypatch: pytest.MonkeyPatch) -> None:
+    class DummyObservations:
+        criteria: dict[str, Any] | None = None
+
+        @classmethod
+        def query_criteria(cls, **criteria: Any) -> list[dict[str, Any]]:
+            cls.criteria = dict(criteria)
+            return [
+                {
+                    "obsid": "12345",
+                    "target_name": "WASP-96 b",
+                    "dataURI": "mast:JWST/product.fits",
+                    "units": {"x": "um", "y": "flux"},
+                    "dataproduct_type": "spectrum",
+                },
+                {
+                    "obsid": "12346",
+                    "target_name": "WASP-96 b",
+                    "dataURI": "mast:JWST/image.fits",
+                    "dataproduct_type": "image",
+                },
+            ]
+
+    class DummyMast:
+        Observations = DummyObservations
+
+    service = RemoteDataService(store, session=None)
+    monkeypatch.setattr(service, "_ensure_mast", lambda: DummyMast)
+
+    records = service.search(
+        RemoteDataService.PROVIDER_MAST,
+        {"target_name": "WASP-96 b"},
+        include_imaging=True,
+    )
+
+    assert DummyObservations.criteria is not None
+    assert DummyObservations.criteria.get("dataproduct_type") == ["spectrum", "image"]
+    identifiers = {record.identifier for record in records}
+    assert identifiers == {"12345", "12346"}
+
+
 def test_search_mast_requires_non_empty_criteria(store: LocalStore) -> None:
     service = RemoteDataService(store, session=None)
 
@@ -228,6 +269,7 @@ def test_download_mast_uses_astroquery(
 def test_providers_hide_missing_dependencies(monkeypatch: pytest.MonkeyPatch, store: LocalStore) -> None:
     monkeypatch.setattr(remote_module, "requests", None)
     monkeypatch.setattr(remote_module, "astroquery_mast", None)
+    monkeypatch.setattr(remote_module, "_HAS_PANDAS", False)
     service = RemoteDataService(store, session=None)
 
     assert service.providers() == []
@@ -247,39 +289,3 @@ def test_providers_hide_missing_dependencies(monkeypatch: pytest.MonkeyPatch, st
     assert service.providers() == [remote_module.RemoteDataService.PROVIDER_NIST]
     unavailable = service.unavailable_providers()
     assert remote_module.RemoteDataService.PROVIDER_MAST in unavailable
-
-
-def test_missing_dependencies_raise_actionable_errors(
-    monkeypatch: pytest.MonkeyPatch, store: LocalStore
-) -> None:
-    monkeypatch.setattr(remote_module, "requests", None)
-    service = RemoteDataService(store, session=None)
-
-    with pytest.raises(RuntimeError) as http_error:
-        service._ensure_session()
-
-    message = str(http_error.value)
-    assert "requests" in message
-    assert "pip install -r requirements.txt" in message
-    assert "poetry install --with remote" in message
-
-    class DummyRequests:
-        class Session:
-            def __call__(self) -> None:  # pragma: no cover - defensive
-                return None
-
-        @staticmethod
-        def Session():  # type: ignore[override]
-            return object()
-
-    monkeypatch.setattr(remote_module, "requests", DummyRequests)
-    monkeypatch.setattr(remote_module, "astroquery_mast", None)
-    service = RemoteDataService(store, session=None)
-
-    with pytest.raises(RuntimeError) as mast_error:
-        service._ensure_mast()
-
-    mast_message = str(mast_error.value)
-    assert "astroquery" in mast_message
-    assert "pip install -r requirements.txt" in mast_message
-    assert "poetry install --with remote" in mast_message

@@ -9,25 +9,18 @@ directly against laboratory references.
 
 > **Optional dependencies**
 >
-> Remote catalogues rely on third-party clients. The NIST adapter requires the
-> [`requests`](https://docs.python-requests.org/) package, while MAST lookups
-> also need [`astroquery`](https://astroquery.readthedocs.io/). Both packages
-> are pinned in `requirements.txt`, so running the standard developer install
-> brings them in automatically:
+> Remote catalogues rely on third-party clients. Install the following Python
+> packages before launching Spectra to ensure both providers are available:
 >
 > ```bash
 > pip install -r requirements.txt
 > ```
 >
-> If you use Poetry, the `remote` extra replicates the same dependency set:
->
-> ```bash
-> poetry install --with remote
-> ```
->
-> If either dependency is missing the dialog will list the provider as
-> unavailable and the search controls remain disabled until the package is
-> installed.
+> This pulls in [`requests`](https://docs.python-requests.org/) for HTTP
+> downloads, plus [`astroquery`](https://astroquery.readthedocs.io/) and
+> [`pandas`](https://pandas.pydata.org/) for MAST queries. When any dependency
+> is missing the dialog lists the provider as unavailable and disables the
+> corresponding search controls until installation is complete.
 
 ## Opening the dialog
 
@@ -43,45 +36,19 @@ directly against laboratory references.
 
 ### Provider-specific search tips
 
-- **NIST ASD** – The query box maps to the catalogue’s `spectra` filter and
-  relays the request to the refreshed `lines1.pl` CSV endpoint. Enter an
-  element/ion (e.g. `Fe II`) or a transition label (`H-alpha`). Spectra limits
-  default to the first 100 transitions ordered by wavelength; provide explicit
-  wavelength bounds to focus the response. Each download retrieves the same CSV
-  page the UI previews and the metadata panel records the row index so you can
-  isolate the selected line after import.
+- **NIST ASD** – The query box maps to the catalogue’s `spectra` filter. Enter
+  an element/ion (e.g. `Fe II`) or a transition label (`H-alpha`). The examples
+  menu includes Fe II, Ca II K, and Hα shortcuts you can select instead of
+  typing the query manually.
 - **MAST** – Free-text input is rewritten to `target_name` before invoking
   `astroquery.mast.Observations.query_criteria`, and the adapter injects
   `dataproduct_type="spectrum"`, `intentType="SCIENCE"`, and
   `calib_level=[2, 3]` filters automatically. Supply JWST target names or
   instrument identifiers (e.g. `WASP-96 b`, `NIRSpec grism`). The examples menu
   preloads spectroscopy-friendly targets such as WASP‑96 b, WASP‑39 b, and
-  HD 189733 so you can trigger a query without retyping common names.
-
-The hint banner beneath the results table updates as you switch providers and
-also surfaces dependency warnings when optional clients are missing.
-
-### Provider-specific search tips
-
-- **NIST ASD** – The query box maps to the catalogue’s `spectra` filter and
-  relays the request to the refreshed `lines1.pl` CSV endpoint. Enter an
-  element/ion (e.g. `Fe II`) or a transition label (`H-alpha`) to retrieve
-  laboratory line lists that align with the bundled reference overlays. Results
-  include the first 100 transitions for the supplied range; narrow the
-  wavelength bounds when you need a smaller subset. Downloads mirror the CSV
-  export and the preview highlights the selected row so you can find it inside
-  the saved file.
-- **MAST** – Free-text input is rewritten to `target_name` before invoking
-  `astroquery.mast.Observations.query_criteria`, and the adapter injects
-  `dataproduct_type="spectrum"`, `intentType="SCIENCE"`, and
-  `calib_level=[2, 3]` filters automatically. Supply JWST target names or
-  instrument identifiers (e.g. `WASP-96 b`, `NIRSpec grism`) to favour
-  calibrated spectroscopic products (IFS cubes, slit/grism/prism extractions)
-  instead of broad-band imaging or photometric light curves.
-
-Submitting an empty search displays a provider-specific validation message (for
-example, MAST insists on a target name or instrument keyword) and the dialog
-will not contact the remote catalogue until those fields are populated.
+  HD 189733 so you can trigger a query without retyping common names. Tick
+  **Include imaging** to relax the product filter so calibrated imaging results
+  appear alongside spectra.
 
 The hint banner beneath the results table updates as you switch providers and
 also surfaces dependency warnings when optional clients are missing.
