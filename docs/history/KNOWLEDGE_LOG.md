@@ -28,6 +28,25 @@ Each entry in this document should follow this structure:
 
 ---
 
+## 2025-10-18 18:58 – Onboarding documentation
+
+**Author**: agent
+
+**Context**: Quick-start guide accuracy and contributor workflow alignment.
+
+**Summary**: Replaced lingering references to the retired `docs/patch_notes/`,
+`docs/ai_log/`, and `app/version.json` paths so START_HERE, CONTRIBUTING, and the
+historical app review prompt now cite `docs/history/PATCH_NOTES.md`,
+`docs/history/KNOWLEDGE_LOG.md`, and the current version metadata in
+`pyproject.toml`/`ProvenanceService`. Clarified that contributors should log
+patch notes and knowledge updates with matching timestamps to keep manifests
+and documentation in sync.
+
+**References**: `START_HERE.md`, `CONTRIBUTING.md`,
+`docs/history/past prompts/app_review_previous.md`, `docs/history/PATCH_NOTES.md`.
+
+---
+
 ## 2025-10-18 18:48 – Timestamp Capture Guidance
 
 **Author**: agent
