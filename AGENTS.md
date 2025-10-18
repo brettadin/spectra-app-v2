@@ -47,6 +47,9 @@ in the knowledge log before proceeding.
 - Append patch-note and knowledge-log entries with the actual
   `America/New_York` timestamp (ISO-8601 with offset). Mention the files or
   features touched and cite supporting docs/tests.
+  - When making runtime or UI changes (e.g. Remote Data dialog), append a
+    `2025-XX-YY` entry to `docs/history/KNOWLEDGE_LOG.md` summarising the
+    change, and add a short note to `docs/history/PATCH_NOTES.md`.
 - Cross-link new resources in `docs/link_collection.md` with provenance (DOI or
   URL) so future agents can verify sources.
 - Keep the workplan and backlog in sync with delivered tasks and new findings.
@@ -56,6 +59,9 @@ in the knowledge log before proceeding.
 - Run `pytest` locally before committing. Add or update regression coverage next
   to the code you touch (remote services → `tests/test_remote_data_service.py`,
   UI tweaks → Qt smoke tests, ingest logic → importer suite).
+  - Note: MAST support depends on `astroquery`. If your change touches remote
+    providers, document whether `astroquery` is required and include guards in
+    code as needed.
 - When introducing optional dependencies or native code, guard imports and add
   targeted tests to avoid breaking minimal installs.
 

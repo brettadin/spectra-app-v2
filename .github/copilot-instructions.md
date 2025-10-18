@@ -29,6 +29,7 @@ This file tells AI coding agents how to be immediately productive in this reposi
    - Knowledge log parsing: `KnowledgeLogService.load_entries()` parses `docs/history/KNOWLEDGE_LOG.md` via HEADER_PATTERN; keep headings/format when writing entries.
    - Unit conversions: `UnitsService` stores canonical units (nm) and conversion helpers are used at display time (see `app/services/units_service.py` and usages in `PlotPane` and `_to_nm`).
    - Remote data: `RemoteDataService` expects provider-specific query building; extend `_build_provider_query` and accompanying tests in `tests/test_remote_data_service.py`.
+      - Note: MAST provider requires `astroquery`. The service uses guarded imports so the dialog will annotate unavailable providers when optional deps are not present.
 
 6. When editing code:
    - Use small, focused commits on feature branches: `feature/YYMMDD-bN-shortname` (see `AGENTS.md`).
