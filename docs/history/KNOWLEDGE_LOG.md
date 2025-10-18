@@ -28,6 +28,26 @@ Each entry in this document should follow this structure:
 
 ---
 
+## 2025-10-18 17:17 – Remote Data
+
+**Author**: agent
+
+**Context**: Remote catalogue dependencies, imaging toggle, and regression coverage.
+
+**Summary**: Declared `requests`, `astroquery`, and `pandas` as required extras so
+MAST/NIST catalogues stay enabled by default, exposed an **Include imaging** toggle
+in the Remote Data dialog, and taught the MAST adapter to honour it while still
+preferring calibrated spectra. Added pandas-aware dependency guards, refreshed the
+user guide and agent manual, and extended the service/dialog regression tests to
+cover the new flag and dependency messaging.
+
+**References**: `requirements.txt`, `app/services/remote_data_service.py`,
+`app/ui/remote_data_dialog.py`, `docs/user/remote_data.md`, `AGENTS.md`,
+`tests/test_remote_data_service.py`, `tests/test_remote_data_dialog.py`,
+`docs/history/PATCH_NOTES.md`.
+
+---
+
 ## 2025-10-18 00:08 – Remote Data
 
 **Author**: agent
@@ -451,25 +471,3 @@ Import/Remote Import entries remain after the cleanup.
 - `docs/reviews/workplan.md`
 
 ---
-
-## 2025-10-18 04:26 – Remote dependency guidance
-
-**Author**: agent
-
-**Context**: Remote catalogue enablement and onboarding docs.
-
-**Summary**: Documented how to install the NIST/MAST dependencies via pip or
-Poetry, added a `remote` extra to `pyproject.toml`, and pinned `requests` plus
-`astroquery` alongside runtime guards that surface the same instructions when
-imports fail. Extended the remote data service tests to assert the guidance is
-emitted whenever dependencies are missing.
-
-**References**:
-- `requirements.txt`
-- `pyproject.toml`
-- `AGENTS.md`
-- `START_HERE.md`
-- `docs/user/remote_data.md`
-- `app/services/remote_data_service.py`
-- `tests/test_remote_data_service.py`
-- `docs/history/PATCH_NOTES.md`

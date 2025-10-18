@@ -38,14 +38,20 @@ class StubRemoteService(RemoteDataService):
 class TrackingRemoteService(StubRemoteService):
     def __init__(self) -> None:
         super().__init__()
-        self.calls: list[tuple[str, dict[str, Any]]] = []
+        self.calls: list[tuple[str, dict[str, Any], bool]] = []
         self.stub_records: list[RemoteRecord] = []
 
     def queue_record(self, record: RemoteRecord) -> None:
         self.stub_records.append(record)
 
-    def search(self, provider: str, query: dict[str, Any]) -> List[RemoteRecord]:
-        self.calls.append((provider, dict(query)))
+    def search(
+        self,
+        provider: str,
+        query: dict[str, Any],
+        *,
+        include_imaging: bool = False,
+    ) -> List[RemoteRecord]:
+        self.calls.append((provider, dict(query), include_imaging))
         if self.stub_records:
             return [self.stub_records.pop(0)]
         return []
@@ -137,10 +143,40 @@ def test_example_selection_runs_search(monkeypatch: Any) -> None:
     dialog._on_example_selected(1)
 
     assert service.calls, "Example selection should trigger a search"
-    provider, query = service.calls[0]
+    provider, query, include_imaging = service.calls[0]
     assert provider == RemoteDataService.PROVIDER_MAST
     assert query.get("target_name")
     assert dialog.search_edit.text() == query["target_name"]
+    assert include_imaging is False
+
+    dialog.deleteLater()
+    if QtWidgets.QApplication.instance() is app and not app.topLevelWidgets():
+        app.quit()
+
+
+def test_include_imaging_toggle_passes_flag(monkeypatch: Any) -> None:
+    app = _ensure_app()
+    service = TrackingRemoteService()
+    ingest = IngestServiceStub()
+
+    dialog = RemoteDataDialog(
+        None,
+        remote_service=service,
+        ingest_service=ingest,
+    )
+
+    provider_index = dialog.provider_combo.findText(RemoteDataService.PROVIDER_MAST)
+    dialog.provider_combo.setCurrentIndex(provider_index)
+
+    assert dialog.include_imaging_checkbox.isVisible()
+    dialog.include_imaging_checkbox.setChecked(True)
+
+    dialog.search_edit.setText("WASP-39 b")
+    dialog._on_search()
+
+    assert service.calls, "Search should record include_imaging flag"
+    _, _, include_imaging = service.calls[-1]
+    assert include_imaging is True
 
     dialog.deleteLater()
     if QtWidgets.QApplication.instance() is app and not app.topLevelWidgets():

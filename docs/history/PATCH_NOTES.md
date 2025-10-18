@@ -1,15 +1,17 @@
 # Patch Notes
 
-## 2025-10-18 (Remote dependency guidance) (00:26 EDT / 04:26 UTC)
+## 2025-10-18 (Remote data dependencies & imaging toggle) (17:17 EDT / 21:17 UTC)
 
-- Pinned `requests` and `astroquery` in the developer requirements and exposed a
-  `remote` Poetry extra so NIST and MAST clients install with the default
-  workflow.
-- Updated the onboarding, agent, and remote-data guides with pip/Poetry commands
-  that enable remote catalogue workflows, plus runtime guards that surface the
-  same guidance when dependencies are absent.
-- Extended the remote data service tests to fail fast with actionable error
-  messages whenever the optional dependencies are missing.
+- Declared `requests`, `astroquery`, and `pandas` in `requirements.txt` and updated
+  onboarding guides so remote catalogue workflows install the optional
+  dependencies by default. The Remote Data dialog now relays clearer
+  unavailability messages when any package is missing.
+- Added an **Include imaging** toggle to the Remote Data dialog and taught the
+  MAST adapter to honour it, defaulting to calibrated spectra while allowing
+  operators to pull calibrated imaging products on demand.
+- Guarded `_ensure_mast` and provider lists behind a pandas-aware check,
+  refreshed the remote data user guide, and extended the regression suite to
+  cover the new flag and dependency messaging.
 
 ## 2025-10-18 (Remote Data examples & validation) (00:08 EDT)
 
