@@ -5,6 +5,7 @@ from pathlib import Path
 import numpy as np
 
 from app.services.importers import CsvImporter
+from app.services.importers.csv_importer import _LAYOUT_CACHE, _reset_layout_cache
 
 
 def test_csv_importer_detects_wavenumber_from_preface(tmp_path: Path) -> None:
@@ -60,6 +61,76 @@ def test_csv_importer_handles_extra_columns_and_selects_intensity(tmp_path: Path
     units_meta = result.metadata["detected_units"]
     assert units_meta["x"]["unit"] == "nm"
     assert units_meta["y"]["reason"] in {"header", "value-range", "default"}
+
+
+def test_csv_importer_scores_monotonic_wavelength_over_noisy_intensity(
+    tmp_path: Path,
+) -> None:
+    _reset_layout_cache()
+    raw = """
+    250.0, 400
+    -300.0, 405
+    275.0, 410
+    -320.0, 415
+    290.0, 420
+    -280.0, 425
+    """.strip()
+
+    path = tmp_path / "noisy_trace.csv"
+    path.write_text(raw, encoding="utf-8")
+
+    importer = CsvImporter()
+    result = importer.read(path)
+
+    column_meta = result.metadata["column_selection"]
+    assert column_meta["x_index"] == 1
+    assert column_meta["x_reason"].startswith("score")
+    assert np.all(np.diff(result.x) > 0)
+    assert not _LAYOUT_CACHE
+
+
+def test_csv_importer_ignores_invalid_cached_layout(tmp_path: Path) -> None:
+    _reset_layout_cache()
+    header = "Value,Value2"
+    first = "\n".join(
+        [
+            header,
+            "100,0.1",
+            "200,0.5",
+            "300,0.9",
+            "400,0.4",
+        ]
+    )
+    second = "\n".join(
+        [
+            header,
+            "0.5,120",
+            "0.2,140",
+            "0.8,160",
+            "0.1,180",
+        ]
+    )
+
+    first_path = tmp_path / "first.csv"
+    second_path = tmp_path / "second.csv"
+    first_path.write_text(first, encoding="utf-8")
+    second_path.write_text(second, encoding="utf-8")
+
+    importer = CsvImporter()
+    first_result = importer.read(first_path)
+
+    assert first_result.metadata["column_selection"]["layout_cache"] == "miss"
+    signature = tuple(first_result.metadata["column_selection"]["layout_signature"])
+    assert _LAYOUT_CACHE[signature] == (0, 1)
+
+    second_result = importer.read(second_path)
+    column_meta = second_result.metadata["column_selection"]
+
+    assert column_meta["layout_cache"] == "miss"
+    assert column_meta["x_index"] == 1
+    assert column_meta["y_index"] == 0
+    assert not column_meta["x_reason"].startswith("layout-cache")
+    assert _LAYOUT_CACHE[signature] == (1, 0)
 
 
 def test_csv_importer_prefers_wavelength_column_when_intensity_first(tmp_path: Path) -> None:
@@ -140,3 +211,140 @@ def test_csv_importer_swaps_axes_when_headers_conflict(tmp_path: Path) -> None:
     assert column_meta["original"] == {"x_index": 0, "y_index": 1}
     assert column_meta["x_reason"].endswith("header-swap")
     assert column_meta["y_reason"].endswith("header-swap")
+
+
+def test_csv_importer_profile_swap_for_monotonic_intensity(tmp_path: Path) -> None:
+    class ProfileSwapImporter(CsvImporter):
+        def _select_x_column(self, data, headers):  # type: ignore[override]
+            return 0, "score"
+
+        def _select_y_column(self, data, x_index, headers):  # type: ignore[override]
+            return 1, "score"
+
+    raw = """
+    # Intensity column is monotonic; wavelength column jitters and would be mis-scored without profile swap
+    0.05, 5000
+    0.07, 4992
+    0.09, 5001
+    0.12, 4988
+    0.15, 4995
+    0.18, 4989
+    """.strip()
+
+    path = tmp_path / "profile_swap.txt"
+    path.write_text(raw, encoding="utf-8")
+
+    importer = ProfileSwapImporter()
+    result = importer.read(path)
+
+    expected_wavenumbers = np.array([5000, 4992, 5001, 4988, 4995, 4989], dtype=float)
+    assert result.x_unit in {"cm^-1", "cm⁻¹"}
+    assert np.allclose(np.sort(result.x), np.sort(expected_wavenumbers))
+    column_meta = result.metadata["column_selection"]
+    assert column_meta["swap"] == "profile-swap"
+    assert column_meta["x_reason"].endswith("profile-swap")
+    assert column_meta["y_reason"].endswith("profile-swap")
+    assert np.isclose(result.y.max(), 0.18)
+
+
+def test_csv_importer_reuses_layout_cache_for_repeat_headers(tmp_path: Path) -> None:
+    _reset_layout_cache()
+
+    header = "Channel A, Channel B\n"
+    file_one = header + "400,0.10\n410,0.12\n420,0.11\n430,0.15\n"
+    file_two = header + "450,0.08\n460,0.09\n470,0.11\n480,0.14\n"
+
+    path_one = tmp_path / "instrument_a.csv"
+    path_two = tmp_path / "instrument_b.csv"
+    path_one.write_text(file_one, encoding="utf-8")
+    path_two.write_text(file_two, encoding="utf-8")
+
+    importer = CsvImporter()
+    first = importer.read(path_one)
+    assert first.metadata["column_selection"]["layout_cache"] == "miss"
+
+    class CacheProbeImporter(CsvImporter):
+        def _select_x_column(self, data, headers):  # type: ignore[override]
+            raise AssertionError("layout cache not applied")
+
+        def _select_y_column(self, data, x_index, headers):  # type: ignore[override]
+            raise AssertionError("layout cache not applied")
+
+    probe = CacheProbeImporter()
+    second = probe.read(path_two)
+
+    column_meta = second.metadata["column_selection"]
+    assert column_meta["layout_cache"] == "hit"
+    assert column_meta["x_index"] == first.metadata["column_selection"]["x_index"]
+    assert column_meta["y_index"] == first.metadata["column_selection"]["y_index"]
+
+
+def test_csv_importer_validates_layout_cache_against_data(tmp_path: Path) -> None:
+    _reset_layout_cache()
+
+    header = "Wavelength (nm),Intensity (a.u.)\n"
+    file_one = header + "400,0.10\n410,0.12\n420,0.11\n430,0.15\n"
+    file_two = header + "0.02,400\n0.03,410\n0.05,420\n0.04,430\n"
+
+    path_one = tmp_path / "aligned.csv"
+    path_two = tmp_path / "swapped.csv"
+    path_one.write_text(file_one, encoding="utf-8")
+    path_two.write_text(file_two, encoding="utf-8")
+
+    importer = CsvImporter()
+    first = importer.read(path_one)
+    assert first.metadata["column_selection"]["layout_cache"] == "miss"
+
+    second = importer.read(path_two)
+
+    column_meta = second.metadata["column_selection"]
+    assert column_meta["layout_cache"] == "miss"
+    assert np.allclose(second.x, np.array([400.0, 410.0, 420.0, 430.0]))
+
+
+def test_export_bundle_detection(tmp_path: Path) -> None:
+    bundle_path = tmp_path / "bundle.csv"
+    bundle_path.write_text(
+        """wavelength_nm,intensity,spectrum_id,spectrum_name,point_index,x_unit,y_unit
+400,0.1,first,First lamp,0,nm,absorbance
+410,0.2,first,First lamp,1,nm,absorbance
+420,0.3,second,Second lamp,0,nm,absorbance
+430,0.4,second,Second lamp,1,nm,absorbance
+""",
+        encoding="utf-8",
+    )
+
+    importer = CsvImporter()
+    result = importer.read(bundle_path)
+
+    bundle = result.metadata.get("bundle")
+    assert isinstance(bundle, dict)
+    assert bundle.get("format") == "spectra-export-v1"
+    members = bundle.get("members") if isinstance(bundle, dict) else None
+    assert isinstance(members, list)
+    assert len(members) == 2
+    assert np.isclose(result.x[0], 400.0)
+
+
+def test_wide_bundle_detection(tmp_path: Path) -> None:
+    wide_path = tmp_path / "wide.csv"
+    wide_path.write_text(
+        """# spectra-wide-v1
+# member {"id": "first", "name": "First lamp", "x_unit": "nm", "y_unit": "absorbance"}
+# member {"id": "second", "name": "Second lamp", "x_unit": "nm", "y_unit": "absorbance"}
+wavelength_nm::first,intensity::first,wavelength_nm::second,intensity::second
+400,0.1,420,0.3
+410,0.2,430,0.4
+""",
+        encoding="utf-8",
+    )
+
+    importer = CsvImporter()
+    result = importer.read(wide_path)
+
+    bundle = result.metadata.get("bundle")
+    assert isinstance(bundle, dict)
+    members = bundle.get("members") if isinstance(bundle, dict) else None
+    assert isinstance(members, list)
+    assert len(members) == 2
+    assert {member["id"] for member in members} == {"first", "second"}

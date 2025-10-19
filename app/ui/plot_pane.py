@@ -4,13 +4,14 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, Any
+from typing import Any, Dict, Sequence
 
 import numpy as np
 import pyqtgraph as pg
 import pyqtgraph.exporters
 
 from app.qt_compat import get_qt
+from .palettes import DEFAULT_PALETTE_KEY, PaletteDefinition, load_palette_definitions
 
 QtCore: Any
 QtGui: Any
@@ -28,20 +29,33 @@ class TraceStyle:
     # Accepted for backwards compatibility but ignored by pyqtgraph 0.13.x.
     antialias: bool = False
     show_in_legend: bool = True
+    fill_brush: QtGui.QBrush | QtGui.QColor | str | None = None
+    fill_level: float | None = None
 
 
 class PlotPane(QtWidgets.QWidget):
     """Central plotting widget with legend, crosshair, and multi-trace support."""
 
+    DEFAULT_MAX_POINTS = 120_000
+    MIN_MAX_POINTS = 1_000
+    MAX_MAX_POINTS = 1_000_000
+
     unitChanged = QtCore.Signal(str)
     pointHovered = QtCore.Signal(float, float)
+    rangeChanged = QtCore.Signal(tuple, tuple)
 
-    def __init__(self, parent: QtWidgets.QWidget | None = None) -> None:
+    def __init__(
+        self,
+        parent: QtWidgets.QWidget | None = None,
+        *,
+        max_points: int | None = None,
+    ) -> None:
         super().__init__(parent)
         self._display_unit = "nm"
+        self._y_label = "Intensity"
         self._traces: Dict[str, Dict[str, object]] = {}
         self._order: list[str] = []
-        self._max_points = 120_000
+        self._max_points = self.normalize_max_points(max_points)
         self._crosshair_visible = True
         self._build_ui()
 
@@ -89,6 +103,20 @@ class PlotPane(QtWidgets.QWidget):
         self._apply_style(key)
         self._update_curve(key)
         self._rebuild_legend()
+
+    def view_range(self) -> tuple[tuple[float, float], tuple[float, float]]:
+        """Return the current (x, y) view ranges."""
+
+        x_range, y_range = self._plot.viewRange()
+        return (tuple(x_range), tuple(y_range))
+
+    def set_y_label(self, label: str) -> None:
+        """Update the left-axis label text."""
+
+        if label == self._y_label:
+            return
+        self._y_label = label
+        self._plot.setLabel("left", label)
 
     def remove_trace(self, key: str) -> None:
         trace = self._traces.pop(key, None)
@@ -160,6 +188,7 @@ class PlotPane(QtWidgets.QWidget):
         self._plot.setDownsampling(mode="peak")
         self._plot.showGrid(x=False, y=False, alpha=0.2)
         self._vb: pg.ViewBox = self._plot.getPlotItem().getViewBox()
+        self._plot.sigRangeChanged.connect(self._on_plot_range_changed)
 
         self._legend = pg.LegendItem(offset=(10, 10))
         self._legend.setParentItem(self._plot.getPlotItem())
@@ -180,7 +209,30 @@ class PlotPane(QtWidgets.QWidget):
         layout.addWidget(self._plot)
 
         self._plot.setLabel("bottom", "Wavelength", units=self._display_unit)
-        self._plot.setLabel("left", "Intensity")
+        self._plot.setLabel("left", self._y_label)
+
+    # ------------------------------------------------------------------
+    def _on_plot_range_changed(self, _: pg.PlotItem, ranges: object) -> None:
+        """Emit a simplified range tuple when the view bounds change."""
+
+        try:
+            x_range, y_range = ranges  # type: ignore[misc]
+        except Exception:
+            x_range, y_range = self._plot.viewRange()
+
+        def _coerce_pair(pair: object) -> tuple[float, float]:
+            values: list[float] = []
+            if isinstance(pair, (list, tuple)):
+                for value in pair[:2]:
+                    try:
+                        values.append(float(value))
+                    except (TypeError, ValueError):
+                        values.append(float("nan"))
+            if len(values) != 2:
+                return (float("nan"), float("nan"))
+            return (values[0], values[1])
+
+        self.rangeChanged.emit(_coerce_pair(x_range), _coerce_pair(y_range))
 
     def _apply_style(self, key: str) -> None:
         trace = self._traces[key]
@@ -188,10 +240,17 @@ class PlotPane(QtWidgets.QWidget):
         pen = pg.mkPen(color=style.color, width=style.width)
         item: pg.PlotDataItem = trace["item"]  # type: ignore[assignment]
         item.setPen(pen)
-        if hasattr(item, "setFillLevel"):
-            item.setFillLevel(None)
-        if hasattr(item, "setBrush"):
-            item.setBrush(None)
+        if hasattr(item, "setAntialiasing"):
+            item.setAntialiasing(style.antialias)
+        if style.fill_brush is not None and hasattr(item, "setBrush"):
+            item.setBrush(pg.mkBrush(style.fill_brush))
+            if hasattr(item, "setFillLevel"):
+                item.setFillLevel(style.fill_level)
+        else:
+            if hasattr(item, "setBrush"):
+                item.setBrush(None)
+            if hasattr(item, "setFillLevel"):
+                item.setFillLevel(None)
 
     def _x_nm_to_disp(self, x_nm: np.ndarray) -> np.ndarray:
         unit = self._display_unit
@@ -215,6 +274,34 @@ class PlotPane(QtWidgets.QWidget):
         x_disp, y = self._downsample_peak(x_disp, y, self._max_points)
         item.setData(x_disp, y, connect="finite")
         item.setVisible(bool(trace.get("visible", True)))
+
+    def set_max_points(self, value: int | None) -> None:
+        """Adjust the point budget used when downsampling traces."""
+
+        validated = self.normalize_max_points(value)
+        if validated == self._max_points:
+            return
+        self._max_points = validated
+        for key in self._traces:
+            self._update_curve(key)
+
+    @property
+    def max_points(self) -> int:
+        return self._max_points
+
+    @classmethod
+    def normalize_max_points(cls, value: int | None) -> int:
+        if value is None:
+            return cls.DEFAULT_MAX_POINTS
+        try:
+            numeric = int(value)
+        except (TypeError, ValueError):
+            return cls.DEFAULT_MAX_POINTS
+        if numeric < cls.MIN_MAX_POINTS:
+            return cls.MIN_MAX_POINTS
+        if numeric > cls.MAX_MAX_POINTS:
+            return cls.MAX_MAX_POINTS
+        return numeric
 
     def _downsample_peak(
         self, x: np.ndarray, y: np.ndarray, max_points: int
@@ -252,6 +339,23 @@ class PlotPane(QtWidgets.QWidget):
             self._update_curve(key)
         self._plot.setLabel("bottom", "Wavelength", units=self._display_unit)
 
+    def map_nm_to_display(self, value_nm: float) -> float:
+        """Convert a canonical wavelength (nm) to the current display unit."""
+
+        array = np.array([value_nm], dtype=float)
+        display = self._x_nm_to_disp(array)
+        return float(display[0]) if display.size else float("nan")
+
+    def add_graphics_item(self, item: pg.GraphicsObject, *, ignore_bounds: bool = False) -> None:
+        """Attach an arbitrary graphics item to the underlying plot."""
+
+        self._plot.addItem(item, ignoreBounds=ignore_bounds)
+
+    def remove_graphics_item(self, item: pg.GraphicsObject) -> None:
+        """Detach a previously added graphics item."""
+
+        self._plot.removeItem(item)
+
     def _rebuild_legend(self) -> None:
         self._legend.clear()
         for key in self._order:
@@ -280,3 +384,15 @@ class PlotPane(QtWidgets.QWidget):
     def end_bulk_update(self) -> None:
         self._plot.setUpdatesEnabled(True)
         self.autoscale()
+    @staticmethod
+    def palette_definitions() -> Sequence[PaletteDefinition]:
+        """Expose the shared palette registry to callers."""
+
+        return list(load_palette_definitions())
+
+    @staticmethod
+    def default_palette_key() -> str:
+        """Return the key of the palette used for new sessions."""
+
+        return DEFAULT_PALETTE_KEY
+

@@ -48,3 +48,68 @@ def test_show_documentation_selects_first_entry_without_error() -> None:
         window.close()
         window.deleteLater()
         app.processEvents()
+
+
+def test_plot_toolbar_and_normalization_combo_available() -> None:
+    if SpectraMainWindow is None or QtWidgets is None:
+        pytest.skip(f"Qt stack unavailable: {_qt_import_error}")
+
+    app = _ensure_app()
+    window = SpectraMainWindow()
+    try:
+        app.processEvents()
+
+        assert window.plot_toolbar is not None
+        assert window.plot_toolbar.isVisible()
+
+        view_action = next(
+            (action for action in window.menuBar().actions() if action.text() == "&View"),
+            None,
+        )
+        assert view_action is not None
+        view_menu = view_action.menu()
+        assert view_menu is not None
+        assert window.plot_toolbar.toggleViewAction() in view_menu.actions()
+
+        assert window.unit_combo is not None
+        assert window.unit_combo.count() > 0
+
+        assert window.norm_combo is not None
+        assert window.norm_combo.count() > 0
+        assert window.norm_combo.findText("None") != -1
+        assert window.norm_combo.isVisible()
+    finally:
+        window.close()
+        window.deleteLater()
+        app.processEvents()
+
+
+def test_single_inspector_dock_created() -> None:
+    if SpectraMainWindow is None or QtWidgets is None:
+        pytest.skip(f"Qt stack unavailable: {_qt_import_error}")
+
+    app = _ensure_app()
+    window = SpectraMainWindow()
+    try:
+        app.processEvents()
+
+        inspector_docks = [
+            dock
+            for dock in window.findChildren(QtWidgets.QDockWidget)
+            if dock.objectName() == "dock-inspector"
+        ]
+        assert len(inspector_docks) == 1
+        assert inspector_docks[0] is window.inspector_dock
+
+        view_action = next(
+            (action for action in window.menuBar().actions() if action.text() == "&View"),
+            None,
+        )
+        assert view_action is not None
+        view_menu = view_action.menu()
+        assert view_menu is not None
+        assert window.inspector_dock.toggleViewAction() in view_menu.actions()
+    finally:
+        window.close()
+        window.deleteLater()
+        app.processEvents()

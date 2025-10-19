@@ -8,6 +8,9 @@ from .overlay_service import OverlayService
 from .math_service import MathService
 from .reference_library import ReferenceLibrary
 from .store import LocalStore
+from .remote_data_service import RemoteDataService, RemoteRecord, RemoteDownloadResult
+from .line_shapes import LineShapeModel, LineShapeOutcome
+from .knowledge_log_service import KnowledgeLogEntry, KnowledgeLogService
 
 __all__ = [
     "Spectrum",
@@ -19,4 +22,11 @@ __all__ = [
     "MathService",
     "ReferenceLibrary",
     "LocalStore",
+    "RemoteDataService",
+    "RemoteRecord",
+    "RemoteDownloadResult",
+    "LineShapeModel",
+    "LineShapeOutcome",
+    "KnowledgeLogEntry",
+    "KnowledgeLogService",
 ]

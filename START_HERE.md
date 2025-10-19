@@ -7,10 +7,10 @@ Welcome to the Spectra App project! This guide will help you get started with de
 ## 📋 Essential Reading (Start Here)
 
 ### Core Documentation
-- **`docs/history/MASTER_PROMPT.md`** - Comprehensive product specification and acceptance criteria
+- **`docs/history/MASTER PROMPT.md`** - Comprehensive product specification and acceptance criteria
   - Defines the application's vision, architecture, and scientific goals
-  - Outlines non-negotiable principles and technical constraints
-  - Contains detailed feature requirements and validation criteria
+  - Outlines non-negotiable principles, Atlas alignment, and calibration/identification mandates
+  - Contains detailed feature requirements and validation criteria drawn from the pass reviews
 
 - **`docs/history/RUNNER_PROMPT.md`** - Development workflow and iteration loop
   - Describes the plan → implement → test → document → PR cycle
@@ -19,8 +19,10 @@ Welcome to the Spectra App project! This guide will help you get started with de
 
 ### Quick Reference
 - **`README.md`** - Project overview, installation, and basic usage
-- **`docs/architecture.md`** - Technical architecture and system design
-- **`agents.md`** - Development guidelines and UI contract specifications
+- **`AGENTS.md`** - Development guidelines, spectroscopy conventions, UI contract expectations
+- **`docs/brains/README.md`** - How to log architectural decisions now that `atlas/brains.md` has been decomposed
+- **`docs/link_collection.md`** - Curated spectroscopy resources to cite when sourcing new data
+- **`docs/reviews/pass1.md` … `docs/reviews/pass4.md`** - Review dossiers outlining calibration, identification, provenance, and UI priorities
 
 ## 🚀 Getting Started
 
@@ -32,7 +34,10 @@ RunSpectraApp.cmd
 # Manual setup
 py -3.11 -m venv .venv
 .\.venv\Scripts\activate
-pip install -r requirements.txt
+pip install -r requirements.txt  # includes requests/astroquery for remote catalogues
+
+# Poetry workflow (installs the same remote extras)
+poetry install --with remote
 ```
 
 ### 2. Verify Installation
@@ -47,25 +52,26 @@ python -m app.main
 ### 3. Explore the Codebase
 - **`app/`** - Main application code (PySide6/Qt)
 - **`tests/`** - Test suite (pytest)
-- **`samples/`** - Example datasets and manifests
-- **`specs/`** - Technical specifications and architecture
+- **`samples/`** - Spectroscopy sample data (lamps, forthcoming standards) grouped by instrument/type
+- **`specs/`** - Technical specifications (provenance schema, UI contracts)
+- **`docs/brains/`** - Timestamped architectural decisions tied back to the Atlas
 
 ## 🔄 Development Workflow
 
 ### Phase 1: Planning & Documentation
 1. **Review Existing Context**
-   - Consult `docs/ai_log/` for recent development history
-   - Check `reports/feature_parity_matrix.md` for legacy compatibility
-   - Review `specs/ui_contract/` for UI component requirements
+   - Read `docs/history/MASTER PROMPT.md`, `AGENTS.md`, and `docs/reviews/pass*.md`
+   - Consult `docs/history/KNOWLEDGE_LOG.md` and `docs/brains/` for the latest decisions
+   - Review `docs/reviews/workplan.md`, backlog queues, and brainstorming notes before scoping new work
 
 2. **Create Work Plan**
    ```bash
    # Create or update your development workplan
    docs/reviews/workplan.md
    ```
-   - Break down tasks into small, atomic units
-   - Define acceptance criteria for each task
-   - Identify documentation and testing requirements
+   - Break down tasks into small, atomic units aligned with Atlas chapters
+   - Define acceptance criteria (behaviour, docs, tests, provenance) for each task
+   - Identify documentation, brains entries, and test updates before coding
 
 ### Phase 2: Implementation Loop
 Follow the **RUNNER_PROMPT** workflow for each development session:
@@ -76,12 +82,31 @@ Follow the **RUNNER_PROMPT** workflow for each development session:
 4. **Document** - Update all relevant documentation
 5. **Review** - Self-review against acceptance criteria
 
+### Recording Real Timestamps
+- Always capture America/New_York and UTC timestamps in ISO-8601 format when
+  updating patch notes, the knowledge log, brains entries, or the workplan.
+- Follow the platform-specific commands in `AGENTS.md` and the MASTER PROMPT to
+  emit both strings in a single pass:
+  - **Windows (PowerShell 5.1+/pwsh)** captures UTC with `Get-Date -AsUTC`,
+    converts it through `System.TimeZoneInfo` to Eastern Time, and prints both
+    values via `.ToString("o")`.
+  - **macOS/Linux shells** run `TZ=America/New_York date --iso-8601=seconds`
+    followed by `date -u --iso-8601=seconds`; macOS users may need `gdate` from
+    Homebrew coreutils.
+  - **WSL users** can invoke `wsl.exe bash -lc 'TZ=America/New_York date --iso-8601=seconds && date -u --iso-8601=seconds'`
+    from Windows terminals without leaving the host environment.
+
 ### Phase 3: Quality Assurance
 - **Run Full Test Suite**: `pytest -v`
 - **Verify UI Responsiveness**: Test with 1M+ point datasets
 - **Check Documentation**: Ensure all changes are documented
-- **Update Version**: Bump version in `app/version.json`
-- **Write Patch Notes**: Add entry in `docs/patch_notes/`
+- **Update Version Metadata**: Bump the semantic version in `pyproject.toml` and align
+  any hard-coded defaults (e.g. `ProvenanceService.app_version` in
+  `app/services/provenance_service.py`) so runtime manifests report the same value.
+- **Write Patch Notes**: Add an entry to `docs/history/PATCH_NOTES.md` that cites
+  user-visible changes and the tests you ran.
+- **Log Knowledge Updates**: Summarise key decisions in `docs/history/KNOWLEDGE_LOG.md`
+  with the same timestamps you used for the patch notes.
 
 ## 📝 Creating Your Workplan
 
@@ -149,24 +174,24 @@ Brief description of the feature or fix being implemented.
 ## 🔍 Exploring Further
 
 ### For UI Development
-- Review `specs/ui_contract/` for component specifications
+- Review `specs/ui_contract.md` for component specifications
 - Study existing UI patterns in `app/ui/`
-- Verify against the UI contract in `agents.md`
+- Verify against the UI contract in `AGENTS.md`
 
 ### For Data Processing
 - Examine `app/services/` for ingestion and analysis services
-- Review unit conversion patterns in `app/services/units/`
-- Study provenance tracking in `app/services/provenance/`
+- Review unit conversion patterns in `app/services/units_service.py`
+- Study provenance tracking in `app/services/provenance_service.py`
 
 ### For Testing
 - Explore existing tests in `tests/` for patterns
-- Check `specs/testing/` for testing strategy
+- Check `specs/testing.md` for testing strategy
 - Verify performance with large datasets in `tests/performance/`
 
 ## 🆘 Getting Help
 
 - **Documentation**: Check `docs/` directory first
-- **AI Logs**: Review `docs/ai_log/` for similar past work
+- **Knowledge Log**: Review `docs/history/KNOWLEDGE_LOG.md` for similar past work
 - **Technical Specs**: Consult `specs/` for architecture decisions
 - **Test Suite**: Use tests as living documentation
 

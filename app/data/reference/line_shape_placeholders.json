@@ -17,25 +17,53 @@
     {
       "id": "doppler_shift",
       "label": "Doppler shift",
-      "status": "todo",
+      "status": "ready",
       "description": "Implement relativistic Doppler shift corrections using rest wavelength reference and radial velocity inputs.",
       "parameters": ["rest_wavelength_nm", "radial_velocity_kms"],
+      "units": {
+        "rest_wavelength_nm": "nm",
+        "radial_velocity_kms": "km s⁻¹"
+      },
+      "example_parameters": {
+        "rest_wavelength_nm": 656.281,
+        "radial_velocity_kms": 45.0
+      },
       "notes": "Wire into plotting overlays once velocity metadata is stored alongside spectra."
     },
     {
       "id": "pressure_broadening",
       "label": "Pressure broadening",
-      "status": "todo",
+      "status": "ready",
       "description": "Integrate Lorentzian pressure broadening profiles using collisional half-widths from reference literature.",
-      "parameters": ["gamma_L", "perturber_density"],
+      "parameters": ["gamma_L", "perturber_density", "line_centre_nm"],
+      "units": {
+        "gamma_L": "nm·cm³",
+        "perturber_density": "cm⁻³",
+        "line_centre_nm": "nm"
+      },
+      "example_parameters": {
+        "gamma_L": 3.5e-16,
+        "perturber_density": 2.0e17,
+        "line_centre_nm": 486.133
+      },
       "notes": "Requires gas composition metadata and temperature-dependent coefficients."
     },
     {
       "id": "stark_broadening",
       "label": "Stark broadening",
-      "status": "todo",
+      "status": "ready",
       "description": "Placeholder for hydrogen Stark profiles relevant to Balmer line wings.",
-      "parameters": ["electron_density", "temperature_K"],
+      "parameters": ["electron_density", "temperature_K", "line_centre_nm"],
+      "units": {
+        "electron_density": "cm⁻³",
+        "temperature_K": "K",
+        "line_centre_nm": "nm"
+      },
+      "example_parameters": {
+        "electron_density": 5.0e14,
+        "temperature_K": 12000.0,
+        "line_centre_nm": 486.133
+      },
       "notes": "Targeting Vidal–Cooper–Smith tables as baseline values."
     },
     {

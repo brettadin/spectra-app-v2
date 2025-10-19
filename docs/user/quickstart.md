@@ -16,10 +16,10 @@ This walkthrough gets you from launch to a complete provenance export using only
 
 1. Choose **File → Open…**.
 2. Navigate to the repository's `samples` directory.
-3. Select `sample_spectrum.csv` and click **Open**.
+3. Select `sample_spectrum.csv` and click **Open**. (You can hold `Ctrl` to load multiple sample files in one shot.)
 4. Confirm the detected units in the preview banner. The importer normalises the axis to nanometres while keeping the source file untouched in the cache directory.
 
-Once the ingest completes, the spectrum appears in the plot pane and in the spectra list on the left-hand sidebar.
+Once the ingest completes, the spectrum appears in the plot pane and in the spectra list on the left-hand sidebar. The **File → Load Sample** shortcut now opens a picker that lets you queue up several bundled examples without repeating the menu action.
 
 ## 3. Explore unit toggles
 

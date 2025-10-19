@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
+import csv
+import json
 from dataclasses import dataclass
 from pathlib import Path
 import re
-from typing import Iterable, List, Sequence, Tuple, cast
+from typing import Dict, Iterable, List, Sequence, Tuple, cast
 
 import numpy as np
 
@@ -90,6 +92,16 @@ _WAVELENGTH_UNIT_HINTS_NORMALISED = {unit.strip().lower().replace(" ", "") for u
 _INTENSITY_UNIT_HINTS_NORMALISED = {unit.strip().lower().replace(" ", "") for unit in _INTENSITY_UNIT_HINTS}
 
 
+_LAYOUT_CACHE: Dict[Tuple[str, ...], Tuple[int, int]] = {}
+_BUNDLE_REQUIRED_COLUMNS = {"wavelength_nm", "intensity", "spectrum_id"}
+
+
+def _reset_layout_cache() -> None:
+    """Testing helper to clear the in-process layout cache."""
+
+    _LAYOUT_CACHE.clear()
+
+
 class CsvImporter:
     """Read spectral data from loosely formatted delimited text files."""
 
@@ -104,6 +116,14 @@ class CsvImporter:
         """
 
         lines = path.read_text(encoding="utf-8").splitlines()
+        wide_bundle = self._try_parse_wide_bundle(path, lines)
+        if wide_bundle is not None:
+            return wide_bundle
+
+        bundle_result = self._try_parse_export_bundle(path, lines)
+        if bundle_result is not None:
+            return bundle_result
+
         if not lines:
             raise ValueError(f"File {path} is empty")
 
@@ -150,9 +170,23 @@ class CsvImporter:
         header_tokens = self._extract_header_tokens(lines, best_start, delimiter)
 
         data = self._rows_to_array(best_block)
-        x_index_raw, x_reason_raw = self._select_x_column(data, header_tokens)
-        y_index_raw, y_reason_raw = self._select_y_column(data, x_index_raw, header_tokens)
-        swap_reason = self._axis_conflict_resolution(x_index_raw, y_index_raw, header_tokens)
+        layout_signature = self._layout_signature(header_tokens)
+        cached = self._lookup_cached_layout(layout_signature, data.shape[1])
+        cache_hit = False
+        if cached:
+            x_candidate, y_candidate = cached
+            if self._layout_is_valid(data, x_candidate, y_candidate, header_tokens):
+                cache_hit = True
+                x_index_raw, y_index_raw = x_candidate, y_candidate
+                x_reason_raw = y_reason_raw = "layout-cache"
+            else:
+                x_index_raw = y_index_raw = -1
+        if not cache_hit:
+            x_index_raw, x_reason_raw = self._select_x_column(data, header_tokens)
+            y_index_raw, y_reason_raw = self._select_y_column(data, x_index_raw, header_tokens)
+        swap_reason = None
+        if not cache_hit:
+            swap_reason = self._axis_conflict_resolution(x_index_raw, y_index_raw, header_tokens)
         if swap_reason:
             x_index, y_index = y_index_raw, x_index_raw
             x_select_reason = f"{y_reason_raw}|{swap_reason}"
@@ -166,6 +200,21 @@ class CsvImporter:
         mask = np.isfinite(x_raw) & np.isfinite(y_raw)
         x = x_raw[mask]
         y = y_raw[mask]
+
+        profile_swap_reason: str | None = None
+        if not cache_hit and swap_reason is None and self._should_swap_by_profile(x, y):
+            profile_swap_reason = "profile-swap"
+            x_index, y_index = y_index, x_index
+            x_raw, y_raw = y_raw, x_raw
+            x_select_reason, y_select_reason = y_select_reason, x_select_reason
+            x_select_reason = f"{x_select_reason}|{profile_swap_reason}"
+            y_select_reason = f"{y_select_reason}|{profile_swap_reason}"
+            mask = np.isfinite(x_raw) & np.isfinite(y_raw)
+            x = x_raw[mask]
+            y = y_raw[mask]
+
+        if profile_swap_reason:
+            swap_reason = profile_swap_reason
 
         metadata_context = "\n".join(preface + comments + [tok.label for tok in header_tokens])
 
@@ -203,6 +252,13 @@ class CsvImporter:
                 "x_index": int(x_index_raw),
                 "y_index": int(y_index_raw),
             }
+        column_meta = cast(dict[str, object], metadata["column_selection"])
+        if layout_signature:
+            column_meta["layout_signature"] = list(layout_signature)
+            column_meta["layout_cache"] = "hit" if cache_hit else "miss"
+
+        if layout_signature and self._layout_is_valid(data, int(x_index), int(y_index), header_tokens):
+            self._store_layout(layout_signature, int(x_index), int(y_index))
 
         if x[0] > x[-1]:
             # Preserve monotonic increase expected by downstream consumers.
@@ -218,6 +274,214 @@ class CsvImporter:
             y=y,
             x_unit=x_unit,
             y_unit=y_unit,
+            metadata=metadata,
+            source_path=path,
+        )
+
+    # ------------------------------------------------------------------
+    def _try_parse_export_bundle(
+        self, path: Path, lines: Sequence[str]
+    ) -> ImporterResult | None:
+        """Detect Spectra provenance bundle CSV exports."""
+
+        filtered = [line for line in lines if line.strip() and not line.lstrip().startswith("#")]
+        if not filtered:
+            return None
+
+        reader = csv.DictReader(filtered)
+        fieldnames = reader.fieldnames or []
+        normalised = {name.strip().lower() for name in fieldnames if name}
+        if not _BUNDLE_REQUIRED_COLUMNS.issubset(normalised):
+            return None
+
+        members: Dict[str, Dict[str, object]] = {}
+        order: List[str] = []
+        for row in reader:
+            spectrum_id = (row.get("spectrum_id") or "").strip()
+            if not spectrum_id:
+                continue
+            try:
+                wavelength = float(row.get("wavelength_nm", ""))
+                intensity = float(row.get("intensity", ""))
+            except (TypeError, ValueError):
+                continue
+
+            entry = members.setdefault(
+                spectrum_id,
+                {
+                    "id": spectrum_id,
+                    "name": (row.get("spectrum_name") or spectrum_id).strip(),
+                    "x": [],
+                    "y": [],
+                    "x_unit": (row.get("x_unit") or "nm").strip() or "nm",
+                    "y_unit": (row.get("y_unit") or "absorbance").strip() or "absorbance",
+                },
+            )
+            if spectrum_id not in order:
+                order.append(spectrum_id)
+
+            cast(List[float], entry["x"]).append(wavelength)
+            cast(List[float], entry["y"]).append(intensity)
+
+        if not order:
+            return None
+
+        members_payload: List[Dict[str, object]] = []
+        for spectrum_id in order:
+            entry = members[spectrum_id]
+            x_values = cast(List[float], entry["x"])
+            y_values = cast(List[float], entry["y"])
+            if not x_values or not y_values:
+                continue
+            members_payload.append(
+                {
+                    "id": entry["id"],
+                    "name": entry["name"],
+                    "x": list(x_values),
+                    "y": list(y_values),
+                    "x_unit": entry["x_unit"],
+                    "y_unit": entry["y_unit"],
+                }
+            )
+
+        if not members_payload:
+            return None
+
+        first = members_payload[0]
+        metadata: Dict[str, object] = {
+            "bundle": {
+                "format": "spectra-export-v1",
+                "members": members_payload,
+                "source_path": str(path),
+            }
+        }
+
+        return ImporterResult(
+            name=cast(str, first.get("name")) or path.stem,
+            x=np.asarray(first.get("x", []), dtype=float),
+            y=np.asarray(first.get("y", []), dtype=float),
+            x_unit=cast(str, first.get("x_unit")) or "nm",
+            y_unit=cast(str, first.get("y_unit")) or "absorbance",
+            metadata=metadata,
+            source_path=path,
+        )
+
+    def _try_parse_wide_bundle(
+        self, path: Path, lines: Sequence[str]
+    ) -> ImporterResult | None:
+        """Detect the wide export format generated by :class:`ProvenanceService`."""
+
+        comments = [line.strip() for line in lines if line.lstrip().startswith("#")]
+        version_line = next((c for c in comments if c.lower().startswith("# spectra-wide-v1")), None)
+        if version_line is None:
+            return None
+
+        member_meta: Dict[str, Dict[str, object]] = {}
+        for comment in comments:
+            if not comment.lower().startswith("# member"):
+                continue
+            payload = comment[len("# member"):].strip()
+            if not payload:
+                continue
+            try:
+                data = json.loads(payload)
+            except json.JSONDecodeError:
+                continue
+            if isinstance(data, dict) and data.get("id"):
+                member_meta[str(data["id"])] = data
+
+        filtered = [line for line in lines if line.strip() and not line.lstrip().startswith("#")]
+        if not filtered:
+            return None
+
+        reader = csv.reader(filtered)
+        try:
+            header = next(reader)
+        except StopIteration:
+            return None
+
+        pairs: List[Tuple[int, int, str]] = []
+        idx = 0
+        while idx < len(header):
+            wave_header = header[idx].strip()
+            if not wave_header.startswith("wavelength_nm::"):
+                return None
+            parts = wave_header.split("::", 2)
+            if len(parts) < 2 or not parts[1]:
+                return None
+            spec_id = parts[1]
+            if idx + 1 >= len(header):
+                return None
+            intensity_header = header[idx + 1].strip()
+            if not intensity_header.startswith("intensity::"):
+                return None
+            intensity_parts = intensity_header.split("::", 2)
+            if len(intensity_parts) < 2 or intensity_parts[1] != spec_id:
+                return None
+            pairs.append((idx, idx + 1, spec_id))
+            idx += 2
+
+        if not pairs:
+            return None
+
+        rows = list(reader)
+        members_payload: List[Dict[str, object]] = []
+        for wave_index, intensity_index, spec_id in pairs:
+            x_values: List[float] = []
+            y_values: List[float] = []
+            for row in rows:
+                if wave_index >= len(row) or intensity_index >= len(row):
+                    continue
+                raw_x = row[wave_index].strip()
+                raw_y = row[intensity_index].strip()
+                if not raw_x or not raw_y:
+                    continue
+                try:
+                    x_val = float(raw_x)
+                    y_val = float(raw_y)
+                except ValueError:
+                    continue
+                x_values.append(x_val)
+                y_values.append(y_val)
+
+            if not x_values or not y_values:
+                continue
+
+            meta_dict = member_meta.get(spec_id, {})
+            name = meta_dict.get("name") if isinstance(meta_dict.get("name"), str) else None
+            x_unit = meta_dict.get("x_unit") if isinstance(meta_dict.get("x_unit"), str) else None
+            y_unit = meta_dict.get("y_unit") if isinstance(meta_dict.get("y_unit"), str) else None
+
+            members_payload.append(
+                {
+                    "id": spec_id,
+                    "name": name or spec_id,
+                    "x": x_values,
+                    "y": y_values,
+                    "x_unit": x_unit or "nm",
+                    "y_unit": y_unit or "absorbance",
+                }
+            )
+
+        if not members_payload:
+            return None
+
+        metadata: Dict[str, object] = {
+            "bundle": {
+                "format": "spectra-export-v1",
+                "members": members_payload,
+                "source_path": str(path),
+                "layout": "spectra-wide-v1",
+            }
+        }
+
+        first = members_payload[0]
+        return ImporterResult(
+            name=cast(str, first.get("name")) or path.stem,
+            x=np.asarray(first.get("x", []), dtype=float),
+            y=np.asarray(first.get("y", []), dtype=float),
+            x_unit=cast(str, first.get("x_unit")) or "nm",
+            y_unit=cast(str, first.get("y_unit")) or "absorbance",
             metadata=metadata,
             source_path=path,
         )
@@ -250,6 +514,96 @@ class CsvImporter:
             length = min(len(numbers), max_columns)
             data[idx, :length] = numbers[:length]
         return data
+
+    def _layout_signature(self, headers: Sequence[_HeaderToken]) -> Tuple[str, ...]:
+        if not headers:
+            return tuple()
+        signature: List[str] = []
+        for token in headers:
+            label = token.normalised_label
+            unit = self._normalise_unit_string(token.unit)
+            signature.append(f"{label}|{unit}")
+        return tuple(signature)
+
+    def _lookup_cached_layout(
+        self, signature: Tuple[str, ...], column_count: int
+    ) -> Tuple[int, int] | None:
+        if not signature or signature not in _LAYOUT_CACHE:
+            return None
+        cached_x, cached_y = _LAYOUT_CACHE[signature]
+        if cached_x >= column_count or cached_y >= column_count:
+            return None
+        return cached_x, cached_y
+
+    def _store_layout(self, signature: Tuple[str, ...], x_index: int, y_index: int) -> None:
+        if not signature:
+            return
+        _LAYOUT_CACHE[signature] = (x_index, y_index)
+
+    def _layout_is_valid(
+        self,
+        data: np.ndarray,
+        x_index: int,
+        y_index: int,
+        headers: Sequence[_HeaderToken],
+    ) -> bool:
+        if x_index < 0 or y_index < 0:
+            return False
+        _, cols = data.shape
+        if x_index >= cols or y_index >= cols or x_index == y_index:
+            return False
+        x_column = data[:, x_index]
+        y_column = data[:, y_index]
+        x_valid = self._column_looks_like_wavelength(x_column, headers, x_index)
+        y_valid = self._column_looks_like_intensity(y_column, headers, y_index)
+        return x_valid and y_valid
+
+    def _column_looks_like_wavelength(
+        self, column: np.ndarray, headers: Sequence[_HeaderToken], index: int
+    ) -> bool:
+        mask = np.isfinite(column)
+        values = column[mask]
+        if values.size < 3:
+            return False
+        diffs = np.diff(values)
+        monotonic = bool(diffs.size) and (
+            np.all(diffs >= 0) or np.all(diffs <= 0)
+        )
+        negative_fraction = float(np.mean(values < 0)) if values.size else 0.0
+        predominantly_negative = negative_fraction > 0.6
+        looks_wavelength = self._looks_like_wavelength(values)
+        looks_intensity = self._looks_like_intensity(values)
+        header_wavelength = (
+            index < len(headers) and self._token_is_wavelength(headers[index])
+        )
+        if looks_wavelength and not looks_intensity:
+            return monotonic and not predominantly_negative
+        if looks_wavelength and looks_intensity:
+            return header_wavelength and monotonic and not predominantly_negative
+        return (
+            header_wavelength
+            and monotonic
+            and not looks_intensity
+            and not predominantly_negative
+        )
+
+    def _column_looks_like_intensity(
+        self, column: np.ndarray, headers: Sequence[_HeaderToken], index: int
+    ) -> bool:
+        mask = np.isfinite(column)
+        values = column[mask]
+        if values.size < 3:
+            return False
+        looks_intensity = self._looks_like_intensity(values)
+        looks_wavelength = self._looks_like_wavelength(values)
+        header_intensity = (
+            index < len(headers) and self._token_is_intensity(headers[index])
+        )
+        if looks_wavelength and not looks_intensity:
+            return False
+        if looks_intensity:
+            return True
+        return header_intensity and not looks_wavelength
 
     def _select_x_column(self, data: np.ndarray, headers: Sequence[_HeaderToken]) -> Tuple[int, str]:
         header_unit = self._header_index_by_unit(headers, _WAVELENGTH_UNIT_HINTS)
@@ -331,6 +685,20 @@ class CsvImporter:
                 return "header-swap"
         return None
 
+    def _should_swap_by_profile(self, x_values: np.ndarray, y_values: np.ndarray) -> bool:
+        if x_values.size < 3 or y_values.size < 3:
+            return False
+        x_is_intensity = self._looks_like_intensity(x_values)
+        y_is_intensity = self._looks_like_intensity(y_values)
+        y_is_wavelength = self._looks_like_wavelength(y_values)
+        x_is_wavelength = self._looks_like_wavelength(x_values)
+
+        if x_is_intensity and not y_is_intensity and y_is_wavelength:
+            return True
+        if x_is_wavelength and y_is_intensity:
+            return False
+        return False
+
     def _token_is_wavelength(self, token: _HeaderToken) -> bool:
         label = token.normalised_label
         if any(keyword in label for keyword in _WAVELENGTH_LABEL_HINTS):
@@ -368,18 +736,23 @@ class CsvImporter:
             if valid.size < 3:
                 continue
             diffs = np.diff(valid)
-            monotonic = np.all(diffs >= 0) or np.all(diffs <= 0)
+            monotonic = bool(diffs.size) and (
+                np.all(diffs >= 0) or np.all(diffs <= 0)
+            )
             variance = float(np.nanvar(valid))
             span = float(np.nanmax(valid) - np.nanmin(valid))
             score = valid.size
-            if prefer_monotonic and monotonic:
-                score += 10
+            if prefer_monotonic:
+                if monotonic:
+                    score += 10
+                    if self._looks_like_wavelength(valid):
+                        score += 12
+                else:
+                    score -= 20
             elif not prefer_monotonic and not monotonic:
                 score += 2
             score += np.log1p(abs(span))
             score += np.log1p(abs(variance))
-            if prefer_monotonic and self._looks_like_wavelength(valid):
-                score += 12
             if not prefer_monotonic and self._looks_like_intensity(valid):
                 score += 6
             if prefer_monotonic and span < 1.0 and np.nanmedian(np.abs(valid)) < 2.0:

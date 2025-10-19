@@ -1,8 +1,13 @@
 # Importing Local Spectra
 
-The Import dialog accepts comma-separated text, JCAMP-DX, and FITS spectra. All
-files are normalised into the app's canonical wavelength baseline of
-nanometres while preserving the raw arrays on disk for provenance.
+The **File → Open** picker currently filters to comma-separated (`*.csv`,
+`*.txt`) datasets. JCAMP-DX still appears once you toggle the OS-provided
+"*All files*" view, but FITS ingest requires manually typing or pasting the path
+into the filename field until the [GUI filter expansion roadmap
+item](../../reports/roadmap.md#gui-file-dialog-filter-expansion) lands. Imported
+arrays are normalised into the app's canonical wavelength baseline of
+nanometres while the desktop build now copies the raw upload into the local
+cache for provenance-aware reuse.
 
 ## Supported formats
 
@@ -13,23 +18,50 @@ nanometres while preserving the raw arrays on disk for provenance.
 - **FITS** – 1D binary tables with wavelength and flux columns. The importer
   looks for standard names such as `WAVELENGTH`, `WAVE`, or `FLUX`. Original
   header metadata is preserved in the provenance panel. Install the optional
-  `astropy` dependency to enable FITS ingest on new machines; without it the
-  menu item remains but attempting to load FITS files will raise a helpful
-  error.
+  `astropy` dependency (`pip install astropy`) to enable FITS ingest on new
+  machines; without it the menu item remains but attempting to load FITS files
+  will raise a helpful error.
 - **JCAMP-DX** – Compact infrared/UV spectral files using `##XYDATA` blocks.
 
 ## How to import
 
-1. Choose **File → Open** and select one or more spectra.
+1. Choose **File → Open** and select one or more spectra (hold `Ctrl` or `Shift` to pick multiple files in a single pass).
 2. Review the detected units shown in the preview banner.
-3. Confirm the ingest. The data is copied into the local cache (see
-   `docs/dev/ingest_pipeline.md`) so that reloading the same file is
-   instantaneous.
+3. Confirm the ingest. The spectrum is normalised in-memory and the
+   provenance-aware cache records the canonical units alongside a copy of the
+   upload so repeat loads avoid re-parsing.
+
+> **Need datasets?** Consult `docs/link_collection.md` for curated spectroscopy
+> portals, lab standards, and instrument handbooks that pair well with the
+> importer and remote catalogue workflow.
+
+### Cache persistence controls
+
+The ingest pipeline now writes to the on-disk cache automatically, which keeps
+track of canonical units, importer provenance, and SHA256 hashes for deduping.
+You can opt out temporarily by setting the environment variable
+`SPECTRA_DISABLE_PERSISTENCE=1` before launching the app. When the environment
+flag is not set, toggle **File → Enable Persistent Cache** to persist the
+preference between sessions.
 
 Imported spectra always appear in canonical units inside the application. Use
  the unit toggle on the toolbar to view alternative axes without mutating the
  underlying data. The raw source file remains untouched in the provenance
  bundle created during export.
+
+### Browsing cached files
+
+Open the **Library** dock (tabified with the Datasets pane) to inspect cached
+uploads. Each row lists the stored alias, units, timestamp, provider/importer,
+and checksum. Selecting a row now fills the metadata preview beneath the table
+with the entry’s provenance, canonical units, byte size, and storage location,
+so you can audit the cache without re-opening the file. Use the search bar to
+filter by alias, units, provider, or checksum tokens. Double-click an entry to
+re-load it without touching the original path—ideal when you want to compare
+different normalisations or revisit a session offline. Routine imports no
+longer spam the knowledge log with raw file paths; only high-level summaries
+remain in `docs/history/KNOWLEDGE_LOG.md` while the library exposes the full
+cache index for auditability.
 
 ## Intelligent parsing of messy tables
 
@@ -64,6 +96,17 @@ trace:
   double-checks the headers. If the tentative X column looks intensity-like and
   the Y column looks wavelength-like, the importer swaps them and records the
   correction in the provenance metadata so you can audit the decision.
+- **Profile-based axis swap** – Even when headers are absent, the importer now
+  inspects the numeric profiles. If the provisional X column behaves like an
+  intensity series while the Y column sits in a typical wavelength/wavenumber
+  range, the axes are swapped and the rationale (`profile-swap`) is written to
+  `metadata.column_selection`.
+- **Layout memory** – When a particular header/units layout has been seen
+  before in the current session, the importer reuses the previously confirmed
+  X/Y column order before re-running the heuristics. The cache key and whether
+  it was a cache hit appear in `metadata.column_selection.layout_signature`
+  and `layout_cache` so you can audit how recurring vendor exports were
+  interpreted.
 - **Automatic ordering** – Descending wavenumber tables are reversed so the X
   axis is monotonically increasing, matching the expectations of the plotting
   stack and unit conversions.
@@ -72,7 +115,11 @@ These behaviours are covered by regression tests in
 `tests/test_csv_importer.py` to ensure future tweaks keep messy real-world data
 ingestable. The importer also records the selected column indices and the
 heuristics it used under `metadata.column_selection` for every ingest so you
-can confirm how a particular file was interpreted.
+can confirm how a particular file was interpreted. The same metadata block now
+stores the original X/Y units under `metadata.source_units`; the plot pane reads
+those values so newly imported traces appear in the exact scale they were
+captured (for example percent transmittance) before you opt into additional
+normalisation.
 
 ## Appendix — Provenance export bundle
 
@@ -83,11 +130,36 @@ bundle contains:
 - `manifest.json` — human-readable metadata describing the session, import
   source, applied unit conversions, and any math operations performed.
 - `spectra/` — canonicalised arrays in CSV format (`wavelength_nm`,
-  `intensity`) for each trace present in the workspace at export time.
+  `intensity`) for each trace that remains visible in the workspace at export time.
 - `sources/` — verbatim copies of the original uploads alongside their SHA256
   hashes so you can independently verify integrity.
 - `log.txt` — a chronological history of ingest, analysis, and export actions
   captured by the provenance service.
+- Optional extras (if selected in the export dialog):
+  - `*_wide.csv` — a paired-column view tagged with `# spectra-wide-v1` comment
+    headers so the CSV importer can expand each spectrum back into its own
+    trace. This is designed for spreadsheet workflows where keeping values side
+    by side is helpful before returning to Spectra.
+  - `*_composite.csv` — an averaged intensity profile that records how many
+    sources contributed to each wavelength sample. Use this when you want to
+    compare a blended envelope against laboratory references without manually
+    averaging outside the application.
+
+The top-level CSV now leads with the numeric wavelength/intensity columns and
+records provenance fields (`spectrum_id`, `spectrum_name`, units, point index)
+to the right. When you re-import this combined CSV—or the wide variant with the
+`spectra-wide-v1` header—the ingest pipeline spots the metadata, splits the
+file into per-trace bundles, and restores each spectrum individually. You can
+also ingest the composite CSV directly; the importer detects the standard
+`wavelength_nm,intensity` prefix and ignores the `source_count` bookkeeping
+column when choosing axes.
+
+The top-level CSV now leads with the numeric wavelength/intensity columns and
+records provenance fields (`spectrum_id`, `spectrum_name`, units, point index)
+to the right.  When you re-import this combined CSV the ingest pipeline spots
+the `spectrum_id` column, splits the file into per-trace bundles, and restores
+each spectrum individually—no more merged axis mistakes or manual splitting of
+the export before analysis.
 
 Because the manifest records the units detected during import, round-tripping
 through Ångström, micrometre, or wavenumber views does not alter the stored
