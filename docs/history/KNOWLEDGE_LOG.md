@@ -29,6 +29,27 @@ Each entry in this document should follow this structure:
 ---
 
 ## 2025-10-19 19:31 – Data dock layout stability
+## 2025-10-19 19:54 – NIST input validation safeguards
+
+**Author**: agent
+
+**Context**: Reference tab NIST spectral line fetch UX and error handling.
+
+**Summary**: Caught ValueError exceptions from the NIST fetch routine so invalid
+element symbols or ion stages now show a warning dialog instead of closing the
+Reference window. Updated the reference-data guide to describe the behaviour and
+logged the change in patch notes for traceability.
+
+**NYC time**: 2025-10-19T19:54:35-04:00
+
+**UTC time**: 2025-10-19T23:54:37+00:00
+
+**References**: `app/main.py`, `docs/user/reference_data.md`,
+`docs/history/PATCH_NOTES.md`.
+
+---
+
+## 2025-10-19 19:38 – Data table toggle no longer auto-opens
 
 **Author**: agent
 
