@@ -281,6 +281,14 @@
 - Updated the remote data user guide and workplan to document the scoped
   searches and new example menu.
 
+## 2025-10-18 (Quick-Start Docs Refresh) (7:53 pm EDT)
+
+- Replaced stale onboarding pointers in `START_HERE.md`, `README.md`, and `CONTRIBUTING.md` with the current workflow, including
+  direct links to `docs/history/PATCH_NOTES.md` and `docs/history/KNOWLEDGE_LOG.md`.
+- Confirmed contributors know to bump `pyproject.toml` and `ProvenanceService.app_version` together and mapped the real
+  documentation directories in the repository structure overview.
+- Documentation-only update; no automated tests were run for this change.
+
 ## 2025-10-15 (Importing Guide Provenance Appendix) (9:10 am)
 
 - Expanded `docs/user/importing.md` with a provenance export appendix covering the structure of the manifest bundle.
