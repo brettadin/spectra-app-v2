@@ -28,6 +28,23 @@ Each entry in this document should follow this structure:
 
 ---
 
+## 2025-10-19 15:24 (America/New_York) / 19:24 (UTC) – Provenance schema path fix
+
+**Author**: agent
+
+**Context**: CI schema validation and documentation alignment for provenance exports.
+
+**Summary**: Moved `provenance_schema.json` into `docs/specs/` so the validation workflow resolves the authoritative schema from the documented location. Updated prompts and pass dossiers that reference the file to keep contributors anchored to the same path.
+
+**References**:
+- `docs/specs/provenance_schema.json`
+- `docs/history/MASTER PROMPT.md`
+- `docs/history/MASTER_PROMPT.md`
+- `docs/reviews/pass4.md`
+- `docs/history/PATCH_NOTES.md`
+
+---
+
 ## 2025-10-19 15:14 (America/New_York) / 19:14 (UTC) – Export CSV axis ordering
 
 **Author**: agent

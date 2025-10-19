@@ -33,7 +33,7 @@ Whenever you quote or compare a time, compute it at runtime in the
    - `specs/*`
    - `tests/*`
 4. **Provenance schema**
-   - `specs/provenance_schema.json` (authoritative version v1.2.0)
+   - `docs/specs/provenance_schema.json` (authoritative version v1.2.0)
 5. **Automation & tools**
    - `.github/workflows/`
    - `tools/validate_manifest.py`

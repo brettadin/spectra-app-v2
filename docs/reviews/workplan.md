@@ -56,6 +56,7 @@ This document tracks feature batches, validation status, and outstanding backlog
 
 ### Batch 14 QA Log
 
+- 2025-10-19: ✅ `pytest` (post-schema relocation)
 - 2025-10-19: ✅ `pytest`
 - 2025-10-17: ✅ `pytest`
 
