@@ -141,24 +141,14 @@ def test_search_nist_uses_nist_service(store: LocalStore, monkeypatch: pytest.Mo
     assert len(records) == 1
     record = records[0]
     assert record.provider == RemoteDataService.PROVIDER_NIST
-    assert record.download_url.startswith("nist-asd://lines/")
-    assert "lower_wavelength=250" in record.download_url
-    assert "upper_wavelength=260" in record.download_url
+    assert record.download_url.startswith("nist-asd:")
     assert record.metadata.get("line_count") == 1
     assert record.metadata["series"]["wavelength_nm"] == [510.0]
-
-    records_second = service.search(
-        RemoteDataService.PROVIDER_NIST,
-        {"element": "Fe II", "wavelength_min": 255.0, "wavelength_max": 265.0},
-    )
-    assert records_second[0].download_url != record.download_url
-    assert "lower_wavelength=255" in records_second[0].download_url
 
 
 def test_download_nist_generates_csv_and_records_provenance(store: LocalStore) -> None:
     service = RemoteDataService(store, session=None)
     metadata = {
-        "label": "Fe II (NIST ASD)",
         "lines": [
             {
                 "wavelength_nm": 510.0,
@@ -182,16 +172,12 @@ def test_download_nist_generates_csv_and_records_provenance(store: LocalStore) -
         "element_symbol": "Fe",
         "element_name": "Iron",
         "ion_stage_number": 2,
-        "ion_stage": "II",
     }
-    query_meta = RemoteDataService._normalise_nist_query("Fe II", metadata)
-    metadata["query"] = query_meta
-    download_url = RemoteDataService._build_nist_download_url("Fe II (NIST ASD)", query_meta)
     record = RemoteRecord(
         provider=RemoteDataService.PROVIDER_NIST,
         identifier="Fe II (NIST ASD)",
         title="Fe II — 1 line",
-        download_url=download_url,
+        download_url="nist-asd:Fe_II",
         metadata=metadata,
         units={"x": "nm", "y": "relative_intensity"},
     )

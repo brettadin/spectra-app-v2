@@ -14,11 +14,13 @@ This document tracks feature batches, validation status, and outstanding backlog
 - [ ] Achieve export/view parity: manifest view-state, replay test, and Library
       actions for opening manifests/logs/re-exporting the current state.
 - [ ] Reorganise datasets/library presentation so cached entries, sample data,
-      and user ingests are categorised by instrument/type with working search.
+      and user ingests are categorised by instrument/type with working search
+      (dataset dock filter landed 2025-10-19; grouping backlog remains).
 - [ ] Validate remote catalogue UX: expand the provider roster beyond MAST once
       dependency checks stabilise and new spectroscopy sources are vetted.
 - [ ] Refresh START_HERE, MASTER PROMPT, AGENTS, and brains documentation so
-      onboarding instructions match the current repository layout.
+      onboarding instructions match the current repository layout (AGENTS and
+      START_HERE refreshed 2025-10-19; MASTER PROMPT/brains follow-ups pending).
 - [x] Document dependency prerequisites (requests, astroquery, pandas, astropy)
       and add installation verification guidance for Windows 11 users.
 
@@ -36,8 +38,9 @@ This document tracks feature batches, validation status, and outstanding backlog
 - [x] Added export options for wide/composite CSV variants, wired `ProvenanceService`
       helpers and importer detection for the new layouts, updated the user guides,
       and extended regression coverage for wide/composite round-trips.
-- [x] Normalised NIST remote cache URIs to encode query parameters so distinct line searches persist separately, extended the
-      remote-data unit tests, and refreshed the remote data guide to describe the behaviour.
+- [x] Added a dataset-dock filter for large sessions, updated plot tools/user
+      onboarding docs with cross-platform timestamp guidance, and recorded the
+      workflow in patch notes and the knowledge log.
 
 ### Recently Completed (2025-10-18)
 

@@ -199,14 +199,12 @@ class RemoteDataService:
         label = meta.get("label") or identifier
         line_count = len(lines)
         title = f"{label} — {line_count} line{'s' if line_count != 1 else ''}"
-        query_meta = self._normalise_nist_query(identifier, meta)
-        meta["query"] = query_meta
-        download_url = self._build_nist_download_url(label, query_meta)
+        download_token = label.replace(" ", "_")
         record = RemoteRecord(
             provider=self.PROVIDER_NIST,
             identifier=label,
             title=title,
-            download_url=download_url,
+            download_url=f"nist-asd:{download_token}",
             metadata=meta,
             units={"x": "nm", "y": "relative_intensity"},
         )

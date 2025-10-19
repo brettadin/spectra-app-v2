@@ -62,12 +62,35 @@ below—future agents rely on these conventions to maintain continuity.
   patch-notes entry, and append a knowledge-log summary with citations.
 - Timestamps must be real. Capture the current time in America/New_York when
   drafting patch-note and workplan updates, and include the corresponding UTC
-  time in knowledge-log or brains entries. Use:
+  time in knowledge-log or brains entries. Use the commands that match your
+  platform:
 
-  ```bash
-  TZ=America/New_York date --iso-8601=seconds
-  date -u --iso-8601=seconds
-  ```
+  - **Windows PowerShell**
+
+    ```powershell
+    [System.TimeZoneInfo]::ConvertTimeBySystemTimeZoneId([DateTime]::UtcNow,"Eastern Standard Time").ToString("o")
+    (Get-Date).ToUniversalTime().ToString("o")
+    ```
+
+  - **macOS/Linux shells**
+
+    ```bash
+    TZ=America/New_York date --iso-8601=seconds
+    date -u --iso-8601=seconds
+    ```
+
+  - **Python fallback (any platform)**
+
+    ```bash
+    python - <<'PY'
+    from datetime import UTC, datetime
+    import zoneinfo
+
+    ny = zoneinfo.ZoneInfo("America/New_York")
+    print(datetime.now(ny).isoformat())
+    print(datetime.now(UTC).isoformat())
+    PY
+    ```
 
 - When adding resources, cross-link them in `docs/link_collection.md` and note
   provenance (DOIs/URLs) so future agents can revalidate the source.

@@ -100,13 +100,10 @@ Follow the **RUNNER_PROMPT** workflow for each development session:
 - **Run Full Test Suite**: `pytest -v`
 - **Verify UI Responsiveness**: Test with 1M+ point datasets
 - **Check Documentation**: Ensure all changes are documented
-- **Update Version Metadata**: Bump the semantic version in `pyproject.toml` and align
-  any hard-coded defaults (e.g. `ProvenanceService.app_version` in
-  `app/services/provenance_service.py`) so runtime manifests report the same value.
-- **Write Patch Notes**: Add an entry to `docs/history/PATCH_NOTES.md` that cites
-  user-visible changes and the tests you ran.
-- **Log Knowledge Updates**: Summarise key decisions in `docs/history/KNOWLEDGE_LOG.md`
-  with the same timestamps you used for the patch notes.
+- **Log Changes**: Update `docs/history/PATCH_NOTES.md` and
+  `docs/history/KNOWLEDGE_LOG.md` with real timestamps
+- **Release Prep**: Follow `packaging/windows_build.md` if a distribution build
+  or version bump is required
 
 ## 📝 Creating Your Workplan
 
@@ -127,7 +124,7 @@ Brief description of the feature or fix being implemented.
 - [ ] All tests pass (pytest)
 - [ ] UI remains responsive with large datasets
 - [ ] Documentation updated
-- [ ] Version bumped and patch notes written
+- [ ] Patch notes and knowledge log updated
 - [ ] No regression in existing functionality
 
 ## References

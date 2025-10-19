@@ -125,6 +125,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self._history_ui_ready = False
 
         self._plot_max_points = self._load_plot_max_points()
+        self.dataset_filter: QtWidgets.QLineEdit | None = None
         self.library_dock: QtWidgets.QDockWidget | None = None
         self.library_list: QtWidgets.QTreeWidget | None = None
         self.library_search: QtWidgets.QLineEdit | None = None
@@ -278,6 +279,16 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.dataset_dock.setAllowedAreas(
             QtCore.Qt.DockWidgetArea.LeftDockWidgetArea | QtCore.Qt.DockWidgetArea.RightDockWidgetArea
         )
+        dataset_container = QtWidgets.QWidget()
+        dataset_layout = QtWidgets.QVBoxLayout(dataset_container)
+        dataset_layout.setContentsMargins(6, 6, 6, 6)
+        dataset_layout.setSpacing(6)
+
+        self.dataset_filter = QtWidgets.QLineEdit()
+        self.dataset_filter.setPlaceholderText("Filter datasets…")
+        self.dataset_filter.textChanged.connect(self._on_dataset_filter_changed)
+        dataset_layout.addWidget(self.dataset_filter)
+
         self.dataset_tree = QtWidgets.QTreeView()
         self.dataset_tree.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
         self.dataset_tree.setRootIsDecorated(True)
@@ -293,7 +304,8 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.dataset_tree.header().setSectionResizeMode(2, QtWidgets.QHeaderView.ResizeToContents)
         self.dataset_tree.selectionModel().selectionChanged.connect(self._on_dataset_selection_changed)
         self.dataset_model.dataChanged.connect(self._on_dataset_data_changed)
-        self.dataset_dock.setWidget(self.dataset_tree)
+        dataset_layout.addWidget(self.dataset_tree, 1)
+        self.dataset_dock.setWidget(dataset_container)
         self.addDockWidget(QtCore.Qt.DockWidgetArea.LeftDockWidgetArea, self.dataset_dock)
 
         self._build_library_dock()
@@ -858,6 +870,35 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.dataset_model.appendRow([alias_item, visible_item, color_item])
         return alias_item
 
+    def _on_dataset_filter_changed(self, _: str) -> None:
+        self._apply_dataset_filter()
+
+    def _apply_dataset_filter(self) -> None:
+        if self.dataset_tree is None or self.dataset_model is None:
+            return
+
+        pattern = ""
+        if self.dataset_filter is not None:
+            pattern = self.dataset_filter.text().strip().lower()
+
+        root_index = QtCore.QModelIndex()
+        groups = [self._originals_item, self._derived_item]
+        for group in groups:
+            if group is None:
+                continue
+            group_index = self.dataset_model.indexFromItem(group)
+            any_visible = False
+            for row in range(group.rowCount()):
+                child = group.child(row)
+                alias = child.text() if child is not None else ""
+                match = not pattern or pattern in alias.lower()
+                self.dataset_tree.setRowHidden(row, group_index, not match)
+                if match:
+                    any_visible = True
+            hide_group = bool(pattern) and not any_visible
+            self.dataset_tree.setRowHidden(group.row(), root_index, hide_group)
+
+
     def _wire_shortcuts(self) -> None:
         QtGui.QShortcut(QtGui.QKeySequence("Ctrl+O"), self, activated=self.open_file)
         QtGui.QShortcut(QtGui.QKeySequence("U"), self, activated=self._cycle_units)
@@ -1278,6 +1319,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         _source_x, source_y = self._source_units(spectrum)
         self._display_y_units[spectrum.id] = source_y
         self._add_plot_trace(spectrum, base_color)
+        self._apply_dataset_filter()
 
     def _add_plot_trace(self, spectrum: Spectrum, base_color: QtGui.QColor) -> None:
         alias_item = self._dataset_items.get(spectrum.id)

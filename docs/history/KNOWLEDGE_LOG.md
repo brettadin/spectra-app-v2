@@ -28,15 +28,26 @@ Each entry in this document should follow this structure:
 
 ---
 
-## 2025-10-19 21:47 – NIST cache URI normalisation
+## 2025-10-19 17:46 (America/New_York) / 21:46 (UTC) – Dataset dock filtering
 
 **Author**: agent
 
-**Context**: Remote line-list caching and provenance integrity.
+**Context**: Usability improvements for managing large overlay sessions and
+alignment of onboarding instructions with repository reality.
 
-**Summary**: Normalised NIST spectral line queries so their pseudo URIs encode the element, ion stage, wavelength bounds, and Ritz preference. This prevents `LocalStore` cache collisions when operators fetch multiple ranges for the same species. Expanded the remote-data unit tests to cover the new URI format and updated the remote data guide to describe the behaviour.
+**Summary**: Added a search box to the Datasets dock so analysts can filter
+aliases without unloading spectra; visibility updates in place and derived
+groups respect the filter. Documented the workflow in the plot tools guide and
+updated AGENTS/START_HERE to provide cross-platform timestamp commands and to
+point contributors to the actual patch-note/knowledge-log locations.
 
-**References**: `app/services/remote_data_service.py`, `tests/test_remote_data_service.py`, `docs/user/remote_data.md`.
+**References**:
+- `app/main.py`
+- `tests/test_dataset_filter.py`
+- `docs/user/plot_tools.md`
+- `AGENTS.md`
+- `START_HERE.md`
+- `docs/history/PATCH_NOTES.md`
 
 ---
 

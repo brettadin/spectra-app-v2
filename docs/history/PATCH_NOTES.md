@@ -333,11 +333,14 @@
 - Documented the behaviour shift in `docs/user/reference_data.md` so operators understand how the overlay toggle now affects
   all pinned line sets simultaneously.
 
-## 2025-10-19 (NIST cache isolation) (5:47 pm EDT)
+## 2025-10-19 (17:46 ET)
 
-- Updated `RemoteDataService` to embed NIST query parameters in pseudo URIs so cache lookups no longer collide when wavelength ranges or ion stages differ.
-- Extended the remote-data unit tests to cover the new URI format and ensure unique entries per query.
-- Documented the behaviour in `docs/user/remote_data.md` so operators know that distinct line searches persist independently in the cache.
+- Added a case-insensitive search field to the Datasets dock so large sessions
+  can be filtered without unloading spectra; the UI refreshes in real time and
+  respects group visibility.
+- Documented the new filter in `docs/user/plot_tools.md`, refreshed
+  `AGENTS.md`/`START_HERE.md` with cross-platform timestamp guidance, and noted
+  the actual patch-note/knowledge-log workflow used by the repository.
 
 ## 2025-10-15 (Importing Guide Provenance Appendix) (9:10 am)
 

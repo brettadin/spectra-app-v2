@@ -15,6 +15,10 @@ The Spectra plot pane is powered by PyQtGraph and optimised for working with lar
 
 > **Tip**: The datasets dock includes a visibility checkbox for every trace. Hiding derived overlays before zooming on faint features reduces clutter and keeps the legend focused.
 
+### Filtering large sessions
+
+When dozens of spectra are loaded, use the search field at the top of the **Datasets** dock to filter aliases in real time. The filter is case-insensitive and hides non-matching entries within the **Originals** and **Derived** groups without unloading the underlying data. Clearing the search box restores the full list instantly, so you can narrow in on a family of traces, adjust visibility, and then return to the complete session.
+
 ## Reading the status bar and inspector
 
 Moving the mouse over the plot updates the status bar with the current cursor coordinates in the active display units. When the Inspector dock is visible, the **Info** tab also highlights the selected trace's sample count, value range, and original units so you can confirm whether a spike is physical or an artefact.
