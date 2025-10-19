@@ -1,5 +1,14 @@
 # Patch Notes
 
+## 2025-10-19 (NIST query cache signatures) (17:31 EDT / 21:31 UTC)
+
+- Updated the remote data service so synthetic `nist-asd:` URIs include the
+  queried wavelength bounds, units, wavelength type, and Ritz preference. This
+  prevents cached CSVs from being reused across distinct element/ion windows and
+  keeps downloads aligned with the requested range.
+- Documented the cache-key behaviour in the remote data guide and recorded the
+  change across the workplan and knowledge log for provenance.
+
 ## 2025-10-18 (NIST ASD astroquery integration) (20:35 EDT / 00:35 UTC)
 
 - Replaced the NIST remote search implementation with the astroquery-backed

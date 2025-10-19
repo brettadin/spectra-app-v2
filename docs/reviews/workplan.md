@@ -22,6 +22,13 @@ This document tracks feature batches, validation status, and outstanding backlog
 - [x] Document dependency prerequisites (requests, astroquery, pandas, astropy)
       and add installation verification guidance for Windows 11 users.
 
+### Recently Completed (2025-10-19)
+
+- [x] Hardened the NIST remote cache so synthetic URIs encode wavelength
+      bounds, units, wavelength type, and the Ritz toggle, preventing
+      mismatched CSV reuse across queries. Documented the behaviour and updated
+      provenance logs.
+
 ### Recently Completed (2025-10-18)
 
 - [x] Ported the Remote Data NIST adapter to the astroquery line-list helper,

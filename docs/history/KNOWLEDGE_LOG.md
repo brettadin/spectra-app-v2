@@ -28,6 +28,26 @@ Each entry in this document should follow this structure:
 
 ---
 
+## 2025-10-19 17:31 – Remote Data cache
+
+**Author**: agent
+
+**Context**: Remote catalogue caching for NIST ASD line-list queries.
+
+**Summary**: Incorporated wavelength bounds, unit, wavelength type, and Ritz
+preference into the synthetic `nist-asd:` download URI so cached CSVs stay tied
+to the exact query parameters. Documented the behaviour in the remote data guide
+and noted the fix in the workplan and patch notes to preserve provenance.
+(UTC 21:31)
+
+**References**:
+- `app/services/remote_data_service.py`
+- `docs/user/remote_data.md`
+- `docs/reviews/workplan.md`
+- `docs/history/PATCH_NOTES.md`
+
+---
+
 ## 2025-10-18 20:35 – NIST ASD astroquery line synthesis
 
 **Author**: agent
