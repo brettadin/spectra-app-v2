@@ -28,6 +28,25 @@ Each entry in this document should follow this structure:
 
 ---
 
+## 2025-10-19 15:57 – Knowledge Log Persistence
+
+**Author**: automation
+
+**Context**: Restored import history retention (UTC 2025-10-19T19:57:47Z).
+
+**Summary**: Re-enabled persistence for Import/Remote Import events so session
+ingests populate the canonical knowledge log alongside the in-app history view.
+Updated the importing guide to explain the summarised entries and exercised the
+smoke ingest workflow to confirm CSV imports append to the log.
+
+**References**:
+- `app/main.py`
+- `app/services/knowledge_log_service.py`
+- `docs/user/importing.md`
+- `tests/test_smoke_workflow.py`
+
+---
+
 ## 2025-10-19 15:31 (America/New_York) / 19:31 (UTC) – Mini FITS fixture portability
 
 **Author**: agent
