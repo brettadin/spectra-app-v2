@@ -65,14 +65,20 @@ below—future agents rely on these conventions to maintain continuity.
   time in knowledge-log or brains entries. Use the platform-specific commands
   below so every workflow produces ISO-8601 strings for both zones:
 
-  - **Windows (PowerShell):**
+  - **Windows (PowerShell 5.1+/pwsh):**
 
     ```powershell
-    $nyc = [System.TimeZoneInfo]::FindSystemTimeZoneById("Eastern Standard Time")
     $utcNow = Get-Date -AsUTC
-    [System.TimeZoneInfo]::ConvertTimeFromUtc($utcNow, $nyc).ToString("o")
+    $nycNow = [System.TimeZoneInfo]::ConvertTimeFromUtc(
+        $utcNow,
+        [System.TimeZoneInfo]::FindSystemTimeZoneById("Eastern Standard Time")
+    )
+    $nycNow.ToString("o")
     $utcNow.ToString("o")
     ```
+
+    The first line prints the America/New_York timestamp, the second prints the
+    matching UTC instant. Both use the invariant ISO-8601 `o` format.
 
   - **macOS / Linux shells:**
 
@@ -80,6 +86,9 @@ below—future agents rely on these conventions to maintain continuity.
     TZ=America/New_York date --iso-8601=seconds
     date -u --iso-8601=seconds
     ```
+
+    On macOS install GNU coreutils (`brew install coreutils`) and substitute
+    `gdate` for `date` if the default BSD `date` lacks the `--iso-8601` flag.
 
   - **Windows Subsystem for Linux (from PowerShell or cmd):**
 
