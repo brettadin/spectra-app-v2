@@ -199,12 +199,12 @@ class RemoteDataService:
         label = meta.get("label") or identifier
         line_count = len(lines)
         title = f"{label} — {line_count} line{'s' if line_count != 1 else ''}"
-        download_token = label.replace(" ", "_")
+        download_token = self._build_nist_download_token(label, meta)
         record = RemoteRecord(
             provider=self.PROVIDER_NIST,
             identifier=label,
             title=title,
-            download_url=f"nist-asd:{download_token}",
+            download_url=download_token,
             metadata=meta,
             units={"x": "nm", "y": "relative_intensity"},
         )
@@ -463,6 +463,54 @@ class RemoteDataService:
         return record.download_url.startswith("mast:")
 
     # ------------------------------------------------------------------
+    def _build_nist_download_token(self, label: str, metadata: Mapping[str, Any]) -> str:
+        """Generate a cache-safe identifier for a NIST ASD query."""
+
+        safe_label = self._slugify_token(label) or "nist"
+        query = metadata.get("query") if isinstance(metadata, Mapping) else None
+        if not isinstance(query, Mapping):
+            return f"nist-asd:{safe_label}"
+
+        tokens: list[tuple[str, str]] = []
+        for key in (
+            "linename",
+            "identifier",
+            "lower_wavelength",
+            "upper_wavelength",
+            "wavelength_unit",
+            "wavelength_type",
+            "use_ritz",
+        ):
+            if key not in query:
+                continue
+            value = query.get(key)
+            if value is None:
+                continue
+            tokens.append((key, self._normalise_query_value(value)))
+
+        if not tokens:
+            return f"nist-asd:{safe_label}"
+
+        encoded = urlencode(sorted(tokens))
+        return f"nist-asd:{safe_label}?{encoded}"
+
+    def _normalise_query_value(self, value: Any) -> str:
+        if isinstance(value, bool):
+            return "true" if value else "false"
+        if isinstance(value, (int,)):
+            return str(value)
+        if isinstance(value, float):
+            normalised = f"{value:.8f}".rstrip("0").rstrip(".")
+            return normalised or "0"
+        return str(value)
+
+    def _slugify_token(self, token: str) -> str:
+        cleaned = [ch if ch.isalnum() or ch in {"-", "_"} else "_" for ch in token.strip()]
+        result = "".join(cleaned)
+        while "__" in result:
+            result = result.replace("__", "_")
+        return result.strip("_")
+
     def _find_cached(self, uri: str) -> Dict[str, Any] | None:
         entries = self.store.list_entries()
         for entry in entries.values():
