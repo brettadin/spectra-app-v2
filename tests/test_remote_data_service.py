@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import hashlib
 from pathlib import Path
 from typing import Any
 
@@ -63,70 +62,140 @@ def store(tmp_path: Path) -> LocalStore:
     return LocalStore(base_dir=tmp_path)
 
 
-def test_search_nist_constructs_url_and_params(store: LocalStore) -> None:
-    session = DummySession()
-    csv_text = '''obs_wl_vac(A),ritz_wl_vac(A),wn(cm-1),intens,Aki(s^-1),Acc,Ei(cm-1),Ek(cm-1),conf_i,term_i,J_i,conf_k,term_k,J_k,Type,ID_i,ID_k,
-=""923.878""",=""923.87821""",=""108239.4""",=""8000""",=""2.8e+07""",D,=""0.0000""",=""108239.375""",=""3d6.(5D).4s""",=""a 6D""",=""9/2""",=""3d5.(2F1).4s.4p.(3P*)""",=""4D*""",=""7/2""",E,=""026002.000001""",=""026002.000812""",
-<form action="https://physics.nist.gov/cgi-bin/ASD/lines1.pl" method="post">
-'''
-    session.queue(DummyResponse(text=csv_text))
-    service = RemoteDataService(store, session=session)
+def test_search_nist_uses_nist_service(store: LocalStore, monkeypatch: pytest.MonkeyPatch) -> None:
+    captured: dict[str, Any] = {}
+
+    def fake_dependencies() -> bool:
+        return True
+
+    def fake_fetch(
+        identifier: str,
+        *,
+        element: str | None = None,
+        ion_stage: str | int | None = None,
+        lower_wavelength: float | None = None,
+        upper_wavelength: float | None = None,
+        wavelength_unit: str = "nm",
+        use_ritz: bool = True,
+        wavelength_type: str = "vacuum",
+    ) -> dict[str, Any]:
+        captured.update(
+            {
+                "identifier": identifier,
+                "element": element,
+                "ion_stage": ion_stage,
+                "lower": lower_wavelength,
+                "upper": upper_wavelength,
+                "unit": wavelength_unit,
+                "use_ritz": use_ritz,
+                "wavelength_type": wavelength_type,
+            }
+        )
+        return {
+            "wavelength_nm": [510.0],
+            "intensity": [120.0],
+            "intensity_normalized": [1.0],
+            "lines": [
+                {
+                    "wavelength_nm": 510.0,
+                    "relative_intensity": 120.0,
+                    "relative_intensity_normalized": 1.0,
+                }
+            ],
+            "meta": {
+                "label": "Fe II (NIST ASD)",
+                "element_symbol": "Fe",
+                "element_name": "Iron",
+                "atomic_number": 26,
+                "ion_stage": "II",
+                "ion_stage_number": 2,
+                "query": {
+                    "identifier": identifier,
+                    "linename": "Fe II",
+                    "lower_wavelength": lower_wavelength,
+                    "upper_wavelength": upper_wavelength,
+                    "wavelength_unit": wavelength_unit,
+                    "wavelength_type": wavelength_type,
+                    "use_ritz": use_ritz,
+                },
+                "fetched_at_utc": "2025-10-18T00:00:00Z",
+                "citation": "citation",
+                "retrieved_via": "astroquery.nist",
+            },
+        }
+
+    monkeypatch.setattr(remote_module.nist_asd_service, "dependencies_available", fake_dependencies)
+    monkeypatch.setattr(remote_module.nist_asd_service, "fetch_lines", fake_fetch)
+
+    service = RemoteDataService(store, session=None)
 
     records = service.search(
         RemoteDataService.PROVIDER_NIST,
         {"element": "Fe II", "wavelength_min": 250.0, "wavelength_max": 260.0},
     )
 
-    assert session.calls, "The HTTP session should have been invoked"
-    call = session.calls[0]
-    assert call["url"] == service.nist_search_url
-    assert call["params"]["spectra"] == "Fe II"
-    assert call["params"]["low_w"] == "250"
-    assert call["params"]["upp_w"] == "260"
-    assert call["params"]["format"] == "2"
-    assert call["params"]["output"] == "1"
-    assert call["params"]["page_size"] == str(service.nist_page_size)
-    assert call["params"]["output_type"] == "0"
+    assert captured["identifier"] == "Fe II"
+    assert captured["lower"] == 250.0
+    assert captured["upper"] == 260.0
+    assert captured["unit"] == "nm"
     assert len(records) == 1
     record = records[0]
     assert record.provider == RemoteDataService.PROVIDER_NIST
-    assert record.download_url.startswith(service.nist_search_url)
-    assert record.units == {"x": "Angstrom (vacuum)", "y": "relative intensity (arbitrary)"}
-    assert record.metadata["wavelength_ritz_A"] == pytest.approx(923.87821)
-    assert record.metadata["lower_level"]["term"] == "a 6D"
-    assert record.metadata["download"]["parameters"]["spectra"] == "Fe II"
+    assert record.download_url.startswith("nist-asd:")
+    assert record.metadata.get("line_count") == 1
+    assert record.metadata["series"]["wavelength_nm"] == [510.0]
 
 
-def test_download_uses_cache_and_records_provenance(store: LocalStore) -> None:
-    session = DummySession()
-    content = b"wavelength,flux\n100,0.1\n"
-    session.queue(DummyResponse(content=content))
-    service = RemoteDataService(store, session=session)
+def test_download_nist_generates_csv_and_records_provenance(store: LocalStore) -> None:
+    service = RemoteDataService(store, session=None)
+    metadata = {
+        "lines": [
+            {
+                "wavelength_nm": 510.0,
+                "relative_intensity": 120.0,
+                "relative_intensity_normalized": 1.0,
+                "observed_wavelength_nm": 509.9,
+                "ritz_wavelength_nm": 510.02,
+                "lower_level": "a 6D",
+                "upper_level": "z 6F",
+            }
+        ],
+        "query": {
+            "identifier": "Fe II",
+            "linename": "Fe II",
+            "lower_wavelength": 250.0,
+            "upper_wavelength": 260.0,
+            "wavelength_unit": "nm",
+            "wavelength_type": "vacuum",
+            "use_ritz": True,
+        },
+        "element_symbol": "Fe",
+        "element_name": "Iron",
+        "ion_stage_number": 2,
+    }
     record = RemoteRecord(
         provider=RemoteDataService.PROVIDER_NIST,
-        identifier="FeII-1",
-        title="Fe II",
-        download_url="https://example.test/FeII-1.csv",
-        metadata={"note": "synthetic", "units": {"x": "nm", "y": "absorbance"}},
-        units={"x": "nm", "y": "absorbance"},
+        identifier="Fe II (NIST ASD)",
+        title="Fe II — 1 line",
+        download_url="nist-asd:Fe_II",
+        metadata=metadata,
+        units={"x": "nm", "y": "relative_intensity"},
     )
 
-    first = service.download(record)
+    first = service.download(record, force=True)
     assert first.cached is False
     stored_path = Path(first.cache_entry["stored_path"])
     assert stored_path.exists()
-    expected_sha = hashlib.sha256(content).hexdigest()
-    assert first.cache_entry["sha256"] == expected_sha
+    text = stored_path.read_text(encoding="utf-8")
+    assert "Wavelength (nm)" in text
+    assert "510" in text
     remote_meta = first.cache_entry.get("source", {}).get("remote", {})
     assert remote_meta.get("uri") == record.download_url
     assert remote_meta.get("provider") == RemoteDataService.PROVIDER_NIST
     assert "fetched_at" in remote_meta
 
-    # Second download should use the cache and avoid another HTTP request
-    before_calls = len(session.calls)
     cached = service.download(record)
     assert cached.cached is True
-    assert len(session.calls) == before_calls
     assert Path(cached.cache_entry["stored_path"]) == stored_path
 
 
@@ -267,7 +336,7 @@ def test_download_mast_uses_astroquery(
 
 
 def test_providers_hide_missing_dependencies(monkeypatch: pytest.MonkeyPatch, store: LocalStore) -> None:
-    monkeypatch.setattr(remote_module, "requests", None)
+    monkeypatch.setattr(remote_module.nist_asd_service, "dependencies_available", lambda: False)
     monkeypatch.setattr(remote_module, "astroquery_mast", None)
     monkeypatch.setattr(remote_module, "_HAS_PANDAS", False)
     service = RemoteDataService(store, session=None)
@@ -277,13 +346,8 @@ def test_providers_hide_missing_dependencies(monkeypatch: pytest.MonkeyPatch, st
     assert remote_module.RemoteDataService.PROVIDER_NIST in unavailable
     assert remote_module.RemoteDataService.PROVIDER_MAST in unavailable
 
-    # Restoring requests but not astroquery keeps NIST available while flagging MAST.
-    class DummyRequests:
-        class Session:
-            def __call__(self) -> None:  # pragma: no cover - defensive
-                return None
-
-    monkeypatch.setattr(remote_module, "requests", DummyRequests)
+    # Restoring NIST while keeping MAST dependencies missing yields only NIST.
+    monkeypatch.setattr(remote_module.nist_asd_service, "dependencies_available", lambda: True)
     service = RemoteDataService(store, session=None)
 
     assert service.providers() == [remote_module.RemoteDataService.PROVIDER_NIST]

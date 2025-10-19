@@ -24,6 +24,11 @@ This document tracks feature batches, validation status, and outstanding backlog
 
 ### Recently Completed (2025-10-18)
 
+- [x] Ported the Remote Data NIST adapter to the astroquery line-list helper,
+      aggregated each query into a single record with line counts, and
+      synthesised CSV downloads so the existing importer can ingest the
+      spectroscopy payload. Updated the remote data guide, regression suite,
+      patch notes, and knowledge log with the new workflow.
 - [x] Align Remote Data searches with provider-specific criteria so MAST queries pass `target_name` while NIST continues to use `spectra` filters, and extend the regression suite to cover the translation.
 - [x] Route MAST downloads through `astroquery.mast.Observations.download_file`, retaining the HTTP code path for direct URLs and persisting results via `LocalStore`.
 - [x] Separate routine ingest bookkeeping from the Knowledge Log by introducing a cached-library view backed by `LocalStore` and limiting the log to distilled insights. Update the documentation to reflect the new policy.

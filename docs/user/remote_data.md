@@ -36,10 +36,12 @@ directly against laboratory references.
 
 ### Provider-specific search tips
 
-- **NIST ASD** – The query box maps to the catalogue’s `spectra` filter. Enter
-  an element/ion (e.g. `Fe II`) or a transition label (`H-alpha`). The examples
-  menu includes Fe II, Ca II K, and Hα shortcuts you can select instead of
-  typing the query manually.
+- **NIST ASD** – The query box now routes through the astroquery-powered line
+  list API. Enter an element/ion (e.g. `Fe II`) or a transition label
+  (`H-alpha`) and the dialog aggregates the returned lines into a single result
+  with line counts and full metadata. The examples menu includes Fe II,
+  Ca II K, and Hα shortcuts you can trigger without retyping the spectrum
+  identifier.
 - **MAST** – Free-text input is rewritten to `target_name` before invoking
   `astroquery.mast.Observations.query_criteria`, and the adapter injects
   `dataproduct_type="spectrum"`, `intentType="SCIENCE"`, and
@@ -65,8 +67,12 @@ you can confirm provenance before downloading.
 
 Behind the scenes the application:
 
-* Streams the remote file through the HTTP/MAST client and writes it to a
-  temporary location (`requests.Session.get` for HTTP URLs and
+* For NIST ASD entries, replays the line-list query via `astroquery.nist`, then
+  serialises the response into a CSV file (`Wavelength (nm)`, relative
+  intensities, level information, and references) so it can flow through the
+  existing CSV importer.
+* For providers that expose downloadable artefacts, streams the remote file
+  through the appropriate client (`requests.Session.get` for HTTP URLs and
   `astroquery.mast.Observations.download_file` for `mast:` products, which keeps
   the MAST token/auth flow intact).
 * Copies the artefact into the `LocalStore`, recording the provider, URI,

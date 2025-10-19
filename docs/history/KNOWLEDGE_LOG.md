@@ -28,41 +28,25 @@ Each entry in this document should follow this structure:
 
 ---
 
-## 2025-10-18 18:58 – Onboarding documentation
+## 2025-10-18 20:35 – NIST ASD astroquery line synthesis
 
 **Author**: agent
 
-**Context**: Quick-start guide accuracy and contributor workflow alignment.
+**Context**: Remote catalogue alignment with the spectroscopy-first charter.
 
-**Summary**: Replaced lingering references to the retired `docs/patch_notes/`,
-`docs/ai_log/`, and `app/version.json` paths so START_HERE, CONTRIBUTING, and the
-historical app review prompt now cite `docs/history/PATCH_NOTES.md`,
-`docs/history/KNOWLEDGE_LOG.md`, and the current version metadata in
-`pyproject.toml`/`ProvenanceService`. Clarified that contributors should log
-patch notes and knowledge updates with matching timestamps to keep manifests
-and documentation in sync.
+**Summary**: Replaced the ad-hoc NIST JSON search with the upstream astroquery
+line-list helper so Spectra aggregates each element/ion query into a single
+record, previews line counts, and generates provenance-rich CSV files for the
+ingest pipeline. The remote service now detects the synthetic `nist-asd:` scheme
+and regenerates the CSV via `astroquery.nist` before caching the download, while
+tests and user docs cover the new workflow. (UTC 00:35)
 
-**References**: `START_HERE.md`, `CONTRIBUTING.md`,
-`docs/history/past prompts/app_review_previous.md`, `docs/history/PATCH_NOTES.md`.
-
----
-
-## 2025-10-18 18:48 – Timestamp Capture Guidance
-
-**Author**: agent
-
-**Context**: Cross-platform documentation for recording America/New_York and UTC
-timestamps before logging work.
-
-**Summary**: Replaced the single-shell timestamp snippet with coordinated
-PowerShell, macOS/Linux, and WSL commands so every agent can emit paired ISO-8601
-strings when updating patch notes, knowledge logs, or brains entries. START_HERE,
-MASTER PROMPT, and RUNNER PROMPT now point to the shared instructions, keeping
-onboarding materials consistent across operating systems. Captured the update in
-patch notes with the same timestamps (22:48 UTC) for traceability.
-
-**References**: `AGENTS.md`, `START_HERE.md`, `docs/history/MASTER PROMPT.md`,
-`docs/history/RUNNER_PROMPT.md`, `docs/history/PATCH_NOTES.md`.
+**References**:
+- `app/services/nist_asd_service.py`
+- `app/services/remote_data_service.py`
+- `tests/test_remote_data_service.py`
+- `docs/user/remote_data.md`
+- `docs/history/PATCH_NOTES.md`
 
 ---
 
@@ -469,40 +453,6 @@ and patch notes document the automatic caching behaviour and opt-out flow.【F:t
 **Summary**: Fixed the Remote Data dialog crash triggered by an undefined provider-change slot, enforced spectroscopic defaults for MAST searches (`dataproduct_type="spectrum"`, `intentType="SCIENCE"`, `calib_level=[2, 3]`), and filtered out imaging products via `_is_spectroscopic` so remote results stay aligned with laboratory comparisons.【F:app/ui/remote_data_dialog.py†L30-L219】【F:app/services/remote_data_service.py†L111-L212】 Added a Qt smoke test plus extended regression coverage to assert the injected filters, refreshed the remote-data user guide with the new hints, and published a developer documentation map so future agents can locate the operating manual, link collection, and workplan without guesswork.【F:tests/test_remote_data_dialog.py†L1-L75】【F:tests/test_remote_data_service.py†L1-L125】【F:docs/user/remote_data.md†L1-L99】【F:docs/developer_notes.md†L1-L42】【F:docs/history/PATCH_NOTES.md†L1-L17】
 
 **References**: `app/ui/remote_data_dialog.py`, `app/services/remote_data_service.py`, `tests/test_remote_data_dialog.py`, `tests/test_remote_data_service.py`, `docs/user/remote_data.md`, `docs/developer_notes.md`, `docs/history/PATCH_NOTES.md`.
-
----
-
-## 2025-10-18 19:53 (America/New_York) / 2025-10-18 23:53 (UTC) – Quick-Start Documentation Alignment
-
-**Author**: agent
-
-**Context**: Onboarding guides and contributor workflow references.
-
-**Summary**: Audited the core onboarding docs to remove obsolete directory references and ensure contributors follow the current
-docs-first workflow. Updated `START_HERE.md`, `README.md`, and `CONTRIBUTING.md` to point directly to `docs/history/PATCH_NOTES.md`
-and `docs/history/KNOWLEDGE_LOG.md`, clarified where version bumps live (`pyproject.toml` + `ProvenanceService.app_version`), and
-refreshed the repository structure overview so new contributors land on the right quick-start material.
-
-**References**: `START_HERE.md`, `README.md`, `CONTRIBUTING.md`, `docs/history/PATCH_NOTES.md`
-
----
-
-## 2025-10-18T20:17:11-04:00 (America/New_York) – Timestamp Capture Alignment
-
-**Author**: agent
-
-**UTC**: 2025-10-19T00:17:13+00:00
-
-**Context**: Documentation trailheads and provenance logging discipline.
-
-**Summary**: Harmonised timestamp capture guidance across `AGENTS.md`,
-`START_HERE.md`, and `docs/history/MASTER PROMPT.md` so every entry point shows
-the same PowerShell, Unix `date`, and WSL workflows. Documented the `coreutils`
-requirement for macOS users and confirmed the outputs by running the prescribed
-commands before updating the history files.
-
-**References**: `AGENTS.md`, `START_HERE.md`, `docs/history/MASTER PROMPT.md`,
-`docs/history/PATCH_NOTES.md`.
 
 ---
 

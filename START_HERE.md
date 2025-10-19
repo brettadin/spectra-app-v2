@@ -22,8 +22,6 @@ Welcome to the Spectra App project! This guide will help you get started with de
 - **`AGENTS.md`** - Development guidelines, spectroscopy conventions, UI contract expectations
 - **`docs/brains/README.md`** - How to log architectural decisions now that `atlas/brains.md` has been decomposed
 - **`docs/link_collection.md`** - Curated spectroscopy resources to cite when sourcing new data
-- **`docs/history/PATCH_NOTES.md`** - Chronological patch log recording user-visible changes and validation runs
-- **`docs/history/KNOWLEDGE_LOG.md`** - Repository knowledge base that cross-links quick-start guidance and major decisions
 - **`docs/reviews/pass1.md` … `docs/reviews/pass4.md`** - Review dossiers outlining calibration, identification, provenance, and UI priorities
 
 ## 🚀 Getting Started

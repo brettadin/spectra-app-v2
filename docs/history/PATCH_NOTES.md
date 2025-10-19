@@ -1,24 +1,22 @@
 # Patch Notes
 
-## 2025-10-18 (Onboarding doc path refresh) (18:58 EDT / 22:58 UTC)
+## 2025-10-18 (NIST ASD astroquery integration) (20:35 EDT / 00:35 UTC)
 
-- Replaced outdated quick-start references so `START_HERE.md` now points to
-  `docs/history/PATCH_NOTES.md`, `docs/history/KNOWLEDGE_LOG.md`, and the
-  version metadata fields in `pyproject.toml`/`ProvenanceService`, clarifying
-  how to keep release notes and manifests aligned.
-- Updated `CONTRIBUTING.md` and the historical app review prompt to cite the
-  same patch-note and knowledge-log locations, avoiding conflicting guidance
-  for new contributors.
-
-## 2025-10-18 (Cross-platform timestamp commands) (18:48 EDT / 22:48 UTC)
-
-- Replaced the single-shell timestamp example in `AGENTS.md` with parallel
-  guidance for PowerShell, macOS/Linux shells, and WSL invocations so every
-  environment prints America/New_York and UTC ISO-8601 strings together.
-- Updated `START_HERE.md`, `docs/history/MASTER PROMPT.md`, and
-  `docs/history/RUNNER_PROMPT.md` to reference the cross-platform commands,
-  keeping onboarding docs aligned on how to capture timestamps before logging
-  patch notes or knowledge entries.
+- Replaced the NIST remote search implementation with the astroquery-backed
+  line-list helper used by the upstream Spectra project, aggregating each query
+  into a single record that previews line counts and metadata before download.
+  The Remote Data dialog now synthesises CSV payloads from the returned line
+  tables so the existing CSV importer can ingest them without manual edits.
+- Added a dedicated `app/services/nist_asd_service.py` module that resolves
+  element/ion identifiers, queries `astroquery.nist`, and normalises the
+  response into nm-relative intensities and provenance metadata. Remote downloads
+  detect the synthetic `nist-asd:` scheme and emit annotated CSV files instead of
+  issuing HTTP requests.
+- Updated the remote data regression suite (`tests/test_remote_data_service.py`)
+  to mock the astroquery wrapper, assert the generated CSV path, and verify
+  provider availability logic now checks the astroquery dependency directly.
+  Refreshed the user guide to describe the spectroscopy-first workflow and the
+  new CSV synthesis path for NIST results.
 
 ## 2025-10-18 (Remote data dependencies & imaging toggle) (17:17 EDT / 21:17 UTC)
 
@@ -280,25 +278,6 @@
   MAST criteria are missing, preventing unbounded archive sweeps.
 - Updated the remote data user guide and workplan to document the scoped
   searches and new example menu.
-
-## 2025-10-18 (Quick-Start Docs Refresh) (7:53 pm EDT)
-
-- Replaced stale onboarding pointers in `START_HERE.md`, `README.md`, and `CONTRIBUTING.md` with the current workflow, including
-  direct links to `docs/history/PATCH_NOTES.md` and `docs/history/KNOWLEDGE_LOG.md`.
-- Confirmed contributors know to bump `pyproject.toml` and `ProvenanceService.app_version` together and mapped the real
-  documentation directories in the repository structure overview.
-- Documentation-only update; no automated tests were run for this change.
-
-## 2025-10-18 (Timestamp Command Refresh) (8:17 pm edt)
-
-- Updated `AGENTS.md`, `START_HERE.md`, and `docs/history/MASTER PROMPT.md` so
-  each entry point documents the same PowerShell, Unix `date`, and WSL
-  procedures for capturing ISO-8601 timestamps in America/New_York and UTC.
-- Added macOS guidance for installing GNU coreutils when `date --iso-8601` is
-  unavailable to keep the workflow reliable across laptops.
-- Verified the new instructions by running `TZ=America/New_York date --iso-8601=seconds`
-  (`2025-10-18T20:17:11-04:00`) and `date -u --iso-8601=seconds`
-  (`2025-10-19T00:17:13+00:00`) before logging this entry.
 
 ## 2025-10-15 (Importing Guide Provenance Appendix) (9:10 am)
 
