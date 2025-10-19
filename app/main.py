@@ -2395,6 +2395,9 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         except nist_asd_service.NistQueryError as exc:
             QtWidgets.QMessageBox.critical(self, "Query failed", str(exc))
             return
+        except ValueError as exc:
+            QtWidgets.QMessageBox.warning(self, "Invalid NIST query", str(exc))
+            return
 
         self._register_nist_payload(payload)
         self.reference_overlay_checkbox.blockSignals(True)

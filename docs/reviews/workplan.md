@@ -27,6 +27,7 @@ This document tracks feature batches, validation status, and outstanding backlog
 
 ### Recently Completed (2025-10-19)
 
+- [x] Hardened the NIST spectral-line fetch workflow so invalid element or ion inputs raise a warning instead of closing the dialog, refreshed the reference data guide, and logged the change in patch notes and the knowledge log.
 - [x] Redesigned the Reference tab with dedicated Spectral lines/IR/Line-shape panels, wired the embedded NIST query form to
       astroquery, refreshed the reference data guide, and extended Qt regression tests for the new workflow.
 - [x] Ensured the data table remains opt-in so dataset selections no longer force the panel open; cached the last overlay views
