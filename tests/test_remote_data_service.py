@@ -13,10 +13,26 @@ from app.services import remote_data_service as remote_module
 
 
 class DummyResponse:
-    def __init__(self, *, json_payload: Any | None = None, content: bytes = b"", status: int = 200):
+    def __init__(
+        self,
+        *,
+        json_payload: Any | None = None,
+        content: bytes = b"",
+        text: str | None = None,
+        status: int = 200,
+    ):
         self._json = json_payload or {}
         self.content = content
         self.status_code = status
+        if text is not None:
+            self.text = text
+        elif content:
+            try:
+                self.text = content.decode("utf-8")
+            except UnicodeDecodeError:
+                self.text = ""
+        else:
+            self.text = ""
 
     def json(self) -> Any:
         return self._json
