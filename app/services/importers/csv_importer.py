@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import csv
 from dataclasses import dataclass
 from pathlib import Path
 import re
@@ -91,6 +92,7 @@ _INTENSITY_UNIT_HINTS_NORMALISED = {unit.strip().lower().replace(" ", "") for un
 
 
 _LAYOUT_CACHE: Dict[Tuple[str, ...], Tuple[int, int]] = {}
+_BUNDLE_REQUIRED_COLUMNS = {"wavelength_nm", "intensity", "spectrum_id"}
 
 
 def _reset_layout_cache() -> None:
@@ -113,6 +115,10 @@ class CsvImporter:
         """
 
         lines = path.read_text(encoding="utf-8").splitlines()
+        bundle_result = self._try_parse_export_bundle(path, lines)
+        if bundle_result is not None:
+            return bundle_result
+
         if not lines:
             raise ValueError(f"File {path} is empty")
 
@@ -263,6 +269,94 @@ class CsvImporter:
             y=y,
             x_unit=x_unit,
             y_unit=y_unit,
+            metadata=metadata,
+            source_path=path,
+        )
+
+    # ------------------------------------------------------------------
+    def _try_parse_export_bundle(
+        self, path: Path, lines: Sequence[str]
+    ) -> ImporterResult | None:
+        """Detect Spectra provenance bundle CSV exports."""
+
+        filtered = [line for line in lines if line.strip() and not line.lstrip().startswith("#")]
+        if not filtered:
+            return None
+
+        reader = csv.DictReader(filtered)
+        fieldnames = reader.fieldnames or []
+        normalised = {name.strip().lower() for name in fieldnames if name}
+        if not _BUNDLE_REQUIRED_COLUMNS.issubset(normalised):
+            return None
+
+        members: Dict[str, Dict[str, object]] = {}
+        order: List[str] = []
+        for row in reader:
+            spectrum_id = (row.get("spectrum_id") or "").strip()
+            if not spectrum_id:
+                continue
+            try:
+                wavelength = float(row.get("wavelength_nm", ""))
+                intensity = float(row.get("intensity", ""))
+            except (TypeError, ValueError):
+                continue
+
+            entry = members.setdefault(
+                spectrum_id,
+                {
+                    "id": spectrum_id,
+                    "name": (row.get("spectrum_name") or spectrum_id).strip(),
+                    "x": [],
+                    "y": [],
+                    "x_unit": (row.get("x_unit") or "nm").strip() or "nm",
+                    "y_unit": (row.get("y_unit") or "absorbance").strip() or "absorbance",
+                },
+            )
+            if spectrum_id not in order:
+                order.append(spectrum_id)
+
+            cast(List[float], entry["x"]).append(wavelength)
+            cast(List[float], entry["y"]).append(intensity)
+
+        if not order:
+            return None
+
+        members_payload: List[Dict[str, object]] = []
+        for spectrum_id in order:
+            entry = members[spectrum_id]
+            x_values = cast(List[float], entry["x"])
+            y_values = cast(List[float], entry["y"])
+            if not x_values or not y_values:
+                continue
+            members_payload.append(
+                {
+                    "id": entry["id"],
+                    "name": entry["name"],
+                    "x": list(x_values),
+                    "y": list(y_values),
+                    "x_unit": entry["x_unit"],
+                    "y_unit": entry["y_unit"],
+                }
+            )
+
+        if not members_payload:
+            return None
+
+        first = members_payload[0]
+        metadata: Dict[str, object] = {
+            "bundle": {
+                "format": "spectra-export-v1",
+                "members": members_payload,
+                "source_path": str(path),
+            }
+        }
+
+        return ImporterResult(
+            name=cast(str, first.get("name")) or path.stem,
+            x=np.asarray(first.get("x", []), dtype=float),
+            y=np.asarray(first.get("y", []), dtype=float),
+            x_unit=cast(str, first.get("x_unit")) or "nm",
+            y_unit=cast(str, first.get("y_unit")) or "absorbance",
             metadata=metadata,
             source_path=path,
         )

@@ -109,13 +109,43 @@ class ProvenanceService:
 
     # ------------------------------------------------------------------
     def _write_csv(self, path: Path, spectra: Iterable[Spectrum]) -> None:
+        """Write a combined CSV where wavelength/intensity lead each row.
+
+        The exporter previously placed identifier columns before the numeric
+        values which caused the CSV importer to mis-detect the axes when the
+        bundle was reloaded.  By leading with wavelength/intensity and keeping
+        provenance fields to the right we preserve the tabular metadata while
+        ensuring the file round-trips through the default CSV heuristics.
+        """
+
         path.parent.mkdir(parents=True, exist_ok=True)
+        spectra_list = list(spectra)
         with path.open('w', newline='', encoding='utf-8') as handle:
             writer = csv.writer(handle)
-            writer.writerow(['spectrum_id', 'name', 'wavelength_nm', 'intensity', 'x_unit', 'y_unit'])
-            for spectrum in spectra:
-                for x_val, y_val in zip(spectrum.x, spectrum.y):
-                    writer.writerow([spectrum.id, spectrum.name, float(x_val), float(y_val), spectrum.x_unit, spectrum.y_unit])
+            writer.writerow(
+                [
+                    'wavelength_nm',
+                    'intensity',
+                    'spectrum_id',
+                    'spectrum_name',
+                    'point_index',
+                    'x_unit',
+                    'y_unit',
+                ]
+            )
+            for spectrum in spectra_list:
+                for idx, (x_val, y_val) in enumerate(zip(spectrum.x, spectrum.y)):
+                    writer.writerow(
+                        [
+                            float(x_val),
+                            float(y_val),
+                            spectrum.id,
+                            spectrum.name,
+                            idx,
+                            spectrum.x_unit,
+                            spectrum.y_unit,
+                        ]
+                    )
 
     def _write_per_spectrum_csvs(self, directory: Path, spectra: Iterable[Spectrum]) -> Dict[str, Path]:
         mapping: Dict[str, Path] = {}

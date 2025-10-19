@@ -300,3 +300,27 @@ def test_csv_importer_validates_layout_cache_against_data(tmp_path: Path) -> Non
     column_meta = second.metadata["column_selection"]
     assert column_meta["layout_cache"] == "miss"
     assert np.allclose(second.x, np.array([400.0, 410.0, 420.0, 430.0]))
+
+
+def test_export_bundle_detection(tmp_path: Path) -> None:
+    bundle_path = tmp_path / "bundle.csv"
+    bundle_path.write_text(
+        """wavelength_nm,intensity,spectrum_id,spectrum_name,point_index,x_unit,y_unit
+400,0.1,first,First lamp,0,nm,absorbance
+410,0.2,first,First lamp,1,nm,absorbance
+420,0.3,second,Second lamp,0,nm,absorbance
+430,0.4,second,Second lamp,1,nm,absorbance
+""",
+        encoding="utf-8",
+    )
+
+    importer = CsvImporter()
+    result = importer.read(bundle_path)
+
+    bundle = result.metadata.get("bundle")
+    assert isinstance(bundle, dict)
+    assert bundle.get("format") == "spectra-export-v1"
+    members = bundle.get("members") if isinstance(bundle, dict) else None
+    assert isinstance(members, list)
+    assert len(members) == 2
+    assert np.isclose(result.x[0], 400.0)
