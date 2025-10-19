@@ -39,6 +39,19 @@ Use the control to adjust every visible trace without mutating the underlying da
 
 The data table and provenance metadata mirror the active normalisation, and the plot toolbar’s left-axis label calls out both the unit (e.g. `%T`) and the selected normalisation mode for downstream auditing.
 
+## Trace colouring modes
+
+Heavy overlay sessions can get visually noisy when every spectrum shares the same palette. The Inspector’s **Style** tab now ships
+with a *Trace colouring* combo box:
+
+- **High-contrast palette** (default) cycles through a curated set of colours and automatically lightens derived traces so
+  relationships stay legible.
+- **Uniform (single colour)** renders every dataset in a consistent hue when you need to evaluate absolute alignment without
+  colour-coding.
+
+Switching modes updates both the plot and the Datasets dock icons immediately without mutating provenance metadata. Rename traces
+or toggle visibility as usual—returning to the palette restores each spectrum’s original colour assignment.
+
 ## Overlay alignment and troubleshooting
 
 Reference overlays adopt the scaling of the active plot so annotations land where you expect them. The IR functional-group lanes, for example, now anchor their filled band to the visible y-axis span and assign each label to its own vertical slot. When you normalise a trace or zoom the view, the overlay recalculates those slots to keep the stacked annotations readable. If labels ever drift out of band after switching datasets:
@@ -61,7 +74,7 @@ High-resolution spectra can contain millions of samples. Rendering every point w
 - Above that threshold, the x-axis is segmented and each block collapses into alternating min/max samples that preserve peaks.
 - The tail of a trace that does not align perfectly with the segmentation is appended without modification so you never lose edge information.
 
-This process is entirely view-layer only—no data is mutated or discarded. Exports (CSV and manifest bundles) always include the full-resolution series, and unit conversions continue to operate on the canonical nanometre axis. If you need to inspect individual samples, open the **View → Show Data Table** panel to browse the raw numbers alongside the plot.
+This process is entirely view-layer only—no data is mutated or discarded. Exports (CSV and manifest bundles) include the full-resolution series for every dataset that remains visible at export time, and hidden traces stay out of the bundle. Unit conversions continue to operate on the canonical nanometre axis. If you need to inspect individual samples, open the **View → Show Data Table** panel to browse the raw numbers alongside the plot.
 
 ## Performance best practices
 
