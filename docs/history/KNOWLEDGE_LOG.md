@@ -28,6 +28,7 @@ Each entry in this document should follow this structure:
 
 ---
 
+## 2025-10-19 19:31 – Data dock layout stability
 ## 2025-10-19 19:54 – NIST input validation safeguards
 
 **Author**: agent
@@ -52,15 +53,16 @@ logged the change in patch notes for traceability.
 
 **Author**: agent
 
-**Context**: Plot data table ergonomics and layout stability on Windows builds.
+**Context**: Workspace ergonomics after consolidating the Data dock.
 
-**Summary**: Stopped the dataset selection handler from forcing the numerical
-table to appear by default. The main window now remembers the last overlay
-payload, repopulates the table only when **View → Show Data Table** is checked,
-and leaves the layout unchanged otherwise.
+**Summary**: Wrapped the Data dock tabs in a neutral container with
+expanding size policies so selecting dataset rows no longer forces the main
+window to shrink the bottom docks on Windows builds. Updated the plot-tools
+guide and regression suite to lock in the layout behaviour.
 
-**References**: `app/main.py`, `docs/user/plot_tools.md`,
-`docs/history/PATCH_NOTES.md`, `docs/reviews/workplan.md`.
+**References**: `app/main.py`【F:app/main.py†L277-L318】,
+`tests/test_dataset_filter.py`【F:tests/test_dataset_filter.py†L32-L42】,
+`docs/user/plot_tools.md`【F:docs/user/plot_tools.md†L24-L28】.
 
 ---
 

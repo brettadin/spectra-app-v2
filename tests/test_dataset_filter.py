@@ -32,6 +32,17 @@ def test_dataset_filter_hides_non_matching_entries() -> None:
     app = _ensure_app()
     window = SpectraMainWindow()
     try:
+        # Data dock should use a container widget with an expanding policy so
+        # it no longer resizes the main window when the tree selection changes.
+        assert window.dataset_dock.widget() is not None
+        dock_container = window.dataset_dock.widget()
+        assert isinstance(dock_container, QtWidgets.QWidget)
+        assert dock_container.layout() is not None
+        assert window.data_tabs is not None
+        assert window.data_tabs.parent() is dock_container
+        assert dock_container.sizePolicy().verticalPolicy() == QtWidgets.QSizePolicy.Expanding
+        assert window.data_tabs.sizePolicy().verticalPolicy() == QtWidgets.QSizePolicy.Expanding
+
         assert window.dataset_filter is not None
 
         # Create two synthetic spectra so their aliases are easy to filter.

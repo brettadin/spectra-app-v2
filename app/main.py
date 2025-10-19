@@ -135,7 +135,6 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self._library_tab_index: int | None = None
         self._use_uniform_palette = False
         self._uniform_color = QtGui.QColor("#4F6D7A")
-        self._last_display_views: List[Dict[str, object]] = []
 
         self._setup_ui()
         self._setup_menu()
@@ -278,6 +277,9 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             QtCore.Qt.DockWidgetArea.LeftDockWidgetArea | QtCore.Qt.DockWidgetArea.RightDockWidgetArea
         )
         dataset_container = QtWidgets.QWidget()
+        dataset_container.setSizePolicy(
+            QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Expanding)
+        )
         dataset_layout = QtWidgets.QVBoxLayout(dataset_container)
         dataset_layout.setContentsMargins(6, 6, 6, 6)
         dataset_layout.setSpacing(6)
@@ -306,8 +308,22 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
 
         self.data_tabs = QtWidgets.QTabWidget()
         self.data_tabs.setObjectName("data-tabs")
+        self.data_tabs.setSizePolicy(
+            QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        )
         self.data_tabs.addTab(dataset_container, "Datasets")
-        self.dataset_dock.setWidget(self.data_tabs)
+
+        dock_container = QtWidgets.QWidget()
+        dock_container.setObjectName("data-dock-container")
+        dock_container.setSizePolicy(
+            QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Expanding)
+        )
+        dock_layout = QtWidgets.QVBoxLayout(dock_container)
+        dock_layout.setContentsMargins(0, 0, 0, 0)
+        dock_layout.setSpacing(0)
+        dock_layout.addWidget(self.data_tabs)
+
+        self.dataset_dock.setWidget(dock_container)
         self.addDockWidget(QtCore.Qt.DockWidgetArea.LeftDockWidgetArea, self.dataset_dock)
 
         self._build_library_tab()
