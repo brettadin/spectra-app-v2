@@ -3,19 +3,27 @@
 The **Reference** tab in the Inspector exposes curated spectroscopy datasets that ship with the preview shell. All
 entries are stored in `app/data/reference` so they can be browsed without a network connection and reused by agents or
 future automation. Each dataset advertises a `provenance` status in the metadata pane so you can distinguish
-authoritative NIST assets from digitised JWST placeholders that still need regeneration.
+authoritative NIST assets from digitised JWST placeholders that still need regeneration. For additional leads (UV/VIS,
+IR, mass spectrometry, elemental standards, instrument handbooks), consult `docs/link_collection.md`—it tracks
+spectroscopy-focused resources that align with the app’s analytical goals.
 
-## NIST hydrogen line list
+## NIST spectral line queries
 
-- Data source: [NIST Atomic Spectra Database (ver. 5.11)](https://physics.nist.gov/asd) — Y. Ralchenko, A.E. Kramida,
+- Source: [NIST Atomic Spectra Database (ver. 5.11)](https://physics.nist.gov/asd) — Y. Ralchenko, A.E. Kramida,
   J. Reader, and the NIST ASD Team (2024).
-- Coverage: Lyman (UV) and Balmer (visible) transitions for neutral hydrogen.
-- Fields: series, upper/lower quantum numbers, vacuum/air wavelength, wavenumber, Einstein *A* coefficients, relative
-  intensity, uncertainty, and notes describing the Rydberg–Ritz connection.
-- Usage: select **NIST Hydrogen Lines (Balmer & Lyman)**, optionally filter by series (e.g. “Balmer”) and copy values for
-  overlay markers or import sanity checks. The plot canvas renders each transition with its relative intensity and the
-  **Overlay on plot** toggle projects those bars into the main workspace without normalising them against active traces.
-  The metadata drawer lists the astroquery build script and retrieval timestamp.
+- Controls: the **Spectral lines** tab exposes element, ion stage (Roman or numeric), wavelength bounds, a vacuum/air
+  selector, a “Prefer Ritz wavelengths” toggle, and a **Pinned line sets** browser. Enter an element symbol (e.g. `Fe`), refine
+  the bounds to the region of interest, and press **Fetch lines**. Example presets (Hydrogen I, Helium II, Iron II)
+  pre-populate the fields when you need a quick sanity check. Use **Use uniform line colour** to collapse every pinned set to a
+  single hue when the rainbow becomes distracting.
+- Results: the table lists the observed and Ritz wavelengths (nm), relative and normalised intensities, lower/upper energy
+  levels, and transition type. Metadata on the right records the astroquery provenance, wavelength medium, and retrieval
+  timestamp so notebook and CI runs can reference identical queries. Each fetch is automatically pinned so multiple species or
+  ranges can remain visible simultaneously.
+- Overlay: the preview plot renders each transition as a bar scaled by the normalised intensity and keeps every pinned set on
+  screen using distinct palette colours (or the uniform colour, when enabled). Enabling **Overlay on plot** projects the
+  active selection into the main workspace in the current unit system, letting you compare laboratory lines against imported
+  spectra without re-parsing JSON manifests.
 
 ## Infrared functional groups
 
@@ -42,41 +50,28 @@ authoritative NIST assets from digitised JWST placeholders that still need regen
   projects the simulated profile into the main workspace, letting you compare the seeded broadening or velocity shift
   against active spectra before wiring real metadata into the pipeline.
 
-## JWST quick-look spectra
-
-The JWST entries currently bundle down-sampled spectra digitised from public NASA/ESA/CSA/STSci releases so the preview can
-illustrate multi-instrument datasets without contacting MAST. The metadata drawer calls out `curation_status:
-digitized_release_graphic` and the planned MAST product URI that will replace the placeholder once the astroquery build
-pipeline is wired into CI. Each record cites its release page and records the approximate resolving power.
-
-| Target | Instrument | Program | Spectral range (µm) | Units | Provenance status | Notes |
-| ------ | ---------- | ------- | ------------------- | ----- | ----------------- | ----- |
-| WASP-96 b transmission | NIRSpec PRISM | ERS 1324 | 0.6–2.8 | Transit depth (ppm) | digitized_release_graphic → mast:JWST/product/jw01324-o001_s00002_nirspec_prism_clear_prism_x1d.fits | Water vapour feature from 2022 release graphic. |
-| Jupiter mid-IR brightness | MIRI MRS | ERS 1373 | 7.6–12.8 | Radiance (MJy·sr⁻¹) | digitized_release_graphic → mast:JWST/product/jw01373-o002_t001_miri_ch1-shortmediumlong_s3d.fits | Auroral emission snapshot from Webb release. |
-| Mars reflectance | NIRSpec PRISM | DD-2759 | 0.7–3.0 | I/F reflectance | digitized_release_graphic → mast:JWST/product/jw02759-o001_t001_nirspec_prism_s1600a3_x1d.fits | Scaled from the 2022 Mars press kit. |
-| Neptune NIRCam brightness | NIRCam F444W/F356W | ERS 2282 | 1.6–4.4 | Radiance (MJy·sr⁻¹) | digitized_release_graphic → mast:JWST/product/jw02282-o001_t001_nircam_f444w_i2d.fits | Photometry from STScI release imagery. |
-| HD 84406 calibration | NIRCam imaging | Commissioning | 0.9–2.2 | Flux density (Jy) | digitized_release_graphic → mast:JWST/product/jw01107-o001_t001_nircam_f200w_calints.fits | Rounded photometry from wavefront sensing docs. |
-| Earth observation | — | — | — | — | operations_restriction | JWST cannot observe Earth; entry retained for completeness. |
-
 ### Workflow tips
 
-1. Select a dataset from the combo box; the Reference plot updates immediately without forcing the selection back to the
-   first entry, and the metadata pane refreshes with provenance and citation details.
-2. Enable **Overlay on plot** to add the previewed dataset to the main graph. Hydrogen lines respect their relative
-   intensities, IR bands anchor their shaded lanes within the current intensity envelope with label spacing safeguards verified
-   by `tests/test_reference_ui.py::test_ir_overlay_label_stacking`, and JWST spectra draw as standard curves with optional
-   uncertainty envelopes. Switching the combo box while the overlay toggle is enabled automatically swaps the projected
-   reference so the main plot always mirrors the active dataset.
-3. Use the Inspector filter bar to narrow down to wavelength windows (e.g. enter `1.4` to isolate WASP-96 b’s water
-   absorption peak) and click citation links in the metadata pane to open the underlying source documentation.
-4. If the plot toolbar is hidden, use **View → Plot Toolbar** to reveal the unit and normalization controls before deciding
-   whether to overlay the reference data on raw or normalized traces.
+1. Choose the appropriate tab (Spectral lines, IR groups, or Line-shape models). For NIST queries, press **Fetch lines** after
+   configuring the element and bounds; IR and line-shape data load instantly.
+2. Use the filter field below the tabs to narrow long tables by wavelength, functional group, or parameter name. Filtering only
+   affects the active pinned line set—other sets stay visible for cross-comparison.
+3. Manage pinned sets from the list beneath the controls: select an entry to focus the table, remove it when a study is
+   complete, and toggle **Use uniform line colour** when you need visual parity across dozens of species.
+4. Enable **Overlay on plot** to project the preview into the main workspace. Spectral lines respect their relative intensities
+   in the current unit system, IR bands shade their ranges with clustered labels, and line-shape previews overlay simulated
+   profiles returned by `app/services/line_shapes.py`.
+4. The metadata drawer captures citations, astroquery parameters, and retrieval timestamps so exported manifests can trace the
+   exact reference dataset used during analysis.
 
 ## Roadmap hooks
 
 - Doppler, Stark, and pressure broadening models are placeholders awaiting velocity/thermodynamic metadata capture.
 - JWST records include spectral resolution fields so future convolution or instrument-matching steps can pick up the
   stored resolving power.
-- Additional species (He I, O III, Fe II, etc.) can extend the NIST catalogue by dropping JSON manifests into
-  `app/data/reference` — regenerate via a companion build script and the Reference tab will ingest the new files after
-  service refresh.
+- Additional species (He I, O III, Fe II, etc.) can be fetched live via the NIST form today; a persistent catalogue export can
+  still be generated under `app/data/reference/` for offline snapshots.
+- Remote catalogue tooling now rewrites provider-specific queries and downloads via astroquery so agents should focus on
+  spectroscopic targets (UV/VIS, IR, mass-spec benchmarks) when wiring new data sources.
+- JWST quick-look placeholders have been retired from the Reference tab until calibrated spectra are regenerated from MAST; see
+  the workplan for the outstanding ingestion task.
