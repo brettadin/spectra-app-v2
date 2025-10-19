@@ -55,11 +55,13 @@ spectra-app-beta/
 │   │   └── store/         # Local cache management
 │   └── main.py           # Application entry point
 ├── docs/                  # Comprehensive documentation
-│   ├── user/             # Quickstart guides & tutorials
-│   ├── dev/              # Architecture & API references
-│   ├── edu/              # Spectroscopy educational content
-│   ├── patch_notes/      # Version-specific release notes
-│   └── ai_log/           # AI development history
+│   ├── history/          # MASTER_PROMPT, RUNNER_PROMPT, PATCH_NOTES, KNOWLEDGE_LOG
+│   ├── reviews/          # Workplan, pass dossiers, documentation inventory
+│   ├── user/             # Quickstart guides, importing reference, remote data docs
+│   ├── dev/              # Developer guides (CI gates, ingest pipeline, reference build)
+│   ├── brains/           # Timestamped architecture decisions
+│   ├── atlas/            # Legacy Atlas materials retained for provenance
+│   └── reference_sources/  # Curated spectroscopy references linked from the knowledge base
 ├── specs/                # Technical specifications
 │   ├── architecture/     # System design decisions
 │   ├── ui_contract/      # UI component specifications
@@ -167,14 +169,13 @@ The Spectra App is designed for rigorous spectroscopic analysis with particular 
 
 ### For Users
 - **Documentation**: Start with `docs/user/quickstart.md`
-- **Tutorials**: See `docs/edu/` for spectroscopy fundamentals
-- **Support**: Check `docs/user/faq.md` for common questions
+- **Tutorials**: Explore `docs/user/spectroscopy_primer.md` and `docs/user/plot_tools.md`
+- **Support**: Review the index in `docs/user/README.md` for topic-specific guides
 
-### For Developers
-- **Architecture**: Review `specs/architecture/system_design.md`
-- **API Reference**: See `docs/dev/api/` for service contracts
-- **Testing**: Add tests for all new features in `tests/`
-- **Style Guide**: Follow coding conventions in `docs/dev/coding_standards.md`
+- **Architecture**: Review `specs/architecture.md`
+- **Pipelines**: See `docs/dev/ingest_pipeline.md` and `docs/dev/reference_build.md`
+- **Testing**: Add tests for all new features in `tests/` and consult `specs/testing.md`
+- **Documentation & Logging**: Update `docs/history/PATCH_NOTES.md` and `docs/history/KNOWLEDGE_LOG.md` with every change
 
 ### Documentation roadmap
 - Track planned and in-progress documentation work in the [Documentation Inventory](docs/reviews/doc_inventory_2025-10-14.md).
@@ -197,15 +198,16 @@ python -m PyInstaller spectra_app.spec
 
 ### Developer Resources
 - `specs/architecture.md` - System architecture overview
-- `docs/dev/data_pipeline.md` - Ingestion and processing flow
-- `docs/dev/ui_contract.md` - UI component specifications
-- `docs/dev/testing_guide.md` - Test development procedures
+- `specs/ui_contract.md` - UI component specifications and expectations
+- `specs/testing.md` - Testing strategy and validation matrix
+- `docs/dev/ingest_pipeline.md` - Ingestion and processing flow
+- `docs/dev/reference_build.md` - Reference build instructions and packaging notes
+- `docs/dev/ci_gates.md` - Local and CI validation gates
 
-### Educational Content
-- `docs/edu/spectroscopy_basics.md` - Fundamental concepts
-- `docs/edu/atomic_spectra.md` - NIST ASD and line identification
-- `docs/edu/jwst_data.md` - Working with JWST observations
-- `docs/edu/analysis_techniques.md` - Scientific analysis methods
+### Spectroscopy & Reference Material
+- `docs/user/spectroscopy_primer.md` - Spectroscopy fundamentals for new contributors
+- `docs/reference_sources/` - Curated reference datasets and literature links
+- `docs/link_collection.md` - External resources to cite when sourcing new data
 
 ## 🎯 Roadmap & Status
 

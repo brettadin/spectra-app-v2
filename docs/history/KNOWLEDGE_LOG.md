@@ -472,6 +472,21 @@ and patch notes document the automatic caching behaviour and opt-out flow.【F:t
 
 ---
 
+## 2025-10-18 19:53 (America/New_York) / 2025-10-18 23:53 (UTC) – Quick-Start Documentation Alignment
+
+**Author**: agent
+
+**Context**: Onboarding guides and contributor workflow references.
+
+**Summary**: Audited the core onboarding docs to remove obsolete directory references and ensure contributors follow the current
+docs-first workflow. Updated `START_HERE.md`, `README.md`, and `CONTRIBUTING.md` to point directly to `docs/history/PATCH_NOTES.md`
+and `docs/history/KNOWLEDGE_LOG.md`, clarified where version bumps live (`pyproject.toml` + `ProvenanceService.app_version`), and
+refreshed the repository structure overview so new contributors land on the right quick-start material.
+
+**References**: `START_HERE.md`, `README.md`, `CONTRIBUTING.md`, `docs/history/PATCH_NOTES.md`
+
+---
+
 ## 2025-10-17 03:45 – Knowledge Log Hygiene
 
 **Author**: agent
