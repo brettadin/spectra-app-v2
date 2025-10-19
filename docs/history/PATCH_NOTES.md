@@ -1,5 +1,10 @@
 # Patch Notes
 
+## 2025-10-19 (Provenance schema path restored) (15:24 EDT / 19:24 UTC)
+
+- Relocated the authoritative `provenance_schema.json` into `docs/specs/` so CI schema validation and tooling pick up the documented location.
+- Updated prompts and pass dossiers to reference the new path, keeping provenance guidance consistent across docs.
+
 ## 2025-10-19 (Export respects visibility state) (14:28 EDT / 18:28 UTC)
 
 - Updated `app/main.py::export_manifest` so provenance bundles include only datasets marked visible in the workspace, preventing hidden traces and background samples from polluting merged exports.
