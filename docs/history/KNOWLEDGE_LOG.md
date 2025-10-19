@@ -45,6 +45,142 @@ and noted the fix in the workplan and patch notes to preserve provenance.
 - `docs/user/remote_data.md`
 - `docs/reviews/workplan.md`
 - `docs/history/PATCH_NOTES.md`
+## 2025-10-19 16:50 – Export bundle variants
+
+**Author**: agent
+
+**Context**: Responding to feedback that combined CSV exports were difficult to
+reuse and that analysts need averaged overlays when comparing multiple lamps.
+
+**Summary**: Added an export options dialog so operators can emit the standard
+manifest bundle, a wide paired-column CSV (`spectra-wide-v1`), and/or a
+composite-mean CSV in one action. ProvenanceService gained helpers for both
+formats, CsvImporter recognises the wide layout comments, and the user guides
+document how each file re-imports. Regression coverage now guards the new
+paths.
+
+**References**:
+- `app/main.py`
+- `app/services/provenance_service.py`
+- `app/services/importers/csv_importer.py`
+- `tests/test_provenance.py`
+- `tests/test_csv_importer.py`
+- `docs/user/plot_tools.md`
+- `docs/user/importing.md`
+- `docs/history/PATCH_NOTES.md`
+
+---
+
+## 2025-10-19 15:14 (America/New_York) / 19:14 (UTC) – Export CSV axis ordering
+
+**Author**: agent
+
+**Context**: Provenance bundle exports should reload cleanly through the CSV importer.
+
+**Summary**: Adjusted the combined export writer to place `wavelength_nm` and `intensity` at the start of each row while keeping spectrum metadata to the right. This prevents the importer from mis-identifying axes when reloading bundled CSVs and mirrors the structure documented in the importing guide.
+
+**References**:
+- `app/services/provenance_service.py`
+
+---
+
+## 2025-10-19 16:23 (America/New_York) / 20:23 (UTC) – Export bundle ingestion
+
+**Author**: agent
+
+**Context**: Importing provenance CSV bundles should restore every spectrum without manual splitting.
+
+**Summary**: Taught `CsvImporter` to detect manifest-style CSV bundles and embed member metadata, then updated `DataIngestService` and the main window to expand those bundles into individual canonical spectra. Remote downloads and smoke tests now expect list-based ingestion, and the importing guide documents that re-importing a bundle restores each trace separately.
+
+**References**:
+- `app/services/importers/csv_importer.py`
+- `app/services/data_ingest_service.py`
+- `app/main.py`
+- `docs/user/importing.md`
+- `tests/test_csv_importer.py`
+- `tests/test_ingest.py`
+- `tests/test_provenance.py`
+- `docs/user/importing.md`
+- `docs/history/PATCH_NOTES.md`
+
+---
+
+## 2025-10-19 14:28 EDT / 18:28 UTC – Export Manifest Visibility Filter
+
+**Author**: agent
+
+**Context**: Provenance export workflow and dataset visibility state.
+
+**Summary**: Ensured manifest bundles only include traces that remain visible in the workspace by filtering `export_manifest` against the dataset visibility map. Updated the user guides to clarify that hidden spectra stay out of the `spectra/` directory and added a Qt regression test (`tests/test_export_visibility.py`) that stubs the file dialog to confirm the filtered list is passed to the provenance service.
+
+**References**: `app/main.py`, `docs/user/plot_tools.md`, `docs/user/importing.md`, `tests/test_export_visibility.py`, `docs/history/PATCH_NOTES.md`.
+
+---
+
+## 2025-10-19 14:09 – NIST overlay multi-pin
+
+**Author**: agent
+
+**Context**: Reference Inspector overlays and spectroscopy workflow clarity.
+
+**Summary**: Reworked the NIST spectral-line pinning flow so every pinned set now projects onto the main workspace when the
+overlay toggle is enabled, preserving per-set colours or collapsing to a uniform hue on demand. Adjusted the Inspector overlay
+bookkeeping to manage multiple traces simultaneously, extended the Qt regression harness to assert the new behaviour, and
+updated the reference data guide to describe the multi-set overlay output.
+
+**NYC time**: 2025-10-19T14:09:10-04:00
+
+**UTC time**: 2025-10-19T18:09:13+00:00
+
+**References**:
+- `app/main.py`
+- `tests/test_reference_ui.py`
+- `docs/user/reference_data.md`
+- `docs/history/PATCH_NOTES.md`
+
+---
+
+## 2025-10-19 13:22 – Reference tab redesign
+
+**Author**: agent
+
+**Context**: Restructured the Inspector’s Reference tab around spectroscopy-first workflows.
+
+**Summary**: Replaced the dataset combo with dedicated Spectral lines, IR groups, and Line-shape panels; wired the
+embedded NIST form to astroquery so spectral lines plot and overlay directly; updated the reference data guide and added
+Qt regression coverage for the new fetch path. UTC 2025-10-19T17:22:06Z.
+
+**References**:
+- `app/main.py`
+- `docs/user/reference_data.md`
+- `docs/history/PATCH_NOTES.md`
+- `tests/test_reference_ui.py`
+
+---
+
+## 2025-10-19 13:42 – NIST pinboard & remote dialog alignment
+
+**Author**: agent
+
+**Context**: Inspector redesign follow-up to keep spectroscopy workflows front-and-centre while reducing redundancy between the
+Reference tab and Remote Data dialog.
+
+**Summary**: Introduced pinned NIST spectral-line sets with palette controls so multiple element/ion queries remain on the
+inspector plot, refreshed the reference-data guide, and extended regression coverage. Removed the NIST provider from the Remote
+Data dialog to avoid duplication, keeping MAST as the remote archive entry point and updating documentation/tests accordingly.
+
+**Timestamps**:
+- America/New_York: 2025-10-19T13:42:36-04:00
+- UTC: 2025-10-19T17:42:45+00:00
+
+**References**:
+- `app/main.py`
+- `app/ui/remote_data_dialog.py`
+- `docs/user/reference_data.md`
+- `docs/user/remote_data.md`
+- `docs/reviews/workplan.md`
+- `tests/test_reference_ui.py`
+- `tests/test_remote_data_dialog.py`
 
 ---
 
@@ -511,5 +647,41 @@ Import/Remote Import entries remain after the cleanup.
 - `tests/test_knowledge_log_service.py`
 - `docs/history/PATCH_NOTES.md`
 - `docs/reviews/workplan.md`
+
+---
+## 2025-10-19 17:10 – Export
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Exported 7 visible spectra
+
+**References**:
+- C:\Code\spectra-app-beta\exports\merge test 1_wide.csv
+
+---
+## 2025-10-19 17:10 – Export
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Exported 7 visible spectra
+
+**References**:
+- C:\Code\spectra-app-beta\exports\spectra_composite.csv
+
+---
+## 2025-10-19 17:16 – Export
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Exported 4 visible spectra
+
+**References**:
+- C:\Code\spectra-app-beta\exports\spectra_composite.csv
 
 ---

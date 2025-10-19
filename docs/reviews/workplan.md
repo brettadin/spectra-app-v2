@@ -15,8 +15,8 @@ This document tracks feature batches, validation status, and outstanding backlog
       actions for opening manifests/logs/re-exporting the current state.
 - [ ] Reorganise datasets/library presentation so cached entries, sample data,
       and user ingests are categorised by instrument/type with working search.
-- [ ] Validate remote catalogue UX: expand the provider roster beyond NIST/MAST
-      once dependency checks stabilise and new spectroscopy sources are vetted.
+- [ ] Validate remote catalogue UX: expand the provider roster beyond MAST once
+      dependency checks stabilise and new spectroscopy sources are vetted.
 - [ ] Refresh START_HERE, MASTER PROMPT, AGENTS, and brains documentation so
       onboarding instructions match the current repository layout.
 - [x] Document dependency prerequisites (requests, astroquery, pandas, astropy)
@@ -28,6 +28,18 @@ This document tracks feature batches, validation status, and outstanding backlog
       bounds, units, wavelength type, and the Ritz toggle, preventing
       mismatched CSV reuse across queries. Documented the behaviour and updated
       provenance logs.
+- [x] Redesigned the Reference tab with dedicated Spectral lines/IR/Line-shape panels, wired the embedded NIST query form to
+      astroquery, refreshed the reference data guide, and extended Qt regression tests for the new workflow.
+- [x] Added pinned NIST spectral-line sets with palette controls so multiple queries persist on the inspector plot, removed the
+      redundant NIST option from the Remote Data dialog, taught the overlay toggle to project all pinned sets simultaneously,
+      and updated documentation/tests to steer line-list retrieval through the Reference tab.
+- [x] Filtered provenance exports to the datasets left visible in the workspace, refreshed user documentation to explain the
+      behaviour, and added a Qt regression that patches the save dialog to verify hidden traces are excluded.
+- [x] Allowed provenance CSV bundles to re-import as individual spectra by teaching the CSV importer to expose bundle metadata,
+      updating the ingest service/UI to handle list-based ingestion, expanding tests, and documenting the revised workflow.
+- [x] Added export options for wide/composite CSV variants, wired `ProvenanceService`
+      helpers and importer detection for the new layouts, updated the user guides,
+      and extended regression coverage for wide/composite round-trips.
 
 ### Recently Completed (2025-10-18)
 
@@ -53,6 +65,7 @@ This document tracks feature batches, validation status, and outstanding backlog
 
 ### Batch 14 QA Log
 
+- 2025-10-19: ✅ `pytest`
 - 2025-10-17: ✅ `pytest`
 
 ## Batch 13 (2025-10-15)

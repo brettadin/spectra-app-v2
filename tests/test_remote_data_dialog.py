@@ -73,11 +73,12 @@ def test_dialog_initialises_without_missing_slots(monkeypatch: Any) -> None:
         ingest_service=ingest,
     )
 
-    assert dialog.provider_combo.count() == 2
+    assert dialog.provider_combo.count() == 1
+    assert dialog.provider_combo.itemText(0) == RemoteDataService.PROVIDER_MAST
     assert "Catalogue" in dialog.windowTitle() or dialog.windowTitle() == "Remote Data"
 
-    # Switch providers to ensure the slot exists and updates hints/placeholder.
-    dialog.provider_combo.setCurrentIndex(1)
+    # Trigger provider refresh to ensure the slot updates hints/placeholder.
+    dialog._on_provider_changed()
     assert "JWST" in dialog.search_edit.placeholderText()
 
     # Clean up the dialog explicitly for Qt stability in headless tests.

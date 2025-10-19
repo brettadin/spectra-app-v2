@@ -8,6 +8,36 @@
   keeps downloads aligned with the requested range.
 - Documented the cache-key behaviour in the remote data guide and recorded the
   change across the workplan and knowledge log for provenance.
+## 2025-10-19 (Manifest export gains wide/composite options) (16:50 EDT / 20:50 UTC)
+
+- Added an export options dialog in `app/main.py` so you can choose between the
+  standard provenance bundle, a wide paired-column CSV, and a composite-mean
+  CSV before saving.
+- Extended `ProvenanceService` with helpers to generate the new CSV formats and
+  taught `CsvImporter` to recognise the `spectra-wide-v1` layout comments.
+- Documented the workflow in `docs/user/plot_tools.md` and `docs/user/importing.md`,
+  highlighting that wide/composite exports re-import cleanly.
+- Expanded the provenance and importer test suites to cover wide/composite
+  round-trips, and patched the export visibility regression test to honour the
+  new dialog.
+
+## 2025-10-19 (Export respects visibility state) (14:28 EDT / 18:28 UTC)
+
+- Updated `app/main.py::export_manifest` so provenance bundles include only datasets marked visible in the workspace, preventing hidden traces and background samples from polluting merged exports.
+
+## 2025-10-19 (Provenance CSV round-trips) (15:14 EDT / 19:14 UTC)
+
+- Reordered the combined export CSV in `app/services/provenance_service.py` so wavelength/intensity columns lead each row, keeping the file compatible with the CSV importer.
+- Documented the new ordering in `docs/user/importing.md` and added `tests/test_provenance.py::test_export_bundle_csv_round_trips` to guard the regression.
+- Documented the behaviour shift in `docs/user/plot_tools.md` and `docs/user/importing.md`, clarifying that hidden traces stay out of the `spectra/` directory while visible series continue to export at full resolution.
+- Added `tests/test_export_visibility.py::test_export_skips_hidden_spectra` to exercise the UI path with patched dialogs, ensuring only visible IDs reach the provenance service.
+
+## 2025-10-19 (Bundle CSV imports expand into multiple spectra) (16:23 EDT / 20:23 UTC)
+
+- Extended `CsvImporter` with `_try_parse_export_bundle` so manifest CSV exports containing `spectrum_id` metadata embed a `bundle` block describing every trace in the file.
+- Updated `DataIngestService` and the UI ingest paths to return lists of spectra, expanding export bundles into individual canonical datasets while maintaining cache provenance.
+- Adjusted remote-download wiring and smoke tests to accommodate list-based ingestion and added regression coverage in `tests/test_csv_importer.py` and `tests/test_ingest.py` for the new bundle format.
+- Refreshed `docs/user/importing.md` to explain that re-importing a provenance CSV restores each spectrum separately rather than merging traces.
 
 ## 2025-10-18 (NIST ASD astroquery integration) (20:35 EDT / 00:35 UTC)
 
@@ -288,6 +318,29 @@
 - Updated the remote data user guide and workplan to document the scoped
   searches and new example menu.
 
+## 2025-10-19 (Reference tab redesign & NIST integration) (13:22 EDT)
+
+- Reworked the Inspector’s Reference tab to present dedicated Spectral lines, IR groups, and Line-shape panels with a
+  spectroscopy-first layout; NIST line searches now use an embedded astroquery form that previews and overlays results
+  directly on the main plot.
+- Updated `docs/user/reference_data.md` to reflect the new workflow and removed the outdated JWST placeholder guidance.
+- Added regression coverage for the NIST fetch path and refreshed the Qt smoke tests. (`pytest`)
+
+## 2025-10-19 (13:42 ET) – Pinned NIST line sets & remote dialog cleanup
+
+- Added pinned NIST spectral-line collections with palette controls so multiple queries stay visible on the inspector plot and
+  updated the reference data guide plus regression suite to cover the workflow.
+- Removed the NIST option from the Remote Data dialog, leaving MAST as the scoped catalogue and updating remote-data guidance
+  and smoke tests to reflect the separation between line lists and archive downloads.
+
+## 2025-10-19 (NIST pinned overlays) (2:09 pm edt)
+
+- Let the Reference tab project every pinned NIST spectral-line set onto the workspace at once, keeping palette colours or
+  collapsing to a uniform hue on demand.
+- Extended the regression suite to ensure multi-set overlays populate and remain addressable via the Inspector toggle.
+- Documented the behaviour shift in `docs/user/reference_data.md` so operators understand how the overlay toggle now affects
+  all pinned line sets simultaneously.
+
 ## 2025-10-15 (Importing Guide Provenance Appendix) (9:10 am)
 
 - Expanded `docs/user/importing.md` with a provenance export appendix covering the structure of the manifest bundle.
@@ -328,3 +381,9 @@
 - Added an automated smoke workflow test that instantiates the preview shell, ingests CSV/FITS data, exercises unit toggles, and exports a provenance bundle.
 - Centralised the reusable FITS fixture under `tests/conftest.py` to support regression suites.
 - Documented the new smoke validation loop for developers and provided a matching user checklist.
+## 2025-10-19 (Knowledge log import persistence) (3:57 pm edt)
+
+- Ensured Spectra records import and remote-import events to the knowledge log so session history persists across restarts.
+- Documented the change in `docs/user/importing.md`, clarifying how summaries are captured while raw paths stay in the cache view.
+- Verified the smoke history workflow under pytest to confirm the UI updates after ingesting a CSV.
+
