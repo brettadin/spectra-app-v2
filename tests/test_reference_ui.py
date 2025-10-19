@@ -148,9 +148,14 @@ def test_reference_nist_fetch_populates_table(monkeypatch) -> None:
         assert window.reference_overlay_checkbox.isEnabled()
 
         payload = window._reference_overlay_payload
-        assert payload is not None
-        assert payload["alias"].startswith("Reference –")
-        assert payload["x_nm"].size > 0
+        assert isinstance(payload, dict)
+        assert payload.get("kind") == "nist-multi"
+        payload_map = payload.get("payloads")
+        assert isinstance(payload_map, dict)
+        assert len(payload_map) == 1
+        first_payload = next(iter(payload_map.values()))
+        assert first_payload["alias"].startswith("Reference –")
+        assert first_payload["x_nm"].size > 0
 
         assert window.nist_collections_list.count() == 1
         assert "1 pinned set" in window.reference_status_label.text()
@@ -167,6 +172,10 @@ def test_reference_nist_fetch_populates_table(monkeypatch) -> None:
         window.nist_collections_list.setCurrentRow(0)
         app.processEvents()
         assert window.reference_table.rowCount() >= 1
+
+        window.reference_overlay_checkbox.setChecked(True)
+        app.processEvents()
+        assert len(window._reference_overlay_key) == 2
     finally:
         window.close()
         window.deleteLater()

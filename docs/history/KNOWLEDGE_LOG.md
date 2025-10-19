@@ -28,6 +28,29 @@ Each entry in this document should follow this structure:
 
 ---
 
+## 2025-10-19 14:09 – NIST overlay multi-pin
+
+**Author**: agent
+
+**Context**: Reference Inspector overlays and spectroscopy workflow clarity.
+
+**Summary**: Reworked the NIST spectral-line pinning flow so every pinned set now projects onto the main workspace when the
+overlay toggle is enabled, preserving per-set colours or collapsing to a uniform hue on demand. Adjusted the Inspector overlay
+bookkeeping to manage multiple traces simultaneously, extended the Qt regression harness to assert the new behaviour, and
+updated the reference data guide to describe the multi-set overlay output.
+
+**NYC time**: 2025-10-19T14:09:10-04:00
+
+**UTC time**: 2025-10-19T18:09:13+00:00
+
+**References**:
+- `app/main.py`
+- `tests/test_reference_ui.py`
+- `docs/user/reference_data.md`
+- `docs/history/PATCH_NOTES.md`
+
+---
+
 ## 2025-10-19 13:22 – Reference tab redesign
 
 **Author**: agent
@@ -535,68 +558,5 @@ Import/Remote Import entries remain after the cleanup.
 - `tests/test_knowledge_log_service.py`
 - `docs/history/PATCH_NOTES.md`
 - `docs/reviews/workplan.md`
-
----
-## 2025-10-19 13:56 – Overlay
-
-**Author**: automation
-
-**Context**: Spectra Desktop Session
-
-**Summary**: Enabled reference overlay reference::nist::h.
-
-**References**:
-- reference::nist::h
-- {'source_type': 'reference', 'archive': 'NIST ASD', 'label': 'H I (NIST ASD)', 'element_symbol': 'H', 'element_name': 'Hydrogen', 'atomic_number': 1, 'ion_stage': 'I', 'ion_stage_number': 1, 'query': {'linename': 'H I', 'identifier': 'H', 'lower_wavelength': 380.0, 'upper_wavelength': 750.0, 'wavelength_unit': 'nm', 'wavelength_type': 'vacuum', 'use_ritz': True}, 'fetched_at_utc': '2025-10-19T17:55:52.648636+00:00', 'citation': 'Kramida, A. et al. (NIST ASD), https://physics.nist.gov/asd', 'retrieved_via': 'astroquery.nist'}
-
----
-## 2025-10-19 13:56 – Overlay
-
-**Author**: automation
-
-**Context**: Spectra Desktop Session
-
-**Summary**: Enabled reference overlay reference::nist::he.
-
-**References**:
-- reference::nist::he
-- {'source_type': 'reference', 'archive': 'NIST ASD', 'label': 'He I (NIST ASD)', 'element_symbol': 'He', 'element_name': 'Helium', 'atomic_number': 2, 'ion_stage': 'I', 'ion_stage_number': 1, 'query': {'linename': 'He I', 'identifier': 'He', 'lower_wavelength': 380.0, 'upper_wavelength': 750.0, 'wavelength_unit': 'nm', 'wavelength_type': 'vacuum', 'use_ritz': True}, 'fetched_at_utc': '2025-10-19T17:56:10.961473+00:00', 'citation': 'Kramida, A. et al. (NIST ASD), https://physics.nist.gov/asd', 'retrieved_via': 'astroquery.nist'}
-
----
-## 2025-10-19 13:57 – Overlay
-
-**Author**: automation
-
-**Context**: Spectra Desktop Session
-
-**Summary**: Enabled reference overlay reference::nist::ca.
-
-**References**:
-- reference::nist::ca
-- {'source_type': 'reference', 'archive': 'NIST ASD', 'label': 'Ca II (NIST ASD)', 'element_symbol': 'Ca', 'element_name': 'Calcium', 'atomic_number': 20, 'ion_stage': 'II', 'ion_stage_number': 2, 'query': {'linename': 'Ca II', 'identifier': 'Ca', 'lower_wavelength': 380.0, 'upper_wavelength': 750.0, 'wavelength_unit': 'nm', 'wavelength_type': 'vacuum', 'use_ritz': True}, 'fetched_at_utc': '2025-10-19T17:57:42.808828+00:00', 'citation': 'Kramida, A. et al. (NIST ASD), https://physics.nist.gov/asd', 'retrieved_via': 'astroquery.nist'}
-
----
-## 2025-10-19 13:59 – Overlay
-
-**Author**: automation
-
-**Context**: Spectra Desktop Session
-
-**Summary**: Enabled reference overlay reference::ir_groups.
-
-**References**:
-- reference::ir_groups
-
----
-## 2025-10-19 13:59 – Overlay
-
-**Author**: automation
-
-**Context**: Spectra Desktop Session
-
-**Summary**: Reference overlay cleared.
-
-**References**:
-- reference::ir_groups
 
 ---

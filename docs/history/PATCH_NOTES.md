@@ -294,6 +294,14 @@
 - Removed the NIST option from the Remote Data dialog, leaving MAST as the scoped catalogue and updating remote-data guidance
   and smoke tests to reflect the separation between line lists and archive downloads.
 
+## 2025-10-19 (NIST pinned overlays) (2:09 pm edt)
+
+- Let the Reference tab project every pinned NIST spectral-line set onto the workspace at once, keeping palette colours or
+  collapsing to a uniform hue on demand.
+- Extended the regression suite to ensure multi-set overlays populate and remain addressable via the Inspector toggle.
+- Documented the behaviour shift in `docs/user/reference_data.md` so operators understand how the overlay toggle now affects
+  all pinned line sets simultaneously.
+
 ## 2025-10-15 (Importing Guide Provenance Appendix) (9:10 am)
 
 - Expanded `docs/user/importing.md` with a provenance export appendix covering the structure of the manifest bundle.

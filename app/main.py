@@ -88,7 +88,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self._doc_entries: List[tuple[str, Path]] = []
         self._reference_plot_items: List[object] = []
         self._reference_overlay_annotations: List[pg.TextItem] = []
-        self._reference_overlay_key: Optional[str] = None
+        self._reference_overlay_key: List[str] = []
         self._reference_overlay_payload: Optional[Dict[str, Any]] = None
         self._reset_reference_overlay_state()
         self._suppress_overlay_refresh = False
@@ -112,6 +112,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self._nist_use_uniform_colors = False
         self._nist_active_key: Optional[str] = None
         self._nist_collection_counter = 0
+        self._nist_overlay_payloads: Dict[str, Dict[str, Any]] = {}
 
         self.log_view: QtWidgets.QPlainTextEdit | None = None
         self._log_buffer: list[tuple[str, str]] = []
@@ -1928,6 +1929,8 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             self._set_reference_meta(label, "https://physics.nist.gov/asd", notes)
 
             overlay_payload: Optional[Dict[str, Any]] = None
+            overlay_payloads: Dict[str, Dict[str, Any]] = {}
+            overlay_datasets: List[Mapping[str, Any]] = []
             max_intensity = 0.0
             pinned_count = len(self._nist_collections)
             for key, dataset in self._nist_collections.items():
@@ -1938,10 +1941,11 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                     entries,
                     meta_for_plot,
                     color,
-                    build_overlay=key == self._nist_active_key,
+                    build_overlay=True,
                 )
                 if payload_result is not None:
-                    overlay_payload = payload_result
+                    overlay_payloads[key] = payload_result
+                    overlay_datasets.append(meta_for_plot)
                 max_intensity = max(max_intensity, dataset_max)
 
             if max_intensity > 0:
@@ -1951,6 +1955,13 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             self.reference_status_label.setText(
                 f"Displaying {len(filtered)} of {line_total} spectral line(s); {pinned_count} pinned set(s) on chart."
             )
+
+            if overlay_payloads:
+                overlay_payload = {
+                    "kind": "nist-multi",
+                    "payloads": overlay_payloads,
+                    "datasets": overlay_datasets,
+                }
 
         elif mode == "ir":
             entries = self.reference_library.ir_functional_groups()
@@ -2744,7 +2755,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
     def _reset_reference_overlay_state(self) -> None:
         """Clear overlay bookkeeping while preserving payload state."""
 
-        self._reference_overlay_key = None
+        self._reference_overlay_key.clear()
         annotations = getattr(self, "_reference_overlay_annotations", None)
         if annotations is None:
             self._reference_overlay_annotations = []
@@ -2757,20 +2768,23 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         if checked:
             self._apply_reference_overlay()
             payload = self._reference_overlay_payload or {}
-            overlay_key = payload.get("key") or "reference::overlay"
-            references = [str(overlay_key)]
+            references = [str(key) for key in self._reference_overlay_key]
             dataset = payload.get("dataset") if isinstance(payload, dict) else None
             if dataset:
                 references.append(str(dataset))
+            elif isinstance(payload, dict) and payload.get("kind") == "nist-multi":
+                meta_refs = payload.get("datasets")
+                if isinstance(meta_refs, list):
+                    references.extend(str(item) for item in meta_refs)
             self._record_history_event(
                 "Overlay",
-                f"Enabled reference overlay {overlay_key}.",
+                "Enabled reference overlay(s).",
                 references,
             )
         else:
-            previous_key = self._reference_overlay_key
+            previous_keys = list(self._reference_overlay_key)
             self._clear_reference_overlay()
-            references = [previous_key] if previous_key else []
+            references = [str(key) for key in previous_keys]
             self._record_history_event("Overlay", "Reference overlay cleared.", references)
 
     def _on_plot_range_changed(self, _: tuple[float, float], __: tuple[float, float]) -> None:
@@ -2780,6 +2794,8 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             return
         payload = self._reference_overlay_payload
         if not payload:
+            return
+        if isinstance(payload, Mapping) and payload.get("kind") == "nist-multi":
             return
 
         band_bounds = payload.get("band_bounds")
@@ -2831,14 +2847,34 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
 
     def _update_reference_overlay_state(self, payload: Optional[Dict[str, Any]]) -> None:
         self._reference_overlay_payload = payload
-        x_values = payload.get("x_nm") if payload else None
-        y_values = payload.get("y") if payload else None
-        overlay_available = (
-            isinstance(x_values, np.ndarray)
-            and isinstance(y_values, np.ndarray)
-            and x_values.size > 0
-            and y_values.size == x_values.size
-        )
+        overlay_available = False
+        if isinstance(payload, Mapping) and payload.get("kind") == "nist-multi":
+            payloads = payload.get("payloads")
+            if isinstance(payloads, Mapping):
+                self._nist_overlay_payloads = {}
+                for key, item in payloads.items():
+                    if not isinstance(item, Mapping):
+                        continue
+                    x_values = item.get("x_nm")
+                    y_values = item.get("y")
+                    if (
+                        isinstance(x_values, np.ndarray)
+                        and isinstance(y_values, np.ndarray)
+                        and x_values.size > 0
+                        and y_values.size == x_values.size
+                    ):
+                        self._nist_overlay_payloads[str(key)] = dict(item)
+                overlay_available = bool(self._nist_overlay_payloads)
+        else:
+            self._nist_overlay_payloads = {}
+            x_values = payload.get("x_nm") if payload else None
+            y_values = payload.get("y") if payload else None
+            overlay_available = (
+                isinstance(x_values, np.ndarray)
+                and isinstance(y_values, np.ndarray)
+                and x_values.size > 0
+                and y_values.size == x_values.size
+            )
 
         self.reference_overlay_checkbox.blockSignals(True)
         self.reference_overlay_checkbox.setEnabled(overlay_available)
@@ -2855,6 +2891,32 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         payload = self._reference_overlay_payload
         if not payload:
             self._clear_reference_overlay()
+            return
+
+        if isinstance(payload, Mapping) and payload.get("kind") == "nist-multi":
+            overlays = self._nist_overlay_payloads
+            if not overlays:
+                self._clear_reference_overlay()
+                return
+            self._clear_reference_overlay()
+            for item in overlays.values():
+                x_values = item.get("x_nm")
+                y_values = item.get("y")
+                if not (
+                    isinstance(x_values, np.ndarray)
+                    and isinstance(y_values, np.ndarray)
+                    and x_values.size
+                    and x_values.size == y_values.size
+                ):
+                    continue
+                key = str(item.get("key") or f"reference::nist::{len(self._reference_overlay_key)+1}")
+                alias = str(item.get("alias", key))
+                color = item.get("color", "#33658A")
+                width = float(item.get("width", 1.4))
+                style = TraceStyle(QtGui.QColor(color), width=width, show_in_legend=False)
+                self.plot.add_trace(key, alias, x_values, y_values, style)
+                self._reference_overlay_key.append(key)
+            self._reference_overlay_annotations.clear()
             return
 
         x_values = payload.get("x_nm")
@@ -2880,7 +2942,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             fill_level=float(fill_level) if fill_level is not None else None,
         )
         self.plot.add_trace(key, alias, x_values, y_values, style)
-        self._reference_overlay_key = key
+        self._reference_overlay_key.append(key)
 
         self._reference_overlay_annotations.clear()
         band_bounds = payload.get("band_bounds")
@@ -2966,8 +3028,8 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                 self._reference_overlay_annotations.append(text_item)
 
     def _clear_reference_overlay(self) -> None:
-        key = self._reference_overlay_key
-        if key:
+        keys = list(self._reference_overlay_key)
+        for key in keys:
             self.plot.remove_trace(key)
         for item in self._reference_overlay_annotations:
             try:
