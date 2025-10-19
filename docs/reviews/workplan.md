@@ -24,6 +24,10 @@ This document tracks feature batches, validation status, and outstanding backlog
 
 ### Recently Completed (2025-10-19)
 
+- [x] Hardened the NIST remote cache so synthetic URIs encode wavelength
+      bounds, units, wavelength type, and the Ritz toggle, preventing
+      mismatched CSV reuse across queries. Documented the behaviour and updated
+      provenance logs.
 - [x] Redesigned the Reference tab with dedicated Spectral lines/IR/Line-shape panels, wired the embedded NIST query form to
       astroquery, refreshed the reference data guide, and extended Qt regression tests for the new workflow.
 - [x] Added pinned NIST spectral-line sets with palette controls so multiple queries persist on the inspector plot, removed the

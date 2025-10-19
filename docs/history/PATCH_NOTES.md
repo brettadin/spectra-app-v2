@@ -1,5 +1,13 @@
 # Patch Notes
 
+## 2025-10-19 (NIST query cache signatures) (17:31 EDT / 21:31 UTC)
+
+- Updated the remote data service so synthetic `nist-asd:` URIs include the
+  queried wavelength bounds, units, wavelength type, and Ritz preference. This
+  prevents cached CSVs from being reused across distinct element/ion windows and
+  keeps downloads aligned with the requested range.
+- Documented the cache-key behaviour in the remote data guide and recorded the
+  change across the workplan and knowledge log for provenance.
 ## 2025-10-19 (Manifest export gains wide/composite options) (16:50 EDT / 20:50 UTC)
 
 - Added an export options dialog in `app/main.py` so you can choose between the
