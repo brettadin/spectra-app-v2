@@ -68,6 +68,22 @@ def test_export_skips_hidden_spectra(tmp_path: Path, monkeypatch: pytest.MonkeyP
 
         captured: dict[str, object] = {}
 
+        import app.main as main_module
+
+        class _AcceptDialog:
+            def __init__(self, *args, **kwargs) -> None:
+                pass
+
+            def exec(self) -> int:
+                return QtWidgets.QDialog.DialogCode.Accepted
+
+            def result(self):  # type: ignore[override]
+                from app.ui.export_options_dialog import ExportOptions
+
+                return ExportOptions(include_manifest=True, include_wide_csv=False, include_composite_csv=False)
+
+        monkeypatch.setattr(main_module, "ExportOptionsDialog", _AcceptDialog)
+
         def _fake_export_bundle(spectra_arg, manifest_path, **kwargs):
             ids = [spec.id for spec in spectra_arg]
             captured["ids"] = ids

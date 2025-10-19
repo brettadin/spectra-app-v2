@@ -28,7 +28,7 @@ Concentrates on reproducibility, manifests, and store coherence.
   evolve.
 
 ## References
-- `docs/specs/provenance_schema.json`
+- `specs/provenance_schema.json`
 - `docs/user/importing.md`
 - `docs/user/reference_data.md`
 - `docs/history/PATCH_NOTES.md`

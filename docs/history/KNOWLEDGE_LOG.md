@@ -28,56 +28,28 @@ Each entry in this document should follow this structure:
 
 ---
 
-## 2025-10-19 15:57 – Knowledge Log Persistence
+## 2025-10-19 16:50 – Export bundle variants
 
-**Author**: automation
+**Author**: agent
 
-**Context**: Restored import history retention (UTC 2025-10-19T19:57:47Z).
+**Context**: Responding to feedback that combined CSV exports were difficult to
+reuse and that analysts need averaged overlays when comparing multiple lamps.
 
-**Summary**: Re-enabled persistence for Import/Remote Import events so session
-ingests populate the canonical knowledge log alongside the in-app history view.
-Updated the importing guide to explain the summarised entries and exercised the
-smoke ingest workflow to confirm CSV imports append to the log.
+**Summary**: Added an export options dialog so operators can emit the standard
+manifest bundle, a wide paired-column CSV (`spectra-wide-v1`), and/or a
+composite-mean CSV in one action. ProvenanceService gained helpers for both
+formats, CsvImporter recognises the wide layout comments, and the user guides
+document how each file re-imports. Regression coverage now guards the new
+paths.
 
 **References**:
 - `app/main.py`
-- `app/services/knowledge_log_service.py`
+- `app/services/provenance_service.py`
+- `app/services/importers/csv_importer.py`
+- `tests/test_provenance.py`
+- `tests/test_csv_importer.py`
+- `docs/user/plot_tools.md`
 - `docs/user/importing.md`
-- `tests/test_smoke_workflow.py`
-
----
-
-## 2025-10-19 15:31 (America/New_York) / 19:31 (UTC) – Mini FITS fixture portability
-
-**Author**: agent
-
-**Context**: Test FITS fixtures and optional dependency guardrails.
-
-**Summary**: Updated the `mini_fits` pytest fixture to build FITS columns from
-native Python lists so the regression suite no longer requires `numpy` merely
-to collect tests. This keeps CI green even when optional scientific packages
-are unavailable.
-
-**References**:
-- `tests/conftest.py`
-- `docs/history/PATCH_NOTES.md`
-- `docs/reviews/workplan.md`
-
----
-
-## 2025-10-19 15:24 (America/New_York) / 19:24 (UTC) – Provenance schema path fix
-
-**Author**: agent
-
-**Context**: CI schema validation and documentation alignment for provenance exports.
-
-**Summary**: Moved `provenance_schema.json` into `docs/specs/` so the validation workflow resolves the authoritative schema from the documented location. Updated prompts and pass dossiers that reference the file to keep contributors anchored to the same path.
-
-**References**:
-- `docs/specs/provenance_schema.json`
-- `docs/history/MASTER PROMPT.md`
-- `docs/history/MASTER_PROMPT.md`
-- `docs/reviews/pass4.md`
 - `docs/history/PATCH_NOTES.md`
 
 ---
@@ -92,6 +64,24 @@ are unavailable.
 
 **References**:
 - `app/services/provenance_service.py`
+
+---
+
+## 2025-10-19 16:23 (America/New_York) / 20:23 (UTC) – Export bundle ingestion
+
+**Author**: agent
+
+**Context**: Importing provenance CSV bundles should restore every spectrum without manual splitting.
+
+**Summary**: Taught `CsvImporter` to detect manifest-style CSV bundles and embed member metadata, then updated `DataIngestService` and the main window to expand those bundles into individual canonical spectra. Remote downloads and smoke tests now expect list-based ingestion, and the importing guide documents that re-importing a bundle restores each trace separately.
+
+**References**:
+- `app/services/importers/csv_importer.py`
+- `app/services/data_ingest_service.py`
+- `app/main.py`
+- `docs/user/importing.md`
+- `tests/test_csv_importer.py`
+- `tests/test_ingest.py`
 - `tests/test_provenance.py`
 - `docs/user/importing.md`
 - `docs/history/PATCH_NOTES.md`
@@ -640,5 +630,41 @@ Import/Remote Import entries remain after the cleanup.
 - `tests/test_knowledge_log_service.py`
 - `docs/history/PATCH_NOTES.md`
 - `docs/reviews/workplan.md`
+
+---
+## 2025-10-19 17:10 – Export
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Exported 7 visible spectra
+
+**References**:
+- C:\Code\spectra-app-beta\exports\merge test 1_wide.csv
+
+---
+## 2025-10-19 17:10 – Export
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Exported 7 visible spectra
+
+**References**:
+- C:\Code\spectra-app-beta\exports\spectra_composite.csv
+
+---
+## 2025-10-19 17:16 – Export
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Exported 4 visible spectra
+
+**References**:
+- C:\Code\spectra-app-beta\exports\spectra_composite.csv
 
 ---

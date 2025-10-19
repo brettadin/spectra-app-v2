@@ -225,11 +225,14 @@ class RemoteDataDialog(QtWidgets.QDialog):
             record = self._records[index.row()]
             try:
                 download = self.remote_service.download(record)
-                spectrum = self.ingest_service.ingest(Path(download.cache_entry["stored_path"]))
+                ingested = self.ingest_service.ingest(Path(download.cache_entry["stored_path"]))
             except Exception as exc:  # pragma: no cover - UI feedback
                 QtWidgets.QMessageBox.warning(self, "Download failed", str(exc))
                 continue
-            spectra.append(spectrum)
+            if isinstance(ingested, list):
+                spectra.extend(ingested)
+            else:
+                spectra.append(ingested)
 
         if not spectra:
             return

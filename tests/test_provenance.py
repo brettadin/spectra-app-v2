@@ -1,3 +1,4 @@
+import csv
 import json
 from pathlib import Path
 
@@ -57,5 +58,54 @@ def test_export_bundle_csv_round_trips(tmp_path: Path) -> None:
 
     assert result.x[0] == pytest.approx(345.0)
     assert result.y[0] == pytest.approx(1.0)
-    assert result.x[2] == pytest.approx(400.0)
-    assert result.y[2] == pytest.approx(0.1)
+
+    bundle = result.metadata.get("bundle")
+    assert isinstance(bundle, dict)
+    members = bundle.get("members") if isinstance(bundle, dict) else None
+    assert isinstance(members, list)
+    assert len(members) == 2
+    first = members[0]
+    second = members[1]
+    assert first["name"] == "lamp-a"
+    assert second["name"] == "lamp-b"
+    assert pytest.approx(first["x"][0]) == 345.0
+    assert pytest.approx(second["x"][0]) == 400.0
+
+
+def test_wide_csv_round_trip(tmp_path: Path) -> None:
+    service = ProvenanceService()
+    spec_a = Spectrum.create('lamp-a', np.array([345.0, 350.0]), np.array([1.0, 0.5]))
+    spec_b = Spectrum.create('lamp-b', np.array([400.0, 405.0, 410.0]), np.array([0.1, 0.2, 0.3]))
+
+    wide_path = tmp_path / 'bundle' / 'wide.csv'
+    service.write_wide_csv(wide_path, [spec_a, spec_b])
+
+    importer = CsvImporter()
+    result = importer.read(wide_path)
+    bundle = result.metadata.get("bundle")
+    assert isinstance(bundle, dict)
+    members = bundle.get("members") if isinstance(bundle, dict) else None
+    assert isinstance(members, list)
+    assert len(members) == 2
+    ids = [member["id"] for member in members]
+    assert ids == [spec_a.id, spec_b.id]
+
+
+def test_composite_csv_mean(tmp_path: Path) -> None:
+    service = ProvenanceService()
+    spec_a = Spectrum.create('lamp-a', np.array([500.0, 510.0, 520.0]), np.array([1.0, 2.0, 3.0]))
+    spec_b = Spectrum.create('lamp-b', np.array([500.0, 510.0, 520.0]), np.array([3.0, 2.0, 1.0]))
+
+    composite_path = tmp_path / 'bundle' / 'composite.csv'
+    service.write_composite_csv(composite_path, [spec_a, spec_b])
+
+    with composite_path.open('r', encoding='utf-8', newline='') as handle:
+        reader = list(csv.reader(handle))
+    assert reader[0] == ['wavelength_nm', 'intensity', 'source_count']
+    assert reader[1][0] == '500.0'
+    assert reader[1][2] == '2'
+
+    importer = CsvImporter()
+    result = importer.read(composite_path)
+    assert np.allclose(result.x, np.array([500.0, 510.0, 520.0]))
+    assert np.allclose(result.y, np.array([2.0, 2.0, 2.0]))

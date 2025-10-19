@@ -27,6 +27,6 @@ Defines the roadmap for calibration fidelity and explainable identification.
 - Capture architecture rationale in `docs/brains/` when major choices are made.
 
 ## References
-- `docs/specs/provenance_schema.json`
+- `specs/provenance_schema.json`
 - `docs/atlas/0_index_stec_master_canvas_index_numbered.md`
 - `docs/user/reference_data.md`

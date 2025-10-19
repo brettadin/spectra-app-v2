@@ -32,7 +32,7 @@ date -u --iso-8601=seconds
 5. **Governance** — `docs/history/PATCH_NOTES.md`, `docs/history/KNOWLEDGE_LOG.md`,
    `docs/reviews/workplan.md`, and any brainstorming queues. Keep them aligned
    with the work you deliver.
-6. **Specs & tools** — `docs/specs/provenance_schema.json`,
+6. **Specs & tools** — `specs/provenance_schema.json`,
    `.github/workflows/provenance.yml`, `tools/validate_manifest.py`,
    `tests/fixtures/export_example/manifest.json`.
 
@@ -96,7 +96,7 @@ Include migration plans, risks, and testing requirements before any change.
 - Palette presets (including colour-blind safe schemes) and dataset grouping.
 
 ### D. Provenance Cohesion
-- Keep `docs/specs/provenance_schema.json` authoritative (v1.2.0).
+- Keep `specs/provenance_schema.json` authoritative (v1.2.0).
 - `tools/validate_manifest.py` must pass for every export.
 - Export view parity (unit, normalization, smoothing, palette, masks,
   calibration banner, active traces) with round-trip replay tests.

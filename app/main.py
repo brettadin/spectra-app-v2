@@ -30,6 +30,7 @@ from .services import (
 from .services import nist_asd_service
 from .ui.plot_pane import PlotPane, TraceStyle
 from .ui.remote_data_dialog import RemoteDataDialog
+from .ui.export_options_dialog import ExportOptionsDialog
 
 QtCore: Any
 QtGui: Any
@@ -980,41 +981,115 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                     "Load spectra before exporting provenance.",
                 )
             return
+
+        options_dialog = ExportOptionsDialog(self, allow_composite=len(spectra_to_export) > 1)
+        if options_dialog.exec() != QtWidgets.QDialog.DialogCode.Accepted:
+            return
+        export_options = options_dialog.result()
+        if not export_options.has_selection:
+            QtWidgets.QMessageBox.information(
+                self,
+                "No Outputs Selected",
+                "Choose at least one export artefact before continuing.",
+            )
+            return
+
+        default_name = 'manifest.json' if export_options.include_manifest else 'spectra.csv'
         save_path, _ = QtWidgets.QFileDialog.getSaveFileName(
             self,
             "Save Manifest",
-            str(Path.home() / 'manifest.json'),
-            "JSON (*.json)",
+            str(Path.home() / default_name),
+            "JSON (*.json);;CSV (*.csv)",
         )
         if save_path:
             manifest_path = Path(save_path)
-            try:
-                export = self.provenance_service.export_bundle(
-                    spectra_to_export,
-                    manifest_path,
-                    png_writer=self.plot.export_png,
+            if export_options.include_manifest and manifest_path.suffix.lower() != ".json":
+                manifest_path = manifest_path.with_suffix('.json')
+            if not export_options.include_manifest:
+                manifest_path.parent.mkdir(parents=True, exist_ok=True)
+
+            generated_paths: List[str] = []
+            status_messages: List[str] = []
+
+            export: Dict[str, object] | None = None
+            if export_options.include_manifest:
+                try:
+                    export = self.provenance_service.export_bundle(
+                        spectra_to_export,
+                        manifest_path,
+                        png_writer=self.plot.export_png,
+                    )
+                except Exception as exc:  # pragma: no cover - UI feedback
+                    QtWidgets.QMessageBox.warning(self, "Export Failed", str(exc))
+                    self._log("Export", f"Bundle export failed: {exc}")
+                    return
+                self.status_bar.showMessage(f"Manifest saved to {export['manifest_path']}", 5000)
+                self._log("Manifest", f"Saved to {export['manifest_path']}")
+                self._log("Export", f"CSV saved to {export['csv_path']}")
+                self._log("Export", f"Plot snapshot saved to {export['png_path']}")
+                generated_paths.extend(
+                    [
+                        str(export["manifest_path"]),
+                        str(export["csv_path"]),
+                        str(export["png_path"]),
+                    ]
                 )
-            except Exception as exc:  # pragma: no cover - UI feedback
-                QtWidgets.QMessageBox.warning(self, "Export Failed", str(exc))
-                self._log("Export", f"Bundle export failed: {exc}")
-                return
-            self.status_bar.showMessage(f"Manifest saved to {export['manifest_path']}", 5000)
-            self._log("Manifest", f"Saved to {export['manifest_path']}")
-            self._log("Export", f"CSV saved to {export['csv_path']}")
-            self._log("Export", f"Plot snapshot saved to {export['png_path']}")
-            self._record_history_event(
-                "Export",
-                f"Exported manifest bundle with {len(spectra_to_export)} visible spectra to {export['manifest_path']}",
-                [
-                    str(export["manifest_path"]),
-                    str(export["csv_path"]),
-                    str(export["png_path"]),
-                ],
-            )
-            self.provenance_view.setPlainText(json_pretty(export['manifest']))
-            self.provenance_view.show()
-            self.prov_tree.show()
-            self.prov_placeholder.hide()
+                status_messages.append(f"Manifest saved to {export['manifest_path']}")
+                self.provenance_view.setPlainText(json_pretty(export['manifest']))
+                self.provenance_view.show()
+                self.prov_tree.show()
+                self.prov_placeholder.hide()
+
+                base_dir = Path(export["manifest_path"]).parent
+                base_stem = Path(export["manifest_path"]).stem
+            else:
+                base_dir = manifest_path.parent
+                base_dir.mkdir(parents=True, exist_ok=True)
+                base_stem = manifest_path.stem
+
+            if export_options.include_wide_csv:
+                if export_options.include_manifest:
+                    wide_path = base_dir / f"{base_stem}_wide.csv"
+                else:
+                    wide_path = (
+                        manifest_path
+                        if manifest_path.suffix.lower() == '.csv' and not export_options.include_composite_csv
+                        else base_dir / f"{base_stem}_wide.csv"
+                    )
+                try:
+                    self.provenance_service.write_wide_csv(wide_path, spectra_to_export)
+                except Exception as exc:  # pragma: no cover - UI feedback
+                    QtWidgets.QMessageBox.warning(self, "Wide CSV Failed", str(exc))
+                    self._log("Export", f"Wide CSV failed: {exc}")
+                else:
+                    generated_paths.append(str(wide_path))
+                    status_messages.append(f"Wide CSV saved to {wide_path}")
+                    self._log("Export", f"Wide CSV saved to {wide_path}")
+
+            if export_options.include_composite_csv:
+                composite_path = base_dir / f"{base_stem}_composite.csv"
+                try:
+                    self.provenance_service.write_composite_csv(
+                        composite_path,
+                        spectra_to_export,
+                    )
+                except Exception as exc:  # pragma: no cover - UI feedback
+                    QtWidgets.QMessageBox.warning(self, "Composite Failed", str(exc))
+                    self._log("Export", f"Composite export failed: {exc}")
+                else:
+                    generated_paths.append(str(composite_path))
+                    status_messages.append(f"Composite CSV saved to {composite_path}")
+                    self._log("Export", f"Composite CSV saved to {composite_path}")
+
+            if status_messages:
+                self.status_bar.showMessage("; ".join(status_messages), 5000)
+
+            if generated_paths:
+                self._record_history_event(
+                    "Export",
+                    f"Exported {len(spectra_to_export)} visible spectra",
+                    generated_paths,
+                )
 
     def refresh_overlay(self) -> None:
         selected_ids = self._selected_dataset_ids()
@@ -1144,24 +1219,35 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
     # Internal helpers --------------------------------------------------
     def _ingest_path(self, path: Path) -> None:
         try:
-            spectrum = self.ingest_service.ingest(path)
+            spectra = self.ingest_service.ingest(path)
         except Exception as exc:  # pragma: no cover - UI feedback
             QtWidgets.QMessageBox.critical(self, "Import failed", str(exc))
             return
-        self.overlay_service.add(spectrum)
-        self._add_spectrum(spectrum)
-        self.status_bar.showMessage(f"Loaded {path.name}", 5000)
+        if not spectra:
+            QtWidgets.QMessageBox.information(
+                self,
+                "No Spectra Imported",
+                f"{path.name} did not contain any spectra to import.",
+            )
+            return
+
+        for spectrum in spectra:
+            self.overlay_service.add(spectrum)
+            self._add_spectrum(spectrum)
+
+        last_spectrum = spectra[-1]
+        count = len(spectra)
+        message = f"Loaded {count} spectrum{'s' if count != 1 else ''} from {path.name}"
+        self.status_bar.showMessage(message, 5000)
         self._update_math_selectors()
         self.refresh_overlay()
-        self._show_metadata(spectrum)
-        self._show_provenance(spectrum)
-        ingest_meta = spectrum.metadata.get("ingest", {}) if isinstance(spectrum.metadata, dict) else {}
+        self._show_metadata(last_spectrum)
+        self._show_provenance(last_spectrum)
+        ingest_meta = last_spectrum.metadata.get("ingest", {}) if isinstance(last_spectrum.metadata, dict) else {}
         importer = ingest_meta.get("importer", "Unknown importer")
-        summary = f"Ingested {spectrum.name} via {importer}."
-        references: List[str] = []
-        if spectrum.id:
-            references.append(spectrum.id)
-        self._record_history_event("Import", summary, references)
+        summary = f"Ingested {count} spectrum{'s' if count != 1 else ''} via {importer}."
+        references = [spec.id for spec in spectra if getattr(spec, "id", None)]
+        self._record_history_event("Import", summary, references, persist=False)
         self._refresh_library_view()
 
     def _add_spectrum(self, spectrum: Spectrum) -> None:
@@ -1438,7 +1524,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         uri = str(remote.get("uri")) if remote and remote.get("uri") else None
         summary = f"Imported {spectrum.name} via {provider}."
         references = [ref for ref in [spectrum.id] if ref]
-        self._record_history_event("Remote Import", summary, references)
+        self._record_history_event("Remote Import", summary, references, persist=False)
         return {"provider": provider, "uri": uri}
 
     def _populate_data_table(self, views: Iterable[dict]) -> None:
@@ -2220,17 +2306,25 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             QtWidgets.QMessageBox.critical(self, "Query failed", str(exc))
             return
 
-        self._register_nist_payload(payload)
-        self.reference_overlay_checkbox.blockSignals(True)
-        self.reference_overlay_checkbox.setChecked(False)
-        self.reference_overlay_checkbox.blockSignals(False)
-        meta = payload.get("meta", {})
-        line_count = meta.get("line_count") or len(payload.get("lines", []))
-        self.reference_status_label.setText(
-            f"Fetched {line_count} spectral line(s) from NIST ASD."
-        )
-        self._log("Reference", f"NIST ASD → {meta.get('label', element)}")
-        self._refresh_reference_view()
+        self._reference_overlay_payload = overlay_payload
+        x_nm = overlay_payload.get("x_nm") if overlay_payload else None
+        if x_nm is None:
+            has_overlay_points = False
+        else:
+            size = getattr(x_nm, "size", None)
+            if size is not None:
+                has_overlay_points = size > 0
+            else:
+                has_overlay_points = len(x_nm) > 0
+        has_overlay = overlay_payload is not None and has_overlay_points
+        self.reference_overlay_toggle.setEnabled(has_overlay)
+        if not has_overlay:
+            if self.reference_overlay_toggle.isChecked():
+                self.reference_overlay_toggle.blockSignals(True)
+                self.reference_overlay_toggle.setChecked(False)
+                self.reference_overlay_toggle.blockSignals(False)
+            self._remove_reference_overlay()
+        self._update_reference_overlay()
 
     def _filter_reference_entries(
         self, entries: List[Mapping[str, Any]], query: str

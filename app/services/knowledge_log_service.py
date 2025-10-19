@@ -73,10 +73,10 @@ class KnowledgeLogService:
         ----------
         persist:
             When ``True`` (default) the entry is appended to ``self.log_path``
-            unless the ``component`` is registered as runtime-only via the
-            ``runtime_only_components`` initialiser argument. When ``False``
-            the entry is returned for in-memory history display without
-            mutating the on-disk log.
+            unless the ``component`` is registered as runtime-only (e.g.
+            ``"Import"`` or ``"Remote Import"``).
+            When ``False`` the entry is returned for in-memory history display
+            without mutating the on-disk log.
         """
 
         moment = (timestamp or datetime.now(timezone.utc)).astimezone()
