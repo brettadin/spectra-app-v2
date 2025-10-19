@@ -26,7 +26,10 @@ class KnowledgeLogService:
     """Append and query provenance-ready entries for the knowledge log."""
 
     HEADER_PATTERN = re.compile(r"^##\s+(?P<timestamp>[^–]+) – (?P<component>.+)$", re.MULTILINE)
-    DEFAULT_RUNTIME_ONLY_COMPONENTS = frozenset({"import", "remote import"})
+    DEFAULT_RUNTIME_ONLY_COMPONENTS = frozenset({
+        "Import",
+        "Remote Import",
+    })
 
     def __init__(
         self,
