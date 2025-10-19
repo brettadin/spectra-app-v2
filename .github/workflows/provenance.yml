@@ -1,4 +1,6 @@
 name: Provenance & Cohesion
+permissions:
+  contents: read
 
 on:
   push:
