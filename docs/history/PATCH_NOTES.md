@@ -409,3 +409,8 @@
 - Documented the change in `docs/user/importing.md`, clarifying how summaries are captured while raw paths stay in the cache view.
 - Verified the smoke history workflow under pytest to confirm the UI updates after ingesting a CSV.
 
+## 2025-10-19 (NIST input validation) (19:54 EDT / 23:54 UTC)
+
+- Caught ValueError exceptions from NIST line queries so invalid element symbols or ion stages now surface a warning instead of closing the dialog. 【F:app/main.py†L2370-L2394】
+- Clarified the reference-data guide to note that invalid NIST inputs show an inline warning for quick corrections. 【F:docs/user/reference_data.md†L55-L59】
+
