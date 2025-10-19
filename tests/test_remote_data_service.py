@@ -141,9 +141,64 @@ def test_search_nist_uses_nist_service(store: LocalStore, monkeypatch: pytest.Mo
     assert len(records) == 1
     record = records[0]
     assert record.provider == RemoteDataService.PROVIDER_NIST
-    assert record.download_url.startswith("nist-asd:")
+    assert record.download_url.startswith("nist-asd:Fe_II_(NIST_ASD):")
     assert record.metadata.get("line_count") == 1
     assert record.metadata["series"]["wavelength_nm"] == [510.0]
+    assert record.metadata["query"]["lower_wavelength"] == 250.0
+    assert record.metadata["query"]["upper_wavelength"] == 260.0
+
+
+def test_search_nist_cache_key_includes_query_parameters(
+    store: LocalStore, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    def fake_dependencies() -> bool:
+        return True
+
+    def fake_fetch(
+        identifier: str,
+        *,
+        element: str | None = None,
+        ion_stage: str | int | None = None,
+        lower_wavelength: float | None = None,
+        upper_wavelength: float | None = None,
+        wavelength_unit: str = "nm",
+        use_ritz: bool = True,
+        wavelength_type: str = "vacuum",
+    ) -> dict[str, Any]:
+        sample_wavelength = lower_wavelength or 500.0
+        return {
+            "wavelength_nm": [sample_wavelength],
+            "intensity": [120.0],
+            "intensity_normalized": [1.0],
+            "lines": [
+                {
+                    "wavelength_nm": sample_wavelength,
+                    "relative_intensity": 120.0,
+                    "relative_intensity_normalized": 1.0,
+                }
+            ],
+            "meta": {
+                "label": "Fe II (NIST ASD)",
+            },
+        }
+
+    monkeypatch.setattr(remote_module.nist_asd_service, "dependencies_available", fake_dependencies)
+    monkeypatch.setattr(remote_module.nist_asd_service, "fetch_lines", fake_fetch)
+
+    service = RemoteDataService(store, session=None)
+
+    first_record = service.search(
+        RemoteDataService.PROVIDER_NIST,
+        {"element": "Fe II", "wavelength_min": 250.0, "wavelength_max": 260.0},
+    )[0]
+    second_record = service.search(
+        RemoteDataService.PROVIDER_NIST,
+        {"element": "Fe II", "wavelength_min": 260.0, "wavelength_max": 270.0},
+    )[0]
+
+    assert first_record.download_url != second_record.download_url
+    assert first_record.metadata["query"]["lower_wavelength"] == 250.0
+    assert second_record.metadata["query"]["lower_wavelength"] == 260.0
 
 
 def test_download_nist_generates_csv_and_records_provenance(store: LocalStore) -> None:
@@ -177,7 +232,7 @@ def test_download_nist_generates_csv_and_records_provenance(store: LocalStore) -
         provider=RemoteDataService.PROVIDER_NIST,
         identifier="Fe II (NIST ASD)",
         title="Fe II — 1 line",
-        download_url="nist-asd:Fe_II",
+        download_url="nist-asd:Fe_II_(NIST_ASD):abc123def456",
         metadata=metadata,
         units={"x": "nm", "y": "relative_intensity"},
     )
