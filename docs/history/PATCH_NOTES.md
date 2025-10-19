@@ -1,5 +1,11 @@
 # Patch Notes
 
+## 2025-10-19 (FITS smoke fixture drops NumPy dependency) (15:31 EDT / 19:31 UTC)
+
+- Reworked the `tests/conftest.py::mini_fits` helper to build FITS columns from
+  native Python lists so pytest no longer requires `numpy` just to collect the
+  test suite.
+
 ## 2025-10-19 (Provenance schema path restored) (15:24 EDT / 19:24 UTC)
 
 - Relocated the authoritative `provenance_schema.json` into `docs/specs/` so CI schema validation and tooling pick up the documented location.
