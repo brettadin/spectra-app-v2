@@ -30,6 +30,7 @@ from .services import (
 from .services import nist_asd_service
 from .ui.plot_pane import PlotPane, TraceStyle
 from .ui.remote_data_dialog import RemoteDataDialog
+from .ui.export_options_dialog import ExportOptionsDialog
 
 QtCore: Any
 QtGui: Any
@@ -980,41 +981,115 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                     "Load spectra before exporting provenance.",
                 )
             return
+
+        options_dialog = ExportOptionsDialog(self, allow_composite=len(spectra_to_export) > 1)
+        if options_dialog.exec() != QtWidgets.QDialog.DialogCode.Accepted:
+            return
+        export_options = options_dialog.result()
+        if not export_options.has_selection:
+            QtWidgets.QMessageBox.information(
+                self,
+                "No Outputs Selected",
+                "Choose at least one export artefact before continuing.",
+            )
+            return
+
+        default_name = 'manifest.json' if export_options.include_manifest else 'spectra.csv'
         save_path, _ = QtWidgets.QFileDialog.getSaveFileName(
             self,
             "Save Manifest",
-            str(Path.home() / 'manifest.json'),
-            "JSON (*.json)",
+            str(Path.home() / default_name),
+            "JSON (*.json);;CSV (*.csv)",
         )
         if save_path:
             manifest_path = Path(save_path)
-            try:
-                export = self.provenance_service.export_bundle(
-                    spectra_to_export,
-                    manifest_path,
-                    png_writer=self.plot.export_png,
+            if export_options.include_manifest and manifest_path.suffix.lower() != ".json":
+                manifest_path = manifest_path.with_suffix('.json')
+            if not export_options.include_manifest:
+                manifest_path.parent.mkdir(parents=True, exist_ok=True)
+
+            generated_paths: List[str] = []
+            status_messages: List[str] = []
+
+            export: Dict[str, object] | None = None
+            if export_options.include_manifest:
+                try:
+                    export = self.provenance_service.export_bundle(
+                        spectra_to_export,
+                        manifest_path,
+                        png_writer=self.plot.export_png,
+                    )
+                except Exception as exc:  # pragma: no cover - UI feedback
+                    QtWidgets.QMessageBox.warning(self, "Export Failed", str(exc))
+                    self._log("Export", f"Bundle export failed: {exc}")
+                    return
+                self.status_bar.showMessage(f"Manifest saved to {export['manifest_path']}", 5000)
+                self._log("Manifest", f"Saved to {export['manifest_path']}")
+                self._log("Export", f"CSV saved to {export['csv_path']}")
+                self._log("Export", f"Plot snapshot saved to {export['png_path']}")
+                generated_paths.extend(
+                    [
+                        str(export["manifest_path"]),
+                        str(export["csv_path"]),
+                        str(export["png_path"]),
+                    ]
                 )
-            except Exception as exc:  # pragma: no cover - UI feedback
-                QtWidgets.QMessageBox.warning(self, "Export Failed", str(exc))
-                self._log("Export", f"Bundle export failed: {exc}")
-                return
-            self.status_bar.showMessage(f"Manifest saved to {export['manifest_path']}", 5000)
-            self._log("Manifest", f"Saved to {export['manifest_path']}")
-            self._log("Export", f"CSV saved to {export['csv_path']}")
-            self._log("Export", f"Plot snapshot saved to {export['png_path']}")
-            self._record_history_event(
-                "Export",
-                f"Exported manifest bundle with {len(spectra_to_export)} visible spectra to {export['manifest_path']}",
-                [
-                    str(export["manifest_path"]),
-                    str(export["csv_path"]),
-                    str(export["png_path"]),
-                ],
-            )
-            self.provenance_view.setPlainText(json_pretty(export['manifest']))
-            self.provenance_view.show()
-            self.prov_tree.show()
-            self.prov_placeholder.hide()
+                status_messages.append(f"Manifest saved to {export['manifest_path']}")
+                self.provenance_view.setPlainText(json_pretty(export['manifest']))
+                self.provenance_view.show()
+                self.prov_tree.show()
+                self.prov_placeholder.hide()
+
+                base_dir = Path(export["manifest_path"]).parent
+                base_stem = Path(export["manifest_path"]).stem
+            else:
+                base_dir = manifest_path.parent
+                base_dir.mkdir(parents=True, exist_ok=True)
+                base_stem = manifest_path.stem
+
+            if export_options.include_wide_csv:
+                if export_options.include_manifest:
+                    wide_path = base_dir / f"{base_stem}_wide.csv"
+                else:
+                    wide_path = (
+                        manifest_path
+                        if manifest_path.suffix.lower() == '.csv' and not export_options.include_composite_csv
+                        else base_dir / f"{base_stem}_wide.csv"
+                    )
+                try:
+                    self.provenance_service.write_wide_csv(wide_path, spectra_to_export)
+                except Exception as exc:  # pragma: no cover - UI feedback
+                    QtWidgets.QMessageBox.warning(self, "Wide CSV Failed", str(exc))
+                    self._log("Export", f"Wide CSV failed: {exc}")
+                else:
+                    generated_paths.append(str(wide_path))
+                    status_messages.append(f"Wide CSV saved to {wide_path}")
+                    self._log("Export", f"Wide CSV saved to {wide_path}")
+
+            if export_options.include_composite_csv:
+                composite_path = base_dir / f"{base_stem}_composite.csv"
+                try:
+                    self.provenance_service.write_composite_csv(
+                        composite_path,
+                        spectra_to_export,
+                    )
+                except Exception as exc:  # pragma: no cover - UI feedback
+                    QtWidgets.QMessageBox.warning(self, "Composite Failed", str(exc))
+                    self._log("Export", f"Composite export failed: {exc}")
+                else:
+                    generated_paths.append(str(composite_path))
+                    status_messages.append(f"Composite CSV saved to {composite_path}")
+                    self._log("Export", f"Composite CSV saved to {composite_path}")
+
+            if status_messages:
+                self.status_bar.showMessage("; ".join(status_messages), 5000)
+
+            if generated_paths:
+                self._record_history_event(
+                    "Export",
+                    f"Exported {len(spectra_to_export)} visible spectra",
+                    generated_paths,
+                )
 
     def refresh_overlay(self) -> None:
         selected_ids = self._selected_dataset_ids()

@@ -28,6 +28,32 @@ Each entry in this document should follow this structure:
 
 ---
 
+## 2025-10-19 16:50 – Export bundle variants
+
+**Author**: agent
+
+**Context**: Responding to feedback that combined CSV exports were difficult to
+reuse and that analysts need averaged overlays when comparing multiple lamps.
+
+**Summary**: Added an export options dialog so operators can emit the standard
+manifest bundle, a wide paired-column CSV (`spectra-wide-v1`), and/or a
+composite-mean CSV in one action. ProvenanceService gained helpers for both
+formats, CsvImporter recognises the wide layout comments, and the user guides
+document how each file re-imports. Regression coverage now guards the new
+paths.
+
+**References**:
+- `app/main.py`
+- `app/services/provenance_service.py`
+- `app/services/importers/csv_importer.py`
+- `tests/test_provenance.py`
+- `tests/test_csv_importer.py`
+- `docs/user/plot_tools.md`
+- `docs/user/importing.md`
+- `docs/history/PATCH_NOTES.md`
+
+---
+
 ## 2025-10-19 15:14 (America/New_York) / 19:14 (UTC) – Export CSV axis ordering
 
 **Author**: agent

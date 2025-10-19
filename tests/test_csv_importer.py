@@ -324,3 +324,27 @@ def test_export_bundle_detection(tmp_path: Path) -> None:
     assert isinstance(members, list)
     assert len(members) == 2
     assert np.isclose(result.x[0], 400.0)
+
+
+def test_wide_bundle_detection(tmp_path: Path) -> None:
+    wide_path = tmp_path / "wide.csv"
+    wide_path.write_text(
+        """# spectra-wide-v1
+# member {"id": "first", "name": "First lamp", "x_unit": "nm", "y_unit": "absorbance"}
+# member {"id": "second", "name": "Second lamp", "x_unit": "nm", "y_unit": "absorbance"}
+wavelength_nm::first,intensity::first,wavelength_nm::second,intensity::second
+400,0.1,420,0.3
+410,0.2,430,0.4
+""",
+        encoding="utf-8",
+    )
+
+    importer = CsvImporter()
+    result = importer.read(wide_path)
+
+    bundle = result.metadata.get("bundle")
+    assert isinstance(bundle, dict)
+    members = bundle.get("members") if isinstance(bundle, dict) else None
+    assert isinstance(members, list)
+    assert len(members) == 2
+    assert {member["id"] for member in members} == {"first", "second"}

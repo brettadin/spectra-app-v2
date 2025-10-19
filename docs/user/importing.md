@@ -135,6 +135,24 @@ bundle contains:
   hashes so you can independently verify integrity.
 - `log.txt` — a chronological history of ingest, analysis, and export actions
   captured by the provenance service.
+- Optional extras (if selected in the export dialog):
+  - `*_wide.csv` — a paired-column view tagged with `# spectra-wide-v1` comment
+    headers so the CSV importer can expand each spectrum back into its own
+    trace. This is designed for spreadsheet workflows where keeping values side
+    by side is helpful before returning to Spectra.
+  - `*_composite.csv` — an averaged intensity profile that records how many
+    sources contributed to each wavelength sample. Use this when you want to
+    compare a blended envelope against laboratory references without manually
+    averaging outside the application.
+
+The top-level CSV now leads with the numeric wavelength/intensity columns and
+records provenance fields (`spectrum_id`, `spectrum_name`, units, point index)
+to the right. When you re-import this combined CSV—or the wide variant with the
+`spectra-wide-v1` header—the ingest pipeline spots the metadata, splits the
+file into per-trace bundles, and restores each spectrum individually. You can
+also ingest the composite CSV directly; the importer detects the standard
+`wavelength_nm,intensity` prefix and ignores the `source_count` bookkeeping
+column when choosing axes.
 
 The top-level CSV now leads with the numeric wavelength/intensity columns and
 records provenance fields (`spectrum_id`, `spectrum_name`, units, point index)

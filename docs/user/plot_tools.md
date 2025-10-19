@@ -11,7 +11,7 @@ The Spectra plot pane is powered by PyQtGraph and optimised for working with lar
 | Wheel zoom | Scroll wheel (focus follows cursor) | Zooms towards the pointer so you can dive into narrow features quickly. |
 | Reset view | Press `Ctrl+Shift+A` or click **View → Reset Plot** | Re-applies auto-range to every visible trace. |
 | Toggle crosshair | Toolbar **Cursor** button | When enabled, the vertical/horizontal guides follow the pointer and update the status bar readout. |
-| Snapshot | **File → Export → Manifest** | Captures a PNG of the current view alongside provenance assets. |
+| Snapshot | **File → Export → Manifest** | Captures provenance assets and any optional CSV variants you enable in the export dialog. |
 
 > **Tip**: The datasets dock includes a visibility checkbox for every trace. Hiding derived overlays before zooming on faint features reduces clutter and keeps the legend focused.
 
@@ -74,7 +74,16 @@ High-resolution spectra can contain millions of samples. Rendering every point w
 - Above that threshold, the x-axis is segmented and each block collapses into alternating min/max samples that preserve peaks.
 - The tail of a trace that does not align perfectly with the segmentation is appended without modification so you never lose edge information.
 
-This process is entirely view-layer only—no data is mutated or discarded. Exports (CSV and manifest bundles) include the full-resolution series for every dataset that remains visible at export time, and hidden traces stay out of the bundle. Unit conversions continue to operate on the canonical nanometre axis. If you need to inspect individual samples, open the **View → Show Data Table** panel to browse the raw numbers alongside the plot.
+This process is entirely view-layer only—no data is mutated or discarded. Exports always include the full-resolution series for every dataset that remains visible at export time, and hidden traces stay out of the bundle. Unit conversions continue to operate on the canonical nanometre axis. If you need to inspect individual samples, open the **View → Show Data Table** panel to browse the raw numbers alongside the plot.
+
+## Exporting visible spectra
+
+Choosing **File → Export → Manifest** now opens a short configuration dialog before the save prompt. The default selection writes the provenance bundle you are already familiar with: `manifest.json`, a combined long-form CSV with `spectrum_id` metadata, per-spectrum canonical CSVs under `spectra/`, the plot snapshot PNG, and a textual export log. You can additionally tick:
+
+- **Wide CSV** – emits a companion table where every spectrum receives a dedicated wavelength/intensity column pair. Comment headers preserve the bundle metadata so the file can be re-imported directly; the CSV importer recognises the `spectra-wide-v1` layout and expands it back into individual spectra.
+- **Composite CSV** – averages the visible spectra onto the first trace’s wavelength grid (skipping regions that are not covered by all sources) and records the contributing sample count per row. This is useful for building a reference envelope you can compare against laboratory standards without manually exporting each input.
+
+All artefacts share the same base filename. For example, exporting `~/spectra/argon.json` with both options selected yields `argon.json` (manifest), `argon.csv` (combined bundle), `argon_wide.csv`, `argon_composite.csv`, the `argon.png` snapshot, and the usual log file. The History dock summarises which files were written, and the Knowledge Log remains reserved for high-level insights rather than per-export bookkeeping.
 
 ## Performance best practices
 

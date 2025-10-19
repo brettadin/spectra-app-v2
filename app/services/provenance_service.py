@@ -12,6 +12,8 @@ from typing import Iterable, Dict, Any, List, Optional, Callable
 import hashlib
 import json
 
+import numpy as np
+
 from .spectrum import Spectrum
 
 
@@ -146,6 +148,114 @@ class ProvenanceService:
                             spectrum.y_unit,
                         ]
                     )
+
+    def write_wide_csv(self, path: Path, spectra: Iterable[Spectrum]) -> Path:
+        """Write paired wavelength/intensity columns per spectrum.
+
+        The resulting CSV can be re-imported by :class:`CsvImporter`, which
+        detects the ``spectra-wide-v1`` comment header and reconstructs bundle
+        members from the paired columns.
+        """
+
+        spectra_list = list(spectra)
+        if not spectra_list:
+            raise ValueError("No spectra supplied for wide CSV export")
+
+        path.parent.mkdir(parents=True, exist_ok=True)
+        with path.open('w', encoding='utf-8', newline='') as handle:
+            handle.write('# spectra-wide-v1\n')
+            for spectrum in spectra_list:
+                meta = {
+                    'id': spectrum.id,
+                    'name': spectrum.name,
+                    'x_unit': spectrum.x_unit,
+                    'y_unit': spectrum.y_unit,
+                }
+                handle.write(f"# member {json.dumps(meta, ensure_ascii=False)}\n")
+
+            writer = csv.writer(handle)
+            header: List[str] = []
+            for spectrum in spectra_list:
+                header.append(f"wavelength_nm::{spectrum.id}")
+                header.append(f"intensity::{spectrum.id}")
+            writer.writerow(header)
+
+            max_length = max(len(spec.x) for spec in spectra_list)
+            for row_index in range(max_length):
+                row: List[object] = []
+                for spectrum in spectra_list:
+                    if row_index < len(spectrum.x):
+                        row.append(float(spectrum.x[row_index]))
+                        row.append(float(spectrum.y[row_index]))
+                    else:
+                        row.extend(["", ""])
+                writer.writerow(row)
+
+        return path
+
+    def write_composite_csv(
+        self,
+        path: Path,
+        spectra: Iterable[Spectrum],
+        *,
+        strategy: str = "mean",
+    ) -> Path:
+        """Write a composite CSV derived from multiple spectra.
+
+        The default strategy computes the mean intensity on the wavelength grid
+        of the first spectrum, interpolating additional spectra where needed and
+        skipping regions with insufficient coverage.
+        """
+
+        spectra_list = list(spectra)
+        if len(spectra_list) < 2:
+            raise ValueError("At least two spectra are required for a composite export")
+
+        base = spectra_list[0]
+        base_x = np.asarray(base.x, dtype=float)
+        if base_x.size == 0:
+            raise ValueError("Composite export requires non-empty spectra")
+
+        aligned: List[np.ndarray] = []
+        counts = np.zeros_like(base_x, dtype=int)
+
+        for spectrum in spectra_list:
+            src_x = np.asarray(spectrum.x, dtype=float)
+            src_y = np.asarray(spectrum.y, dtype=float)
+            if src_x.size == 0 or src_y.size == 0:
+                continue
+            if np.array_equal(src_x, base_x):
+                interpolated = src_y.astype(float)
+            else:
+                interpolated = np.interp(base_x, src_x, src_y, left=np.nan, right=np.nan)
+            mask = np.isfinite(interpolated)
+            counts[mask] += 1
+            aligned.append(np.where(mask, interpolated, np.nan))
+
+        if not aligned:
+            raise ValueError("Composite export could not align any spectra")
+
+        stack = np.vstack(aligned)
+        if strategy == "mean":
+            composite = np.nanmean(stack, axis=0)
+        elif strategy == "median":
+            composite = np.nanmedian(stack, axis=0)
+        else:
+            raise ValueError(f"Unsupported composite strategy: {strategy}")
+
+        mask = np.isfinite(composite) & (counts > 0)
+        composite_x = base_x[mask]
+        composite_y = composite[mask]
+        composite_counts = counts[mask]
+
+        path.parent.mkdir(parents=True, exist_ok=True)
+        with path.open('w', encoding='utf-8', newline='') as handle:
+            writer = csv.writer(handle)
+            writer.writerow(['wavelength_nm', 'intensity', 'source_count'])
+            for x_val, y_val, count in zip(composite_x, composite_y, composite_counts):
+                writer.writerow([float(x_val), float(y_val), int(count)])
+
+        return path
 
     def _write_per_spectrum_csvs(self, directory: Path, spectra: Iterable[Spectrum]) -> Dict[str, Path]:
         mapping: Dict[str, Path] = {}

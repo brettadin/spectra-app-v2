@@ -33,6 +33,9 @@ This document tracks feature batches, validation status, and outstanding backlog
       behaviour, and added a Qt regression that patches the save dialog to verify hidden traces are excluded.
 - [x] Allowed provenance CSV bundles to re-import as individual spectra by teaching the CSV importer to expose bundle metadata,
       updating the ingest service/UI to handle list-based ingestion, expanding tests, and documenting the revised workflow.
+- [x] Added export options for wide/composite CSV variants, wired `ProvenanceService`
+      helpers and importer detection for the new layouts, updated the user guides,
+      and extended regression coverage for wide/composite round-trips.
 
 ### Recently Completed (2025-10-18)
 

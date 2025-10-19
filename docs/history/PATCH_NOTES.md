@@ -1,5 +1,18 @@
 # Patch Notes
 
+## 2025-10-19 (Manifest export gains wide/composite options) (16:50 EDT / 20:50 UTC)
+
+- Added an export options dialog in `app/main.py` so you can choose between the
+  standard provenance bundle, a wide paired-column CSV, and a composite-mean
+  CSV before saving.
+- Extended `ProvenanceService` with helpers to generate the new CSV formats and
+  taught `CsvImporter` to recognise the `spectra-wide-v1` layout comments.
+- Documented the workflow in `docs/user/plot_tools.md` and `docs/user/importing.md`,
+  highlighting that wide/composite exports re-import cleanly.
+- Expanded the provenance and importer test suites to cover wide/composite
+  round-trips, and patched the export visibility regression test to honour the
+  new dialog.
+
 ## 2025-10-19 (Export respects visibility state) (14:28 EDT / 18:28 UTC)
 
 - Updated `app/main.py::export_manifest` so provenance bundles include only datasets marked visible in the workspace, preventing hidden traces and background samples from polluting merged exports.
