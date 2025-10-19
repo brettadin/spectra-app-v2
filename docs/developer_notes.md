@@ -33,8 +33,8 @@
 - `app/main.py` composes the services. Widgets can subscribe to overlay updates by calling `refresh_overlay()` after making service changes. When adding new tabs, reuse `OverlayService` views and update selectors to keep keyboard navigation consistent.
 
 ## Cache & Library
-- `LocalStore` persists every ingest; the Library dock (tabified with Datasets)
-  queries it via `LocalStore.list_entries()` so operators can reload cached
+- `LocalStore` persists every ingest; the Library tab inside the Data dock
+   queries it via `LocalStore.list_entries()` so operators can reload cached
   spectra. When you extend ingest logic, refresh the Library view and avoid
   logging raw file paths in the knowledge log—keep that file for high-level
   insights.

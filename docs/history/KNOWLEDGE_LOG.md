@@ -28,6 +28,24 @@ Each entry in this document should follow this structure:
 
 ---
 
+## 2025-10-19 18:46 – Data dock consolidation
+
+**Author**: agent
+
+**Context**: Workspace layout ergonomics and cache inspection UX.
+
+**Summary**: Merged the Datasets dock and Library dock into a single Data dock
+with tabbed navigation, rebuilt the library tab so it disables cleanly when the
+persistent cache is off, and refreshed the user/developer guides plus workplan
+to document the layout change. Confirmed the Qt regression suite remains green
+after the refactor.
+
+**References**: `app/main.py`, `docs/user/importing.md`, `docs/user/remote_data.md`,
+`docs/user/plot_tools.md`, `docs/link_collection.md`, `docs/developer_notes.md`,
+`docs/reviews/workplan.md`, `docs/history/PATCH_NOTES.md`.
+
+---
+
 ## 2025-10-19 17:46 (America/New_York) / 21:46 (UTC) – Dataset dock filtering
 
 **Author**: agent
@@ -653,90 +671,5 @@ Import/Remote Import entries remain after the cleanup.
 - `tests/test_knowledge_log_service.py`
 - `docs/history/PATCH_NOTES.md`
 - `docs/reviews/workplan.md`
-
----
-## 2025-10-19 18:29 – Overlay
-
-**Author**: automation
-
-**Context**: Spectra Desktop Session
-
-**Summary**: Enabled reference overlay(s).
-
-**References**:
-- reference::nist::h
-- {'source_type': 'reference', 'archive': 'NIST ASD', 'label': 'H I (NIST ASD)', 'element_symbol': 'H', 'element_name': 'Hydrogen', 'atomic_number': 1, 'ion_stage': 'I', 'ion_stage_number': 1, 'query': {'linename': 'H I', 'identifier': 'H', 'lower_wavelength': 380.0, 'upper_wavelength': 750.0, 'wavelength_unit': 'nm', 'wavelength_type': 'vacuum', 'use_ritz': True}, 'fetched_at_utc': '2025-10-19T22:29:23.901704+00:00', 'citation': 'Kramida, A. et al. (NIST ASD), https://physics.nist.gov/asd', 'retrieved_via': 'astroquery.nist'}
-
----
-## 2025-10-19 18:30 – Overlay
-
-**Author**: automation
-
-**Context**: Spectra Desktop Session
-
-**Summary**: Enabled reference overlay(s).
-
-**References**:
-- reference::ir_groups
-
----
-## 2025-10-19 18:33 – Overlay
-
-**Author**: automation
-
-**Context**: Spectra Desktop Session
-
-**Summary**: Reference overlay cleared.
-
-**References**:
-- reference::ir_groups
-
----
-## 2025-10-19 18:33 – Overlay
-
-**Author**: automation
-
-**Context**: Spectra Desktop Session
-
-**Summary**: Enabled reference overlay(s).
-
-**References**:
-- reference::ir_groups
-
----
-## 2025-10-19 18:34 – Overlay
-
-**Author**: automation
-
-**Context**: Spectra Desktop Session
-
-**Summary**: Enabled reference overlay(s).
-
-**References**:
-- reference::ir_groups
-
----
-## 2025-10-19 18:34 – Overlay
-
-**Author**: automation
-
-**Context**: Spectra Desktop Session
-
-**Summary**: Reference overlay cleared.
-
-**References**:
-- reference::ir_groups
-
----
-## 2025-10-19 18:34 – Overlay
-
-**Author**: automation
-
-**Context**: Spectra Desktop Session
-
-**Summary**: Enabled reference overlay(s).
-
-**References**:
-- reference::ir_groups
 
 ---

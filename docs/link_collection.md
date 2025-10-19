@@ -2,7 +2,8 @@
 
 This index gathers the remote catalogues, laboratory references, and instrument
 handbooks that underpin Spectra’s analysis workflows. Use it alongside the
-Inspector’s **Reference** tab, the **Remote Data** dialog, and the Library dock
+Inspector’s **Reference** tab, the **Remote Data** dialog, and the Library tab
+within the **Data** dock
 to keep imported datasets focused on calibrated spectroscopic products. Every
 entry lists the primary URL plus integration notes so future agents can wire the
 resource into build scripts or documentation updates quickly.

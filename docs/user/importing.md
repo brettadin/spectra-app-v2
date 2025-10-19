@@ -51,7 +51,7 @@ Imported spectra always appear in canonical units inside the application. Use
 
 ### Browsing cached files
 
-Open the **Library** dock (tabified with the Datasets pane) to inspect cached
+Open the **Data** dock and switch to the **Library** tab to inspect cached
 uploads. Each row lists the stored alias, units, timestamp, provider/importer,
 and checksum. Selecting a row now fills the metadata preview beneath the table
 with the entry’s provenance, canonical units, byte size, and storage location,

@@ -1,5 +1,16 @@
 # Patch Notes
 
+## 2025-10-19 (Data dock consolidation) (18:46 EDT / 22:46 UTC)
+
+- Replaced the standalone Library dock with a tab inside the Data dock so
+  cached spectra sit alongside the Datasets tree, rebuilding the tab on
+  persistence toggles and adding a disabled placeholder when the cache is off.
+- Updated `docs/user/importing.md`, `docs/user/remote_data.md`,
+  `docs/user/plot_tools.md`, `docs/link_collection.md`, and
+  `docs/developer_notes.md` to describe the new layout, and refreshed the
+  workplan entry tracking datasets/library organisation.
+- Kept Qt coverage green by running `pytest` after the refactor.
+
 ## 2025-10-19 (Manifest export gains wide/composite options) (16:50 EDT / 20:50 UTC)
 
 - Added an export options dialog in `app/main.py` so you can choose between the

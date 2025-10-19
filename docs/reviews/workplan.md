@@ -15,7 +15,8 @@ This document tracks feature batches, validation status, and outstanding backlog
       actions for opening manifests/logs/re-exporting the current state.
 - [ ] Reorganise datasets/library presentation so cached entries, sample data,
       and user ingests are categorised by instrument/type with working search
-      (dataset dock filter landed 2025-10-19; grouping backlog remains).
+      (Data dock consolidation + filter landed 2025-10-19; grouping backlog
+      remains).
 - [ ] Validate remote catalogue UX: expand the provider roster beyond MAST once
       dependency checks stabilise and new spectroscopy sources are vetted.
 - [ ] Refresh START_HERE, MASTER PROMPT, AGENTS, and brains documentation so
@@ -41,6 +42,10 @@ This document tracks feature batches, validation status, and outstanding backlog
 - [x] Added a dataset-dock filter for large sessions, updated plot tools/user
       onboarding docs with cross-platform timestamp guidance, and recorded the
       workflow in patch notes and the knowledge log.
+- [x] Consolidated the Datasets and Library views into a single Data dock with
+      tabbed navigation, rebuilt the library tab so it disables cleanly when
+      persistence is off, updated user/developer guides, and extended Qt
+      coverage for the reorganised layout.
 
 ### Recently Completed (2025-10-18)
 

@@ -74,18 +74,17 @@ Behind the scenes the application:
 Imported spectra appear in the dataset tree immediately. They behave exactly
 like manual imports: overlays update, the data table refreshes, and the history
 dock records a "Remote Import" entry noting the provider. File-level metadata
-now lives in the Library dock so the consolidated knowledge log stays focused
-on high-level insights.
+now lives in the Library tab inside the Data dock so the consolidated knowledge
+log stays focused on high-level insights.
 
 ### Working with cached downloads
 
-The **Library** dock (tabified with the Datasets view) lists every cached
-artefact recorded by `LocalStore`. Use the filter box to search by alias,
-provider, or units. Double-clicking an entry re-ingests the stored file without
-touching the original download location—handy when reviewing spectra offline or
-comparing multiple normalisations. The table mirrors cache metadata (provider,
-checksum, timestamps) so you can audit provenance without sifting through raw
-log entries.
+The **Library** tab in the **Data** dock lists every cached artefact recorded by
+`LocalStore`. Use the filter box to search by alias, provider, or units.
+Double-clicking an entry re-ingests the stored file without touching the
+original download location—handy when reviewing spectra offline or comparing
+multiple normalisations. The table mirrors cache metadata (provider, checksum,
+timestamps) so you can audit provenance without sifting through raw log entries.
 
 ## Offline behaviour and caching
 

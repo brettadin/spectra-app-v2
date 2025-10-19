@@ -7,6 +7,7 @@ import io
 import hashlib
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
+import csv
 import json
 import tempfile
 from pathlib import Path
@@ -168,49 +169,18 @@ class RemoteDataService:
         if not identifier:
             raise ValueError("NIST searches require an element or spectrum identifier.")
 
-        def _normalise_token(value: Any) -> Any:
-            if isinstance(value, str):
-                stripped = value.strip()
-                return stripped or None
-            return value
-
-        def _normalise_float(value: Any) -> float | None:
-            if value is None:
-                return None
-            try:
-                return float(value)
-            except (TypeError, ValueError):
-                return None
-
-        element = _normalise_token(query.get("element"))
-        ion_stage = _normalise_token(query.get("ion_stage"))
-        lower = _normalise_float(query.get("wavelength_min"))
-        upper = _normalise_float(query.get("wavelength_max"))
-        wavelength_unit = str(query.get("wavelength_unit") or "nm")
-        wavelength_type = str(query.get("wavelength_type") or "vacuum")
-        use_ritz = bool(query.get("use_ritz", True))
-
-        query_signature = {
-            "identifier": identifier,
-            "element": element,
-            "ion_stage": ion_stage,
-            "lower_wavelength": lower,
-            "upper_wavelength": upper,
-            "wavelength_unit": wavelength_unit,
-            "wavelength_type": wavelength_type,
-            "use_ritz": use_ritz,
-        }
-
+        lower = query.get("wavelength_min")
+        upper = query.get("wavelength_max")
         try:
             payload = nist_asd_service.fetch_lines(
                 identifier,
-                element=element,
-                ion_stage=ion_stage,
-                lower_wavelength=lower,
-                upper_wavelength=upper,
-                wavelength_unit=wavelength_unit,
-                use_ritz=use_ritz,
-                wavelength_type=wavelength_type,
+                element=query.get("element"),
+                ion_stage=query.get("ion_stage"),
+                lower_wavelength=float(lower) if lower is not None else None,
+                upper_wavelength=float(upper) if upper is not None else None,
+                wavelength_unit=str(query.get("wavelength_unit") or "nm"),
+                use_ritz=bool(query.get("use_ritz", True)),
+                wavelength_type=str(query.get("wavelength_type") or "vacuum"),
             )
         except (nist_asd_service.NistUnavailableError, nist_asd_service.NistQueryError) as exc:
             raise RuntimeError(str(exc)) from exc
@@ -226,20 +196,16 @@ class RemoteDataService:
             "intensity_normalized", []
         )
         meta["lines"] = lines
-        meta["query"] = query_signature
 
         label = meta.get("label") or identifier
         line_count = len(lines)
         title = f"{label} — {line_count} line{'s' if line_count != 1 else ''}"
-        download_token = (
-            label.replace(" ", "_").replace("/", "_").replace(":", "_")
-        )
-        download_uri = self._build_nist_cache_uri(download_token, query_signature)
+        download_token = label.replace(" ", "_")
         record = RemoteRecord(
             provider=self.PROVIDER_NIST,
             identifier=label,
             title=title,
-            download_url=download_uri,
+            download_url=f"nist-asd:{download_token}",
             metadata=meta,
             units={"x": "nm", "y": "relative_intensity"},
         )

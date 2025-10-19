@@ -126,12 +126,13 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
 
         self._plot_max_points = self._load_plot_max_points()
         self.dataset_filter: QtWidgets.QLineEdit | None = None
-        self.library_dock: QtWidgets.QDockWidget | None = None
+        self.data_tabs: QtWidgets.QTabWidget | None = None
         self.library_list: QtWidgets.QTreeWidget | None = None
         self.library_search: QtWidgets.QLineEdit | None = None
         self.library_detail: QtWidgets.QPlainTextEdit | None = None
         self.library_hint: QtWidgets.QLabel | None = None
         self._library_entries: Dict[str, Mapping[str, Any]] = {}
+        self._library_tab_index: int | None = None
         self._use_uniform_palette = False
         self._uniform_color = QtGui.QColor("#4F6D7A")
 
@@ -229,15 +230,11 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         settings.setValue("persistence/disabled", self._persistence_disabled)
         if self._persistence_disabled:
             self.store = None
-            if self.library_dock is not None:
-                self.library_dock.setWindowTitle("Library (disabled)")
             if self.library_list is not None:
                 self.library_list.clear()
                 self.library_list.setDisabled(True)
         else:
             self.store = LocalStore()
-            if self.library_dock is not None:
-                self.library_dock.setWindowTitle("Library")
             if self.library_list is not None:
                 self.library_list.setDisabled(False)
         self.ingest_service.store = self.store
@@ -247,7 +244,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             else:
                 temp_remote = LocalStore(base_dir=Path(tempfile.mkdtemp(prefix="spectra-remote-")))
                 self.remote_data_service.store = temp_remote
-        self._refresh_library_view()
+        self._build_library_tab()
 
     def _setup_ui(self) -> None:
         self.central_split = QtWidgets.QSplitter(self)
@@ -274,7 +271,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.central_split.setStretchFactor(0, 4)
         self.central_split.setStretchFactor(1, 3)
 
-        self.dataset_dock = QtWidgets.QDockWidget("Datasets", self)
+        self.dataset_dock = QtWidgets.QDockWidget("Data", self)
         self.dataset_dock.setObjectName("dock-datasets")
         self.dataset_dock.setAllowedAreas(
             QtCore.Qt.DockWidgetArea.LeftDockWidgetArea | QtCore.Qt.DockWidgetArea.RightDockWidgetArea
@@ -305,10 +302,14 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.dataset_tree.selectionModel().selectionChanged.connect(self._on_dataset_selection_changed)
         self.dataset_model.dataChanged.connect(self._on_dataset_data_changed)
         dataset_layout.addWidget(self.dataset_tree, 1)
-        self.dataset_dock.setWidget(dataset_container)
+
+        self.data_tabs = QtWidgets.QTabWidget()
+        self.data_tabs.setObjectName("data-tabs")
+        self.data_tabs.addTab(dataset_container, "Datasets")
+        self.dataset_dock.setWidget(self.data_tabs)
         self.addDockWidget(QtCore.Qt.DockWidgetArea.LeftDockWidgetArea, self.dataset_dock)
 
-        self._build_library_dock()
+        self._build_library_tab()
 
         self._build_history_dock()
 
@@ -338,15 +339,38 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         # have been initialised so that the initial selection can log status safely.
         self._load_documentation_index()
 
-    def _build_library_dock(self) -> None:
-        if self.store is None:
-            self.library_dock = None
-            self.library_list = None
-            self.library_search = None
+    def _build_library_tab(self) -> None:
+        if self.data_tabs is None:
             return
 
-        dock = QtWidgets.QDockWidget("Library", self)
-        dock.setObjectName("dock-library")
+        if self._library_tab_index is not None:
+            widget = self.data_tabs.widget(self._library_tab_index)
+            if widget is not None:
+                widget.deleteLater()
+            self.data_tabs.removeTab(self._library_tab_index)
+            self._library_tab_index = None
+
+        if self.store is None:
+            placeholder = QtWidgets.QWidget()
+            layout = QtWidgets.QVBoxLayout(placeholder)
+            layout.setContentsMargins(12, 12, 12, 12)
+            layout.setSpacing(6)
+            message = QtWidgets.QLabel(
+                "Enable the persistent cache to browse previously imported or downloaded spectra."
+            )
+            message.setWordWrap(True)
+            layout.addWidget(message, alignment=QtCore.Qt.AlignmentFlag.AlignTop)
+            self.library_list = None
+            self.library_search = None
+            self.library_detail = None
+            self.library_hint = message
+            self._library_tab_index = self.data_tabs.addTab(placeholder, "Library")
+            self.data_tabs.setTabToolTip(
+                self._library_tab_index,
+                "Persistent cache disabled; toggle persistence to enable the Library.",
+            )
+            return
+
         container = QtWidgets.QWidget()
         layout = QtWidgets.QVBoxLayout(container)
         layout.setContentsMargins(6, 6, 6, 6)
@@ -387,12 +411,16 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.library_hint.setWordWrap(True)
         layout.addWidget(self.library_hint)
 
-        dock.setWidget(container)
-        self.addDockWidget(QtCore.Qt.DockWidgetArea.LeftDockWidgetArea, dock)
-        self.tabifyDockWidget(self.dataset_dock, dock)
-        dock.raise_()
-
-        self.library_dock = dock
+        self._library_tab_index = self.data_tabs.addTab(container, "Library")
+        self.data_tabs.setTabToolTip(
+            self._library_tab_index,
+            "Inspect cached spectra; double-click a row to re-ingest it into the workspace.",
+        )
+        self.data_tabs.tabBar().setTabButton(
+            self._library_tab_index,
+            QtWidgets.QTabBar.ButtonPosition.RightSide,
+            None,
+        )
         self._refresh_library_view()
 
     def _on_library_filter_changed(self) -> None:

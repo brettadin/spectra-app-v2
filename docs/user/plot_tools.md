@@ -17,7 +17,7 @@ The Spectra plot pane is powered by PyQtGraph and optimised for working with lar
 
 ### Filtering large sessions
 
-When dozens of spectra are loaded, use the search field at the top of the **Datasets** dock to filter aliases in real time. The filter is case-insensitive and hides non-matching entries within the **Originals** and **Derived** groups without unloading the underlying data. Clearing the search box restores the full list instantly, so you can narrow in on a family of traces, adjust visibility, and then return to the complete session.
+When dozens of spectra are loaded, use the search field at the top of the **Datasets** tab inside the **Data** dock to filter aliases in real time. The filter is case-insensitive and hides non-matching entries within the **Originals** and **Derived** groups without unloading the underlying data. Clearing the search box restores the full list instantly, so you can narrow in on a family of traces, adjust visibility, and then return to the complete session.
 
 ## Reading the status bar and inspector
 
@@ -27,9 +27,9 @@ The **Cursor** toolbar toggle controls whether the crosshair guides are visible.
 
 ## Legend & trace management
 
-Every trace that remains visible has a matching entry in the floating legend anchored to the top-left corner of the plot. Rename a dataset from the Inspector's alias field to update the legend label in real time. To declutter dense overlays, uncheck the visibility toggle in the Datasets dock—the trace disappears from the canvas and the legend until you re-enable it.
+Every trace that remains visible has a matching entry in the floating legend anchored to the top-left corner of the plot. Rename a dataset from the Inspector's alias field to update the legend label in real time. To declutter dense overlays, uncheck the visibility toggle in the Data dock’s Datasets tab—the trace disappears from the canvas and the legend until you re-enable it.
 
-> **Remote catalogue tip**: Imports triggered from **File → Fetch Remote Data…** behave just like local files. The spectra land in the Datasets dock with their remote provenance already cached, so you can toggle overlays, rename aliases, and compute ratios without any manual copying.
+> **Remote catalogue tip**: Imports triggered from **File → Fetch Remote Data…** behave just like local files. The spectra land in the Data dock’s Datasets tab with their remote provenance already cached, so you can toggle overlays, rename aliases, and compute ratios without any manual copying.
 
 ## Normalisation toolbar modes
 
@@ -53,7 +53,7 @@ with a *Trace colouring* combo box:
 - **Uniform (single colour)** renders every dataset in a consistent hue when you need to evaluate absolute alignment without
   colour-coding.
 
-Switching modes updates both the plot and the Datasets dock icons immediately without mutating provenance metadata. Rename traces
+Switching modes updates both the plot and the Data dock icons immediately without mutating provenance metadata. Rename traces
 or toggle visibility as usual—returning to the palette restores each spectrum’s original colour assignment.
 
 ## Overlay alignment and troubleshooting
