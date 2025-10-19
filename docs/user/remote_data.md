@@ -92,7 +92,10 @@ Every download is associated with its remote URI. If you request the same file
 again the dialog reuses the cached copy instead of issuing another network
 request. This makes it safe to build collections during limited connectivity:
 the cache stores the raw download alongside canonical units so future sessions
-can ingest the files instantly.
+can ingest the files instantly. NIST line lists now embed the full query
+parameters (element, ion stage, wavelength bounds, Ritz preference) in their
+pseudo URI, so distinct searches produce unique cache entries instead of
+colliding on a shared label.
 
 If persistent caching is disabled in **File → Enable Persistent Cache**, remote
 fetches are stored in a temporary data directory for the current session. The

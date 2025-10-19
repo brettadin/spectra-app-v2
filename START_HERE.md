@@ -34,7 +34,10 @@ RunSpectraApp.cmd
 # Manual setup
 py -3.11 -m venv .venv
 .\.venv\Scripts\activate
-pip install -r requirements.txt
+pip install -r requirements.txt  # includes requests/astroquery for remote catalogues
+
+# Poetry workflow (installs the same remote extras)
+poetry install --with remote
 ```
 
 ### 2. Verify Installation
@@ -78,6 +81,20 @@ Follow the **RUNNER_PROMPT** workflow for each development session:
 3. **Test** - Run pytest suite and verify functionality
 4. **Document** - Update all relevant documentation
 5. **Review** - Self-review against acceptance criteria
+
+### Recording Real Timestamps
+- Always capture America/New_York and UTC timestamps in ISO-8601 format when
+  updating patch notes, the knowledge log, brains entries, or the workplan.
+- Follow the platform-specific commands in `AGENTS.md` and the MASTER PROMPT to
+  emit both strings in a single pass:
+  - **Windows (PowerShell 5.1+/pwsh)** captures UTC with `Get-Date -AsUTC`,
+    converts it through `System.TimeZoneInfo` to Eastern Time, and prints both
+    values via `.ToString("o")`.
+  - **macOS/Linux shells** run `TZ=America/New_York date --iso-8601=seconds`
+    followed by `date -u --iso-8601=seconds`; macOS users may need `gdate` from
+    Homebrew coreutils.
+  - **WSL users** can invoke `wsl.exe bash -lc 'TZ=America/New_York date --iso-8601=seconds && date -u --iso-8601=seconds'`
+    from Windows terminals without leaving the host environment.
 
 ### Phase 3: Quality Assurance
 - **Run Full Test Suite**: `pytest -v`
@@ -154,24 +171,24 @@ Brief description of the feature or fix being implemented.
 ## 🔍 Exploring Further
 
 ### For UI Development
-- Review `specs/ui_contract/` for component specifications
+- Review `specs/ui_contract.md` for component specifications
 - Study existing UI patterns in `app/ui/`
-- Verify against the UI contract in `agents.md`
+- Verify against the UI contract in `AGENTS.md`
 
 ### For Data Processing
 - Examine `app/services/` for ingestion and analysis services
-- Review unit conversion patterns in `app/services/units/`
-- Study provenance tracking in `app/services/provenance/`
+- Review unit conversion patterns in `app/services/units_service.py`
+- Study provenance tracking in `app/services/provenance_service.py`
 
 ### For Testing
 - Explore existing tests in `tests/` for patterns
-- Check `specs/testing/` for testing strategy
+- Check `specs/testing.md` for testing strategy
 - Verify performance with large datasets in `tests/performance/`
 
 ## 🆘 Getting Help
 
 - **Documentation**: Check `docs/` directory first
-- **AI Logs**: Review `docs/ai_log/` for similar past work
+- **Knowledge Log**: Review `docs/history/KNOWLEDGE_LOG.md` for similar past work
 - **Technical Specs**: Consult `specs/` for architecture decisions
 - **Test Suite**: Use tests as living documentation
 
