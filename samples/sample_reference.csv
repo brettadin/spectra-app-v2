@@ -1,7 +1,0 @@
-# Reference spectrum with transmittance
-wavelength(nm),intensity(%T)
-400,60
-500,65
-600,70
-700,75
-800,80
