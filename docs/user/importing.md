@@ -130,7 +130,7 @@ bundle contains:
 - `manifest.json` — human-readable metadata describing the session, import
   source, applied unit conversions, and any math operations performed.
 - `spectra/` — canonicalised arrays in CSV format (`wavelength_nm`,
-  `intensity`) for each trace present in the workspace at export time.
+  `intensity`) for each trace that remains visible in the workspace at export time.
 - `sources/` — verbatim copies of the original uploads alongside their SHA256
   hashes so you can independently verify integrity.
 - `log.txt` — a chronological history of ingest, analysis, and export actions

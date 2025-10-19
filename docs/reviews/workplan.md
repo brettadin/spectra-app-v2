@@ -29,6 +29,8 @@ This document tracks feature batches, validation status, and outstanding backlog
 - [x] Added pinned NIST spectral-line sets with palette controls so multiple queries persist on the inspector plot, removed the
       redundant NIST option from the Remote Data dialog, taught the overlay toggle to project all pinned sets simultaneously,
       and updated documentation/tests to steer line-list retrieval through the Reference tab.
+- [x] Filtered provenance exports to the datasets left visible in the workspace, refreshed user documentation to explain the
+      behaviour, and added a Qt regression that patches the save dialog to verify hidden traces are excluded.
 
 ### Recently Completed (2025-10-18)
 

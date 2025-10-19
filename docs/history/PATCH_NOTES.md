@@ -1,5 +1,11 @@
 # Patch Notes
 
+## 2025-10-19 (Export respects visibility state) (14:28 EDT / 18:28 UTC)
+
+- Updated `app/main.py::export_manifest` so provenance bundles include only datasets marked visible in the workspace, preventing hidden traces and background samples from polluting merged exports.
+- Documented the behaviour shift in `docs/user/plot_tools.md` and `docs/user/importing.md`, clarifying that hidden traces stay out of the `spectra/` directory while visible series continue to export at full resolution.
+- Added `tests/test_export_visibility.py::test_export_skips_hidden_spectra` to exercise the UI path with patched dialogs, ensuring only visible IDs reach the provenance service.
+
 ## 2025-10-18 (NIST ASD astroquery integration) (20:35 EDT / 00:35 UTC)
 
 - Replaced the NIST remote search implementation with the astroquery-backed

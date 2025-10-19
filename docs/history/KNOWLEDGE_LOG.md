@@ -28,6 +28,18 @@ Each entry in this document should follow this structure:
 
 ---
 
+## 2025-10-19 14:28 EDT / 18:28 UTC – Export Manifest Visibility Filter
+
+**Author**: agent
+
+**Context**: Provenance export workflow and dataset visibility state.
+
+**Summary**: Ensured manifest bundles only include traces that remain visible in the workspace by filtering `export_manifest` against the dataset visibility map. Updated the user guides to clarify that hidden spectra stay out of the `spectra/` directory and added a Qt regression test (`tests/test_export_visibility.py`) that stubs the file dialog to confirm the filtered list is passed to the provenance service.
+
+**References**: `app/main.py`, `docs/user/plot_tools.md`, `docs/user/importing.md`, `tests/test_export_visibility.py`, `docs/history/PATCH_NOTES.md`.
+
+---
+
 ## 2025-10-19 14:09 – NIST overlay multi-pin
 
 **Author**: agent

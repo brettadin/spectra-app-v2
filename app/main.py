@@ -960,8 +960,25 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             self.plot.end_bulk_update()
 
     def export_manifest(self) -> None:
-        if not self.overlay_service.list():
-            QtWidgets.QMessageBox.information(self, "No Data", "Load spectra before exporting provenance.")
+        spectra_to_export = [
+            spectrum
+            for spectrum in self.overlay_service.list()
+            if self._visibility.get(spectrum.id, True)
+        ]
+
+        if not spectra_to_export:
+            if self.overlay_service.list():
+                QtWidgets.QMessageBox.information(
+                    self,
+                    "No Visible Data",
+                    "Set at least one dataset to visible before exporting.",
+                )
+            else:
+                QtWidgets.QMessageBox.information(
+                    self,
+                    "No Data",
+                    "Load spectra before exporting provenance.",
+                )
             return
         save_path, _ = QtWidgets.QFileDialog.getSaveFileName(
             self,
@@ -973,7 +990,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             manifest_path = Path(save_path)
             try:
                 export = self.provenance_service.export_bundle(
-                    self.overlay_service.list(),
+                    spectra_to_export,
                     manifest_path,
                     png_writer=self.plot.export_png,
                 )
@@ -987,7 +1004,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             self._log("Export", f"Plot snapshot saved to {export['png_path']}")
             self._record_history_event(
                 "Export",
-                f"Exported manifest bundle with {len(self.overlay_service.list())} spectra to {export['manifest_path']}",
+                f"Exported manifest bundle with {len(spectra_to_export)} visible spectra to {export['manifest_path']}",
                 [
                     str(export["manifest_path"]),
                     str(export["csv_path"]),
