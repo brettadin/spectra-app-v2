@@ -28,23 +28,18 @@ Each entry in this document should follow this structure:
 
 ---
 
-## 2025-10-19 17:31 – Remote Data cache
+## 2025-10-19 21:47 – NIST cache URI normalisation
 
 **Author**: agent
 
-**Context**: Remote catalogue caching for NIST ASD line-list queries.
+**Context**: Remote line-list caching and provenance integrity.
 
-**Summary**: Incorporated wavelength bounds, unit, wavelength type, and Ritz
-preference into the synthetic `nist-asd:` download URI so cached CSVs stay tied
-to the exact query parameters. Documented the behaviour in the remote data guide
-and noted the fix in the workplan and patch notes to preserve provenance.
-(UTC 21:31)
+**Summary**: Normalised NIST spectral line queries so their pseudo URIs encode the element, ion stage, wavelength bounds, and Ritz preference. This prevents `LocalStore` cache collisions when operators fetch multiple ranges for the same species. Expanded the remote-data unit tests to cover the new URI format and updated the remote data guide to describe the behaviour.
 
-**References**:
-- `app/services/remote_data_service.py`
-- `docs/user/remote_data.md`
-- `docs/reviews/workplan.md`
-- `docs/history/PATCH_NOTES.md`
+**References**: `app/services/remote_data_service.py`, `tests/test_remote_data_service.py`, `docs/user/remote_data.md`.
+
+---
+
 ## 2025-10-19 16:50 – Export bundle variants
 
 **Author**: agent
@@ -647,41 +642,5 @@ Import/Remote Import entries remain after the cleanup.
 - `tests/test_knowledge_log_service.py`
 - `docs/history/PATCH_NOTES.md`
 - `docs/reviews/workplan.md`
-
----
-## 2025-10-19 17:10 – Export
-
-**Author**: automation
-
-**Context**: Spectra Desktop Session
-
-**Summary**: Exported 7 visible spectra
-
-**References**:
-- C:\Code\spectra-app-beta\exports\merge test 1_wide.csv
-
----
-## 2025-10-19 17:10 – Export
-
-**Author**: automation
-
-**Context**: Spectra Desktop Session
-
-**Summary**: Exported 7 visible spectra
-
-**References**:
-- C:\Code\spectra-app-beta\exports\spectra_composite.csv
-
----
-## 2025-10-19 17:16 – Export
-
-**Author**: automation
-
-**Context**: Spectra Desktop Session
-
-**Summary**: Exported 4 visible spectra
-
-**References**:
-- C:\Code\spectra-app-beta\exports\spectra_composite.csv
 
 ---

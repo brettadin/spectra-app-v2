@@ -1,13 +1,5 @@
 # Patch Notes
 
-## 2025-10-19 (NIST query cache signatures) (17:31 EDT / 21:31 UTC)
-
-- Updated the remote data service so synthetic `nist-asd:` URIs include the
-  queried wavelength bounds, units, wavelength type, and Ritz preference. This
-  prevents cached CSVs from being reused across distinct element/ion windows and
-  keeps downloads aligned with the requested range.
-- Documented the cache-key behaviour in the remote data guide and recorded the
-  change across the workplan and knowledge log for provenance.
 ## 2025-10-19 (Manifest export gains wide/composite options) (16:50 EDT / 20:50 UTC)
 
 - Added an export options dialog in `app/main.py` so you can choose between the
@@ -340,6 +332,12 @@
 - Extended the regression suite to ensure multi-set overlays populate and remain addressable via the Inspector toggle.
 - Documented the behaviour shift in `docs/user/reference_data.md` so operators understand how the overlay toggle now affects
   all pinned line sets simultaneously.
+
+## 2025-10-19 (NIST cache isolation) (5:47 pm EDT)
+
+- Updated `RemoteDataService` to embed NIST query parameters in pseudo URIs so cache lookups no longer collide when wavelength ranges or ion stages differ.
+- Extended the remote-data unit tests to cover the new URI format and ensure unique entries per query.
+- Documented the behaviour in `docs/user/remote_data.md` so operators know that distinct line searches persist independently in the cache.
 
 ## 2025-10-15 (Importing Guide Provenance Appendix) (9:10 am)
 

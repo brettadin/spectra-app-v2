@@ -2306,25 +2306,17 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             QtWidgets.QMessageBox.critical(self, "Query failed", str(exc))
             return
 
-        self._reference_overlay_payload = overlay_payload
-        x_nm = overlay_payload.get("x_nm") if overlay_payload else None
-        if x_nm is None:
-            has_overlay_points = False
-        else:
-            size = getattr(x_nm, "size", None)
-            if size is not None:
-                has_overlay_points = size > 0
-            else:
-                has_overlay_points = len(x_nm) > 0
-        has_overlay = overlay_payload is not None and has_overlay_points
-        self.reference_overlay_toggle.setEnabled(has_overlay)
-        if not has_overlay:
-            if self.reference_overlay_toggle.isChecked():
-                self.reference_overlay_toggle.blockSignals(True)
-                self.reference_overlay_toggle.setChecked(False)
-                self.reference_overlay_toggle.blockSignals(False)
-            self._remove_reference_overlay()
-        self._update_reference_overlay()
+        self._register_nist_payload(payload)
+        self.reference_overlay_checkbox.blockSignals(True)
+        self.reference_overlay_checkbox.setChecked(False)
+        self.reference_overlay_checkbox.blockSignals(False)
+        meta = payload.get("meta", {})
+        line_count = meta.get("line_count") or len(payload.get("lines", []))
+        self.reference_status_label.setText(
+            f"Fetched {line_count} spectral line(s) from NIST ASD."
+        )
+        self._log("Reference", f"NIST ASD → {meta.get('label', element)}")
+        self._refresh_reference_view()
 
     def _filter_reference_entries(
         self, entries: List[Mapping[str, Any]], query: str
