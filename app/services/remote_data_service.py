@@ -170,16 +170,22 @@ class RemoteDataService:
 
         lower = query.get("wavelength_min")
         upper = query.get("wavelength_max")
+        lower_wavelength = float(lower) if lower is not None else None
+        upper_wavelength = float(upper) if upper is not None else None
+        wavelength_unit = str(query.get("wavelength_unit") or "nm")
+        use_ritz = bool(query.get("use_ritz", True))
+        wavelength_type = str(query.get("wavelength_type") or "vacuum")
+
         try:
             payload = nist_asd_service.fetch_lines(
                 identifier,
                 element=query.get("element"),
                 ion_stage=query.get("ion_stage"),
-                lower_wavelength=float(lower) if lower is not None else None,
-                upper_wavelength=float(upper) if upper is not None else None,
-                wavelength_unit=str(query.get("wavelength_unit") or "nm"),
-                use_ritz=bool(query.get("use_ritz", True)),
-                wavelength_type=str(query.get("wavelength_type") or "vacuum"),
+                lower_wavelength=lower_wavelength,
+                upper_wavelength=upper_wavelength,
+                wavelength_unit=wavelength_unit,
+                use_ritz=use_ritz,
+                wavelength_type=wavelength_type,
             )
         except (nist_asd_service.NistUnavailableError, nist_asd_service.NistQueryError) as exc:
             raise RuntimeError(str(exc)) from exc
@@ -200,15 +206,47 @@ class RemoteDataService:
         line_count = len(lines)
         title = f"{label} — {line_count} line{'s' if line_count != 1 else ''}"
         download_token = label.replace(" ", "_")
+        signature = self._normalise_nist_signature(
+            {
+                "identifier": identifier,
+                "element": query.get("element"),
+                "ion_stage": query.get("ion_stage"),
+                "lower_wavelength": lower_wavelength,
+                "upper_wavelength": upper_wavelength,
+                "wavelength_unit": wavelength_unit,
+                "use_ritz": use_ritz,
+                "wavelength_type": wavelength_type,
+            }
+        )
+        download_url = f"nist-asd:{download_token}"
+        if signature:
+            download_url = f"{download_url}?{urlencode(sorted(signature.items()))}"
+
         record = RemoteRecord(
             provider=self.PROVIDER_NIST,
             identifier=label,
             title=title,
-            download_url=f"nist-asd:{download_token}",
+            download_url=download_url,
             metadata=meta,
             units={"x": "nm", "y": "relative_intensity"},
         )
         return [record]
+
+    def _normalise_nist_signature(self, params: Mapping[str, Any]) -> Dict[str, str]:
+        normalised: Dict[str, str] = {}
+        for key, value in params.items():
+            if value is None:
+                continue
+            if isinstance(value, float):
+                text = format(value, ".12g")
+                if "." in text:
+                    text = text.rstrip("0").rstrip(".")
+                normalised[key] = text
+            elif isinstance(value, bool):
+                normalised[key] = "true" if value else "false"
+            else:
+                normalised[key] = str(value)
+        return normalised
 
     def _search_mast(
         self,

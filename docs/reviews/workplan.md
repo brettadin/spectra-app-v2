@@ -31,6 +31,8 @@ This document tracks feature batches, validation status, and outstanding backlog
       and updated documentation/tests to steer line-list retrieval through the Reference tab.
 - [x] Filtered provenance exports to the datasets left visible in the workspace, refreshed user documentation to explain the
       behaviour, and added a Qt regression that patches the save dialog to verify hidden traces are excluded.
+- [x] Prevented NIST ASD remote cache collisions by incorporating query parameters into the synthetic download URI and covered
+      the behaviour with a regression test that asserts wavelength bounds change the cached key.
 
 ### Recently Completed (2025-10-18)
 
@@ -56,6 +58,7 @@ This document tracks feature batches, validation status, and outstanding backlog
 
 ### Batch 14 QA Log
 
+- 2025-10-19: ✅ `pytest` (remote cache key regression)
 - 2025-10-19: ✅ `pytest`
 - 2025-10-17: ✅ `pytest`
 
