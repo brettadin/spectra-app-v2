@@ -537,3 +537,66 @@ Import/Remote Import entries remain after the cleanup.
 - `docs/reviews/workplan.md`
 
 ---
+## 2025-10-19 13:56 – Overlay
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Enabled reference overlay reference::nist::h.
+
+**References**:
+- reference::nist::h
+- {'source_type': 'reference', 'archive': 'NIST ASD', 'label': 'H I (NIST ASD)', 'element_symbol': 'H', 'element_name': 'Hydrogen', 'atomic_number': 1, 'ion_stage': 'I', 'ion_stage_number': 1, 'query': {'linename': 'H I', 'identifier': 'H', 'lower_wavelength': 380.0, 'upper_wavelength': 750.0, 'wavelength_unit': 'nm', 'wavelength_type': 'vacuum', 'use_ritz': True}, 'fetched_at_utc': '2025-10-19T17:55:52.648636+00:00', 'citation': 'Kramida, A. et al. (NIST ASD), https://physics.nist.gov/asd', 'retrieved_via': 'astroquery.nist'}
+
+---
+## 2025-10-19 13:56 – Overlay
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Enabled reference overlay reference::nist::he.
+
+**References**:
+- reference::nist::he
+- {'source_type': 'reference', 'archive': 'NIST ASD', 'label': 'He I (NIST ASD)', 'element_symbol': 'He', 'element_name': 'Helium', 'atomic_number': 2, 'ion_stage': 'I', 'ion_stage_number': 1, 'query': {'linename': 'He I', 'identifier': 'He', 'lower_wavelength': 380.0, 'upper_wavelength': 750.0, 'wavelength_unit': 'nm', 'wavelength_type': 'vacuum', 'use_ritz': True}, 'fetched_at_utc': '2025-10-19T17:56:10.961473+00:00', 'citation': 'Kramida, A. et al. (NIST ASD), https://physics.nist.gov/asd', 'retrieved_via': 'astroquery.nist'}
+
+---
+## 2025-10-19 13:57 – Overlay
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Enabled reference overlay reference::nist::ca.
+
+**References**:
+- reference::nist::ca
+- {'source_type': 'reference', 'archive': 'NIST ASD', 'label': 'Ca II (NIST ASD)', 'element_symbol': 'Ca', 'element_name': 'Calcium', 'atomic_number': 20, 'ion_stage': 'II', 'ion_stage_number': 2, 'query': {'linename': 'Ca II', 'identifier': 'Ca', 'lower_wavelength': 380.0, 'upper_wavelength': 750.0, 'wavelength_unit': 'nm', 'wavelength_type': 'vacuum', 'use_ritz': True}, 'fetched_at_utc': '2025-10-19T17:57:42.808828+00:00', 'citation': 'Kramida, A. et al. (NIST ASD), https://physics.nist.gov/asd', 'retrieved_via': 'astroquery.nist'}
+
+---
+## 2025-10-19 13:59 – Overlay
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Enabled reference overlay reference::ir_groups.
+
+**References**:
+- reference::ir_groups
+
+---
+## 2025-10-19 13:59 – Overlay
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Reference overlay cleared.
+
+**References**:
+- reference::ir_groups
+
+---
