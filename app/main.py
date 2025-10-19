@@ -1001,7 +1001,16 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.reference_table.resizeColumnsToContents()
 
         self._reference_overlay_payload = overlay_payload
-        has_overlay = overlay_payload is not None and bool(overlay_payload.get("x_nm"))
+        x_nm = overlay_payload.get("x_nm") if overlay_payload else None
+        if x_nm is None:
+            has_overlay_points = False
+        else:
+            size = getattr(x_nm, "size", None)
+            if size is not None:
+                has_overlay_points = size > 0
+            else:
+                has_overlay_points = len(x_nm) > 0
+        has_overlay = overlay_payload is not None and has_overlay_points
         self.reference_overlay_toggle.setEnabled(has_overlay)
         if not has_overlay:
             if self.reference_overlay_toggle.isChecked():
