@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import csv
+import io
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 import csv
@@ -79,6 +81,7 @@ class RemoteDataService:
     mast_product_fields: Iterable[str] = field(
         default_factory=lambda: ("obsid", "target_name", "productFilename", "dataURI")
     )
+    nist_page_size: int = 100
 
     PROVIDER_NIST = "NIST ASD"
     PROVIDER_MAST = "MAST"
@@ -541,7 +544,10 @@ class RemoteDataService:
         if self.session is not None:
             return self.session
         if requests is None:
-            raise RuntimeError("The 'requests' package is required for remote downloads")
+            raise RuntimeError(
+                "The 'requests' package is required for remote downloads. "
+                "Install it via `pip install -r requirements.txt` or `poetry install --with remote`."
+            )
         self.session = requests.Session()
         return self.session
 
