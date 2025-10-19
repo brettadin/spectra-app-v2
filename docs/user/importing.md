@@ -154,6 +154,13 @@ also ingest the composite CSV directly; the importer detects the standard
 `wavelength_nm,intensity` prefix and ignores the `source_count` bookkeeping
 column when choosing axes.
 
+The top-level CSV now leads with the numeric wavelength/intensity columns and
+records provenance fields (`spectrum_id`, `spectrum_name`, units, point index)
+to the right.  When you re-import this combined CSV the ingest pipeline spots
+the `spectrum_id` column, splits the file into per-trace bundles, and restores
+each spectrum individually—no more merged axis mistakes or manual splitting of
+the export before analysis.
+
 Because the manifest records the units detected during import, round-tripping
 through Ångström, micrometre, or wavenumber views does not alter the stored
 values. When sharing data with collaborators, distribute the entire export
