@@ -11,9 +11,13 @@ The Spectra plot pane is powered by PyQtGraph and optimised for working with lar
 | Wheel zoom | Scroll wheel (focus follows cursor) | Zooms towards the pointer so you can dive into narrow features quickly. |
 | Reset view | Press `Ctrl+Shift+A` or click **View → Reset Plot** | Re-applies auto-range to every visible trace. |
 | Toggle crosshair | Toolbar **Cursor** button | When enabled, the vertical/horizontal guides follow the pointer and update the status bar readout. |
-| Snapshot | **File → Export → Manifest** | Captures a PNG of the current view alongside provenance assets. |
+| Snapshot | **File → Export → Manifest** | Captures provenance assets and any optional CSV variants you enable in the export dialog. |
 
 > **Tip**: The datasets dock includes a visibility checkbox for every trace. Hiding derived overlays before zooming on faint features reduces clutter and keeps the legend focused.
+
+### Filtering large sessions
+
+When dozens of spectra are loaded, use the search field at the top of the **Datasets** dock to filter aliases in real time. The filter is case-insensitive and hides non-matching entries within the **Originals** and **Derived** groups without unloading the underlying data. Clearing the search box restores the full list instantly, so you can narrow in on a family of traces, adjust visibility, and then return to the complete session.
 
 ## Reading the status bar and inspector
 
@@ -39,6 +43,19 @@ Use the control to adjust every visible trace without mutating the underlying da
 
 The data table and provenance metadata mirror the active normalisation, and the plot toolbar’s left-axis label calls out both the unit (e.g. `%T`) and the selected normalisation mode for downstream auditing.
 
+## Trace colouring modes
+
+Heavy overlay sessions can get visually noisy when every spectrum shares the same palette. The Inspector’s **Style** tab now ships
+with a *Trace colouring* combo box:
+
+- **High-contrast palette** (default) cycles through a curated set of colours and automatically lightens derived traces so
+  relationships stay legible.
+- **Uniform (single colour)** renders every dataset in a consistent hue when you need to evaluate absolute alignment without
+  colour-coding.
+
+Switching modes updates both the plot and the Datasets dock icons immediately without mutating provenance metadata. Rename traces
+or toggle visibility as usual—returning to the palette restores each spectrum’s original colour assignment.
+
 ## Overlay alignment and troubleshooting
 
 Reference overlays adopt the scaling of the active plot so annotations land where you expect them. The IR functional-group lanes, for example, now anchor their filled band to the visible y-axis span and assign each label to its own vertical slot. When you normalise a trace or zoom the view, the overlay recalculates those slots to keep the stacked annotations readable. If labels ever drift out of band after switching datasets:
@@ -61,7 +78,16 @@ High-resolution spectra can contain millions of samples. Rendering every point w
 - Above that threshold, the x-axis is segmented and each block collapses into alternating min/max samples that preserve peaks.
 - The tail of a trace that does not align perfectly with the segmentation is appended without modification so you never lose edge information.
 
-This process is entirely view-layer only—no data is mutated or discarded. Exports (CSV and manifest bundles) always include the full-resolution series, and unit conversions continue to operate on the canonical nanometre axis. If you need to inspect individual samples, open the **View → Show Data Table** panel to browse the raw numbers alongside the plot.
+This process is entirely view-layer only—no data is mutated or discarded. Exports always include the full-resolution series for every dataset that remains visible at export time, and hidden traces stay out of the bundle. Unit conversions continue to operate on the canonical nanometre axis. If you need to inspect individual samples, open the **View → Show Data Table** panel to browse the raw numbers alongside the plot.
+
+## Exporting visible spectra
+
+Choosing **File → Export → Manifest** now opens a short configuration dialog before the save prompt. The default selection writes the provenance bundle you are already familiar with: `manifest.json`, a combined long-form CSV with `spectrum_id` metadata, per-spectrum canonical CSVs under `spectra/`, the plot snapshot PNG, and a textual export log. You can additionally tick:
+
+- **Wide CSV** – emits a companion table where every spectrum receives a dedicated wavelength/intensity column pair. Comment headers preserve the bundle metadata so the file can be re-imported directly; the CSV importer recognises the `spectra-wide-v1` layout and expands it back into individual spectra.
+- **Composite CSV** – averages the visible spectra onto the first trace’s wavelength grid (skipping regions that are not covered by all sources) and records the contributing sample count per row. This is useful for building a reference envelope you can compare against laboratory standards without manually exporting each input.
+
+All artefacts share the same base filename. For example, exporting `~/spectra/argon.json` with both options selected yields `argon.json` (manifest), `argon.csv` (combined bundle), `argon_wide.csv`, `argon_composite.csv`, the `argon.png` snapshot, and the usual log file. The History dock summarises which files were written, and the Knowledge Log remains reserved for high-level insights rather than per-export bookkeeping.
 
 ## Performance best practices
 
