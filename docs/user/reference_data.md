@@ -12,15 +12,18 @@ spectroscopy-focused resources that align with the app’s analytical goals.
 - Source: [NIST Atomic Spectra Database (ver. 5.11)](https://physics.nist.gov/asd) — Y. Ralchenko, A.E. Kramida,
   J. Reader, and the NIST ASD Team (2024).
 - Controls: the **Spectral lines** tab exposes element, ion stage (Roman or numeric), wavelength bounds, a vacuum/air
-  selector, and a “Prefer Ritz wavelengths” toggle. Enter an element symbol (e.g. `Fe`), refine the bounds to the region of
-  interest, and press **Fetch lines**. Example presets (Hydrogen I, Helium II, Iron II) pre-populate the fields when you
-  need a quick sanity check.
+  selector, a “Prefer Ritz wavelengths” toggle, and a **Pinned line sets** browser. Enter an element symbol (e.g. `Fe`), refine
+  the bounds to the region of interest, and press **Fetch lines**. Example presets (Hydrogen I, Helium II, Iron II)
+  pre-populate the fields when you need a quick sanity check. Use **Use uniform line colour** to collapse every pinned set to a
+  single hue when the rainbow becomes distracting.
 - Results: the table lists the observed and Ritz wavelengths (nm), relative and normalised intensities, lower/upper energy
   levels, and transition type. Metadata on the right records the astroquery provenance, wavelength medium, and retrieval
-  timestamp so notebook and CI runs can reference identical queries.
-- Overlay: the preview plot renders each transition as a bar scaled by the normalised intensity. Enabling **Overlay on plot**
-  projects those markers into the main workspace in the current unit system, letting you compare laboratory lines against
-  imported spectra without re-parsing JSON manifests.
+  timestamp so notebook and CI runs can reference identical queries. Each fetch is automatically pinned so multiple species or
+  ranges can remain visible simultaneously.
+- Overlay: the preview plot renders each transition as a bar scaled by the normalised intensity and keeps every pinned set on
+  screen using distinct palette colours (or the uniform colour, when enabled). Enabling **Overlay on plot** projects the
+  active selection into the main workspace in the current unit system, letting you compare laboratory lines against imported
+  spectra without re-parsing JSON manifests.
 
 ## Infrared functional groups
 
@@ -51,8 +54,11 @@ spectroscopy-focused resources that align with the app’s analytical goals.
 
 1. Choose the appropriate tab (Spectral lines, IR groups, or Line-shape models). For NIST queries, press **Fetch lines** after
    configuring the element and bounds; IR and line-shape data load instantly.
-2. Use the filter field below the tabs to narrow long tables by wavelength, functional group, or parameter name.
-3. Enable **Overlay on plot** to project the preview into the main workspace. Spectral lines respect their relative intensities
+2. Use the filter field below the tabs to narrow long tables by wavelength, functional group, or parameter name. Filtering only
+   affects the active pinned line set—other sets stay visible for cross-comparison.
+3. Manage pinned sets from the list beneath the controls: select an entry to focus the table, remove it when a study is
+   complete, and toggle **Use uniform line colour** when you need visual parity across dozens of species.
+4. Enable **Overlay on plot** to project the preview into the main workspace. Spectral lines respect their relative intensities
    in the current unit system, IR bands shade their ranges with clustered labels, and line-shape previews overlay simulated
    profiles returned by `app/services/line_shapes.py`.
 4. The metadata drawer captures citations, astroquery parameters, and retrieval timestamps so exported manifests can trace the

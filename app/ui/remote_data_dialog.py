@@ -196,8 +196,6 @@ class RemoteDataDialog(QtWidgets.QDialog):
         stripped = text.strip()
         if provider == RemoteDataService.PROVIDER_MAST:
             return {"target_name": stripped} if stripped else {}
-        if provider == RemoteDataService.PROVIDER_NIST:
-            return {"element": stripped} if stripped else {}
         return {"text": stripped} if stripped else {}
 
     def _on_example_selected(self, index: int) -> None:
@@ -240,7 +238,11 @@ class RemoteDataDialog(QtWidgets.QDialog):
         self.accept()
 
     def _refresh_provider_state(self) -> None:
-        providers = self.remote_service.providers()
+        providers = [
+            provider
+            for provider in self.remote_service.providers()
+            if provider != RemoteDataService.PROVIDER_NIST
+        ]
         self.provider_combo.clear()
         if providers:
             self.provider_combo.addItems(providers)
@@ -248,24 +250,15 @@ class RemoteDataDialog(QtWidgets.QDialog):
             self.search_edit.setEnabled(True)
             self.search_button.setEnabled(True)
             self._provider_placeholders = {
-                RemoteDataService.PROVIDER_NIST: "Fe II, H-alpha, or ion symbol…",
                 RemoteDataService.PROVIDER_MAST: "JWST spectroscopic target (e.g. WASP-96 b, NIRSpec)…",
             }
             self._provider_hints = {
-                RemoteDataService.PROVIDER_NIST: (
-                    "Searches target laboratory-grade spectral line lists from the NIST ASD."
-                ),
                 RemoteDataService.PROVIDER_MAST: (
                     "MAST requests favour calibrated spectra (IFS cubes, slits, prisms). Enable "
                     "\"Include imaging\" to broaden results with calibrated image products."
                 ),
             }
             self._provider_examples = {
-                RemoteDataService.PROVIDER_NIST: [
-                    ("Fe II UV multiplet", "Fe II"),
-                    ("Ca II K resonance line", "Ca II"),
-                    ("Hydrogen Balmer Hα", "H I 656.28 nm"),
-                ],
                 RemoteDataService.PROVIDER_MAST: [
                     ("WASP-96 b – JWST/NIRSpec", "WASP-96 b"),
                     ("WASP-39 b – JWST/NIRSpec", "WASP-39 b"),

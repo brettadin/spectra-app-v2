@@ -100,7 +100,40 @@ def test_reference_nist_fetch_populates_table(monkeypatch) -> None:
         },
     }
 
-    monkeypatch.setattr(main_module.nist_asd_service, "fetch_lines", lambda *_, **__: sample_payload)
+    sample_payload_two = {
+        "lines": [
+            {
+                "wavelength_nm": 656.28,
+                "observed_wavelength_nm": 656.28,
+                "ritz_wavelength_nm": 656.281,
+                "relative_intensity": 120.0,
+                "relative_intensity_normalized": 1.0,
+                "lower_level": "2p⁶",
+                "upper_level": "2p⁵ 3s",
+                "transition_type": "E1",
+            }
+        ],
+        "meta": {
+            "label": "Hydrogen I",
+            "element_symbol": "H",
+            "ion_stage": "I",
+            "line_count": 1,
+            "query": {
+                "lower_wavelength": 600.0,
+                "upper_wavelength": 700.0,
+                "wavelength_unit": "nm",
+                "wavelength_type": "vacuum",
+            },
+        },
+    }
+
+    payloads = iter([sample_payload, sample_payload_two])
+
+    monkeypatch.setattr(
+        main_module.nist_asd_service,
+        "fetch_lines",
+        lambda *_, **__: next(payloads),
+    )
 
     window = SpectraMainWindow()
     try:
@@ -118,6 +151,22 @@ def test_reference_nist_fetch_populates_table(monkeypatch) -> None:
         assert payload is not None
         assert payload["alias"].startswith("Reference –")
         assert payload["x_nm"].size > 0
+
+        assert window.nist_collections_list.count() == 1
+        assert "1 pinned set" in window.reference_status_label.text()
+
+        window.nist_element_edit.setText("H")
+        window.nist_lower_spin.setValue(600.0)
+        window.nist_upper_spin.setValue(700.0)
+        window._on_nist_fetch_clicked()
+        app.processEvents()
+
+        assert window.nist_collections_list.count() == 2
+        assert "2 pinned set" in window.reference_status_label.text()
+
+        window.nist_collections_list.setCurrentRow(0)
+        app.processEvents()
+        assert window.reference_table.rowCount() >= 1
     finally:
         window.close()
         window.deleteLater()

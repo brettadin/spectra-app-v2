@@ -287,6 +287,13 @@
 - Updated `docs/user/reference_data.md` to reflect the new workflow and removed the outdated JWST placeholder guidance.
 - Added regression coverage for the NIST fetch path and refreshed the Qt smoke tests. (`pytest`)
 
+## 2025-10-19 (13:42 ET) – Pinned NIST line sets & remote dialog cleanup
+
+- Added pinned NIST spectral-line collections with palette controls so multiple queries stay visible on the inspector plot and
+  updated the reference data guide plus regression suite to cover the workflow.
+- Removed the NIST option from the Remote Data dialog, leaving MAST as the scoped catalogue and updating remote-data guidance
+  and smoke tests to reflect the separation between line lists and archive downloads.
+
 ## 2025-10-15 (Importing Guide Provenance Appendix) (9:10 am)
 
 - Expanded `docs/user/importing.md` with a provenance export appendix covering the structure of the manifest bundle.

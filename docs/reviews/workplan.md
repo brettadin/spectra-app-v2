@@ -15,8 +15,8 @@ This document tracks feature batches, validation status, and outstanding backlog
       actions for opening manifests/logs/re-exporting the current state.
 - [ ] Reorganise datasets/library presentation so cached entries, sample data,
       and user ingests are categorised by instrument/type with working search.
-- [ ] Validate remote catalogue UX: expand the provider roster beyond NIST/MAST
-      once dependency checks stabilise and new spectroscopy sources are vetted.
+- [ ] Validate remote catalogue UX: expand the provider roster beyond MAST once
+      dependency checks stabilise and new spectroscopy sources are vetted.
 - [ ] Refresh START_HERE, MASTER PROMPT, AGENTS, and brains documentation so
       onboarding instructions match the current repository layout.
 - [x] Document dependency prerequisites (requests, astroquery, pandas, astropy)
@@ -26,6 +26,9 @@ This document tracks feature batches, validation status, and outstanding backlog
 
 - [x] Redesigned the Reference tab with dedicated Spectral lines/IR/Line-shape panels, wired the embedded NIST query form to
       astroquery, refreshed the reference data guide, and extended Qt regression tests for the new workflow.
+- [x] Added pinned NIST spectral-line sets with palette controls so multiple queries persist on the inspector plot, removed the
+      redundant NIST option from the Remote Data dialog, and updated documentation/tests to steer line-list retrieval through the
+      Reference tab.
 
 ### Recently Completed (2025-10-18)
 

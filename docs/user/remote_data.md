@@ -25,10 +25,11 @@ directly against laboratory references.
 ## Opening the dialog
 
 1. Choose **File → Fetch Remote Data…** (or press `Ctrl+Shift+R`).
-2. Pick a catalogue from the *Catalogue* selector. The initial release ships
-   with:
-   - **NIST ASD** (line lists via the Atomic Spectra Database)
+2. Pick a catalogue from the *Catalogue* selector. The current build focuses on:
    - **MAST** (MAST data products via `astroquery.mast`)
+   
+   > **Note**: NIST spectral line lookups now live in the Inspector’s **Reference → Spectral lines** tab, where you can pin
+   > multiple element/ion queries and manage colour palettes directly within the preview plot.
 3. Enter a keyword, element symbol, or target name in the search field (or pick
    one of the curated **Examples…** entries) and click **Search**. The dialog
    blocks empty submissions so you always send provider-specific filters rather
@@ -36,12 +37,6 @@ directly against laboratory references.
 
 ### Provider-specific search tips
 
-- **NIST ASD** – The query box now routes through the astroquery-powered line
-  list API. Enter an element/ion (e.g. `Fe II`) or a transition label
-  (`H-alpha`) and the dialog aggregates the returned lines into a single result
-  with line counts and full metadata. The examples menu includes Fe II,
-  Ca II K, and Hα shortcuts you can trigger without retyping the spectrum
-  identifier.
 - **MAST** – Free-text input is rewritten to `target_name` before invoking
   `astroquery.mast.Observations.query_criteria`, and the adapter injects
   `dataproduct_type="spectrum"`, `intentType="SCIENCE"`, and
@@ -67,10 +62,6 @@ you can confirm provenance before downloading.
 
 Behind the scenes the application:
 
-* For NIST ASD entries, replays the line-list query via `astroquery.nist`, then
-  serialises the response into a CSV file (`Wavelength (nm)`, relative
-  intensities, level information, and references) so it can flow through the
-  existing CSV importer.
 * For providers that expose downloadable artefacts, streams the remote file
   through the appropriate client (`requests.Session.get` for HTTP URLs and
   `astroquery.mast.Observations.download_file` for `mast:` products, which keeps

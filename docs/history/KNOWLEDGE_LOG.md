@@ -46,6 +46,32 @@ Qt regression coverage for the new fetch path. UTC 2025-10-19T17:22:06Z.
 
 ---
 
+## 2025-10-19 13:42 – NIST pinboard & remote dialog alignment
+
+**Author**: agent
+
+**Context**: Inspector redesign follow-up to keep spectroscopy workflows front-and-centre while reducing redundancy between the
+Reference tab and Remote Data dialog.
+
+**Summary**: Introduced pinned NIST spectral-line sets with palette controls so multiple element/ion queries remain on the
+inspector plot, refreshed the reference-data guide, and extended regression coverage. Removed the NIST provider from the Remote
+Data dialog to avoid duplication, keeping MAST as the remote archive entry point and updating documentation/tests accordingly.
+
+**Timestamps**:
+- America/New_York: 2025-10-19T13:42:36-04:00
+- UTC: 2025-10-19T17:42:45+00:00
+
+**References**:
+- `app/main.py`
+- `app/ui/remote_data_dialog.py`
+- `docs/user/reference_data.md`
+- `docs/user/remote_data.md`
+- `docs/reviews/workplan.md`
+- `tests/test_reference_ui.py`
+- `tests/test_remote_data_dialog.py`
+
+---
+
 ## 2025-10-18 20:35 – NIST ASD astroquery line synthesis
 
 **Author**: agent
