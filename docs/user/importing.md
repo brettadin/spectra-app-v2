@@ -136,6 +136,13 @@ bundle contains:
 - `log.txt` — a chronological history of ingest, analysis, and export actions
   captured by the provenance service.
 
+The top-level CSV now leads with the numeric wavelength/intensity columns and
+records provenance fields (`spectrum_id`, `spectrum_name`, units, point index)
+to the right.  This ordering keeps the file directly ingestible by the default
+CSV importer: reloading the combined CSV reproduces the exact concatenated
+trace you exported without the column confusion that occurred when identifier
+fields appeared first.
+
 Because the manifest records the units detected during import, round-tripping
 through Ångström, micrometre, or wavenumber views does not alter the stored
 values. When sharing data with collaborators, distribute the entire export

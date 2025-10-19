@@ -28,17 +28,19 @@ Each entry in this document should follow this structure:
 
 ---
 
-## 2025-10-19 14:46 EDT / 18:46 UTC – Remote Data Service Cache Keys
+## 2025-10-19 15:14 (America/New_York) / 19:14 (UTC) – Export CSV axis ordering
 
 **Author**: agent
 
-**Context**: Remote catalogue caching for NIST ASD queries.
+**Context**: Provenance bundle exports should reload cleanly through the CSV importer.
 
-**Summary**: Incorporated the full NIST query signature into the synthetic `nist-asd:` URI so cached downloads remain unique for
-distinct wavelength bounds or ion stages. Normalised the query values before encoding them into the URI and added regression
-coverage to assert the Remote Data service returns distinct download URLs when wavelength limits differ.
+**Summary**: Adjusted the combined export writer to place `wavelength_nm` and `intensity` at the start of each row while keeping spectrum metadata to the right. This prevents the importer from mis-identifying axes when reloading bundled CSVs and mirrors the structure documented in the importing guide.
 
-**References**: `app/services/remote_data_service.py`, `tests/test_remote_data_service.py`, `docs/history/PATCH_NOTES.md`.
+**References**:
+- `app/services/provenance_service.py`
+- `tests/test_provenance.py`
+- `docs/user/importing.md`
+- `docs/history/PATCH_NOTES.md`
 
 ---
 
@@ -584,33 +586,5 @@ Import/Remote Import entries remain after the cleanup.
 - `tests/test_knowledge_log_service.py`
 - `docs/history/PATCH_NOTES.md`
 - `docs/reviews/workplan.md`
-
----
-## 2025-10-19 14:25 – Overlay
-
-**Author**: automation
-
-**Context**: Spectra Desktop Session
-
-**Summary**: Enabled reference overlay(s).
-
-**References**:
-- reference::nist::h
-- {'source_type': 'reference', 'archive': 'NIST ASD', 'label': 'H I (NIST ASD)', 'element_symbol': 'H', 'element_name': 'Hydrogen', 'atomic_number': 1, 'ion_stage': 'I', 'ion_stage_number': 1, 'query': {'linename': 'H I', 'identifier': 'H', 'lower_wavelength': 380.0, 'upper_wavelength': 750.0, 'wavelength_unit': 'nm', 'wavelength_type': 'vacuum', 'use_ritz': True}, 'fetched_at_utc': '2025-10-19T18:25:13.863288+00:00', 'citation': 'Kramida, A. et al. (NIST ASD), https://physics.nist.gov/asd', 'retrieved_via': 'astroquery.nist'}
-
----
-## 2025-10-19 14:25 – Overlay
-
-**Author**: automation
-
-**Context**: Spectra Desktop Session
-
-**Summary**: Enabled reference overlay(s).
-
-**References**:
-- reference::nist::h
-- reference::nist::he
-- {'source_type': 'reference', 'archive': 'NIST ASD', 'label': 'H I (NIST ASD)', 'element_symbol': 'H', 'element_name': 'Hydrogen', 'atomic_number': 1, 'ion_stage': 'I', 'ion_stage_number': 1, 'query': {'linename': 'H I', 'identifier': 'H', 'lower_wavelength': 380.0, 'upper_wavelength': 750.0, 'wavelength_unit': 'nm', 'wavelength_type': 'vacuum', 'use_ritz': True}, 'fetched_at_utc': '2025-10-19T18:25:13.863288+00:00', 'citation': 'Kramida, A. et al. (NIST ASD), https://physics.nist.gov/asd', 'retrieved_via': 'astroquery.nist'}
-- {'source_type': 'reference', 'archive': 'NIST ASD', 'label': 'He I (NIST ASD)', 'element_symbol': 'He', 'element_name': 'Helium', 'atomic_number': 2, 'ion_stage': 'I', 'ion_stage_number': 1, 'query': {'linename': 'He I', 'identifier': 'He', 'lower_wavelength': 380.0, 'upper_wavelength': 750.0, 'wavelength_unit': 'nm', 'wavelength_type': 'vacuum', 'use_ritz': True}, 'fetched_at_utc': '2025-10-19T18:25:23.339043+00:00', 'citation': 'Kramida, A. et al. (NIST ASD), https://physics.nist.gov/asd', 'retrieved_via': 'astroquery.nist'}
 
 ---
