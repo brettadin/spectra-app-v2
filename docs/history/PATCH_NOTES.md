@@ -1,5 +1,15 @@
 # Patch Notes
 
+## 2025-10-19 (Data table toggle respects user choice) (19:38 EDT / 23:38 UTC)
+
+- Stopped the Data dock from forcing the numerical table open when selecting a
+  dataset by tracking the latest overlay views and only populating the table
+  when **View → Show Data Table** remains checked.
+- Added `_last_display_views` bookkeeping so manual toggles repopulate the panel
+  on demand without requerying the overlay service.
+- Documented the change in `docs/user/plot_tools.md` and refreshed the workplan
+  plus knowledge log with the timestamped entry.
+
 ## 2025-10-19 (Data dock consolidation) (18:46 EDT / 22:46 UTC)
 
 - Replaced the standalone Library dock with a tab inside the Data dock so

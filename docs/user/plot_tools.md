@@ -78,7 +78,7 @@ High-resolution spectra can contain millions of samples. Rendering every point w
 - Above that threshold, the x-axis is segmented and each block collapses into alternating min/max samples that preserve peaks.
 - The tail of a trace that does not align perfectly with the segmentation is appended without modification so you never lose edge information.
 
-This process is entirely view-layer only—no data is mutated or discarded. Exports always include the full-resolution series for every dataset that remains visible at export time, and hidden traces stay out of the bundle. Unit conversions continue to operate on the canonical nanometre axis. If you need to inspect individual samples, open the **View → Show Data Table** panel to browse the raw numbers alongside the plot.
+This process is entirely view-layer only—no data is mutated or discarded. Exports always include the full-resolution series for every dataset that remains visible at export time, and hidden traces stay out of the bundle. Unit conversions continue to operate on the canonical nanometre axis. If you need to inspect individual samples, toggle **View → Show Data Table**. The panel stays hidden until you explicitly enable it and updates live with the traces that remain visible in the workspace.
 
 ## Exporting visible spectra
 

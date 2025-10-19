@@ -28,6 +28,22 @@ Each entry in this document should follow this structure:
 
 ---
 
+## 2025-10-19 19:38 – Data table toggle no longer auto-opens
+
+**Author**: agent
+
+**Context**: Plot data table ergonomics and layout stability on Windows builds.
+
+**Summary**: Stopped the dataset selection handler from forcing the numerical
+table to appear by default. The main window now remembers the last overlay
+payload, repopulates the table only when **View → Show Data Table** is checked,
+and leaves the layout unchanged otherwise.
+
+**References**: `app/main.py`, `docs/user/plot_tools.md`,
+`docs/history/PATCH_NOTES.md`, `docs/reviews/workplan.md`.
+
+---
+
 ## 2025-10-19 18:46 – Data dock consolidation
 
 **Author**: agent

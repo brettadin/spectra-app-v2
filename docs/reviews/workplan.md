@@ -29,6 +29,8 @@ This document tracks feature batches, validation status, and outstanding backlog
 
 - [x] Redesigned the Reference tab with dedicated Spectral lines/IR/Line-shape panels, wired the embedded NIST query form to
       astroquery, refreshed the reference data guide, and extended Qt regression tests for the new workflow.
+- [x] Ensured the data table remains opt-in so dataset selections no longer force the panel open; cached the last overlay views
+      for manual repopulation and updated the plot tools guide, patch notes, and knowledge log to explain the behaviour.
 - [x] Added pinned NIST spectral-line sets with palette controls so multiple queries persist on the inspector plot, removed the
       redundant NIST option from the Remote Data dialog, taught the overlay toggle to project all pinned sets simultaneously,
       and updated documentation/tests to steer line-list retrieval through the Reference tab.
