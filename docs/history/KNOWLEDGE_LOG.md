@@ -487,6 +487,25 @@ refreshed the repository structure overview so new contributors land on the righ
 
 ---
 
+## 2025-10-18T20:17:11-04:00 (America/New_York) – Timestamp Capture Alignment
+
+**Author**: agent
+
+**UTC**: 2025-10-19T00:17:13+00:00
+
+**Context**: Documentation trailheads and provenance logging discipline.
+
+**Summary**: Harmonised timestamp capture guidance across `AGENTS.md`,
+`START_HERE.md`, and `docs/history/MASTER PROMPT.md` so every entry point shows
+the same PowerShell, Unix `date`, and WSL workflows. Documented the `coreutils`
+requirement for macOS users and confirmed the outputs by running the prescribed
+commands before updating the history files.
+
+**References**: `AGENTS.md`, `START_HERE.md`, `docs/history/MASTER PROMPT.md`,
+`docs/history/PATCH_NOTES.md`.
+
+---
+
 ## 2025-10-17 03:45 – Knowledge Log Hygiene
 
 **Author**: agent

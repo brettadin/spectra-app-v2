@@ -88,13 +88,15 @@ Follow the **RUNNER_PROMPT** workflow for each development session:
 - Always capture America/New_York and UTC timestamps in ISO-8601 format when
   updating patch notes, the knowledge log, brains entries, or the workplan.
 - Follow the platform-specific commands in `AGENTS.md` and the MASTER PROMPT to
-  generate the two strings:
-  - **Windows (PowerShell)** converts `Get-Date -AsUTC` into Eastern Time and
-    prints both values in `o` (ISO-8601) format.
+  emit both strings in a single pass:
+  - **Windows (PowerShell 5.1+/pwsh)** captures UTC with `Get-Date -AsUTC`,
+    converts it through `System.TimeZoneInfo` to Eastern Time, and prints both
+    values via `.ToString("o")`.
   - **macOS/Linux shells** run `TZ=America/New_York date --iso-8601=seconds`
-    followed by `date -u --iso-8601=seconds`.
-  - **WSL users** can invoke `wsl.exe bash -lc '…'` from Windows to emit both
-    timestamps without leaving the host terminal.
+    followed by `date -u --iso-8601=seconds`; macOS users may need `gdate` from
+    Homebrew coreutils.
+  - **WSL users** can invoke `wsl.exe bash -lc 'TZ=America/New_York date --iso-8601=seconds && date -u --iso-8601=seconds'`
+    from Windows terminals without leaving the host environment.
 
 ### Phase 3: Quality Assurance
 - **Run Full Test Suite**: `pytest -v`

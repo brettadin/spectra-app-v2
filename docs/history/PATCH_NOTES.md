@@ -289,6 +289,17 @@
   documentation directories in the repository structure overview.
 - Documentation-only update; no automated tests were run for this change.
 
+## 2025-10-18 (Timestamp Command Refresh) (8:17 pm edt)
+
+- Updated `AGENTS.md`, `START_HERE.md`, and `docs/history/MASTER PROMPT.md` so
+  each entry point documents the same PowerShell, Unix `date`, and WSL
+  procedures for capturing ISO-8601 timestamps in America/New_York and UTC.
+- Added macOS guidance for installing GNU coreutils when `date --iso-8601` is
+  unavailable to keep the workflow reliable across laptops.
+- Verified the new instructions by running `TZ=America/New_York date --iso-8601=seconds`
+  (`2025-10-18T20:17:11-04:00`) and `date -u --iso-8601=seconds`
+  (`2025-10-19T00:17:13+00:00`) before logging this entry.
+
 ## 2025-10-15 (Importing Guide Provenance Appendix) (9:10 am)
 
 - Expanded `docs/user/importing.md` with a provenance export appendix covering the structure of the manifest bundle.
