@@ -28,6 +28,20 @@ Each entry in this document should follow this structure:
 
 ---
 
+## 2025-10-19 14:46 EDT / 18:46 UTC – Remote Data Service Cache Keys
+
+**Author**: agent
+
+**Context**: Remote catalogue caching for NIST ASD queries.
+
+**Summary**: Incorporated the full NIST query signature into the synthetic `nist-asd:` URI so cached downloads remain unique for
+distinct wavelength bounds or ion stages. Normalised the query values before encoding them into the URI and added regression
+coverage to assert the Remote Data service returns distinct download URLs when wavelength limits differ.
+
+**References**: `app/services/remote_data_service.py`, `tests/test_remote_data_service.py`, `docs/history/PATCH_NOTES.md`.
+
+---
+
 ## 2025-10-19 14:28 EDT / 18:28 UTC – Export Manifest Visibility Filter
 
 **Author**: agent

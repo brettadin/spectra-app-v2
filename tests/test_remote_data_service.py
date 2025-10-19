@@ -146,6 +146,69 @@ def test_search_nist_uses_nist_service(store: LocalStore, monkeypatch: pytest.Mo
     assert record.metadata["series"]["wavelength_nm"] == [510.0]
 
 
+def test_search_nist_includes_query_in_download_url(
+    store: LocalStore, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    def fake_dependencies() -> bool:
+        return True
+
+    def fake_fetch(
+        identifier: str,
+        *,
+        element: str | None = None,
+        ion_stage: str | int | None = None,
+        lower_wavelength: float | None = None,
+        upper_wavelength: float | None = None,
+        wavelength_unit: str = "nm",
+        use_ritz: bool = True,
+        wavelength_type: str = "vacuum",
+    ) -> dict[str, Any]:
+        return {
+            "wavelength_nm": [510.0],
+            "intensity": [120.0],
+            "intensity_normalized": [1.0],
+            "lines": [
+                {
+                    "wavelength_nm": 510.0,
+                    "relative_intensity": 120.0,
+                    "relative_intensity_normalized": 1.0,
+                }
+            ],
+            "meta": {
+                "label": "Fe II (NIST ASD)",
+                "query": {
+                    "identifier": identifier,
+                    "element": element,
+                    "ion_stage": ion_stage,
+                    "lower_wavelength": lower_wavelength,
+                    "upper_wavelength": upper_wavelength,
+                    "wavelength_unit": wavelength_unit,
+                    "wavelength_type": wavelength_type,
+                    "use_ritz": use_ritz,
+                },
+            },
+        }
+
+    monkeypatch.setattr(remote_module.nist_asd_service, "dependencies_available", fake_dependencies)
+    monkeypatch.setattr(remote_module.nist_asd_service, "fetch_lines", fake_fetch)
+
+    service = RemoteDataService(store, session=None)
+
+    narrow = service.search(
+        RemoteDataService.PROVIDER_NIST,
+        {"element": "Fe II", "wavelength_min": 250.0, "wavelength_max": 260.0},
+    )[0]
+    wide = service.search(
+        RemoteDataService.PROVIDER_NIST,
+        {"element": "Fe II", "wavelength_min": 250.0, "wavelength_max": 280.0},
+    )[0]
+
+    assert narrow.download_url != wide.download_url
+    assert "upper_wavelength=260" in narrow.download_url
+    assert "upper_wavelength=280" in wide.download_url
+    assert "element=Fe+II" in narrow.download_url
+
+
 def test_download_nist_generates_csv_and_records_provenance(store: LocalStore) -> None:
     service = RemoteDataService(store, session=None)
     metadata = {

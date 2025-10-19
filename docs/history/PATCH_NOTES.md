@@ -1,5 +1,12 @@
 # Patch Notes
 
+## 2025-10-19 (NIST cache keys include query parameters) (14:46 EDT / 18:46 UTC)
+
+- Expanded the pseudo-URI generated for NIST ASD downloads to encode the element, ion stage, wavelength bounds, and wavelength
+  options so cached downloads never collide when the same label is queried with different filters.
+- Added a regression covering the Remote Data service to ensure the synthetic `nist-asd:` URL reflects the full query payload and
+  differentiates upper wavelength values in the cache key.
+
 ## 2025-10-19 (Export respects visibility state) (14:28 EDT / 18:28 UTC)
 
 - Updated `app/main.py::export_manifest` so provenance bundles include only datasets marked visible in the workspace, preventing hidden traces and background samples from polluting merged exports.
