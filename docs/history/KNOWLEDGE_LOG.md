@@ -28,6 +28,24 @@ Each entry in this document should follow this structure:
 
 ---
 
+## 2025-10-19 15:31 (America/New_York) / 19:31 (UTC) – Mini FITS fixture portability
+
+**Author**: agent
+
+**Context**: Test FITS fixtures and optional dependency guardrails.
+
+**Summary**: Updated the `mini_fits` pytest fixture to build FITS columns from
+native Python lists so the regression suite no longer requires `numpy` merely
+to collect tests. This keeps CI green even when optional scientific packages
+are unavailable.
+
+**References**:
+- `tests/conftest.py`
+- `docs/history/PATCH_NOTES.md`
+- `docs/reviews/workplan.md`
+
+---
+
 ## 2025-10-19 15:24 (America/New_York) / 19:24 (UTC) – Provenance schema path fix
 
 **Author**: agent
