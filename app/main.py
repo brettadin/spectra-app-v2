@@ -1182,14 +1182,25 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         if not selected_ids:
             selected_ids = [sid for sid, visible in self._visibility.items() if visible]
         if not selected_ids:
+            self._last_display_views = []
             self.data_table.clearContents()
             self.data_table.setRowCount(0)
             if self.data_table.isVisible():
                 self.data_table.hide()
+            if self.data_table_action.isChecked():
+                self.data_table_action.blockSignals(True)
                 self.data_table_action.setChecked(False)
+                self.data_table_action.blockSignals(False)
             return
         selected_ids = [sid for sid in selected_ids if self._visibility.get(sid, True)]
         if not selected_ids:
+            self._last_display_views = []
+            if self.data_table.isVisible():
+                self.data_table.hide()
+            if self.data_table_action.isChecked():
+                self.data_table_action.blockSignals(True)
+                self.data_table_action.setChecked(False)
+                self.data_table_action.blockSignals(False)
             return
         raw_views = self.overlay_service.overlay(
             selected_ids,
@@ -1212,10 +1223,14 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             updated["y_unit"] = display_unit
             display_views.append(updated)
 
-        self._populate_data_table(display_views)
-        if not self.data_table.isVisible():
-            self.data_table.show()
-            self.data_table_action.setChecked(True)
+        self._last_display_views = display_views
+        if self.data_table_action.isChecked():
+            if not self.data_table.isVisible():
+                self.data_table.show()
+            self._populate_data_table(display_views)
+        else:
+            if self.data_table.isVisible():
+                self.data_table.hide()
 
         all_ids = [spec.id for spec in self.overlay_service.list()]
         if not all_ids:
@@ -1795,7 +1810,11 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.refresh_overlay()
 
     def _toggle_data_table(self, checked: bool) -> None:
-        self.data_table.setVisible(checked)
+        if checked:
+            self._populate_data_table(self._last_display_views)
+            self.data_table.show()
+        else:
+            self.data_table.hide()
 
     def _swap_math_selection(self) -> None:
         idx_a = self.math_a.currentIndex()

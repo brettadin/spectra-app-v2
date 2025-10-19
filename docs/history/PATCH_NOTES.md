@@ -402,3 +402,9 @@
 - Added an automated smoke workflow test that instantiates the preview shell, ingests CSV/FITS data, exercises unit toggles, and exports a provenance bundle.
 - Centralised the reusable FITS fixture under `tests/conftest.py` to support regression suites.
 - Documented the new smoke validation loop for developers and provided a matching user checklist.
+## 2025-10-19 (Knowledge log import persistence) (3:57 pm edt)
+
+- Ensured Spectra records import and remote-import events to the knowledge log so session history persists across restarts.
+- Documented the change in `docs/user/importing.md`, clarifying how summaries are captured while raw paths stay in the cache view.
+- Verified the smoke history workflow under pytest to confirm the UI updates after ingesting a CSV.
+
