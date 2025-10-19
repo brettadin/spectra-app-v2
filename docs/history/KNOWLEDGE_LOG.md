@@ -632,3 +632,39 @@ Import/Remote Import entries remain after the cleanup.
 - `docs/reviews/workplan.md`
 
 ---
+## 2025-10-19 17:10 – Export
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Exported 7 visible spectra
+
+**References**:
+- C:\Code\spectra-app-beta\exports\merge test 1_wide.csv
+
+---
+## 2025-10-19 17:10 – Export
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Exported 7 visible spectra
+
+**References**:
+- C:\Code\spectra-app-beta\exports\spectra_composite.csv
+
+---
+## 2025-10-19 17:16 – Export
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Exported 4 visible spectra
+
+**References**:
+- C:\Code\spectra-app-beta\exports\spectra_composite.csv
+
+---
