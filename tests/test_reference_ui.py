@@ -37,6 +37,9 @@ def test_reference_tab_builds_without_error() -> None:
         reference_index = window.inspector_tabs.indexOf(window.tab_reference)
         assert reference_index != -1
 
+        assert window.reference_tabs.count() >= 2
+        assert window.nist_element_edit.placeholderText()
+
         axis = window.reference_plot.getPlotItem().getAxis("bottom")
         assert axis is not None
 
@@ -53,6 +56,68 @@ def test_reference_tab_builds_without_error() -> None:
         assert label_text
         assert "Wavelength" in label_text
         assert window.unit_combo.currentText() in label_text
+    finally:
+        window.close()
+        window.deleteLater()
+        app.processEvents()
+
+
+def test_reference_nist_fetch_populates_table(monkeypatch) -> None:
+    if SpectraMainWindow is None or QtWidgets is None:
+        pytest.skip(f"Qt stack unavailable: {_qt_import_error}")
+
+    pytest.importorskip("pyqtgraph")
+
+    app = _ensure_app()
+
+    from app import main as main_module
+
+    monkeypatch.setattr(main_module.nist_asd_service, "dependencies_available", lambda: True)
+
+    sample_payload = {
+        "lines": [
+            {
+                "wavelength_nm": 486.13,
+                "observed_wavelength_nm": 486.13,
+                "ritz_wavelength_nm": 486.128,
+                "relative_intensity": 100.0,
+                "relative_intensity_normalized": 1.0,
+                "lower_level": "2s² 2p⁵",
+                "upper_level": "2s² 2p⁴ 3s",
+                "transition_type": "E1",
+            }
+        ],
+        "meta": {
+            "label": "Hydrogen I",
+            "element_symbol": "H",
+            "line_count": 1,
+            "query": {
+                "lower_wavelength": 400.0,
+                "upper_wavelength": 700.0,
+                "wavelength_unit": "nm",
+                "wavelength_type": "vacuum",
+            },
+        },
+    }
+
+    monkeypatch.setattr(main_module.nist_asd_service, "fetch_lines", lambda *_, **__: sample_payload)
+
+    window = SpectraMainWindow()
+    try:
+        window.nist_element_edit.setText("H")
+        window.nist_lower_spin.setValue(400.0)
+        window.nist_upper_spin.setValue(700.0)
+
+        window._on_nist_fetch_clicked()
+        app.processEvents()
+
+        assert window.reference_table.rowCount() == 1
+        assert window.reference_overlay_checkbox.isEnabled()
+
+        payload = window._reference_overlay_payload
+        assert payload is not None
+        assert payload["alias"].startswith("Reference –")
+        assert payload["x_nm"].size > 0
     finally:
         window.close()
         window.deleteLater()
@@ -167,9 +232,8 @@ def test_line_shape_preview_populates_overlay_payload() -> None:
     app = _ensure_app()
     window = SpectraMainWindow()
     try:
-        index = window.reference_dataset_combo.findText("Line-shape Placeholders")
-        assert index != -1
-        window.reference_dataset_combo.setCurrentIndex(index)
+        window.reference_tabs.setCurrentIndex(2)
+        window._refresh_reference_view()
         app.processEvents()
 
         assert window.reference_table.rowCount() > 0

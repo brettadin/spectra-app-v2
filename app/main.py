@@ -26,6 +26,7 @@ from .services import (
     KnowledgeLogService,
     RemoteDataService,
 )
+from .services import nist_asd_service
 from .ui.plot_pane import PlotPane, TraceStyle
 from .ui.remote_data_dialog import RemoteDataDialog
 
@@ -76,8 +77,10 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.unit_combo: Optional[QtWidgets.QComboBox] = None
         self.plot_toolbar: Optional[QtWidgets.QToolBar] = None
         self.plot_max_points_control: Optional[QtWidgets.QSpinBox] = None
+        self.color_mode_combo: Optional[QtWidgets.QComboBox] = None
 
         self._dataset_items: Dict[str, QtGui.QStandardItem] = {}
+        self._dataset_color_items: Dict[str, QtGui.QStandardItem] = {}
         self._spectrum_colors: Dict[str, QtGui.QColor] = {}
         self._visibility: Dict[str, bool] = {}
         self._normalization_mode: str = "None"
@@ -112,6 +115,14 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self._history_ui_ready = False
 
         self._plot_max_points = self._load_plot_max_points()
+        self.library_dock: QtWidgets.QDockWidget | None = None
+        self.library_list: QtWidgets.QTreeWidget | None = None
+        self.library_search: QtWidgets.QLineEdit | None = None
+        self.library_detail: QtWidgets.QPlainTextEdit | None = None
+        self.library_hint: QtWidgets.QLabel | None = None
+        self._library_entries: Dict[str, Mapping[str, Any]] = {}
+        self._use_uniform_palette = False
+        self._uniform_color = QtGui.QColor("#4F6D7A")
 
         self._setup_ui()
         self._setup_menu()
@@ -207,9 +218,25 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         settings.setValue("persistence/disabled", self._persistence_disabled)
         if self._persistence_disabled:
             self.store = None
+            if self.library_dock is not None:
+                self.library_dock.setWindowTitle("Library (disabled)")
+            if self.library_list is not None:
+                self.library_list.clear()
+                self.library_list.setDisabled(True)
         else:
             self.store = LocalStore()
+            if self.library_dock is not None:
+                self.library_dock.setWindowTitle("Library")
+            if self.library_list is not None:
+                self.library_list.setDisabled(False)
         self.ingest_service.store = self.store
+        if hasattr(self, "remote_data_service") and isinstance(self.remote_data_service, RemoteDataService):
+            if self.store is not None:
+                self.remote_data_service.store = self.store
+            else:
+                temp_remote = LocalStore(base_dir=Path(tempfile.mkdtemp(prefix="spectra-remote-")))
+                self.remote_data_service.store = temp_remote
+        self._refresh_library_view()
 
     def _setup_ui(self) -> None:
         self.central_split = QtWidgets.QSplitter(self)
@@ -259,6 +286,8 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.dataset_dock.setWidget(self.dataset_tree)
         self.addDockWidget(QtCore.Qt.DockWidgetArea.LeftDockWidgetArea, self.dataset_dock)
 
+        self._build_library_dock()
+
         self._build_history_dock()
 
         self.log_dock = QtWidgets.QDockWidget("Log", self)
@@ -286,6 +315,266 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         # Load documentation entries after all dock widgets (including the log view)
         # have been initialised so that the initial selection can log status safely.
         self._load_documentation_index()
+
+    def _build_library_dock(self) -> None:
+        if self.store is None:
+            self.library_dock = None
+            self.library_list = None
+            self.library_search = None
+            return
+
+        dock = QtWidgets.QDockWidget("Library", self)
+        dock.setObjectName("dock-library")
+        container = QtWidgets.QWidget()
+        layout = QtWidgets.QVBoxLayout(container)
+        layout.setContentsMargins(6, 6, 6, 6)
+        layout.setSpacing(6)
+
+        self.library_search = QtWidgets.QLineEdit()
+        self.library_search.setPlaceholderText("Filter cached spectra…")
+        self.library_search.textChanged.connect(self._on_library_filter_changed)
+        layout.addWidget(self.library_search)
+
+        splitter = QtWidgets.QSplitter(QtCore.Qt.Orientation.Vertical)
+
+        self.library_list = QtWidgets.QTreeWidget()
+        self.library_list.setColumnCount(4)
+        self.library_list.setHeaderLabels(["Alias", "Units", "Updated", "Source"])
+        self.library_list.setSelectionMode(QtWidgets.QAbstractItemView.SelectionMode.SingleSelection)
+        self.library_list.itemDoubleClicked.connect(self._on_library_item_activated)
+        self.library_list.itemSelectionChanged.connect(self._on_library_selection_changed)
+        self.library_list.header().setSectionResizeMode(0, QtWidgets.QHeaderView.Stretch)
+        self.library_list.header().setSectionResizeMode(1, QtWidgets.QHeaderView.ResizeToContents)
+        self.library_list.header().setSectionResizeMode(2, QtWidgets.QHeaderView.ResizeToContents)
+        self.library_list.header().setSectionResizeMode(3, QtWidgets.QHeaderView.Stretch)
+        splitter.addWidget(self.library_list)
+
+        self.library_detail = QtWidgets.QPlainTextEdit()
+        self.library_detail.setObjectName("library-detail")
+        self.library_detail.setReadOnly(True)
+        self.library_detail.setPlaceholderText("Select a cached entry to inspect metadata and provenance.")
+        splitter.addWidget(self.library_detail)
+        splitter.setStretchFactor(0, 3)
+        splitter.setStretchFactor(1, 2)
+
+        layout.addWidget(splitter, 1)
+
+        self.library_hint = QtWidgets.QLabel(
+            "Double-click a cached entry to load it into the workspace without re-downloading."
+        )
+        self.library_hint.setWordWrap(True)
+        layout.addWidget(self.library_hint)
+
+        dock.setWidget(container)
+        self.addDockWidget(QtCore.Qt.DockWidgetArea.LeftDockWidgetArea, dock)
+        self.tabifyDockWidget(self.dataset_dock, dock)
+        dock.raise_()
+
+        self.library_dock = dock
+        self._refresh_library_view()
+
+    def _on_library_filter_changed(self) -> None:
+        self._refresh_library_view()
+
+    def _refresh_library_view(self) -> None:
+        if self.store is None or self.library_list is None:
+            return
+
+        entries = self.store.list_entries()
+        self._library_entries = {
+            sha: entry for sha, entry in entries.items() if isinstance(entry, Mapping)
+        }
+        filter_text = ""
+        if self.library_search is not None:
+            filter_text = self.library_search.text().strip().lower()
+
+        selected_sha = None
+        if self.library_list is not None and self.library_list.currentItem() is not None:
+            selected_sha = str(
+                self.library_list.currentItem().data(0, QtCore.Qt.ItemDataRole.UserRole) or ""
+            )
+
+        self.library_list.setUpdatesEnabled(False)
+        blocker = QtCore.QSignalBlocker(self.library_list)
+        self.library_list.clear()
+
+        def entry_tokens(entry: Mapping[str, Any]) -> str:
+            tokens: List[str] = []
+            alias = str(entry.get("filename") or entry.get("stored_path") or "")
+            tokens.append(alias)
+            units = entry.get("units")
+            if isinstance(units, Mapping):
+                tokens.extend(str(value) for value in units.values())
+            source = entry.get("source")
+            if isinstance(source, Mapping):
+                remote = source.get("remote")
+                if isinstance(remote, Mapping):
+                    tokens.extend(str(value) for value in remote.values())
+                ingest = source.get("ingest")
+                if isinstance(ingest, Mapping):
+                    tokens.extend(str(value) for value in ingest.values())
+            return " ".join(tokens).lower()
+
+        items: List[QtWidgets.QTreeWidgetItem] = []
+        for sha, entry in sorted(self._library_entries.items(), key=lambda kv: kv[0]):
+            text_blob = entry_tokens(entry)
+            if filter_text and filter_text not in text_blob:
+                continue
+
+            alias = str(entry.get("filename") or Path(entry.get("stored_path", "")).name)
+            units_map = entry.get("units") if isinstance(entry.get("units"), Mapping) else {}
+            x_unit = units_map.get("x", "?") if isinstance(units_map, Mapping) else "?"
+            y_unit = units_map.get("y", "?") if isinstance(units_map, Mapping) else "?"
+            units_label = f"{x_unit} / {y_unit}"
+            updated = str(entry.get("updated") or entry.get("created") or "")
+            source_label = self._describe_library_source(entry)
+
+            item = QtWidgets.QTreeWidgetItem([alias, units_label, updated, source_label])
+            item.setData(0, QtCore.Qt.ItemDataRole.UserRole, sha)
+            item.setToolTip(0, str(entry.get("stored_path", "")))
+            items.append(item)
+
+        for item in items:
+            self.library_list.addTopLevelItem(item)
+
+        if items:
+            self.library_list.sortItems(2, QtCore.Qt.SortOrder.DescendingOrder)
+            target_item: QtWidgets.QTreeWidgetItem | None = None
+            if selected_sha:
+                for row in range(self.library_list.topLevelItemCount()):
+                    candidate = self.library_list.topLevelItem(row)
+                    if not candidate:
+                        continue
+                    sha_value = str(
+                        candidate.data(0, QtCore.Qt.ItemDataRole.UserRole) or ""
+                    )
+                    if sha_value == selected_sha:
+                        target_item = candidate
+                        break
+            if target_item is None:
+                target_item = self.library_list.topLevelItem(0)
+            if target_item is not None:
+                self.library_list.setCurrentItem(target_item)
+        else:
+            if self.library_list is not None:
+                self.library_list.setCurrentItem(None)
+        del blocker
+        self.library_list.setUpdatesEnabled(True)
+
+        if self.library_hint is not None:
+            if items:
+                self.library_hint.setText(
+                    "Select a cached entry to inspect metadata or double-click to reload it into the session."
+                )
+            else:
+                self.library_hint.setText(
+                    "No cached spectra available yet. Import data or fetch a remote record to populate the library."
+                )
+
+        self._update_library_detail()
+
+    def _describe_library_source(self, entry: Mapping[str, Any]) -> str:
+        source = entry.get("source")
+        if not isinstance(source, Mapping):
+            return ""
+        remote = source.get("remote")
+        if isinstance(remote, Mapping):
+            provider = remote.get("provider")
+            identifier = remote.get("identifier")
+            if provider and identifier:
+                return f"{provider} – {identifier}"
+            if provider:
+                return str(provider)
+        ingest = source.get("ingest")
+        if isinstance(ingest, Mapping):
+            importer = ingest.get("importer")
+            if importer:
+                return str(importer)
+        return ""
+
+    def _on_library_item_activated(
+        self, item: QtWidgets.QTreeWidgetItem, column: int
+    ) -> None:
+        sha = item.data(0, QtCore.Qt.ItemDataRole.UserRole)
+        if not sha:
+            return
+        entry = self._library_entries.get(str(sha))
+        if not isinstance(entry, Mapping):
+            return
+        stored_path = entry.get("stored_path")
+        if not stored_path:
+            QtWidgets.QMessageBox.warning(self, "Missing file", "The cached file is not available.")
+            return
+        path = Path(stored_path)
+        if not path.exists():
+            QtWidgets.QMessageBox.warning(
+                self,
+                "Missing file",
+                "The cached file could not be found on disk. It may have been moved or deleted.",
+            )
+            return
+        self.plot.begin_bulk_update()
+        try:
+            self._ingest_path(path)
+        finally:
+            self.plot.end_bulk_update()
+
+    def _on_library_selection_changed(self) -> None:
+        self._update_library_detail()
+
+    def _update_library_detail(self) -> None:
+        if self.library_detail is None:
+            return
+        if self.library_list is None or self.library_list.currentItem() is None:
+            self.library_detail.clear()
+            if self.library_hint is not None:
+                self.library_hint.setText(
+                    "Select a cached entry to inspect metadata or double-click to reload it into the session."
+                )
+            return
+
+        item = self.library_list.currentItem()
+        sha = item.data(0, QtCore.Qt.ItemDataRole.UserRole)
+        entry = self._library_entries.get(str(sha)) if sha else None
+        if not isinstance(entry, Mapping):
+            self.library_detail.clear()
+            if self.library_hint is not None:
+                self.library_hint.setText(
+                    "The selected cache entry could not be read from disk."
+                )
+            return
+
+        detail = self._format_library_entry(entry)
+        self.library_detail.setPlainText(detail)
+        if self.library_hint is not None:
+            stored_path = entry.get("stored_path")
+            if stored_path:
+                self.library_hint.setText(f"Cached at: {stored_path}")
+            else:
+                self.library_hint.setText(
+                    "Double-click the entry to load it into the workspace without re-downloading."
+                )
+
+    def _format_library_entry(self, entry: Mapping[str, Any]) -> str:
+        payload: Dict[str, Any] = {
+            "alias": entry.get("filename"),
+            "sha256": entry.get("sha256"),
+            "stored_path": entry.get("stored_path"),
+            "bytes": entry.get("bytes"),
+            "units": entry.get("units"),
+            "created": entry.get("created"),
+            "updated": entry.get("updated"),
+        }
+        manifest = entry.get("manifest_path")
+        if manifest:
+            payload["manifest_path"] = manifest
+        source = entry.get("source")
+        if isinstance(source, Mapping):
+            payload["source"] = source
+        provenance = entry.get("provenance")
+        if isinstance(provenance, Mapping):
+            payload["provenance"] = provenance
+        return json_pretty(payload)
 
     def _build_history_dock(self) -> None:
         self.history_dock = QtWidgets.QDockWidget("History", self)
@@ -427,6 +716,16 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.plot_max_points_control.valueChanged.connect(self._on_plot_max_points_changed)
         lod_form.addRow("LOD point budget:", self.plot_max_points_control)
 
+        palette_form = QtWidgets.QFormLayout()
+        style_layout.addLayout(palette_form)
+        self.color_mode_combo = QtWidgets.QComboBox()
+        self.color_mode_combo.addItems([
+            "High-contrast palette",
+            "Uniform (single colour)",
+        ])
+        self.color_mode_combo.currentIndexChanged.connect(self._on_color_mode_changed)
+        palette_form.addRow("Trace colouring:", self.color_mode_combo)
+
         style_layout.addStretch(1)
 
         # Provenance tab -----------------------------------------------
@@ -519,6 +818,17 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.plot.set_max_points(coerced)
         self._save_plot_max_points(coerced)
 
+    def _on_color_mode_changed(self) -> None:
+        if self.color_mode_combo is None:
+            return
+        use_uniform = self.color_mode_combo.currentIndex() == 1
+        if use_uniform == self._use_uniform_palette:
+            return
+        self._use_uniform_palette = use_uniform
+        for spec_id, base_color in self._spectrum_colors.items():
+            self._update_dataset_icon(spec_id, self._display_color(base_color))
+        self.refresh_overlay()
+
     def _on_display_unit_changed(self, unit: str) -> None:
         self.plot.set_display_unit(unit)
         self.refresh_overlay()
@@ -606,6 +916,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         finally:
             self.plot.end_bulk_update()
 
+        self._refresh_library_view()
         self._update_math_selectors()
         self.refresh_overlay()
         self._show_metadata(spectra[-1])
@@ -733,9 +1044,9 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             spec_id = cast(str, view["id"])
             alias_item = self._dataset_items.get(spec_id)
             alias = alias_item.text() if alias_item else cast(str, view["name"])
-            color = self._spectrum_colors.get(spec_id)
-            if color is None:
-                color = QtGui.QColor("#4F6D7A")
+            base_color = self._spectrum_colors.get(spec_id)
+            if base_color is None:
+                base_color = QtGui.QColor("#4F6D7A")
             display_unit = self._display_y_units.get(spec_id, "absorbance")
             _, y_display = self.units_service.from_canonical(
                 cast(np.ndarray, view["x_canonical"]),
@@ -744,8 +1055,9 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                 display_unit,
             )
             y_units_in_view.append(display_unit)
+            display_color = self._display_color(base_color)
             style = TraceStyle(
-                color=QtGui.QColor(color),
+                color=QtGui.QColor(display_color),
                 width=1.6,
                 antialias=False,
                 show_in_legend=True,
@@ -819,20 +1131,16 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self._show_provenance(spectrum)
         ingest_meta = spectrum.metadata.get("ingest", {}) if isinstance(spectrum.metadata, dict) else {}
         importer = ingest_meta.get("importer", "Unknown importer")
-        summary = (
-            f"Ingested {spectrum.name} ({spectrum.id}) via {importer} from {path.name}."
-        )
-        references = [str(path)]
+        summary = f"Ingested {spectrum.name} via {importer}."
+        references: List[str] = []
         if spectrum.id:
             references.append(spectrum.id)
-        cache_record = ingest_meta.get("cache_record", {}) if isinstance(ingest_meta, dict) else {}
-        cache_sha = cache_record.get("sha256")
-        if cache_sha:
-            references.append(str(cache_sha))
-        self._record_history_event("Import", summary, references)
+        self._record_history_event("Import", summary, references, persist=False)
+        self._refresh_library_view()
 
     def _add_spectrum(self, spectrum: Spectrum) -> None:
-        color = self._assign_color(spectrum)
+        base_color = self._assign_color(spectrum)
+        display_color = self._display_color(base_color)
         group_item = self._derived_item if self._is_derived(spectrum) else self._originals_item
         visible_item = QtGui.QStandardItem()
         visible_item.setCheckable(True)
@@ -843,7 +1151,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         color_item = QtGui.QStandardItem()
         color_item.setEditable(False)
         icon_pix = QtGui.QPixmap(16, 16)
-        icon_pix.fill(color)
+        icon_pix.fill(display_color)
         color_item.setIcon(QtGui.QIcon(icon_pix))
         color_item.setData(spectrum.id, QtCore.Qt.ItemDataRole.UserRole)
 
@@ -853,12 +1161,13 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         group_item.appendRow([alias_item, visible_item, color_item])
         self.dataset_tree.expandAll()
         self._dataset_items[spectrum.id] = alias_item
+        self._dataset_color_items[spectrum.id] = color_item
         self._visibility[spectrum.id] = True
         _source_x, source_y = self._source_units(spectrum)
         self._display_y_units[spectrum.id] = source_y
-        self._add_plot_trace(spectrum, color)
+        self._add_plot_trace(spectrum, base_color)
 
-    def _add_plot_trace(self, spectrum: Spectrum, color: QtGui.QColor) -> None:
+    def _add_plot_trace(self, spectrum: Spectrum, base_color: QtGui.QColor) -> None:
         alias_item = self._dataset_items.get(spectrum.id)
         alias = alias_item.text() if alias_item else spectrum.name
         x_nm = self._to_nm(spectrum.x, spectrum.x_unit)
@@ -869,8 +1178,9 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             spectrum.x_unit,
             display_y_unit,
         )
+        display_color = self._display_color(base_color)
         style = TraceStyle(
-            color=QtGui.QColor(color),
+            color=QtGui.QColor(display_color),
             width=1.6,
             antialias=False,
             show_in_legend=True,
@@ -1072,9 +1382,16 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         component: str,
         summary: str,
         references: Sequence[str] | None = None,
+        *,
+        persist: bool = True,
     ) -> None:
         try:
-            entry = self.knowledge_log.record_event(component, summary, references)
+            entry = self.knowledge_log.record_event(
+                component,
+                summary,
+                references,
+                persist=persist,
+            )
         except Exception as exc:  # pragma: no cover - filesystem feedback
             self._log("History", f"Failed to record event: {exc}")
             return
@@ -1093,11 +1410,10 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                     remote = candidate
         provider = str(remote.get("provider", "remote source")) if remote else "remote source"
         uri = str(remote.get("uri")) if remote and remote.get("uri") else None
-        sha = str(cache_record.get("sha256")) if isinstance(cache_record, Mapping) and cache_record.get("sha256") else None
-        summary = f"Imported {spectrum.name} ({spectrum.id}) from {provider}."
-        references = [ref for ref in [uri, sha, spectrum.id] if ref]
-        self._record_history_event("Remote Import", summary, references)
-        return {"provider": provider, "uri": uri, "sha": sha}
+        summary = f"Imported {spectrum.name} via {provider}."
+        references = [ref for ref in [spectrum.id] if ref]
+        self._record_history_event("Remote Import", summary, references, persist=False)
+        return {"provider": provider, "uri": uri}
 
     def _populate_data_table(self, views: Iterable[dict]) -> None:
         views = list(views)
@@ -1206,6 +1522,19 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self._spectrum_colors[spectrum.id] = color
         return color
 
+    def _display_color(self, base: QtGui.QColor) -> QtGui.QColor:
+        if self._use_uniform_palette:
+            return QtGui.QColor(self._uniform_color)
+        return QtGui.QColor(base)
+
+    def _update_dataset_icon(self, spectrum_id: str, color: QtGui.QColor) -> None:
+        color_item = self._dataset_color_items.get(spectrum_id)
+        if color_item is None:
+            return
+        icon_pix = QtGui.QPixmap(16, 16)
+        icon_pix.fill(color)
+        color_item.setIcon(QtGui.QIcon(icon_pix))
+
     def _is_derived(self, spectrum: Spectrum) -> bool:
         metadata = spectrum.metadata
         if isinstance(metadata, dict) and 'operation' in metadata:
@@ -1284,23 +1613,25 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         layout.setContentsMargins(6, 6, 6, 6)
 
         intro = QtWidgets.QLabel(
-            "Curated line lists, infrared heuristics, and JWST quick-look spectra are bundled for offline use."
+            "Use the panels below to fetch spectral line lists from NIST or browse infrared heuristics."
         )
         intro.setWordWrap(True)
         intro.setStyleSheet("color: #555;")
         layout.addWidget(intro)
 
+        self.reference_tabs = QtWidgets.QTabWidget()
+        self.reference_tabs.setTabPosition(QtWidgets.QTabWidget.TabPosition.North)
+        self.reference_tabs.addTab(self._build_reference_lines_controls(), "Spectral lines")
+        self.reference_tabs.addTab(self._build_reference_ir_controls(), "IR groups")
+        self.reference_tabs.addTab(self._build_reference_line_shape_controls(), "Line-shape models")
+        self.reference_tabs.currentChanged.connect(self._on_reference_tab_changed)
+        layout.addWidget(self.reference_tabs)
+
         controls = QtWidgets.QHBoxLayout()
-        layout.addLayout(controls)
-
-        controls.addWidget(QtWidgets.QLabel("Dataset:"))
-        self.reference_dataset_combo = QtWidgets.QComboBox()
-        self.reference_dataset_combo.currentIndexChanged.connect(self._on_reference_dataset_changed)
-        controls.addWidget(self.reference_dataset_combo, 1)
-
+        controls.addWidget(QtWidgets.QLabel("Filter:"))
         self.reference_filter = QtWidgets.QLineEdit()
-        self.reference_filter.setPlaceholderText("Filter rows…")
-        self.reference_filter.textChanged.connect(self._filter_reference_rows)
+        self.reference_filter.setPlaceholderText("Filter spectral lines…")
+        self.reference_filter.textChanged.connect(self._on_reference_filter_changed)
         controls.addWidget(self.reference_filter, 1)
 
         controls.addStretch(1)
@@ -1308,6 +1639,13 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.reference_overlay_checkbox.setEnabled(False)
         self.reference_overlay_checkbox.toggled.connect(self._on_reference_overlay_toggled)
         controls.addWidget(self.reference_overlay_checkbox)
+
+        layout.addLayout(controls)
+
+        self.reference_status_label = QtWidgets.QLabel()
+        self.reference_status_label.setObjectName("reference-status")
+        self.reference_status_label.setWordWrap(True)
+        layout.addWidget(self.reference_status_label)
 
         self.reference_table = QtWidgets.QTableWidget()
         self.reference_table.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
@@ -1333,100 +1671,214 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.reference_meta.setMinimumHeight(160)
         layout.addWidget(self.reference_meta)
 
-        self._populate_reference_combo()
+        self._reference_mode = "nist"
+        self._nist_payload: Optional[Dict[str, Any]] = None
+        self._refresh_reference_view()
 
-    def _on_reference_dataset_changed(self, index: int) -> None:
-        if index < 0:
+    def _build_reference_lines_controls(self) -> QtWidgets.QWidget:
+        widget = QtWidgets.QWidget()
+        layout = QtWidgets.QGridLayout(widget)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setHorizontalSpacing(8)
+        layout.setVerticalSpacing(4)
+
+        self.nist_element_edit = QtWidgets.QLineEdit()
+        self.nist_element_edit.setPlaceholderText("Element symbol (e.g., Fe)")
+        self.nist_element_edit.setClearButtonEnabled(True)
+        layout.addWidget(QtWidgets.QLabel("Element"), 0, 0)
+        layout.addWidget(self.nist_element_edit, 0, 1)
+
+        self.nist_ion_edit = QtWidgets.QLineEdit()
+        self.nist_ion_edit.setPlaceholderText("Ion stage (I, II, …)")
+        self.nist_ion_edit.setClearButtonEnabled(True)
+        layout.addWidget(QtWidgets.QLabel("Ion"), 0, 2)
+        layout.addWidget(self.nist_ion_edit, 0, 3)
+
+        self.nist_lower_spin = QtWidgets.QDoubleSpinBox()
+        self.nist_lower_spin.setDecimals(2)
+        self.nist_lower_spin.setRange(1.0, 20000.0)
+        self.nist_lower_spin.setValue(float(nist_asd_service.DEFAULT_LOWER_WAVELENGTH_NM))
+        self.nist_lower_spin.setSuffix(" nm")
+        layout.addWidget(QtWidgets.QLabel("λ min"), 1, 0)
+        layout.addWidget(self.nist_lower_spin, 1, 1)
+
+        self.nist_upper_spin = QtWidgets.QDoubleSpinBox()
+        self.nist_upper_spin.setDecimals(2)
+        self.nist_upper_spin.setRange(1.0, 20000.0)
+        self.nist_upper_spin.setValue(float(nist_asd_service.DEFAULT_UPPER_WAVELENGTH_NM))
+        self.nist_upper_spin.setSuffix(" nm")
+        layout.addWidget(QtWidgets.QLabel("λ max"), 1, 2)
+        layout.addWidget(self.nist_upper_spin, 1, 3)
+
+        self.nist_medium_combo = QtWidgets.QComboBox()
+        self.nist_medium_combo.addItem("Vacuum", userData="vacuum")
+        self.nist_medium_combo.addItem("Air", userData="air")
+        layout.addWidget(QtWidgets.QLabel("Medium"), 2, 0)
+        layout.addWidget(self.nist_medium_combo, 2, 1)
+
+        self.nist_use_ritz_checkbox = QtWidgets.QCheckBox("Prefer Ritz wavelengths")
+        self.nist_use_ritz_checkbox.setChecked(True)
+        layout.addWidget(self.nist_use_ritz_checkbox, 2, 2, 1, 2)
+
+        self.nist_examples_combo = QtWidgets.QComboBox()
+        self.nist_examples_combo.addItem("Examples…", userData=None)
+        self.nist_examples_combo.addItem("Hydrogen I (Balmer)", userData=("H", "I", 380.0, 750.0))
+        self.nist_examples_combo.addItem("Helium II", userData=("He", "II", 200.0, 700.0))
+        self.nist_examples_combo.addItem("Iron II", userData=("Fe", "II", 200.0, 800.0))
+        self.nist_examples_combo.currentIndexChanged.connect(self._on_nist_example_selected)
+        layout.addWidget(self.nist_examples_combo, 3, 0, 1, 2)
+
+        self.nist_fetch_button = QtWidgets.QPushButton("Fetch lines")
+        self.nist_fetch_button.clicked.connect(self._on_nist_fetch_clicked)
+        layout.addWidget(self.nist_fetch_button, 3, 2, 1, 1)
+
+        self.nist_hint_label = QtWidgets.QLabel()
+        self.nist_hint_label.setWordWrap(True)
+        layout.addWidget(self.nist_hint_label, 4, 0, 1, 4)
+
+        if not nist_asd_service.dependencies_available():
+            self.nist_fetch_button.setEnabled(False)
+            self.nist_hint_label.setText(
+                "Install the optional 'astroquery' package to enable NIST ASD lookups."
+            )
+        else:
+            self.nist_hint_label.setText(
+                "Enter an element symbol and optional ion stage, then adjust the wavelength window as needed."
+            )
+
+        return widget
+
+    def _build_reference_ir_controls(self) -> QtWidgets.QWidget:
+        widget = QtWidgets.QWidget()
+        layout = QtWidgets.QVBoxLayout(widget)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(4)
+        label = QtWidgets.QLabel(
+            "Infrared functional-group bands are bundled offline. Use the filter box to search by group, mode, or note."
+        )
+        label.setWordWrap(True)
+        layout.addWidget(label)
+        return widget
+
+    def _build_reference_line_shape_controls(self) -> QtWidgets.QWidget:
+        widget = QtWidgets.QWidget()
+        layout = QtWidgets.QVBoxLayout(widget)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(4)
+        label = QtWidgets.QLabel(
+            "Line-shape placeholders illustrate Doppler, pressure, and Stark models. Select a row to preview the profile."
+        )
+        label.setWordWrap(True)
+        layout.addWidget(label)
+        return widget
+
+    def _on_reference_tab_changed(self, index: int) -> None:
+        mode_map = {0: "nist", 1: "ir", 2: "line_shapes"}
+        new_mode = mode_map.get(index, "nist")
+        if new_mode == self._reference_mode:
             return
-        if hasattr(self, "reference_dataset_combo"):
-            label = self.reference_dataset_combo.itemText(index)
-            self._log("Reference", f"Dataset → {label}")
-        self._refresh_reference_dataset()
-
-    def _populate_reference_combo(self) -> None:
-        combo = self.reference_dataset_combo
-        combo.blockSignals(True)
-        combo.clear()
-
-        def add_option(label: str, kind: str, key: Optional[str] = None) -> None:
-            combo.addItem(label)
-            idx = combo.count() - 1
-            payload: Dict[str, Optional[str]] = {"kind": kind, "key": key if key is None else str(key)}
-            combo.setItemData(idx, payload, QtCore.Qt.ItemDataRole.UserRole)
-
-        add_option("NIST Hydrogen Lines (Balmer & Lyman)", "spectral_lines")
-        add_option("IR Functional Groups", "ir_groups")
-        add_option("Line-shape Placeholders", "line_shapes")
-
-        for target in self.reference_library.jwst_targets():
-            name = target.get("name", "Unknown")
-            instrument = target.get("instrument") or "—"
-            add_option(f"JWST: {name} ({instrument})", "jwst", target.get("id"))
-
-        combo.blockSignals(False)
-        if combo.count():
-            combo.setCurrentIndex(0)
+        self._reference_mode = new_mode
+        placeholder = {
+            "nist": "Filter spectral lines…",
+            "ir": "Filter IR groups…",
+            "line_shapes": "Filter line-shape entries…",
+        }.get(new_mode, "Filter entries…")
+        self.reference_filter.blockSignals(True)
+        self.reference_filter.setPlaceholderText(placeholder)
+        self.reference_filter.clear()
+        self.reference_filter.blockSignals(False)
         self.reference_overlay_checkbox.blockSignals(True)
         self.reference_overlay_checkbox.setChecked(False)
         self.reference_overlay_checkbox.blockSignals(False)
-        self._refresh_reference_dataset()
+        self._refresh_reference_view()
 
-    def _filter_reference_rows(self, _: str) -> None:
-        self._refresh_reference_dataset()
+    def _on_reference_filter_changed(self, _: str) -> None:
+        self._refresh_reference_view()
 
-    def _current_reference_option(self) -> Optional[tuple[str, Optional[str]]]:
-        combo = getattr(self, "reference_dataset_combo", None)
-        if combo is None:
-            return None
-        index = combo.currentIndex()
-        if index < 0:
-            return None
-        payload = combo.itemData(index, QtCore.Qt.ItemDataRole.UserRole)
-        if isinstance(payload, Mapping):
-            kind = str(payload.get("kind", ""))
-            key_obj = payload.get("key")
-            key = None if key_obj is None else str(key_obj)
-            return (kind, key)
-        return None
-
-    def _refresh_reference_dataset(self) -> None:
-        option = self._current_reference_option()
-        if option is None:
-            self.reference_table.setRowCount(0)
-            self.reference_table.setColumnCount(0)
-            self.reference_meta.clear()
-            self._clear_reference_plot()
-            self._update_reference_overlay_state(None)
-            return
-
-        kind, key = option
-        query = self.reference_filter.text().strip().lower()
+    def _refresh_reference_view(self) -> None:
+        query = self.reference_filter.text().strip().lower() if hasattr(self, "reference_filter") else ""
         overlay_payload: Optional[Dict[str, Any]] = None
 
         self._clear_reference_plot()
         self._line_shape_rows = []
+        self.reference_table.setRowCount(0)
+        self.reference_table.setColumnCount(0)
 
-        if kind == "spectral_lines":
-            entries = self.reference_library.spectral_lines()
-            filtered = self._filter_reference_entries(entries, query)
-            self.reference_table.setColumnCount(6)
-            self.reference_table.setHorizontalHeaderLabels(
-                ["Series", "Transition", "λ₀ (nm)", "ṽ (cm⁻¹)", "Aₖᵢ (s⁻¹)", "Relative Intensity"]
-            )
+        mode = getattr(self, "_reference_mode", "nist")
+
+        if mode == "nist":
+            payload = getattr(self, "_nist_payload", None)
+            if not payload:
+                self.reference_status_label.setText(
+                    "Enter an element and fetch spectral lines to populate this table."
+                )
+                self.reference_meta.clear()
+                self._update_reference_overlay_state(None)
+                return
+
+            lines = list(payload.get("lines", []))
+            filtered = self._filter_reference_entries(lines, query)
+
+            headers = [
+                "λ (nm)",
+                "Observed (nm)",
+                "Ritz (nm)",
+                "Rel. intensity",
+                "Norm. intensity",
+                "Lower level",
+                "Upper level",
+                "Type",
+            ]
+            self.reference_table.setColumnCount(len(headers))
+            self.reference_table.setHorizontalHeaderLabels(headers)
             self.reference_table.setRowCount(len(filtered))
-            for row, entry in enumerate(filtered):
-                self._set_table_item(row, 0, entry.get("series", ""))
-                self._set_table_item(row, 1, entry.get("transition", ""))
-                self._set_table_item(row, 2, self._format_float(entry.get("vacuum_wavelength_nm")))
-                self._set_table_item(row, 3, self._format_float(entry.get("wavenumber_cm_1")))
-                self._set_table_item(row, 4, self._format_scientific(entry.get("einstein_a_s_1")))
-                self._set_table_item(row, 5, self._format_float(entry.get("relative_intensity"), precision=2))
-            meta = self.reference_library.hydrogen_metadata()
-            notes = self._merge_provenance(meta)
-            self._set_reference_meta(meta.get("citation"), meta.get("url"), notes)
-            overlay_payload = self._render_reference_spectral_lines(filtered)
 
-        elif kind == "ir_groups":
+            for row, entry in enumerate(filtered):
+                self._set_table_item(row, 0, self._format_float(entry.get("wavelength_nm")))
+                self._set_table_item(row, 1, self._format_float(entry.get("observed_wavelength_nm")))
+                self._set_table_item(row, 2, self._format_float(entry.get("ritz_wavelength_nm")))
+                self._set_table_item(row, 3, self._format_float(entry.get("relative_intensity"), precision=2))
+                self._set_table_item(row, 4, self._format_float(entry.get("relative_intensity_normalized"), precision=3))
+                self._set_table_item(row, 5, entry.get("lower_level", ""))
+                self._set_table_item(row, 6, entry.get("upper_level", ""))
+                self._set_table_item(row, 7, entry.get("transition_type", ""))
+
+            meta = payload.get("meta", {})
+            label = meta.get("label") or meta.get("element_name") or "NIST ASD lines"
+            citation = meta.get("citation")
+            query_meta = meta.get("query") if isinstance(meta.get("query"), Mapping) else {}
+            if isinstance(query_meta, Mapping):
+                lower_nm = query_meta.get("lower_wavelength")
+                upper_nm = query_meta.get("upper_wavelength")
+                unit = query_meta.get("wavelength_unit", "nm")
+                range_text = None
+                if lower_nm is not None and upper_nm is not None:
+                    range_text = f"Range: {lower_nm:.1f}–{upper_nm:.1f} {unit}"
+                elif lower_nm is not None:
+                    range_text = f"Lower bound: {lower_nm:.1f} {unit}"
+                notes_parts = []
+                if range_text:
+                    notes_parts.append(range_text)
+                medium = query_meta.get("wavelength_type")
+                if medium:
+                    notes_parts.append(f"Medium: {medium}")
+                if meta.get("ion_stage"):
+                    notes_parts.append(f"Ion stage: {meta['ion_stage']}")
+                if notes_parts:
+                    notes = "; ".join(notes_parts)
+                else:
+                    notes = None
+            else:
+                notes = None
+
+            self._set_reference_meta(label, "https://physics.nist.gov/asd", notes)
+            line_total = len(lines)
+            self.reference_status_label.setText(
+                f"Displaying {len(filtered)} of {line_total} spectral line(s)."
+            )
+            overlay_payload = self._render_nist_lines(filtered, meta)
+
+        elif mode == "ir":
             entries = self.reference_library.ir_functional_groups()
             filtered = self._filter_reference_entries(entries, query)
             self.reference_table.setColumnCount(5)
@@ -1436,7 +1888,10 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             self.reference_table.setRowCount(len(filtered))
             for row, entry in enumerate(filtered):
                 self._set_table_item(row, 0, entry.get("group", ""))
-                span = f"{self._format_float(entry.get('wavenumber_cm_1_min'), precision=0)} – {self._format_float(entry.get('wavenumber_cm_1_max'), precision=0)}"
+                span = (
+                    f"{self._format_float(entry.get('wavenumber_cm_1_min'), precision=0)} – "
+                    f"{self._format_float(entry.get('wavenumber_cm_1_max'), precision=0)}"
+                )
                 self._set_table_item(row, 1, span)
                 self._set_table_item(row, 2, entry.get("intensity", ""))
                 modes = ", ".join(entry.get("associated_modes", []))
@@ -1445,9 +1900,12 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             meta = self.reference_library.ir_metadata()
             notes = self._merge_provenance(meta)
             self._set_reference_meta(meta.get("citation"), meta.get("url"), notes)
+            self.reference_status_label.setText(
+                f"{len(filtered)} of {len(entries)} IR functional-group band(s) shown."
+            )
             overlay_payload = self._render_reference_ir_groups(filtered)
 
-        elif kind == "line_shapes":
+        else:  # line-shape models
             entries = self.reference_library.line_shape_placeholders()
             filtered = self._filter_reference_entries(entries, query)
             self._line_shape_rows = list(filtered)
@@ -1481,83 +1939,71 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                 meta = self.reference_library.line_shape_metadata()
                 self.reference_meta.setHtml(self._line_shape_overview_html(meta))
 
-        elif kind == "jwst":
-            if key is None:
-                self.reference_table.setRowCount(0)
-                self.reference_table.setColumnCount(0)
-                self.reference_meta.clear()
-                self._clear_reference_plot()
-                self._update_reference_overlay_state(None)
-                return
-            target = self.reference_library.jwst_target(str(key))
-            if not target:
-                self.reference_table.setRowCount(0)
-                self.reference_table.setColumnCount(0)
-                self.reference_meta.setHtml("<p>Target metadata unavailable.</p>")
-                self._update_reference_overlay_state(None)
-                return
-            data_rows = target.get("data", [])
-            status = target.get("status")
-            if not data_rows:
-                self.reference_table.setRowCount(0)
-                self.reference_table.setColumnCount(0)
-                notes = target.get("source", {}).get("notes", "No public JWST spectrum available.")
-                self._set_reference_meta(target.get("name"), target.get("source", {}).get("url"), notes)
-                self._render_reference_jwst(target, [], "wavelength", "value", None)
-                self._update_reference_overlay_state(None)
-                return
-            filtered = self._filter_reference_entries(data_rows, query)
-            wavelength_key = next((k for k in data_rows[0].keys() if "wavelength" in k), "wavelength")
-            value_key = "value" if "value" in data_rows[0] else next(iter(set(data_rows[0].keys()) - {wavelength_key}), "value")
-            uncertainty_key = next((k for k in data_rows[0].keys() if k.startswith("uncertainty")), None)
-            columns = ["λ (µm)", f"Measurement ({target.get('data_units', 'value')})"]
-            if uncertainty_key:
-                units = uncertainty_key.split("_", 1)[-1].replace("_", " ")
-                columns.append(f"Uncertainty ({units})")
-            self.reference_table.setColumnCount(len(columns))
-            self.reference_table.setHorizontalHeaderLabels(columns)
-            self.reference_table.setRowCount(len(filtered))
-            for row, entry in enumerate(filtered):
-                self._set_table_item(row, 0, self._format_float(entry.get(wavelength_key)))
-                self._set_table_item(row, 1, self._format_float(entry.get(value_key)))
-                if uncertainty_key and len(columns) > 2:
-                    self._set_table_item(row, 2, self._format_float(entry.get(uncertainty_key)))
-            source = target.get("source", {})
-            notes = source.get("notes", "")
-            range_min, range_max = target.get("spectral_range_um", [None, None])
-            range_text = ""
-            if range_min is not None and range_max is not None:
-                range_text = f"Range: {self._format_float(range_min)} – {self._format_float(range_max)} µm"
-            resolution = target.get("spectral_resolution")
-            resolution_text = f"Resolving power ≈ {resolution}" if resolution else "Resolving power pending"
-            meta_html = (
-                f"<p><b>{target.get('name')}</b><br/>"
-                f"Instrument: {target.get('instrument', '—')} | Program: {target.get('program', '—')}<br/>"
-                f"{range_text}<br/>{resolution_text}<br/>"
-                f"Data units: {target.get('data_units', '—')}</p>"
+            self.reference_status_label.setText(
+                f"{len(filtered)} line-shape template(s) available."
             )
-            if source.get("url"):
-                meta_html += f"<p><a href='{source['url']}'>Source documentation</a></p>"
-            if notes:
-                meta_html += f"<p>{notes}</p>"
-            provenance_html = self._format_target_provenance(target.get("provenance"))
-            if provenance_html:
-                meta_html += provenance_html
-            if status:
-                meta_html += f"<p>Status: {status}</p>"
-            self.reference_meta.setHtml(meta_html)
-            overlay_payload = self._render_reference_jwst(
-                target, filtered, wavelength_key, value_key, uncertainty_key
-            )
-
-        else:
-            self.reference_table.setRowCount(0)
-            self.reference_table.setColumnCount(0)
-            self.reference_meta.clear()
-            self._clear_reference_plot()
 
         self.reference_table.resizeColumnsToContents()
         self._update_reference_overlay_state(overlay_payload)
+
+    def _on_nist_example_selected(self, index: int) -> None:
+        data = self.nist_examples_combo.itemData(index)
+        if not data:
+            return
+        element, ion, lower, upper = data
+        self.nist_element_edit.setText(str(element))
+        self.nist_ion_edit.setText(str(ion) if ion else "")
+        self.nist_lower_spin.setValue(float(lower))
+        self.nist_upper_spin.setValue(float(upper))
+        self.nist_examples_combo.blockSignals(True)
+        self.nist_examples_combo.setCurrentIndex(0)
+        self.nist_examples_combo.blockSignals(False)
+
+    def _on_nist_fetch_clicked(self) -> None:
+        element = self.nist_element_edit.text().strip()
+        if not element:
+            QtWidgets.QMessageBox.information(
+                self,
+                "Enter element",
+                "Provide an element symbol or name before querying NIST.",
+            )
+            return
+
+        ion_stage = self.nist_ion_edit.text().strip() or None
+        lower_nm = float(self.nist_lower_spin.value())
+        upper_nm = float(self.nist_upper_spin.value())
+        use_ritz = self.nist_use_ritz_checkbox.isChecked()
+        wavelength_type = str(self.nist_medium_combo.currentData() or "vacuum")
+
+        try:
+            payload = nist_asd_service.fetch_lines(
+                element,
+                element=element,
+                ion_stage=ion_stage,
+                lower_wavelength=lower_nm,
+                upper_wavelength=upper_nm,
+                wavelength_unit="nm",
+                use_ritz=use_ritz,
+                wavelength_type=wavelength_type,
+            )
+        except nist_asd_service.NistUnavailableError as exc:
+            QtWidgets.QMessageBox.critical(self, "NIST unavailable", str(exc))
+            return
+        except nist_asd_service.NistQueryError as exc:
+            QtWidgets.QMessageBox.critical(self, "Query failed", str(exc))
+            return
+
+        self._nist_payload = payload
+        self.reference_overlay_checkbox.blockSignals(True)
+        self.reference_overlay_checkbox.setChecked(False)
+        self.reference_overlay_checkbox.blockSignals(False)
+        meta = payload.get("meta", {})
+        line_count = meta.get("line_count") or len(payload.get("lines", []))
+        self.reference_status_label.setText(
+            f"Fetched {line_count} spectral line(s) from NIST ASD."
+        )
+        self._log("Reference", f"NIST ASD → {meta.get('label', element)}")
+        self._refresh_reference_view()
 
     def _filter_reference_entries(
         self, entries: List[Mapping[str, Any]], query: str
@@ -1582,6 +2028,68 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             self.reference_plot.clear()
             self.reference_plot.showGrid(x=True, y=True, alpha=0.25)
         self._reference_plot_items = []
+
+    def _render_nist_lines(
+        self, entries: List[Mapping[str, Any]], meta: Mapping[str, Any]
+    ) -> Optional[Dict[str, Any]]:
+        if not entries:
+            display_unit = self._reference_display_unit()
+            self.reference_plot.setLabel("bottom", "Wavelength", units=display_unit)
+            self.reference_plot.setLabel("left", "Relative Intensity (a.u.)")
+            return None
+
+        wavelengths: List[float] = []
+        intensities: List[float] = []
+        for entry in entries:
+            wavelength = self._coerce_float(entry.get("wavelength_nm"))
+            if wavelength is None or not np.isfinite(wavelength):
+                continue
+            wavelengths.append(wavelength)
+            norm = self._coerce_float(entry.get("relative_intensity_normalized"))
+            if norm is None:
+                norm = self._coerce_float(entry.get("relative_intensity"))
+            intensities.append(norm if norm is not None else 1.0)
+
+        if not wavelengths:
+            display_unit = self._reference_display_unit()
+            self.reference_plot.setLabel("bottom", "Wavelength", units=display_unit)
+            self.reference_plot.setLabel("left", "Relative Intensity (a.u.)")
+            return None
+
+        wavelengths_nm = np.array(wavelengths, dtype=float)
+        intensities_arr = np.array(intensities, dtype=float)
+        if intensities_arr.size == 0:
+            intensities_arr = np.ones_like(wavelengths_nm)
+
+        display_unit = self._reference_display_unit()
+        display_wavelengths = self._convert_nm_to_unit(wavelengths_nm, display_unit)
+        pen = pg.mkPen(color="#C72C41", width=2)
+        for x_val, intensity in zip(display_wavelengths, intensities_arr):
+            height = float(intensity) if np.isfinite(intensity) and intensity > 0 else 1.0
+            item = self.reference_plot.plot([x_val, x_val], [0.0, height], pen=pen)
+            self._reference_plot_items.append(item)
+
+        max_intensity = float(np.nanmax(intensities_arr)) if intensities_arr.size else 1.0
+        if not np.isfinite(max_intensity) or max_intensity <= 0:
+            max_intensity = 1.0
+        self.reference_plot.setLabel("bottom", "Wavelength", units=display_unit)
+        self.reference_plot.setLabel("left", "Relative Intensity (a.u.)")
+        self.reference_plot.setYRange(0.0, max_intensity * 1.1, padding=0.05)
+
+        label = meta.get("label") or "NIST ASD"
+        element_symbol = meta.get("element_symbol", "")
+        overlay_alias = f"Reference – {label}"
+        overlay_key = f"reference::nist::{element_symbol or label}".lower().replace(" ", "_")
+        payload = self._build_overlay_for_lines(
+            wavelengths_nm,
+            intensities_arr,
+            key=overlay_key,
+            alias=overlay_alias,
+            color="#C72C41",
+        )
+        if payload is not None:
+            payload["dataset"] = meta
+        return payload
 
     def _render_reference_spectral_lines(
         self, entries: List[Mapping[str, Any]]
@@ -1619,7 +2127,13 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.reference_plot.setLabel("bottom", "Wavelength", units=display_unit)
         self.reference_plot.setLabel("left", "Relative Intensity (a.u.)")
         self.reference_plot.setYRange(0.0, max_intensity * 1.1, padding=0.05)
-        return self._build_overlay_for_lines(wavelengths_nm, intensities_arr)
+        return self._build_overlay_for_lines(
+            wavelengths_nm,
+            intensities_arr,
+            key="reference::hydrogen_lines",
+            alias="Reference – NIST Hydrogen",
+            color="#C72C41",
+        )
 
     def _render_reference_ir_groups(
         self, entries: List[Mapping[str, Any]]
@@ -1718,8 +2232,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         return self._build_overlay_for_jwst(target, nm_values, y_array)
 
     def _on_reference_row_selection_changed(self) -> None:
-        option = self._current_reference_option()
-        if option is None or option[0] != "line_shapes":
+        if getattr(self, "_reference_mode", "") != "line_shapes":
             return
         overlay_payload = self._render_selected_line_shape()
         self._update_reference_overlay_state(overlay_payload)
@@ -1875,7 +2388,13 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             return None
 
     def _build_overlay_for_lines(
-        self, wavelengths_nm: np.ndarray, intensities: np.ndarray
+        self,
+        wavelengths_nm: np.ndarray,
+        intensities: np.ndarray,
+        *,
+        key: str,
+        alias: str,
+        color: str = "#C72C41",
     ) -> Optional[Dict[str, Any]]:
         if wavelengths_nm.size == 0:
             return None
@@ -1908,11 +2427,11 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             return None
 
         return {
-            "key": "reference::hydrogen_lines",
-            "alias": "Reference – NIST Hydrogen",
+            "key": key,
+            "alias": alias,
             "x_nm": np.array(x_segments, dtype=float),
             "y": np.array(y_segments, dtype=float),
-            "color": "#C72C41",
+            "color": color,
             "width": 1.4,
         }
 
