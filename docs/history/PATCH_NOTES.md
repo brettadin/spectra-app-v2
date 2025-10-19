@@ -279,6 +279,14 @@
 - Updated the remote data user guide and workplan to document the scoped
   searches and new example menu.
 
+## 2025-10-19 (Reference tab redesign & NIST integration) (13:22 EDT)
+
+- Reworked the Inspector’s Reference tab to present dedicated Spectral lines, IR groups, and Line-shape panels with a
+  spectroscopy-first layout; NIST line searches now use an embedded astroquery form that previews and overlays results
+  directly on the main plot.
+- Updated `docs/user/reference_data.md` to reflect the new workflow and removed the outdated JWST placeholder guidance.
+- Added regression coverage for the NIST fetch path and refreshed the Qt smoke tests. (`pytest`)
+
 ## 2025-10-15 (Importing Guide Provenance Appendix) (9:10 am)
 
 - Expanded `docs/user/importing.md` with a provenance export appendix covering the structure of the manifest bundle.

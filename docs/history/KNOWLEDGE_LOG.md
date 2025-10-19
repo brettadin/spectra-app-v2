@@ -28,6 +28,24 @@ Each entry in this document should follow this structure:
 
 ---
 
+## 2025-10-19 13:22 – Reference tab redesign
+
+**Author**: agent
+
+**Context**: Restructured the Inspector’s Reference tab around spectroscopy-first workflows.
+
+**Summary**: Replaced the dataset combo with dedicated Spectral lines, IR groups, and Line-shape panels; wired the
+embedded NIST form to astroquery so spectral lines plot and overlay directly; updated the reference data guide and added
+Qt regression coverage for the new fetch path. UTC 2025-10-19T17:22:06Z.
+
+**References**:
+- `app/main.py`
+- `docs/user/reference_data.md`
+- `docs/history/PATCH_NOTES.md`
+- `tests/test_reference_ui.py`
+
+---
+
 ## 2025-10-18 20:35 – NIST ASD astroquery line synthesis
 
 **Author**: agent

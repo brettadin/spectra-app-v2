@@ -26,6 +26,7 @@ from .services import (
     KnowledgeLogService,
     RemoteDataService,
 )
+from .services import nist_asd_service
 from .ui.plot_pane import PlotPane, TraceStyle
 from .ui.remote_data_dialog import RemoteDataDialog
 
@@ -1612,23 +1613,25 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         layout.setContentsMargins(6, 6, 6, 6)
 
         intro = QtWidgets.QLabel(
-            "Curated line lists, infrared heuristics, and JWST quick-look spectra are bundled for offline use."
+            "Use the panels below to fetch spectral line lists from NIST or browse infrared heuristics."
         )
         intro.setWordWrap(True)
         intro.setStyleSheet("color: #555;")
         layout.addWidget(intro)
 
+        self.reference_tabs = QtWidgets.QTabWidget()
+        self.reference_tabs.setTabPosition(QtWidgets.QTabWidget.TabPosition.North)
+        self.reference_tabs.addTab(self._build_reference_lines_controls(), "Spectral lines")
+        self.reference_tabs.addTab(self._build_reference_ir_controls(), "IR groups")
+        self.reference_tabs.addTab(self._build_reference_line_shape_controls(), "Line-shape models")
+        self.reference_tabs.currentChanged.connect(self._on_reference_tab_changed)
+        layout.addWidget(self.reference_tabs)
+
         controls = QtWidgets.QHBoxLayout()
-        layout.addLayout(controls)
-
-        controls.addWidget(QtWidgets.QLabel("Dataset:"))
-        self.reference_dataset_combo = QtWidgets.QComboBox()
-        self.reference_dataset_combo.currentIndexChanged.connect(self._on_reference_dataset_changed)
-        controls.addWidget(self.reference_dataset_combo, 1)
-
+        controls.addWidget(QtWidgets.QLabel("Filter:"))
         self.reference_filter = QtWidgets.QLineEdit()
-        self.reference_filter.setPlaceholderText("Filter rows…")
-        self.reference_filter.textChanged.connect(self._filter_reference_rows)
+        self.reference_filter.setPlaceholderText("Filter spectral lines…")
+        self.reference_filter.textChanged.connect(self._on_reference_filter_changed)
         controls.addWidget(self.reference_filter, 1)
 
         controls.addStretch(1)
@@ -1636,6 +1639,13 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.reference_overlay_checkbox.setEnabled(False)
         self.reference_overlay_checkbox.toggled.connect(self._on_reference_overlay_toggled)
         controls.addWidget(self.reference_overlay_checkbox)
+
+        layout.addLayout(controls)
+
+        self.reference_status_label = QtWidgets.QLabel()
+        self.reference_status_label.setObjectName("reference-status")
+        self.reference_status_label.setWordWrap(True)
+        layout.addWidget(self.reference_status_label)
 
         self.reference_table = QtWidgets.QTableWidget()
         self.reference_table.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
@@ -1661,100 +1671,214 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.reference_meta.setMinimumHeight(160)
         layout.addWidget(self.reference_meta)
 
-        self._populate_reference_combo()
+        self._reference_mode = "nist"
+        self._nist_payload: Optional[Dict[str, Any]] = None
+        self._refresh_reference_view()
 
-    def _on_reference_dataset_changed(self, index: int) -> None:
-        if index < 0:
+    def _build_reference_lines_controls(self) -> QtWidgets.QWidget:
+        widget = QtWidgets.QWidget()
+        layout = QtWidgets.QGridLayout(widget)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setHorizontalSpacing(8)
+        layout.setVerticalSpacing(4)
+
+        self.nist_element_edit = QtWidgets.QLineEdit()
+        self.nist_element_edit.setPlaceholderText("Element symbol (e.g., Fe)")
+        self.nist_element_edit.setClearButtonEnabled(True)
+        layout.addWidget(QtWidgets.QLabel("Element"), 0, 0)
+        layout.addWidget(self.nist_element_edit, 0, 1)
+
+        self.nist_ion_edit = QtWidgets.QLineEdit()
+        self.nist_ion_edit.setPlaceholderText("Ion stage (I, II, …)")
+        self.nist_ion_edit.setClearButtonEnabled(True)
+        layout.addWidget(QtWidgets.QLabel("Ion"), 0, 2)
+        layout.addWidget(self.nist_ion_edit, 0, 3)
+
+        self.nist_lower_spin = QtWidgets.QDoubleSpinBox()
+        self.nist_lower_spin.setDecimals(2)
+        self.nist_lower_spin.setRange(1.0, 20000.0)
+        self.nist_lower_spin.setValue(float(nist_asd_service.DEFAULT_LOWER_WAVELENGTH_NM))
+        self.nist_lower_spin.setSuffix(" nm")
+        layout.addWidget(QtWidgets.QLabel("λ min"), 1, 0)
+        layout.addWidget(self.nist_lower_spin, 1, 1)
+
+        self.nist_upper_spin = QtWidgets.QDoubleSpinBox()
+        self.nist_upper_spin.setDecimals(2)
+        self.nist_upper_spin.setRange(1.0, 20000.0)
+        self.nist_upper_spin.setValue(float(nist_asd_service.DEFAULT_UPPER_WAVELENGTH_NM))
+        self.nist_upper_spin.setSuffix(" nm")
+        layout.addWidget(QtWidgets.QLabel("λ max"), 1, 2)
+        layout.addWidget(self.nist_upper_spin, 1, 3)
+
+        self.nist_medium_combo = QtWidgets.QComboBox()
+        self.nist_medium_combo.addItem("Vacuum", userData="vacuum")
+        self.nist_medium_combo.addItem("Air", userData="air")
+        layout.addWidget(QtWidgets.QLabel("Medium"), 2, 0)
+        layout.addWidget(self.nist_medium_combo, 2, 1)
+
+        self.nist_use_ritz_checkbox = QtWidgets.QCheckBox("Prefer Ritz wavelengths")
+        self.nist_use_ritz_checkbox.setChecked(True)
+        layout.addWidget(self.nist_use_ritz_checkbox, 2, 2, 1, 2)
+
+        self.nist_examples_combo = QtWidgets.QComboBox()
+        self.nist_examples_combo.addItem("Examples…", userData=None)
+        self.nist_examples_combo.addItem("Hydrogen I (Balmer)", userData=("H", "I", 380.0, 750.0))
+        self.nist_examples_combo.addItem("Helium II", userData=("He", "II", 200.0, 700.0))
+        self.nist_examples_combo.addItem("Iron II", userData=("Fe", "II", 200.0, 800.0))
+        self.nist_examples_combo.currentIndexChanged.connect(self._on_nist_example_selected)
+        layout.addWidget(self.nist_examples_combo, 3, 0, 1, 2)
+
+        self.nist_fetch_button = QtWidgets.QPushButton("Fetch lines")
+        self.nist_fetch_button.clicked.connect(self._on_nist_fetch_clicked)
+        layout.addWidget(self.nist_fetch_button, 3, 2, 1, 1)
+
+        self.nist_hint_label = QtWidgets.QLabel()
+        self.nist_hint_label.setWordWrap(True)
+        layout.addWidget(self.nist_hint_label, 4, 0, 1, 4)
+
+        if not nist_asd_service.dependencies_available():
+            self.nist_fetch_button.setEnabled(False)
+            self.nist_hint_label.setText(
+                "Install the optional 'astroquery' package to enable NIST ASD lookups."
+            )
+        else:
+            self.nist_hint_label.setText(
+                "Enter an element symbol and optional ion stage, then adjust the wavelength window as needed."
+            )
+
+        return widget
+
+    def _build_reference_ir_controls(self) -> QtWidgets.QWidget:
+        widget = QtWidgets.QWidget()
+        layout = QtWidgets.QVBoxLayout(widget)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(4)
+        label = QtWidgets.QLabel(
+            "Infrared functional-group bands are bundled offline. Use the filter box to search by group, mode, or note."
+        )
+        label.setWordWrap(True)
+        layout.addWidget(label)
+        return widget
+
+    def _build_reference_line_shape_controls(self) -> QtWidgets.QWidget:
+        widget = QtWidgets.QWidget()
+        layout = QtWidgets.QVBoxLayout(widget)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(4)
+        label = QtWidgets.QLabel(
+            "Line-shape placeholders illustrate Doppler, pressure, and Stark models. Select a row to preview the profile."
+        )
+        label.setWordWrap(True)
+        layout.addWidget(label)
+        return widget
+
+    def _on_reference_tab_changed(self, index: int) -> None:
+        mode_map = {0: "nist", 1: "ir", 2: "line_shapes"}
+        new_mode = mode_map.get(index, "nist")
+        if new_mode == self._reference_mode:
             return
-        if hasattr(self, "reference_dataset_combo"):
-            label = self.reference_dataset_combo.itemText(index)
-            self._log("Reference", f"Dataset → {label}")
-        self._refresh_reference_dataset()
-
-    def _populate_reference_combo(self) -> None:
-        combo = self.reference_dataset_combo
-        combo.blockSignals(True)
-        combo.clear()
-
-        def add_option(label: str, kind: str, key: Optional[str] = None) -> None:
-            combo.addItem(label)
-            idx = combo.count() - 1
-            payload: Dict[str, Optional[str]] = {"kind": kind, "key": key if key is None else str(key)}
-            combo.setItemData(idx, payload, QtCore.Qt.ItemDataRole.UserRole)
-
-        add_option("NIST Hydrogen Lines (Balmer & Lyman)", "spectral_lines")
-        add_option("IR Functional Groups", "ir_groups")
-        add_option("Line-shape Placeholders", "line_shapes")
-
-        for target in self.reference_library.jwst_targets():
-            name = target.get("name", "Unknown")
-            instrument = target.get("instrument") or "—"
-            add_option(f"JWST: {name} ({instrument})", "jwst", target.get("id"))
-
-        combo.blockSignals(False)
-        if combo.count():
-            combo.setCurrentIndex(0)
+        self._reference_mode = new_mode
+        placeholder = {
+            "nist": "Filter spectral lines…",
+            "ir": "Filter IR groups…",
+            "line_shapes": "Filter line-shape entries…",
+        }.get(new_mode, "Filter entries…")
+        self.reference_filter.blockSignals(True)
+        self.reference_filter.setPlaceholderText(placeholder)
+        self.reference_filter.clear()
+        self.reference_filter.blockSignals(False)
         self.reference_overlay_checkbox.blockSignals(True)
         self.reference_overlay_checkbox.setChecked(False)
         self.reference_overlay_checkbox.blockSignals(False)
-        self._refresh_reference_dataset()
+        self._refresh_reference_view()
 
-    def _filter_reference_rows(self, _: str) -> None:
-        self._refresh_reference_dataset()
+    def _on_reference_filter_changed(self, _: str) -> None:
+        self._refresh_reference_view()
 
-    def _current_reference_option(self) -> Optional[tuple[str, Optional[str]]]:
-        combo = getattr(self, "reference_dataset_combo", None)
-        if combo is None:
-            return None
-        index = combo.currentIndex()
-        if index < 0:
-            return None
-        payload = combo.itemData(index, QtCore.Qt.ItemDataRole.UserRole)
-        if isinstance(payload, Mapping):
-            kind = str(payload.get("kind", ""))
-            key_obj = payload.get("key")
-            key = None if key_obj is None else str(key_obj)
-            return (kind, key)
-        return None
-
-    def _refresh_reference_dataset(self) -> None:
-        option = self._current_reference_option()
-        if option is None:
-            self.reference_table.setRowCount(0)
-            self.reference_table.setColumnCount(0)
-            self.reference_meta.clear()
-            self._clear_reference_plot()
-            self._update_reference_overlay_state(None)
-            return
-
-        kind, key = option
-        query = self.reference_filter.text().strip().lower()
+    def _refresh_reference_view(self) -> None:
+        query = self.reference_filter.text().strip().lower() if hasattr(self, "reference_filter") else ""
         overlay_payload: Optional[Dict[str, Any]] = None
 
         self._clear_reference_plot()
         self._line_shape_rows = []
+        self.reference_table.setRowCount(0)
+        self.reference_table.setColumnCount(0)
 
-        if kind == "spectral_lines":
-            entries = self.reference_library.spectral_lines()
-            filtered = self._filter_reference_entries(entries, query)
-            self.reference_table.setColumnCount(6)
-            self.reference_table.setHorizontalHeaderLabels(
-                ["Series", "Transition", "λ₀ (nm)", "ṽ (cm⁻¹)", "Aₖᵢ (s⁻¹)", "Relative Intensity"]
-            )
+        mode = getattr(self, "_reference_mode", "nist")
+
+        if mode == "nist":
+            payload = getattr(self, "_nist_payload", None)
+            if not payload:
+                self.reference_status_label.setText(
+                    "Enter an element and fetch spectral lines to populate this table."
+                )
+                self.reference_meta.clear()
+                self._update_reference_overlay_state(None)
+                return
+
+            lines = list(payload.get("lines", []))
+            filtered = self._filter_reference_entries(lines, query)
+
+            headers = [
+                "λ (nm)",
+                "Observed (nm)",
+                "Ritz (nm)",
+                "Rel. intensity",
+                "Norm. intensity",
+                "Lower level",
+                "Upper level",
+                "Type",
+            ]
+            self.reference_table.setColumnCount(len(headers))
+            self.reference_table.setHorizontalHeaderLabels(headers)
             self.reference_table.setRowCount(len(filtered))
-            for row, entry in enumerate(filtered):
-                self._set_table_item(row, 0, entry.get("series", ""))
-                self._set_table_item(row, 1, entry.get("transition", ""))
-                self._set_table_item(row, 2, self._format_float(entry.get("vacuum_wavelength_nm")))
-                self._set_table_item(row, 3, self._format_float(entry.get("wavenumber_cm_1")))
-                self._set_table_item(row, 4, self._format_scientific(entry.get("einstein_a_s_1")))
-                self._set_table_item(row, 5, self._format_float(entry.get("relative_intensity"), precision=2))
-            meta = self.reference_library.hydrogen_metadata()
-            notes = self._merge_provenance(meta)
-            self._set_reference_meta(meta.get("citation"), meta.get("url"), notes)
-            overlay_payload = self._render_reference_spectral_lines(filtered)
 
-        elif kind == "ir_groups":
+            for row, entry in enumerate(filtered):
+                self._set_table_item(row, 0, self._format_float(entry.get("wavelength_nm")))
+                self._set_table_item(row, 1, self._format_float(entry.get("observed_wavelength_nm")))
+                self._set_table_item(row, 2, self._format_float(entry.get("ritz_wavelength_nm")))
+                self._set_table_item(row, 3, self._format_float(entry.get("relative_intensity"), precision=2))
+                self._set_table_item(row, 4, self._format_float(entry.get("relative_intensity_normalized"), precision=3))
+                self._set_table_item(row, 5, entry.get("lower_level", ""))
+                self._set_table_item(row, 6, entry.get("upper_level", ""))
+                self._set_table_item(row, 7, entry.get("transition_type", ""))
+
+            meta = payload.get("meta", {})
+            label = meta.get("label") or meta.get("element_name") or "NIST ASD lines"
+            citation = meta.get("citation")
+            query_meta = meta.get("query") if isinstance(meta.get("query"), Mapping) else {}
+            if isinstance(query_meta, Mapping):
+                lower_nm = query_meta.get("lower_wavelength")
+                upper_nm = query_meta.get("upper_wavelength")
+                unit = query_meta.get("wavelength_unit", "nm")
+                range_text = None
+                if lower_nm is not None and upper_nm is not None:
+                    range_text = f"Range: {lower_nm:.1f}–{upper_nm:.1f} {unit}"
+                elif lower_nm is not None:
+                    range_text = f"Lower bound: {lower_nm:.1f} {unit}"
+                notes_parts = []
+                if range_text:
+                    notes_parts.append(range_text)
+                medium = query_meta.get("wavelength_type")
+                if medium:
+                    notes_parts.append(f"Medium: {medium}")
+                if meta.get("ion_stage"):
+                    notes_parts.append(f"Ion stage: {meta['ion_stage']}")
+                if notes_parts:
+                    notes = "; ".join(notes_parts)
+                else:
+                    notes = None
+            else:
+                notes = None
+
+            self._set_reference_meta(label, "https://physics.nist.gov/asd", notes)
+            line_total = len(lines)
+            self.reference_status_label.setText(
+                f"Displaying {len(filtered)} of {line_total} spectral line(s)."
+            )
+            overlay_payload = self._render_nist_lines(filtered, meta)
+
+        elif mode == "ir":
             entries = self.reference_library.ir_functional_groups()
             filtered = self._filter_reference_entries(entries, query)
             self.reference_table.setColumnCount(5)
@@ -1764,7 +1888,10 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             self.reference_table.setRowCount(len(filtered))
             for row, entry in enumerate(filtered):
                 self._set_table_item(row, 0, entry.get("group", ""))
-                span = f"{self._format_float(entry.get('wavenumber_cm_1_min'), precision=0)} – {self._format_float(entry.get('wavenumber_cm_1_max'), precision=0)}"
+                span = (
+                    f"{self._format_float(entry.get('wavenumber_cm_1_min'), precision=0)} – "
+                    f"{self._format_float(entry.get('wavenumber_cm_1_max'), precision=0)}"
+                )
                 self._set_table_item(row, 1, span)
                 self._set_table_item(row, 2, entry.get("intensity", ""))
                 modes = ", ".join(entry.get("associated_modes", []))
@@ -1773,9 +1900,12 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             meta = self.reference_library.ir_metadata()
             notes = self._merge_provenance(meta)
             self._set_reference_meta(meta.get("citation"), meta.get("url"), notes)
+            self.reference_status_label.setText(
+                f"{len(filtered)} of {len(entries)} IR functional-group band(s) shown."
+            )
             overlay_payload = self._render_reference_ir_groups(filtered)
 
-        elif kind == "line_shapes":
+        else:  # line-shape models
             entries = self.reference_library.line_shape_placeholders()
             filtered = self._filter_reference_entries(entries, query)
             self._line_shape_rows = list(filtered)
@@ -1809,83 +1939,71 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                 meta = self.reference_library.line_shape_metadata()
                 self.reference_meta.setHtml(self._line_shape_overview_html(meta))
 
-        elif kind == "jwst":
-            if key is None:
-                self.reference_table.setRowCount(0)
-                self.reference_table.setColumnCount(0)
-                self.reference_meta.clear()
-                self._clear_reference_plot()
-                self._update_reference_overlay_state(None)
-                return
-            target = self.reference_library.jwst_target(str(key))
-            if not target:
-                self.reference_table.setRowCount(0)
-                self.reference_table.setColumnCount(0)
-                self.reference_meta.setHtml("<p>Target metadata unavailable.</p>")
-                self._update_reference_overlay_state(None)
-                return
-            data_rows = target.get("data", [])
-            status = target.get("status")
-            if not data_rows:
-                self.reference_table.setRowCount(0)
-                self.reference_table.setColumnCount(0)
-                notes = target.get("source", {}).get("notes", "No public JWST spectrum available.")
-                self._set_reference_meta(target.get("name"), target.get("source", {}).get("url"), notes)
-                self._render_reference_jwst(target, [], "wavelength", "value", None)
-                self._update_reference_overlay_state(None)
-                return
-            filtered = self._filter_reference_entries(data_rows, query)
-            wavelength_key = next((k for k in data_rows[0].keys() if "wavelength" in k), "wavelength")
-            value_key = "value" if "value" in data_rows[0] else next(iter(set(data_rows[0].keys()) - {wavelength_key}), "value")
-            uncertainty_key = next((k for k in data_rows[0].keys() if k.startswith("uncertainty")), None)
-            columns = ["λ (µm)", f"Measurement ({target.get('data_units', 'value')})"]
-            if uncertainty_key:
-                units = uncertainty_key.split("_", 1)[-1].replace("_", " ")
-                columns.append(f"Uncertainty ({units})")
-            self.reference_table.setColumnCount(len(columns))
-            self.reference_table.setHorizontalHeaderLabels(columns)
-            self.reference_table.setRowCount(len(filtered))
-            for row, entry in enumerate(filtered):
-                self._set_table_item(row, 0, self._format_float(entry.get(wavelength_key)))
-                self._set_table_item(row, 1, self._format_float(entry.get(value_key)))
-                if uncertainty_key and len(columns) > 2:
-                    self._set_table_item(row, 2, self._format_float(entry.get(uncertainty_key)))
-            source = target.get("source", {})
-            notes = source.get("notes", "")
-            range_min, range_max = target.get("spectral_range_um", [None, None])
-            range_text = ""
-            if range_min is not None and range_max is not None:
-                range_text = f"Range: {self._format_float(range_min)} – {self._format_float(range_max)} µm"
-            resolution = target.get("spectral_resolution")
-            resolution_text = f"Resolving power ≈ {resolution}" if resolution else "Resolving power pending"
-            meta_html = (
-                f"<p><b>{target.get('name')}</b><br/>"
-                f"Instrument: {target.get('instrument', '—')} | Program: {target.get('program', '—')}<br/>"
-                f"{range_text}<br/>{resolution_text}<br/>"
-                f"Data units: {target.get('data_units', '—')}</p>"
+            self.reference_status_label.setText(
+                f"{len(filtered)} line-shape template(s) available."
             )
-            if source.get("url"):
-                meta_html += f"<p><a href='{source['url']}'>Source documentation</a></p>"
-            if notes:
-                meta_html += f"<p>{notes}</p>"
-            provenance_html = self._format_target_provenance(target.get("provenance"))
-            if provenance_html:
-                meta_html += provenance_html
-            if status:
-                meta_html += f"<p>Status: {status}</p>"
-            self.reference_meta.setHtml(meta_html)
-            overlay_payload = self._render_reference_jwst(
-                target, filtered, wavelength_key, value_key, uncertainty_key
-            )
-
-        else:
-            self.reference_table.setRowCount(0)
-            self.reference_table.setColumnCount(0)
-            self.reference_meta.clear()
-            self._clear_reference_plot()
 
         self.reference_table.resizeColumnsToContents()
         self._update_reference_overlay_state(overlay_payload)
+
+    def _on_nist_example_selected(self, index: int) -> None:
+        data = self.nist_examples_combo.itemData(index)
+        if not data:
+            return
+        element, ion, lower, upper = data
+        self.nist_element_edit.setText(str(element))
+        self.nist_ion_edit.setText(str(ion) if ion else "")
+        self.nist_lower_spin.setValue(float(lower))
+        self.nist_upper_spin.setValue(float(upper))
+        self.nist_examples_combo.blockSignals(True)
+        self.nist_examples_combo.setCurrentIndex(0)
+        self.nist_examples_combo.blockSignals(False)
+
+    def _on_nist_fetch_clicked(self) -> None:
+        element = self.nist_element_edit.text().strip()
+        if not element:
+            QtWidgets.QMessageBox.information(
+                self,
+                "Enter element",
+                "Provide an element symbol or name before querying NIST.",
+            )
+            return
+
+        ion_stage = self.nist_ion_edit.text().strip() or None
+        lower_nm = float(self.nist_lower_spin.value())
+        upper_nm = float(self.nist_upper_spin.value())
+        use_ritz = self.nist_use_ritz_checkbox.isChecked()
+        wavelength_type = str(self.nist_medium_combo.currentData() or "vacuum")
+
+        try:
+            payload = nist_asd_service.fetch_lines(
+                element,
+                element=element,
+                ion_stage=ion_stage,
+                lower_wavelength=lower_nm,
+                upper_wavelength=upper_nm,
+                wavelength_unit="nm",
+                use_ritz=use_ritz,
+                wavelength_type=wavelength_type,
+            )
+        except nist_asd_service.NistUnavailableError as exc:
+            QtWidgets.QMessageBox.critical(self, "NIST unavailable", str(exc))
+            return
+        except nist_asd_service.NistQueryError as exc:
+            QtWidgets.QMessageBox.critical(self, "Query failed", str(exc))
+            return
+
+        self._nist_payload = payload
+        self.reference_overlay_checkbox.blockSignals(True)
+        self.reference_overlay_checkbox.setChecked(False)
+        self.reference_overlay_checkbox.blockSignals(False)
+        meta = payload.get("meta", {})
+        line_count = meta.get("line_count") or len(payload.get("lines", []))
+        self.reference_status_label.setText(
+            f"Fetched {line_count} spectral line(s) from NIST ASD."
+        )
+        self._log("Reference", f"NIST ASD → {meta.get('label', element)}")
+        self._refresh_reference_view()
 
     def _filter_reference_entries(
         self, entries: List[Mapping[str, Any]], query: str
@@ -1910,6 +2028,68 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             self.reference_plot.clear()
             self.reference_plot.showGrid(x=True, y=True, alpha=0.25)
         self._reference_plot_items = []
+
+    def _render_nist_lines(
+        self, entries: List[Mapping[str, Any]], meta: Mapping[str, Any]
+    ) -> Optional[Dict[str, Any]]:
+        if not entries:
+            display_unit = self._reference_display_unit()
+            self.reference_plot.setLabel("bottom", "Wavelength", units=display_unit)
+            self.reference_plot.setLabel("left", "Relative Intensity (a.u.)")
+            return None
+
+        wavelengths: List[float] = []
+        intensities: List[float] = []
+        for entry in entries:
+            wavelength = self._coerce_float(entry.get("wavelength_nm"))
+            if wavelength is None or not np.isfinite(wavelength):
+                continue
+            wavelengths.append(wavelength)
+            norm = self._coerce_float(entry.get("relative_intensity_normalized"))
+            if norm is None:
+                norm = self._coerce_float(entry.get("relative_intensity"))
+            intensities.append(norm if norm is not None else 1.0)
+
+        if not wavelengths:
+            display_unit = self._reference_display_unit()
+            self.reference_plot.setLabel("bottom", "Wavelength", units=display_unit)
+            self.reference_plot.setLabel("left", "Relative Intensity (a.u.)")
+            return None
+
+        wavelengths_nm = np.array(wavelengths, dtype=float)
+        intensities_arr = np.array(intensities, dtype=float)
+        if intensities_arr.size == 0:
+            intensities_arr = np.ones_like(wavelengths_nm)
+
+        display_unit = self._reference_display_unit()
+        display_wavelengths = self._convert_nm_to_unit(wavelengths_nm, display_unit)
+        pen = pg.mkPen(color="#C72C41", width=2)
+        for x_val, intensity in zip(display_wavelengths, intensities_arr):
+            height = float(intensity) if np.isfinite(intensity) and intensity > 0 else 1.0
+            item = self.reference_plot.plot([x_val, x_val], [0.0, height], pen=pen)
+            self._reference_plot_items.append(item)
+
+        max_intensity = float(np.nanmax(intensities_arr)) if intensities_arr.size else 1.0
+        if not np.isfinite(max_intensity) or max_intensity <= 0:
+            max_intensity = 1.0
+        self.reference_plot.setLabel("bottom", "Wavelength", units=display_unit)
+        self.reference_plot.setLabel("left", "Relative Intensity (a.u.)")
+        self.reference_plot.setYRange(0.0, max_intensity * 1.1, padding=0.05)
+
+        label = meta.get("label") or "NIST ASD"
+        element_symbol = meta.get("element_symbol", "")
+        overlay_alias = f"Reference – {label}"
+        overlay_key = f"reference::nist::{element_symbol or label}".lower().replace(" ", "_")
+        payload = self._build_overlay_for_lines(
+            wavelengths_nm,
+            intensities_arr,
+            key=overlay_key,
+            alias=overlay_alias,
+            color="#C72C41",
+        )
+        if payload is not None:
+            payload["dataset"] = meta
+        return payload
 
     def _render_reference_spectral_lines(
         self, entries: List[Mapping[str, Any]]
@@ -1947,7 +2127,13 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.reference_plot.setLabel("bottom", "Wavelength", units=display_unit)
         self.reference_plot.setLabel("left", "Relative Intensity (a.u.)")
         self.reference_plot.setYRange(0.0, max_intensity * 1.1, padding=0.05)
-        return self._build_overlay_for_lines(wavelengths_nm, intensities_arr)
+        return self._build_overlay_for_lines(
+            wavelengths_nm,
+            intensities_arr,
+            key="reference::hydrogen_lines",
+            alias="Reference – NIST Hydrogen",
+            color="#C72C41",
+        )
 
     def _render_reference_ir_groups(
         self, entries: List[Mapping[str, Any]]
@@ -2046,8 +2232,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         return self._build_overlay_for_jwst(target, nm_values, y_array)
 
     def _on_reference_row_selection_changed(self) -> None:
-        option = self._current_reference_option()
-        if option is None or option[0] != "line_shapes":
+        if getattr(self, "_reference_mode", "") != "line_shapes":
             return
         overlay_payload = self._render_selected_line_shape()
         self._update_reference_overlay_state(overlay_payload)
@@ -2203,7 +2388,13 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             return None
 
     def _build_overlay_for_lines(
-        self, wavelengths_nm: np.ndarray, intensities: np.ndarray
+        self,
+        wavelengths_nm: np.ndarray,
+        intensities: np.ndarray,
+        *,
+        key: str,
+        alias: str,
+        color: str = "#C72C41",
     ) -> Optional[Dict[str, Any]]:
         if wavelengths_nm.size == 0:
             return None
@@ -2236,11 +2427,11 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             return None
 
         return {
-            "key": "reference::hydrogen_lines",
-            "alias": "Reference – NIST Hydrogen",
+            "key": key,
+            "alias": alias,
             "x_nm": np.array(x_segments, dtype=float),
             "y": np.array(y_segments, dtype=float),
-            "color": "#C72C41",
+            "color": color,
             "width": 1.4,
         }
 

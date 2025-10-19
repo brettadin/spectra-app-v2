@@ -22,6 +22,11 @@ This document tracks feature batches, validation status, and outstanding backlog
 - [x] Document dependency prerequisites (requests, astroquery, pandas, astropy)
       and add installation verification guidance for Windows 11 users.
 
+### Recently Completed (2025-10-19)
+
+- [x] Redesigned the Reference tab with dedicated Spectral lines/IR/Line-shape panels, wired the embedded NIST query form to
+      astroquery, refreshed the reference data guide, and extended Qt regression tests for the new workflow.
+
 ### Recently Completed (2025-10-18)
 
 - [x] Ported the Remote Data NIST adapter to the astroquery line-list helper,
@@ -46,6 +51,7 @@ This document tracks feature batches, validation status, and outstanding backlog
 
 ### Batch 14 QA Log
 
+- 2025-10-19: ✅ `pytest`
 - 2025-10-17: ✅ `pytest`
 
 ## Batch 13 (2025-10-15)
