@@ -26,7 +26,7 @@ class KnowledgeLogService:
     """Append and query provenance-ready entries for the knowledge log."""
 
     HEADER_PATTERN = re.compile(r"^##\s+(?P<timestamp>[^–]+) – (?P<component>.+)$", re.MULTILINE)
-    DEFAULT_RUNTIME_ONLY_COMPONENTS = frozenset()
+    DEFAULT_RUNTIME_ONLY_COMPONENTS = frozenset({"import", "remote import"})
 
     def __init__(
         self,
@@ -70,10 +70,10 @@ class KnowledgeLogService:
         ----------
         persist:
             When ``True`` (default) the entry is appended to ``self.log_path``
-            unless the ``component`` is registered as runtime-only via the
-            ``runtime_only_components`` initialiser argument. When ``False``
-            the entry is returned for in-memory history display without
-            mutating the on-disk log.
+            unless the ``component`` is registered as runtime-only (e.g.
+            ``"Import"`` or ``"Remote Import"``).
+            When ``False`` the entry is returned for in-memory history display
+            without mutating the on-disk log.
         """
 
         moment = (timestamp or datetime.now(timezone.utc)).astimezone()

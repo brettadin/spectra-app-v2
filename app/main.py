@@ -1144,24 +1144,35 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
     # Internal helpers --------------------------------------------------
     def _ingest_path(self, path: Path) -> None:
         try:
-            spectrum = self.ingest_service.ingest(path)
+            spectra = self.ingest_service.ingest(path)
         except Exception as exc:  # pragma: no cover - UI feedback
             QtWidgets.QMessageBox.critical(self, "Import failed", str(exc))
             return
-        self.overlay_service.add(spectrum)
-        self._add_spectrum(spectrum)
-        self.status_bar.showMessage(f"Loaded {path.name}", 5000)
+        if not spectra:
+            QtWidgets.QMessageBox.information(
+                self,
+                "No Spectra Imported",
+                f"{path.name} did not contain any spectra to import.",
+            )
+            return
+
+        for spectrum in spectra:
+            self.overlay_service.add(spectrum)
+            self._add_spectrum(spectrum)
+
+        last_spectrum = spectra[-1]
+        count = len(spectra)
+        message = f"Loaded {count} spectrum{'s' if count != 1 else ''} from {path.name}"
+        self.status_bar.showMessage(message, 5000)
         self._update_math_selectors()
         self.refresh_overlay()
-        self._show_metadata(spectrum)
-        self._show_provenance(spectrum)
-        ingest_meta = spectrum.metadata.get("ingest", {}) if isinstance(spectrum.metadata, dict) else {}
+        self._show_metadata(last_spectrum)
+        self._show_provenance(last_spectrum)
+        ingest_meta = last_spectrum.metadata.get("ingest", {}) if isinstance(last_spectrum.metadata, dict) else {}
         importer = ingest_meta.get("importer", "Unknown importer")
-        summary = f"Ingested {spectrum.name} via {importer}."
-        references: List[str] = []
-        if spectrum.id:
-            references.append(spectrum.id)
-        self._record_history_event("Import", summary, references)
+        summary = f"Ingested {count} spectrum{'s' if count != 1 else ''} via {importer}."
+        references = [spec.id for spec in spectra if getattr(spec, "id", None)]
+        self._record_history_event("Import", summary, references, persist=False)
         self._refresh_library_view()
 
     def _add_spectrum(self, spectrum: Spectrum) -> None:
@@ -1438,7 +1449,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         uri = str(remote.get("uri")) if remote and remote.get("uri") else None
         summary = f"Imported {spectrum.name} via {provider}."
         references = [ref for ref in [spectrum.id] if ref]
-        self._record_history_event("Remote Import", summary, references)
+        self._record_history_event("Remote Import", summary, references, persist=False)
         return {"provider": provider, "uri": uri}
 
     def _populate_data_table(self, views: Iterable[dict]) -> None:

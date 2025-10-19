@@ -171,8 +171,13 @@ def test_history_view_updates_on_import(tmp_path: Path) -> None:
     ingest = DataIngestService(units)
     provenance = ProvenanceService(app_version="0.2-smoke")
 
-    csv_spec = ingest.ingest(Path("samples/sample_spectrum.csv"))
-    fits_spec = ingest.ingest(mini_fits)
+    csv_specs = ingest.ingest(Path("samples/sample_spectrum.csv"))
+    fits_specs = ingest.ingest(mini_fits)
+
+    assert len(csv_specs) == 1
+    assert len(fits_specs) == 1
+    csv_spec = csv_specs[0]
+    fits_spec = fits_specs[0]
 
     supported = ingest.supported_extensions()
     assert supported.get(".csv") == "CsvImporter"
@@ -220,7 +225,9 @@ def test_plot_preserves_source_intensity_units(tmp_path: Path) -> None:
     log_service = KnowledgeLogService(log_path=tmp_path / "history.md", author="pytest")
     window = SpectraMainWindow(knowledge_log_service=log_service)
     try:
-        spectrum = window.ingest_service.ingest(csv_path)
+        spectra = window.ingest_service.ingest(csv_path)
+        assert len(spectra) == 1
+        spectrum = spectra[0]
         window.overlay_service.add(spectrum)
         window._add_spectrum(spectrum)
         window._update_math_selectors()

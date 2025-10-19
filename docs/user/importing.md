@@ -58,10 +58,10 @@ with the entry’s provenance, canonical units, byte size, and storage location,
 so you can audit the cache without re-opening the file. Use the search bar to
 filter by alias, units, provider, or checksum tokens. Double-click an entry to
 re-load it without touching the original path—ideal when you want to compare
-different normalisations or revisit a session offline. Each import now records
-its high-level summary in `docs/history/KNOWLEDGE_LOG.md`, capturing the alias
-and importer that handled the file, while the library exposes the full cache
-index for auditability without duplicating raw paths in the log.
+different normalisations or revisit a session offline. Routine imports no
+longer spam the knowledge log with raw file paths; only high-level summaries
+remain in `docs/history/KNOWLEDGE_LOG.md` while the library exposes the full
+cache index for auditability.
 
 ## Intelligent parsing of messy tables
 
@@ -138,10 +138,10 @@ bundle contains:
 
 The top-level CSV now leads with the numeric wavelength/intensity columns and
 records provenance fields (`spectrum_id`, `spectrum_name`, units, point index)
-to the right.  This ordering keeps the file directly ingestible by the default
-CSV importer: reloading the combined CSV reproduces the exact concatenated
-trace you exported without the column confusion that occurred when identifier
-fields appeared first.
+to the right.  When you re-import this combined CSV the ingest pipeline spots
+the `spectrum_id` column, splits the file into per-trace bundles, and restores
+each spectrum individually—no more merged axis mistakes or manual splitting of
+the export before analysis.
 
 Because the manifest records the units detected during import, round-tripping
 through Ångström, micrometre, or wavenumber views does not alter the stored

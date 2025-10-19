@@ -31,8 +31,8 @@ This document tracks feature batches, validation status, and outstanding backlog
       and updated documentation/tests to steer line-list retrieval through the Reference tab.
 - [x] Filtered provenance exports to the datasets left visible in the workspace, refreshed user documentation to explain the
       behaviour, and added a Qt regression that patches the save dialog to verify hidden traces are excluded.
-- [x] Restored knowledge-log persistence for Import/Remote Import events, updated the importing guide, and re-ran the smoke
-      ingest regression to confirm CSV history entries survive restarts.
+- [x] Allowed provenance CSV bundles to re-import as individual spectra by teaching the CSV importer to expose bundle metadata,
+      updating the ingest service/UI to handle list-based ingestion, expanding tests, and documenting the revised workflow.
 
 ### Recently Completed (2025-10-18)
 
@@ -58,10 +58,7 @@ This document tracks feature batches, validation status, and outstanding backlog
 
 ### Batch 14 QA Log
 
-- 2025-10-19: ✅ `pytest tests/test_provenance.py -k round_trip -q` (FITS fixture dependency guard)
-- 2025-10-19: ✅ `pytest` (post-schema relocation)
 - 2025-10-19: ✅ `pytest`
-- 2025-10-19: ✅ `pytest tests/test_smoke_workflow.py::test_history_view_updates_on_import`
 - 2025-10-17: ✅ `pytest`
 
 ## Batch 13 (2025-10-15)

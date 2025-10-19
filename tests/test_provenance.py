@@ -57,5 +57,15 @@ def test_export_bundle_csv_round_trips(tmp_path: Path) -> None:
 
     assert result.x[0] == pytest.approx(345.0)
     assert result.y[0] == pytest.approx(1.0)
-    assert result.x[2] == pytest.approx(400.0)
-    assert result.y[2] == pytest.approx(0.1)
+
+    bundle = result.metadata.get("bundle")
+    assert isinstance(bundle, dict)
+    members = bundle.get("members") if isinstance(bundle, dict) else None
+    assert isinstance(members, list)
+    assert len(members) == 2
+    first = members[0]
+    second = members[1]
+    assert first["name"] == "lamp-a"
+    assert second["name"] == "lamp-b"
+    assert pytest.approx(first["x"][0]) == 345.0
+    assert pytest.approx(second["x"][0]) == 400.0

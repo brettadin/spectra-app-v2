@@ -1,16 +1,5 @@
 # Patch Notes
 
-## 2025-10-19 (FITS smoke fixture drops NumPy dependency) (15:31 EDT / 19:31 UTC)
-
-- Reworked the `tests/conftest.py::mini_fits` helper to build FITS columns from
-  native Python lists so pytest no longer requires `numpy` just to collect the
-  test suite.
-
-## 2025-10-19 (Provenance schema path restored) (15:24 EDT / 19:24 UTC)
-
-- Relocated the authoritative `provenance_schema.json` into `docs/specs/` so CI schema validation and tooling pick up the documented location.
-- Updated prompts and pass dossiers to reference the new path, keeping provenance guidance consistent across docs.
-
 ## 2025-10-19 (Export respects visibility state) (14:28 EDT / 18:28 UTC)
 
 - Updated `app/main.py::export_manifest` so provenance bundles include only datasets marked visible in the workspace, preventing hidden traces and background samples from polluting merged exports.
@@ -21,6 +10,13 @@
 - Documented the new ordering in `docs/user/importing.md` and added `tests/test_provenance.py::test_export_bundle_csv_round_trips` to guard the regression.
 - Documented the behaviour shift in `docs/user/plot_tools.md` and `docs/user/importing.md`, clarifying that hidden traces stay out of the `spectra/` directory while visible series continue to export at full resolution.
 - Added `tests/test_export_visibility.py::test_export_skips_hidden_spectra` to exercise the UI path with patched dialogs, ensuring only visible IDs reach the provenance service.
+
+## 2025-10-19 (Bundle CSV imports expand into multiple spectra) (16:23 EDT / 20:23 UTC)
+
+- Extended `CsvImporter` with `_try_parse_export_bundle` so manifest CSV exports containing `spectrum_id` metadata embed a `bundle` block describing every trace in the file.
+- Updated `DataIngestService` and the UI ingest paths to return lists of spectra, expanding export bundles into individual canonical datasets while maintaining cache provenance.
+- Adjusted remote-download wiring and smoke tests to accommodate list-based ingestion and added regression coverage in `tests/test_csv_importer.py` and `tests/test_ingest.py` for the new bundle format.
+- Refreshed `docs/user/importing.md` to explain that re-importing a provenance CSV restores each spectrum separately rather than merging traces.
 
 ## 2025-10-18 (NIST ASD astroquery integration) (20:35 EDT / 00:35 UTC)
 

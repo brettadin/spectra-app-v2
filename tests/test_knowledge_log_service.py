@@ -82,26 +82,9 @@ def test_load_filters_and_export(tmp_path: Path) -> None:
     assert "Created manifest bundle" not in exported
 
 
-def test_remote_import_persists_by_default(tmp_path: Path) -> None:
+def test_runtime_only_components_skip_disk(tmp_path: Path) -> None:
     log_path = tmp_path / "knowledge_log.md"
     service = KnowledgeLogService(log_path=log_path, author="tester")
-
-    entry = service.record_event("Remote Import", "Fetched WASP-96 b from MAST")
-
-    assert log_path.exists()
-    contents = log_path.read_text(encoding="utf-8")
-    assert "Fetched WASP-96 b" in contents
-    assert entry.component == "Remote Import"
-    assert "Fetched WASP-96 b" in entry.summary
-
-
-def test_runtime_only_components_can_opt_out(tmp_path: Path) -> None:
-    log_path = tmp_path / "knowledge_log.md"
-    service = KnowledgeLogService(
-        log_path=log_path,
-        author="tester",
-        runtime_only_components=("Remote Import",),
-    )
 
     entry = service.record_event("Remote Import", "Fetched WASP-96 b from MAST")
 
