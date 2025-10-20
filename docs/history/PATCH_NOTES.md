@@ -425,3 +425,8 @@
 - Reoriented the Library splitter horizontally so cached metadata lives beside the table, preventing the dock from pushing the bottom log out of view when entries are selected.
 - Documented the side-panel layout in the importing and remote-data guides to keep the user workflow aligned with the UI.
 
+## 2025-10-19T22:08:48-04:00 — Library hint clamp & dependency alignment
+
+- Limited the Library hint label to a fixed-height strip so cached selections no longer force the main window to grow when browsing stored spectra.
+- Pinned NumPy to 1.26.4 and relaxed the requests cap to allow 2.32.4 so Windows installs pull prebuilt wheels and match the workflow guidance.
+

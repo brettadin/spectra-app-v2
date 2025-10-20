@@ -418,6 +418,13 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             "Double-click a cached entry to load it into the workspace without re-downloading."
         )
         self.library_hint.setWordWrap(True)
+        self.library_hint.setSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Preferred,
+            QtWidgets.QSizePolicy.Policy.Maximum,
+        )
+        max_lines = 3
+        line_height = self.library_hint.fontMetrics().lineSpacing()
+        self.library_hint.setMaximumHeight(line_height * max_lines)
         self.library_hint.setTextInteractionFlags(
             QtCore.Qt.TextInteractionFlag.TextSelectableByMouse
             | QtCore.Qt.TextInteractionFlag.LinksAccessibleByMouse
@@ -638,12 +645,14 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
     def _set_library_hint_message(self, message: str) -> None:
         if self.library_hint is None:
             return
+        self.library_hint.setWordWrap(True)
         self.library_hint.setText(message)
         self.library_hint.setToolTip("")
 
     def _set_library_hint_path(self, stored_path: str) -> None:
         if self.library_hint is None:
             return
+        self.library_hint.setWordWrap(False)
         width = max(self.library_hint.width(), self.library_hint.sizeHint().width(), 260)
         metrics = self.library_hint.fontMetrics()
         elided = metrics.elidedText(stored_path, QtCore.Qt.TextElideMode.ElideMiddle, width)

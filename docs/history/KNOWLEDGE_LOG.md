@@ -733,3 +733,17 @@ Import/Remote Import entries remain after the cleanup.
 - `docs/history/PATCH_NOTES.md`
 
 ---
+## 2025-10-19T22:08:48-04:00 / 2025-10-20T02:08:48+00:00 – Library hint clamp & dependency pin
+
+**Author**: agent
+
+**Context**: Loading cached spectra continued to stretch the application window because the hint label expanded vertically, and Windows installs still reported NumPy build errors when Visual Studio tooling was missing.
+
+**Summary**: Restricted the Library hint label to a fixed-height strip so selections no longer raise the main window minimum size, and pinned NumPy to 1.26.4 while widening the requests cap so pip pulls prebuilt wheels on Windows. This keeps the UI stable and restores the one-command dependency install flow documented for analysts.
+
+**References**:
+- `app/main.py`
+- `requirements.txt`
+- `docs/history/PATCH_NOTES.md`
+
+---
