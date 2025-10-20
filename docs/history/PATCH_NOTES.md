@@ -1,5 +1,15 @@
 # Patch Notes
 
+## 2025-10-20 (Composite export enforces sorted wavelength grids) (18:23 EDT / 22:23 UTC)
+
+- Sorted the base spectrum when building composite exports so wavelength and
+  intensity samples align before averaging, and applied the same ordering to the
+  interpolation masks.
+- Normalised every contributing spectrum before `np.interp` to guarantee
+  descending arrays yield correct composite means.
+- Documented the sorted-grid assumption in the importing and reference-data
+  guides and added regression coverage for descending sample inputs.
+
 ## 2025-10-20 (Remote dialog surfaces Exo.MAST metadata) (16:53 EDT / 20:53 UTC)
 
 - Expanded the Remote Data dialog results table with host/planet summaries,

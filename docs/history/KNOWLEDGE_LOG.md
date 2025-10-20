@@ -27,6 +27,23 @@ Each entry in this document should follow this structure:
   applicable).
 
 ---
+## 2025-10-20T18:23:24-04:00 / 2025-10-20T22:23:26+00:00 – Composite export sorts descending grids
+
+**Author**: agent
+
+**Context**: Provenance composites and user documentation for averaging workflows.
+
+**Summary**: Sorted the base spectrum before generating composite CSV exports,
+re-ordered every contributing spectrum ahead of interpolation, and added a
+regression test to confirm descending grids produce the expected mean. Updated
+the importing and reference-data guides plus patch notes to document the
+sorted-grid assumption.
+
+**References**: `app/services/provenance_service.py`, `tests/test_provenance.py`,
+`docs/user/importing.md`, `docs/user/reference_data.md`,
+`docs/history/PATCH_NOTES.md`.
+
+---
 ## 2025-10-20T16:53:29-04:00 / 2025-10-20T20:53:31+00:00 – Remote Data dialog gains Exo.MAST context
 
 **Author**: agent
