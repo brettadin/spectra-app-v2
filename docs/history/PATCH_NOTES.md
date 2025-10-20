@@ -1,5 +1,17 @@
 # Patch Notes
 
+## 2025-10-20 (Remote dialog surfaces Exo.MAST metadata) (16:53 EDT / 20:53 UTC)
+
+- Expanded the Remote Data dialog results table with host/planet summaries,
+  mission/instrument columns, hyperlink downloads, and citation/preview widgets
+  sourced from Exo.MAST metadata. The status banner now highlights host-star
+  context and the preview pane narrates discovery details alongside raw JSON.
+- Updated provider examples to spotlight solar-system planets, benchmark stars,
+  and exoplanet hosts that flow through the Exo.MAST enrichment pipeline.
+- Documented the workflow in `docs/user/remote_data.md` and refreshed the JWST
+  developer guide with the Exoplanet Archive/Exo.MAST integration.
+- Extended the Qt smoke test to assert the new column layout, hyperlink
+  rendering, and enriched preview/status behaviour.
 # 2025-10-20 (ExoSystems provider surfaces cross-matched spectra) (16:51 EDT / 20:51 UTC)
 
 - Added a **MAST ExoSystems** provider to `RemoteDataService` that resolves

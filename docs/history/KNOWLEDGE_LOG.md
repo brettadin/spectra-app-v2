@@ -27,6 +27,19 @@ Each entry in this document should follow this structure:
   applicable).
 
 ---
+## 2025-10-20T16:53:29-04:00 / 2025-10-20T20:53:31+00:00 – Remote Data dialog gains Exo.MAST context
+
+**Author**: agent
+
+**Context**: Remote catalogue UX and provenance summaries.
+
+**Summary**: Expanded the Remote Data dialog table to surface host/planet
+metadata, mission/instrument columns, and hyperlink downloads powered by
+Exo.MAST enrichment. The preview pane now narrates discovery details, and docs
+describe the Exoplanet Archive workflow alongside updated Qt coverage.
+
+**References**: `app/ui/remote_data_dialog.py`, `tests/test_remote_data_dialog.py`,
+`docs/user/remote_data.md`, `docs/dev/Accessing and Comparing Real Spectral Data from JWST and Other Telescopes.md`,
 ## 2025-10-20T16:51:06-04:00 / 2025-10-20T20:51:08+00:00 – MAST ExoSystems provider lands
 
 **Author**: agent
