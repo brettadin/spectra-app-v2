@@ -28,6 +28,23 @@ Each entry in this document should follow this structure:
 
 ---
 
+## 2025-10-20 14:58 – [Documentation]
+
+**Author**: agent
+
+**Context**: Onboarding materials diverged on timestamp capture guidance and
+needed the cross-platform commands documented in `AGENTS.md`.
+
+**Summary**: Mirrored the PowerShell and Python fallback snippets into the
+Master Prompt and START_HERE so Windows contributors and non-shell environments
+see the same workflow as Unix users. Confirmed no other onboarding docs
+referenced Unix-only commands.
+
+**References**: `docs/history/MASTER PROMPT.md`, `START_HERE.md`,
+`docs/history/PATCH_NOTES.md`.
+
+---
+
 ## 2025-10-20 14:54 – [CI]
 
 **Author**: agent

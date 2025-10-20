@@ -1,5 +1,16 @@
 # Patch Notes
 
+## 2025-10-20 (Onboarding timestamp commands align across platforms) (14:58 EDT / 18:58 UTC)
+
+- Updated `docs/history/MASTER PROMPT.md` and `START_HERE.md` to mirror the
+  PowerShell and Python fallback snippets from `AGENTS.md`, keeping the Unix
+  commands so every onboarding doc shows the cross-platform options together.
+- Verified the onboarding checklist no longer implies Unix-only tooling and
+  emphasised that contributors can capture both timestamps in a single pass on
+  any platform.
+- Logged the documentation realignment in the knowledge log with matching
+  America/New_York and UTC timestamps captured via the Python fallback command.
+
 ## 2025-10-20 (CI prefers binary wheels on Windows) (14:54 EDT / 18:54 UTC)
 
 - Updated the GitHub Actions workflow to install numpy with
