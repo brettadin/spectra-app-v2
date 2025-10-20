@@ -515,28 +515,84 @@ class RemoteDataDialog(QtWidgets.QDialog):
         *,
         thread_attr: str,
         worker_attr: str,
-    ) -> None:
+        timeout_ms: int | None = None,
+    ) -> bool:
+        """Request shutdown and optionally wait for the worker thread.
+
+        Returns ``True`` when the thread has stopped and been cleaned up. When
+        ``timeout_ms`` is ``None`` the call blocks until the thread exits. A
+        finite timeout keeps the UI responsive by allowing the caller to poll
+        for completion using ``QtCore.QTimer``.
+        """
+
         thread = getattr(self, thread_attr)
         worker = getattr(self, worker_attr)
         if thread is None:
-            return
+            return True
         if thread.isRunning():
             thread.quit()
-        thread.wait()
+            if timeout_ms is not None:
+                if not thread.wait(timeout_ms):
+                    return False
+            else:
+                thread.wait()
         if worker is not None:
             worker.deleteLater()
         thread.deleteLater()
         setattr(self, worker_attr, None)
         setattr(self, thread_attr, None)
+        return True
+
+    def _schedule_thread_shutdown(
+        self,
+        pending: list[tuple[str, str]],
+        *,
+        interval_ms: int = 100,
+    ) -> None:
+        """Retry thread shutdown without blocking the UI."""
+
+        # ``QtCore.QTimer.singleShot`` copies basic Python values, so we keep the
+        # payload small and rebuild the remaining list on each poll.
+
+        def _poll() -> None:
+            remaining: list[tuple[str, str]] = []
+            for thread_attr, worker_attr in pending:
+                if not self._await_thread_shutdown(
+                    thread_attr=thread_attr,
+                    worker_attr=worker_attr,
+                    timeout_ms=0,
+                ):
+                    remaining.append((thread_attr, worker_attr))
+            if remaining:
+                next_interval = min(interval_ms * 2, 1000)
+                QtCore.QTimer.singleShot(
+                    next_interval,
+                    lambda rem=remaining, iv=next_interval: self._schedule_thread_shutdown(
+                        rem,
+                        interval_ms=iv,
+                    ),
+                )
+
+        QtCore.QTimer.singleShot(interval_ms, _poll)
 
     def reject(self) -> None:
         self._cancel_search_worker()
         self._cancel_download_worker()
-        self._await_thread_shutdown(thread_attr="_search_thread", worker_attr="_search_worker")
-        self._await_thread_shutdown(
+        pending: list[tuple[str, str]] = []
+        if not self._await_thread_shutdown(
+            thread_attr="_search_thread",
+            worker_attr="_search_worker",
+            timeout_ms=25,
+        ):
+            pending.append(("_search_thread", "_search_worker"))
+        if not self._await_thread_shutdown(
             thread_attr="_download_thread",
             worker_attr="_download_worker",
-        )
+            timeout_ms=25,
+        ):
+            pending.append(("_download_thread", "_download_worker"))
+        if pending:
+            self._schedule_thread_shutdown(pending)
         super().reject()
 
     def _on_provider_changed(self, index: int | None = None) -> None:
