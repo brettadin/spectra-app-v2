@@ -1,5 +1,14 @@
 # Patch Notes
 
+## 2025-10-19 (Remote dialog restores NIST provider) (20:55 EDT / 00:55 UTC)
+
+- Restored the NIST ASD catalogue to the Remote Data dialog by trusting the
+  service-level dependency checks, reintroducing placeholder/hint text, and
+  wiring curated example queries for spectral line lookups.
+- Adjusted the remote data user guide and Qt smoke test to match the dual
+  provider roster so analysts with only the NIST stack installed regain access
+  to remote searches.
+
 ## 2025-10-19 (Library dock stays compact, CI pins numpy) (20:27 EDT / 00:27 UTC)
 
 - Locked the Library dock splitter and elided long cache paths so selecting

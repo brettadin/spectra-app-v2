@@ -28,6 +28,22 @@ Each entry in this document should follow this structure:
 
 ---
 
+## 2025-10-19 20:55 (America/New_York) / 00:55 (UTC) – Remote Data dialog re-enables NIST catalogue
+
+**Author**: agent
+
+**Context**: Remote catalogue provider availability and UI hints for spectroscopy lookups.
+
+**Summary**: Removed the extra NIST exclusion from the Remote Data dialog so
+dependency-checked providers now surface correctly, restored placeholder/hint
+text plus curated example queries for spectral line searches, and updated the
+user guide, smoke tests, and patch notes to reflect the dual-provider roster.
+
+**References**: `app/ui/remote_data_dialog.py`, `tests/test_remote_data_dialog.py`,
+`docs/user/remote_data.md`, `docs/history/PATCH_NOTES.md`.
+
+---
+
 ## 2025-10-19 19:38 – Data table toggle no longer auto-opens
 
 **Author**: agent
