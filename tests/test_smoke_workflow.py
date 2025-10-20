@@ -101,6 +101,39 @@ def test_smoke_ingest_toggle_and_export(tmp_path: Path, mini_fits: Path) -> None
         app.processEvents()
 
 
+def test_library_dock_populates_and_previews(tmp_path: Path) -> None:
+    if SpectraMainWindow is None or QtWidgets is None:
+        pytest.skip(f"Qt stack unavailable: {_qt_import_error}")
+
+    app = _ensure_app()
+    log_service = KnowledgeLogService(log_path=tmp_path / "history.md", author="pytest")
+    window = SpectraMainWindow(knowledge_log_service=log_service)
+    try:
+        app.processEvents()
+        if window.library_list is None or window.library_detail is None:
+            pytest.skip("Persistence disabled: library dock not available")
+
+        count = window.library_list.topLevelItemCount()
+        assert count >= 0
+        if count == 0:
+            pytest.skip("Library is empty in this environment")
+
+        first_item = window.library_list.topLevelItem(0)
+        assert first_item is not None
+        window.library_list.setCurrentItem(first_item)
+        app.processEvents()
+
+        detail = window.library_detail.toPlainText()
+        assert detail, "Selecting a cached entry should display metadata"
+        assert "sha256" in detail
+        if window.library_hint is not None:
+            assert window.library_hint.text()
+    finally:
+        window.close()
+        window.deleteLater()
+        app.processEvents()
+
+
 def test_history_view_updates_on_import(tmp_path: Path) -> None:
     if SpectraMainWindow is None or QtWidgets is None:
         pytest.skip(f"Qt stack unavailable: {_qt_import_error}")
@@ -138,8 +171,13 @@ def test_history_view_updates_on_import(tmp_path: Path) -> None:
     ingest = DataIngestService(units)
     provenance = ProvenanceService(app_version="0.2-smoke")
 
-    csv_spec = ingest.ingest(Path("samples/sample_spectrum.csv"))
-    fits_spec = ingest.ingest(mini_fits)
+    csv_specs = ingest.ingest(Path("samples/sample_spectrum.csv"))
+    fits_specs = ingest.ingest(mini_fits)
+
+    assert len(csv_specs) == 1
+    assert len(fits_specs) == 1
+    csv_spec = csv_specs[0]
+    fits_spec = fits_specs[0]
 
     supported = ingest.supported_extensions()
     assert supported.get(".csv") == "CsvImporter"
@@ -187,7 +225,9 @@ def test_plot_preserves_source_intensity_units(tmp_path: Path) -> None:
     log_service = KnowledgeLogService(log_path=tmp_path / "history.md", author="pytest")
     window = SpectraMainWindow(knowledge_log_service=log_service)
     try:
-        spectrum = window.ingest_service.ingest(csv_path)
+        spectra = window.ingest_service.ingest(csv_path)
+        assert len(spectra) == 1
+        spectrum = spectra[0]
         window.overlay_service.add(spectrum)
         window._add_spectrum(spectrum)
         window._update_math_selectors()
