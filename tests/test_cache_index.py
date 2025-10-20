@@ -102,7 +102,9 @@ def test_ingest_records_with_store():
     service = DataIngestService(UnitsService(), store=store)
     sample_path = Path("samples/sample_spectrum.csv")
 
-    spectrum = service.ingest(sample_path)
+    spectra = service.ingest(sample_path)
+    assert len(spectra) == 1
+    spectrum = spectra[0]
 
     store.record.assert_called_once()
     _, kwargs = store.record.call_args
@@ -130,8 +132,13 @@ def test_ingest_reuses_cached_metadata():
     service = DataIngestService(UnitsService(), store=store)
     sample_path = Path("samples/sample_spectrum.csv")
 
-    first = service.ingest(sample_path)
-    second = service.ingest(sample_path)
+    first_list = service.ingest(sample_path)
+    second_list = service.ingest(sample_path)
+
+    assert len(first_list) == 1
+    assert len(second_list) == 1
+    first = first_list[0]
+    second = second_list[0]
 
     assert store.record.call_count == 2
     assert first.metadata["ingest"]["cache_record"]["sha256"] == "deadbeef"
