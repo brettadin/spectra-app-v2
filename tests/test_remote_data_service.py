@@ -603,7 +603,13 @@ def test_providers_include_exosystems_when_dependencies_present(
         pass
 
     monkeypatch.setattr(remote_module, "astroquery_mast", object())
-    monkeypatch.setattr(remote_module, "astroquery_nexsci", object())
+
+    class DummyNexSci:
+        @staticmethod
+        def query_object(*args: Any, **kwargs: Any) -> None:  # pragma: no cover - stub
+            return None
+
+    monkeypatch.setattr(remote_module, "astroquery_nexsci", DummyNexSci)
     monkeypatch.setattr(remote_module, "_HAS_PANDAS", True)
     monkeypatch.setattr(remote_module, "requests", DummyRequests)
 

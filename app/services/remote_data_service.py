@@ -1121,7 +1121,12 @@ class RemoteDataService:
         return self._has_astroquery()
 
     def _has_exosystems_support(self) -> bool:
-        return self._has_astroquery() and self._has_requests() and astroquery_nexsci is not None
+        return (
+            self._has_astroquery()
+            and self._has_requests()
+            and astroquery_nexsci is not None
+            and hasattr(astroquery_nexsci, "query_object")
+        )
 
     def _has_requests(self) -> bool:
         return requests is not None or self.session is not None
