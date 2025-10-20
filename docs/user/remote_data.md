@@ -34,10 +34,22 @@ directly against laboratory references.
 3. Enter a keyword, element symbol, or target name in the search field (or pick
    one of the curated **Examples…** entries) and click **Search**. The dialog
    blocks empty submissions so you always send provider-specific filters rather
-   than unbounded catalogue sweeps. The examples highlight solar-system
-   benchmarks (e.g. Jupiter), representative stellar standards (HD 189733), and
-   exoplanet hosts such as TRAPPIST‑1 that are pre-indexed by the Exo.MAST
-   catalogue.
+   than unbounded catalogue sweeps. While the remote service responds the main
+   controls are temporarily disabled, a spinner appears beside the status
+   banner, and rows stream into the table as soon as each record is processed.
+   The examples highlight solar-system benchmarks (e.g. Jupiter),
+   representative stellar standards (HD 189733), and exoplanet hosts such as
+   TRAPPIST‑1 that are pre-indexed by the Exo.MAST catalogue.
+
+### Streaming search results
+
+Remote catalogue lookups now run on a worker thread, so the dialog stays
+responsive even when the provider takes a few seconds to answer. The spinner in
+the status area starts as soon as the query is dispatched, the record counter
+increments while results arrive, and the preview pane updates dynamically if the
+first result changes mid-stream. Pressing **Cancel** (or closing the dialog)
+signals the worker to stop and clears any partial rows; errors surface in the
+status banner instead of blocking the interface with modal message boxes.
 
 ### Provider-specific search tips
 
@@ -78,7 +90,9 @@ relevant targets without opening the preview pane.
 
 1. Select one or more rows in the results table.
 2. Click **Download & Import** to fetch the source files and pipe them through
-   the normal ingestion pipeline.
+   the normal ingestion pipeline. The same status spinner appears while
+   downloads run, the action buttons are disabled, and the banner reports how
+   many products were imported (plus any failures) once the worker finishes.
 
 Behind the scenes the application:
 
