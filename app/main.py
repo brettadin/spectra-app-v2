@@ -424,7 +424,9 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         )
         max_lines = 3
         line_height = self.library_hint.fontMetrics().lineSpacing()
-        self.library_hint.setMaximumHeight(line_height * max_lines)
+        hint_height = line_height * max_lines
+        self.library_hint.setMinimumHeight(hint_height)
+        self.library_hint.setMaximumHeight(hint_height)
         self.library_hint.setTextInteractionFlags(
             QtCore.Qt.TextInteractionFlag.TextSelectableByMouse
             | QtCore.Qt.TextInteractionFlag.LinksAccessibleByMouse
@@ -652,7 +654,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
     def _set_library_hint_path(self, stored_path: str) -> None:
         if self.library_hint is None:
             return
-        self.library_hint.setWordWrap(False)
+        self.library_hint.setWordWrap(True)
         width = max(self.library_hint.width(), self.library_hint.sizeHint().width(), 260)
         metrics = self.library_hint.fontMetrics()
         elided = metrics.elidedText(stored_path, QtCore.Qt.TextElideMode.ElideMiddle, width)

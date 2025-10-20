@@ -38,9 +38,10 @@ This document tracks feature batches, validation status, and outstanding backlog
       behaviour, and added a Qt regression that patches the save dialog to verify hidden traces are excluded.
 - [x] Allowed provenance CSV bundles to re-import as individual spectra by teaching the CSV importer to expose bundle metadata,
       updating the ingest service/UI to handle list-based ingestion, expanding tests, and documenting the revised workflow.
-- [x] Clamped the Library hint label to prevent cached selections from growing the
-      window and pinned NumPy/relaxed requests so Windows developers install
-      dependencies without compiling from source.
+- [x] Fixed the Library hint label height/word wrap so cached selections stay
+      within the dock and updated installation guidance (`RunSpectraApp.cmd`,
+      `START_HERE`, `AGENTS`) to use `pip --prefer-binary`, keeping numpy
+      `<2` and requests `<3` so Windows developers avoid source builds.
 - [x] Hid the History dock by default so dataset browsing no longer collapses the inspector pane; the panel remains accessible
       from View → History and the user guide now explains the opt-in workflow.
 - [x] Added export options for wide/composite CSV variants, wired `ProvenanceService`

@@ -37,6 +37,10 @@ below—future agents rely on these conventions to maintain continuity.
   `app/services/remote_data_service.py`, update
   `tests/test_remote_data_service.py`, and refresh the user guide. Never fire an
   empty query—validate inputs in the dialog and service.
+- **Python wheels first**: `RunSpectraApp.cmd` installs requirements with
+  `--prefer-binary`. If Windows tries to build `numpy` from source, run
+  `python -m pip install --prefer-binary "numpy>=1.26,<2"` (or install the
+  latest Microsoft C++ Build Tools) before re-running the launcher.
 - **Downloads**: MAST products must flow through
   `astroquery.mast.Observations.download_file`; HTTP URLs still use
   `requests`. Honour `_fetch_remote` when wiring new sources.

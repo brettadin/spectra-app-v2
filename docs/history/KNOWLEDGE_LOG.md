@@ -28,6 +28,25 @@ Each entry in this document should follow this structure:
 
 ---
 
+## 2025-10-20 14:09 – Library hint stability & prefer-binary installs
+
+**Author**: agent
+
+**Context**: Windows UI ergonomics when reopening cached spectra and repeated
+dependency build failures during launcher setup.
+
+**Summary**: Fixed the Library tab hint label height and reinstated word wrap so
+selecting cached spectra no longer forces the main window to expand or hide the
+log dock on Windows. Updated the launcher script and onboarding docs to install
+requirements with `--prefer-binary`, relaxed the numpy pin to `<2`, and widened
+the requests range so environments without Visual Studio Build Tools can install
+prebuilt wheels without manual edits.
+
+**References**: `app/main.py`, `RunSpectraApp.cmd`, `requirements.txt`,
+`AGENTS.md`, `START_HERE.md`, `docs/history/PATCH_NOTES.md`.
+
+---
+
 ## 2025-10-19 19:38 – Data table toggle no longer auto-opens
 
 **Author**: agent

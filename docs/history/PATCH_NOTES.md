@@ -1,5 +1,17 @@
 # Patch Notes
 
+## 2025-10-20 (Library hint stays fixed, prefer-binary install guidance) (14:09 EDT / 18:09 UTC)
+
+- Fixed the Library tab hint label height and kept word wrapping enabled so
+  selecting cached spectra no longer forces the main window to expand or emit
+  Windows geometry warnings when graphs are visible.
+- Updated `RunSpectraApp.cmd`, `START_HERE.md`, and `AGENTS.md` to run
+  `pip install --prefer-binary` by default and document how to resolve numpy
+  builds without local C++ toolchains.
+- Relaxed the numpy requirement to `>=1.26,<2` and lifted the `requests`
+  ceiling to `<3` so both Windows and Linux environments can consume the
+  latest wheels without manual edits.
+
 ## 2025-10-19 (Library dock stays compact, CI pins numpy) (20:27 EDT / 00:27 UTC)
 
 - Locked the Library dock splitter and elided long cache paths so selecting

@@ -34,10 +34,10 @@ RunSpectraApp.cmd
 # Manual setup
 py -3.11 -m venv .venv
 .\.venv\Scripts\activate
-pip install -r requirements.txt  # includes requests/astroquery for remote catalogues
+pip install --prefer-binary -r requirements.txt
 
-# Poetry workflow (installs the same remote extras)
-poetry install --with remote
+# If numpy attempts to build from source (Windows without C++ build tools)
+python -m pip install --prefer-binary "numpy>=1.26,<2"
 ```
 
 ### 2. Verify Installation
