@@ -1,5 +1,15 @@
 # Patch Notes
 
+## 2025-10-20 (Remote dialog threads shut down safely on close) (18:42 EDT / 22:42 UTC)
+
+- Ensured the Remote Data dialog waits for active search/download worker threads
+  to finish after requesting cancellation so closing the window no longer risks
+  `QThread: Destroyed while thread is still running` crashes on long-running
+  remote calls.
+- Reused the worker-cleanup path to dispose threads/workers after joining so
+  cancellation behaves consistently whether triggered via Reject or completion
+  signals.
+
 ## 2025-10-20 (Remote dialog streams results without blocking) (18:28 EDT / 22:28 UTC)
 
 - Moved remote catalogue searches and downloads onto threaded workers so the dialog

@@ -510,9 +510,33 @@ class RemoteDataDialog(QtWidgets.QDialog):
             queued,
         )
 
+    def _await_thread_shutdown(
+        self,
+        *,
+        thread_attr: str,
+        worker_attr: str,
+    ) -> None:
+        thread = getattr(self, thread_attr)
+        worker = getattr(self, worker_attr)
+        if thread is None:
+            return
+        if thread.isRunning():
+            thread.quit()
+        thread.wait()
+        if worker is not None:
+            worker.deleteLater()
+        thread.deleteLater()
+        setattr(self, worker_attr, None)
+        setattr(self, thread_attr, None)
+
     def reject(self) -> None:
         self._cancel_search_worker()
         self._cancel_download_worker()
+        self._await_thread_shutdown(thread_attr="_search_thread", worker_attr="_search_worker")
+        self._await_thread_shutdown(
+            thread_attr="_download_thread",
+            worker_attr="_download_worker",
+        )
         super().reject()
 
     def _on_provider_changed(self, index: int | None = None) -> None:

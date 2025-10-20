@@ -27,6 +27,19 @@ Each entry in this document should follow this structure:
   applicable).
 
 ---
+## 2025-10-20T18:42:45-04:00 / 2025-10-20T22:42:47+00:00 – Remote Data dialog joins worker threads on close
+
+**Author**: agent
+
+**Context**: Remote catalogue worker lifecycle and dialog shutdown stability.
+
+**Summary**: Updated the Reject handler to cancel in-flight workers, wait for the
+background QThreads to finish, and dispose of the worker/thread pair so closing
+the dialog during long-running remote calls no longer risks `QThread` destruction
+warnings or crashes.
+
+**References**: `app/ui/remote_data_dialog.py`, `docs/history/PATCH_NOTES.md`.
+---
 ---
 ## 2025-10-20T18:28:38-04:00 / 2025-10-20T22:28:41+00:00 – Remote Data dialog adopts background workers
 
