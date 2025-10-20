@@ -5,7 +5,6 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
-import numpy as np
 import pytest
 
 try:
@@ -25,8 +24,8 @@ def mini_fits(tmp_path: Path) -> Path:
     if fits is None:
         pytest.skip("astropy is required for FITS ingestion tests")
 
-    wavelengths = np.array([500.0, 600.0, 700.0])
-    flux = np.array([0.1, 0.2, 0.3])
+    wavelengths = [500.0, 600.0, 700.0]
+    flux = [0.1, 0.2, 0.3]
     columns = [
         fits.Column(name="WAVELENGTH", array=wavelengths, format="D", unit="nm"),
         fits.Column(name="FLUX", array=flux, format="D", unit="erg/s/cm2/angstrom"),
