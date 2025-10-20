@@ -325,35 +325,112 @@ class RemoteDataService:
         if "calib_level" not in criteria:
             criteria["calib_level"] = [2, 3]
 
-        table = observations.Observations.query_criteria(**criteria)
-        rows = self._table_to_records(table)
+        observation_table = observations.Observations.query_criteria(**criteria)
+        observation_rows = self._table_to_records(observation_table)
+
+        if not observation_rows:
+            return []
+
+        product_table = observations.Observations.get_product_list(observation_table)
+        product_rows = self._table_to_records(product_table)
+
+        observation_lookup: Dict[str, Mapping[str, Any]] = {}
+        for row in observation_rows:
+            identifier = str(
+                row.get("obsid")
+                or row.get("ObservationID")
+                or row.get("id")
+                or row.get("parent_obsid")
+                or ""
+            ).strip()
+            if identifier:
+                observation_lookup[identifier] = row
+
         records: List[RemoteRecord] = []
-        for row in rows:
-            metadata = dict(row)
-            if include_imaging:
-                if not (self._is_spectroscopic(metadata) or self._is_imaging(metadata)):
-                    continue
+        for product in product_rows:
+            product_obsid = str(
+                product.get("obsid")
+                or product.get("parent_obsid")
+                or product.get("ObservationID")
+                or ""
+            ).strip()
+            if not product_obsid:
+                continue
+
+            observation_meta = observation_lookup.get(product_obsid, {})
+            combined_meta: Dict[str, Any] = {}
+            if isinstance(observation_meta, Mapping):
+                combined_meta.update(dict(observation_meta))
+            if isinstance(product, Mapping):
+                combined_meta.update(dict(product))
+
+            data_uri = (
+                combined_meta.get("dataURI")
+                or combined_meta.get("ProductURI")
+                or combined_meta.get("download_uri")
+            )
+            if not data_uri:
+                continue
+
+            product_type = str(combined_meta.get("productType") or "").lower()
+            dataproduct_type = str(combined_meta.get("dataproduct_type") or "").lower()
+            is_preview = "preview" in product_type or "preview" in dataproduct_type
+
+            if not is_preview:
+                if combined_meta.get("calib_level") is not None:
+                    try:
+                        if int(float(combined_meta.get("calib_level"))) < 2:
+                            continue
+                    except (TypeError, ValueError):
+                        pass
+                if not self._is_spectroscopic(combined_meta):
+                    if not include_imaging or not self._is_imaging(combined_meta):
+                        continue
             else:
-                if not self._is_spectroscopic(metadata):
+                if not include_imaging:
                     continue
-            identifier = str(metadata.get("obsid") or metadata.get("ObservationID") or metadata.get("id"))
-            if not identifier:
-                continue
-            title = str(metadata.get("target_name") or metadata.get("target") or identifier)
-            download_uri = metadata.get("dataURI") or metadata.get("ProductURI") or metadata.get("download_uri")
-            if not download_uri:
-                continue
-            units_map = metadata.get("units") if isinstance(metadata.get("units"), Mapping) else None
+
+            product_filename = str(combined_meta.get("productFilename") or "").strip()
+            target_name = str(
+                combined_meta.get("target_name")
+                or combined_meta.get("target")
+                or combined_meta.get("obs_title")
+                or product_obsid
+            )
+
+            identifier = product_filename or str(data_uri)
+            obs_collection = combined_meta.get("obs_collection")
+            instrument_name = combined_meta.get("instrument_name")
+            preview_url = combined_meta.get("previewURL") or combined_meta.get("preview_url")
+
+            metadata: Dict[str, Any] = {
+                "obsid": product_obsid,
+                "obs_collection": obs_collection,
+                "instrument_name": instrument_name,
+                "target_name": target_name,
+                "productFilename": product_filename,
+                "dataURI": data_uri,
+            }
+            if preview_url:
+                metadata["previewURL"] = preview_url
+
+            metadata["observation"] = dict(observation_meta)
+            metadata["product"] = dict(product)
+
+            units_value = combined_meta.get("units")
+            units_map = dict(units_value) if isinstance(units_value, Mapping) else None
+
             records.append(
                 RemoteRecord(
                     provider=self.PROVIDER_MAST,
                     identifier=identifier,
-                    title=title,
-                    download_url=str(download_uri),
+                    title=f"{target_name} — {product_filename}" if product_filename else target_name,
+                    download_url=str(data_uri),
                     metadata=metadata,
                     units=units_map,
                 )
-                )
+            )
+
         return records
 
     def _search_exosystems(

@@ -199,9 +199,12 @@ def test_download_nist_generates_csv_and_records_provenance(store: LocalStore) -
     assert Path(cached.cache_entry["stored_path"]) == stored_path
 
 
-def test_search_mast_table_conversion(store: LocalStore, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_search_mast_filters_products_and_records_metadata(
+    store: LocalStore, monkeypatch: pytest.MonkeyPatch
+) -> None:
     class DummyObservations:
         criteria: dict[str, Any] | None = None
+        products_requested: Any | None = None
 
         @classmethod
         def query_criteria(cls, **criteria: Any) -> list[dict[str, Any]]:
@@ -210,15 +213,41 @@ def test_search_mast_table_conversion(store: LocalStore, monkeypatch: pytest.Mon
                 {
                     "obsid": "12345",
                     "target_name": "WASP-96 b",
-                    "dataURI": "mast:JWST/product.fits",
-                    "units": {"x": "um", "y": "flux"},
+                    "obs_collection": "JWST",
+                    "instrument_name": "NIRSpec",
+                }
+            ]
+
+        @classmethod
+        def get_product_list(cls, table: Any) -> list[dict[str, Any]]:
+            cls.products_requested = table
+            return [
+                {
+                    "obsid": "12345",
+                    "productFilename": "jwst_calibrated.fits",
+                    "dataURI": "mast:JWST/jwst_calibrated.fits",
                     "dataproduct_type": "spectrum",
+                    "productType": "SCIENCE",
+                    "calib_level": 3,
+                    "previewURL": "https://mast.stsci.edu/preview1.jpg",
+                    "units": {"x": "um", "y": "flux"},
                 },
                 {
-                    "obsid": "12346",
-                    "target_name": "WASP-96 b",
-                    "dataURI": "mast:JWST/image.fits",
+                    "obsid": "12345",
+                    "productFilename": "jwst_uncalibrated.fits",
+                    "dataURI": "mast:JWST/jwst_uncalibrated.fits",
+                    "dataproduct_type": "spectrum",
+                    "productType": "SCIENCE",
+                    "calib_level": 1,
+                },
+                {
+                    "obsid": "12345",
+                    "productFilename": "jwst_preview.jpg",
+                    "dataURI": "mast:JWST/jwst_preview.jpg",
+                    "productType": "PREVIEW",
                     "dataproduct_type": "image",
+                    "calib_level": 3,
+                    "previewURL": "https://mast.stsci.edu/preview2.jpg",
                 },
             ]
 
@@ -236,13 +265,27 @@ def test_search_mast_table_conversion(store: LocalStore, monkeypatch: pytest.Mon
     assert DummyObservations.criteria.get("intentType") == "SCIENCE"
     assert DummyObservations.criteria.get("calib_level") == [2, 3]
     assert "text" not in DummyObservations.criteria
+    assert DummyObservations.products_requested is not None
+
     assert len(records) == 1
-    assert records[0].identifier == "12345"
-    assert records[0].download_url == "mast:JWST/product.fits"
-    assert records[0].units == {"x": "um", "y": "flux"}
+    record = records[0]
+    assert record.identifier == "jwst_calibrated.fits"
+    assert record.download_url == "mast:JWST/jwst_calibrated.fits"
+    assert record.title.startswith("WASP-96 b")
+    assert record.units == {"x": "um", "y": "flux"}
+    assert record.metadata["obs_collection"] == "JWST"
+    assert record.metadata["instrument_name"] == "NIRSpec"
+    assert record.metadata["target_name"] == "WASP-96 b"
+    assert record.metadata["productFilename"] == "jwst_calibrated.fits"
+    assert record.metadata["dataURI"] == "mast:JWST/jwst_calibrated.fits"
+    assert record.metadata["previewURL"] == "https://mast.stsci.edu/preview1.jpg"
+    assert record.metadata["observation"]["obsid"] == "12345"
+    assert record.metadata["product"]["productFilename"] == "jwst_calibrated.fits"
 
 
-def test_search_mast_can_include_imaging(store: LocalStore, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_search_mast_can_include_previews_and_imaging(
+    store: LocalStore, monkeypatch: pytest.MonkeyPatch
+) -> None:
     class DummyObservations:
         criteria: dict[str, Any] | None = None
 
@@ -253,15 +296,43 @@ def test_search_mast_can_include_imaging(store: LocalStore, monkeypatch: pytest.
                 {
                     "obsid": "12345",
                     "target_name": "WASP-96 b",
-                    "dataURI": "mast:JWST/product.fits",
-                    "units": {"x": "um", "y": "flux"},
-                    "dataproduct_type": "spectrum",
+                    "obs_collection": "JWST",
+                    "instrument_name": "NIRSpec",
                 },
                 {
-                    "obsid": "12346",
-                    "target_name": "WASP-96 b",
-                    "dataURI": "mast:JWST/image.fits",
+                    "obsid": "67890",
+                    "target_name": "Calibration Field",
+                    "obs_collection": "JWST",
+                    "instrument_name": "NIRCam",
+                },
+            ]
+
+        @staticmethod
+        def get_product_list(table: Any) -> list[dict[str, Any]]:
+            return [
+                {
+                    "obsid": "12345",
+                    "productFilename": "jwst_calibrated.fits",
+                    "dataURI": "mast:JWST/jwst_calibrated.fits",
+                    "dataproduct_type": "spectrum",
+                    "productType": "SCIENCE",
+                    "calib_level": 2,
+                },
+                {
+                    "obsid": "12345",
+                    "productFilename": "jwst_preview.jpg",
+                    "dataURI": "mast:JWST/jwst_preview.jpg",
+                    "productType": "PREVIEW",
                     "dataproduct_type": "image",
+                    "previewURL": "https://mast.stsci.edu/preview.jpg",
+                },
+                {
+                    "obsid": "67890",
+                    "productFilename": "nircam_image.fits",
+                    "dataURI": "mast:JWST/nircam_image.fits",
+                    "dataproduct_type": "image",
+                    "productType": "SCIENCE",
+                    "calib_level": 3,
                 },
             ]
 
@@ -280,7 +351,13 @@ def test_search_mast_can_include_imaging(store: LocalStore, monkeypatch: pytest.
     assert DummyObservations.criteria is not None
     assert DummyObservations.criteria.get("dataproduct_type") == ["spectrum", "image"]
     identifiers = {record.identifier for record in records}
-    assert identifiers == {"12345", "12346"}
+    assert identifiers == {
+        "jwst_calibrated.fits",
+        "jwst_preview.jpg",
+        "nircam_image.fits",
+    }
+    preview_record = next(record for record in records if record.identifier == "jwst_preview.jpg")
+    assert preview_record.metadata["previewURL"] == "https://mast.stsci.edu/preview.jpg"
 
 
 def test_search_exosystems_merges_metadata(
