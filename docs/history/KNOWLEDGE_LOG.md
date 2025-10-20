@@ -27,6 +27,23 @@ Each entry in this document should follow this structure:
   applicable).
 
 ---
+## 2025-10-20T15:39:03-04:00 / 2025-10-20T19:39:03+00:00 – Dependency window widened for NumPy 2.x wheels
+
+**Author**: agent
+
+**Context**: Windows launcher and onboarding docs still referenced the old
+`numpy>=1.26,<2` range, causing setup failures on Python 3.12 where only 2.x
+wheels are available.
+
+**Summary**: Relaxed the numpy requirement to `<3` so the launcher resolves
+published wheels, updated the recovery instructions in `RunSpectraApp.cmd`,
+`AGENTS.md`, and `START_HERE.md`, and synced the workplan dependency note to
+avoid future confusion.
+
+**References**: `requirements.txt`, `RunSpectraApp.cmd`, `AGENTS.md`,
+`START_HERE.md`, `docs/reviews/workplan.md`, `docs/history/PATCH_NOTES.md`.
+
+---
 ## 2025-10-20T15:20:00-04:00 / 2025-10-20T19:20:00+00:00 – Windows pip binary guard reset
 
 **Author**: agent

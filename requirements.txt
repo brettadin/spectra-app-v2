@@ -1,4 +1,4 @@
-numpy>=1.26,<2
+numpy>=1.26,<3
 PySide6>=6.8.2,<6.11
 pyqtgraph==0.13.7
 pytest==8.4.1

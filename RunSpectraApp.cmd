@@ -29,7 +29,7 @@ set "PIP_PREFER_BINARY=1"
 "%PY_EXE%" -m pip install --prefer-binary -r "%PROJ_ROOT%\requirements.txt" || (
   echo Dependency install failed.
   echo If numpy attempts to build from source, install the latest Microsoft C++ Build Tools ^
-   or run: "%PY_EXE%" -m pip install --prefer-binary "numpy>=1.26,<2".
+   or run: "%PY_EXE%" -m pip install --prefer-binary "numpy>=1.26,<3".
   pause
   exit /b 1
 )

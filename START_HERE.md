@@ -40,7 +40,7 @@ set PIP_PREFER_BINARY=1
 pip install --prefer-binary -r requirements.txt
 
 # If numpy still attempts to build from source (Windows without C++ build tools)
-python -m pip install --prefer-binary "numpy>=1.26,<2"
+python -m pip install --prefer-binary "numpy>=1.26,<3"
 ```
 
 ### 2. Verify Installation

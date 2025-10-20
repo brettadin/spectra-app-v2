@@ -40,7 +40,7 @@ below—future agents rely on these conventions to maintain continuity.
 - **Python wheels first**: `RunSpectraApp.cmd` installs requirements with
   `--prefer-binary` and clears any inherited `PIP_NO_BINARY` value while forcing
   `PIP_ONLY_BINARY=numpy`. If Windows still tries to build `numpy` from source,
-  run `python -m pip install --prefer-binary "numpy>=1.26,<2"` (or install the
+  run `python -m pip install --prefer-binary "numpy>=1.26,<3"` (or install the
   latest Microsoft C++ Build Tools) before re-running the launcher, then report
   the failure in patch notes so future agents know the environment state.
 - **Downloads**: MAST products must flow through

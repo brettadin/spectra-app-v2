@@ -1,5 +1,14 @@
 # Patch Notes
 
+## 2025-10-20 (Numpy window widened for Python 3.12+) (15:39 EDT / 19:39 UTC)
+
+- Relaxed the numpy dependency to `>=1.26,<3` so Windows launches on Python 3.12+
+  resolve published 2.x wheels instead of attempting unavailable 1.26 builds.
+- Updated `RunSpectraApp.cmd`, `START_HERE.md`, and `AGENTS.md` to reference the
+  wider range in their recovery instructions.
+- Adjusted the workplan dependency summary to match the new ceiling and avoid
+  confusion for future onboarding.
+
 ## 2025-10-20 (Windows pip clears binary overrides) (15:20 EDT / 19:21 UTC)
 
 - Updated `RunSpectraApp.cmd` to clear `PIP_NO_BINARY` and set
