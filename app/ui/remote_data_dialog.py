@@ -241,33 +241,43 @@ class RemoteDataDialog(QtWidgets.QDialog):
         self.accept()
 
     def _refresh_provider_state(self) -> None:
-        providers = [
-            provider
-            for provider in self.remote_service.providers()
-            if provider != RemoteDataService.PROVIDER_NIST
-        ]
+        providers = list(self.remote_service.providers())
         self.provider_combo.clear()
         if providers:
             self.provider_combo.addItems(providers)
             self.provider_combo.setEnabled(True)
             self.search_edit.setEnabled(True)
             self.search_button.setEnabled(True)
-            self._provider_placeholders = {
-                RemoteDataService.PROVIDER_MAST: "JWST spectroscopic target (e.g. WASP-96 b, NIRSpec)…",
-            }
-            self._provider_hints = {
-                RemoteDataService.PROVIDER_MAST: (
+            self._provider_placeholders = {}
+            self._provider_hints = {}
+            self._provider_examples = {}
+
+            if RemoteDataService.PROVIDER_MAST in providers:
+                self._provider_placeholders[RemoteDataService.PROVIDER_MAST] = (
+                    "JWST spectroscopic target (e.g. WASP-96 b, NIRSpec)…"
+                )
+                self._provider_hints[RemoteDataService.PROVIDER_MAST] = (
                     "MAST requests favour calibrated spectra (IFS cubes, slits, prisms). Enable "
                     "\"Include imaging\" to broaden results with calibrated image products."
-                ),
-            }
-            self._provider_examples = {
-                RemoteDataService.PROVIDER_MAST: [
+                )
+                self._provider_examples[RemoteDataService.PROVIDER_MAST] = [
                     ("WASP-96 b – JWST/NIRSpec", "WASP-96 b"),
                     ("WASP-39 b – JWST/NIRSpec", "WASP-39 b"),
                     ("HD 189733 – JWST/NIRISS", "HD 189733"),
-                ],
-            }
+                ]
+
+            if RemoteDataService.PROVIDER_NIST in providers:
+                self._provider_placeholders[RemoteDataService.PROVIDER_NIST] = (
+                    "Element or ion (e.g. Fe II, H I)…"
+                )
+                self._provider_hints[RemoteDataService.PROVIDER_NIST] = (
+                    "The NIST Atomic Spectra Database searches spectral line lists. Supply an element "
+                    "or specific ion to retrieve transition data."
+                )
+                self._provider_examples[RemoteDataService.PROVIDER_NIST] = [
+                    ("Fe II ultraviolet lines", "Fe II"),
+                    ("Neutral hydrogen Balmer series", "H I"),
+                ]
         else:
             self.provider_combo.setEnabled(False)
             self.search_edit.setEnabled(False)
