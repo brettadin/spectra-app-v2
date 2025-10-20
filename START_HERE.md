@@ -87,12 +87,35 @@ Follow the **RUNNER_PROMPT** workflow for each development session:
   updating patch notes, the knowledge log, brains entries, or the workplan.
 - Follow the platform-specific commands in `AGENTS.md` and the MASTER PROMPT to
   emit both strings in a single pass:
-  - **Windows (PowerShell 5.1+/pwsh)** captures UTC with `Get-Date -AsUTC`,
-    converts it through `System.TimeZoneInfo` to Eastern Time, and prints both
-    values via `.ToString("o")`.
-  - **macOS/Linux shells** run `TZ=America/New_York date --iso-8601=seconds`
-    followed by `date -u --iso-8601=seconds`; macOS users may need `gdate` from
-    Homebrew coreutils.
+  - **Windows (PowerShell 5.1+/pwsh)**:
+
+    ```powershell
+    [System.TimeZoneInfo]::ConvertTimeBySystemTimeZoneId([DateTime]::UtcNow,"Eastern Standard Time").ToString("o")
+    (Get-Date).ToUniversalTime().ToString("o")
+    ```
+
+  - **macOS/Linux shells** run:
+
+    ```bash
+    TZ=America/New_York date --iso-8601=seconds
+    date -u --iso-8601=seconds
+    ```
+
+    macOS users may need `gdate` from Homebrew coreutils.
+
+  - **Python fallback (any platform)**:
+
+    ```bash
+    python - <<'PY'
+    from datetime import UTC, datetime
+    import zoneinfo
+
+    ny = zoneinfo.ZoneInfo("America/New_York")
+    print(datetime.now(ny).isoformat())
+    print(datetime.now(UTC).isoformat())
+    PY
+    ```
+
   - **WSL users** can invoke `wsl.exe bash -lc 'TZ=America/New_York date --iso-8601=seconds && date -u --iso-8601=seconds'`
     from Windows terminals without leaving the host environment.
 
