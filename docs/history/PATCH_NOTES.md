@@ -12,6 +12,20 @@
   developer guide with the Exoplanet Archive/Exo.MAST integration.
 - Extended the Qt smoke test to assert the new column layout, hyperlink
   rendering, and enriched preview/status behaviour.
+# 2025-10-20 (ExoSystems provider surfaces cross-matched spectra) (16:51 EDT / 20:51 UTC)
+
+- Added a **MAST ExoSystems** provider to `RemoteDataService` that resolves
+  planets/hosts through the NASA Exoplanet Archive, queries MAST by
+  sky-coordinates, and merges `obs_collection`, instrument, filter, preview, and
+  citation metadata into each result. Transiting targets now pull curated
+  spectra from Exo.MAST and bundle the provenance alongside mission products.
+- Introduced curated fallbacks for flagship solar-system planets and stellar
+  standards so the provider still returns spectroscopy-ready assets when the
+  Exoplanet Archive lacks an entry. Remote searches capture the fallback
+  provenance and cite the source collections directly in record metadata.
+- Expanded the remote-data regression suite to mock NExScI, Exo.MAST, and MAST
+  calls, validating metadata assembly end to end, and refreshed the remote-data
+  user guide to document the new provider behaviour and dependencies.
 
 ## 2025-10-20 (Numpy window widened for Python 3.12+) (15:39 EDT / 19:39 UTC)
 

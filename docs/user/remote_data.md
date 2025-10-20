@@ -27,6 +27,7 @@ directly against laboratory references.
 1. Choose **File → Fetch Remote Data…** (or press `Ctrl+Shift+R`).
 2. Pick a catalogue from the *Catalogue* selector. The current build focuses on:
    - **MAST** (MAST data products via `astroquery.mast`)
+   - **MAST ExoSystems** (NExScI exoplanet metadata cross-matched with MAST missions and Exo.MAST curated spectra)
    
    > **Note**: NIST spectral line lookups now live in the Inspector’s **Reference → Spectral lines** tab, where you can pin
    > multiple element/ion queries and manage colour palettes directly within the preview plot.
