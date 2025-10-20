@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+import csv
+import io
+import hashlib
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 import csv
@@ -9,7 +12,7 @@ import json
 import tempfile
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Mapping
-from urllib.parse import urlparse
+from urllib.parse import quote, urlencode, urlparse
 
 from . import nist_asd_service
 from .store import LocalStore
@@ -79,6 +82,7 @@ class RemoteDataService:
     mast_product_fields: Iterable[str] = field(
         default_factory=lambda: ("obsid", "target_name", "productFilename", "dataURI")
     )
+    nist_page_size: int = 100
 
     PROVIDER_NIST = "NIST ASD"
     PROVIDER_MAST = "MAST"
@@ -460,6 +464,70 @@ class RemoteDataService:
         return record.download_url.startswith("mast:")
 
     # ------------------------------------------------------------------
+    @staticmethod
+    def _normalise_nist_query(identifier: str, meta: Mapping[str, Any]) -> Dict[str, Any]:
+        """Return a stable mapping that captures the effective NIST query."""
+
+        query_meta: Dict[str, Any] = {}
+        raw_query = meta.get("query") if isinstance(meta, Mapping) else None
+        if isinstance(raw_query, Mapping):
+            query_meta.update(raw_query)
+
+        query_meta.setdefault("identifier", identifier)
+        if "linename" not in query_meta and "spectrum" in query_meta:
+            query_meta["linename"] = query_meta["spectrum"]
+        if meta.get("element_symbol"):
+            query_meta.setdefault("element_symbol", meta.get("element_symbol"))
+        if meta.get("ion_stage_number") is not None:
+            query_meta.setdefault("ion_stage_number", meta.get("ion_stage_number"))
+        if meta.get("ion_stage"):
+            query_meta.setdefault("ion_stage", meta.get("ion_stage"))
+        if meta.get("label"):
+            query_meta.setdefault("label", meta.get("label"))
+
+        # Ensure wavelength bounds are represented explicitly for caching.
+        lower = query_meta.get("lower_wavelength")
+        upper = query_meta.get("upper_wavelength")
+        if lower is not None:
+            query_meta["lower_wavelength"] = float(lower)
+        if upper is not None:
+            query_meta["upper_wavelength"] = float(upper)
+
+        unit = query_meta.get("wavelength_unit")
+        if unit is not None:
+            query_meta["wavelength_unit"] = str(unit)
+        wtype = query_meta.get("wavelength_type")
+        if wtype is not None:
+            query_meta["wavelength_type"] = str(wtype)
+        if "use_ritz" in query_meta:
+            query_meta["use_ritz"] = bool(query_meta["use_ritz"])
+
+        return query_meta
+
+    @staticmethod
+    def _build_nist_download_url(label: str, query_meta: Mapping[str, Any]) -> str:
+        """Create a cache-safe pseudo URI for a NIST line query."""
+
+        safe_label = quote(str(label).strip().replace(" ", "_"), safe="+-_.") or "lines"
+
+        def _stringify(value: Any) -> str:
+            if isinstance(value, bool):
+                return "true" if value else "false"
+            if isinstance(value, float):
+                return f"{value:.9g}"
+            return str(value)
+
+        params: List[tuple[str, str]] = []
+        for key in sorted(query_meta):
+            value = query_meta[key]
+            if value is None:
+                continue
+            params.append((key, _stringify(value)))
+
+        query_string = urlencode(params, doseq=True, safe="+-_.:")
+        base = f"nist-asd://lines/{safe_label}"
+        return f"{base}?{query_string}" if query_string else base
+
     def _find_cached(self, uri: str) -> Dict[str, Any] | None:
         entries = self.store.list_entries()
         for entry in entries.values():
@@ -471,11 +539,24 @@ class RemoteDataService:
                 return dict(entry)
         return None
 
+    def _build_nist_cache_uri(self, token: str, query_signature: Mapping[str, Any]) -> str:
+        payload = json.dumps(
+            query_signature,
+            sort_keys=True,
+            separators=(",", ":"),
+            default=str,
+        )
+        digest = hashlib.sha256(payload.encode("utf-8")).hexdigest()[:12]
+        return f"nist-asd:{token}:{digest}"
+
     def _ensure_session(self):
         if self.session is not None:
             return self.session
         if requests is None:
-            raise RuntimeError("The 'requests' package is required for remote downloads")
+            raise RuntimeError(
+                "The 'requests' package is required for remote downloads. "
+                "Install it via `pip install -r requirements.txt` or `poetry install --with remote`."
+            )
         self.session = requests.Session()
         return self.session
 
