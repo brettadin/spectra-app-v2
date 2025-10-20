@@ -689,3 +689,17 @@ Import/Remote Import entries remain after the cleanup.
 - `docs/reviews/workplan.md`
 
 ---
+## 2025-10-19T20:12:10-04:00 / 2025-10-20T00:12:10+00:00 – History dock default hidden
+
+**Author**: agent
+
+**Context**: UI layout polish requested after the History panel continued to force the workspace to shrink when browsing datasets.
+
+**Summary**: Updated `SpectraMainWindow` so the History dock is constructed but hidden on launch, keeping the inspector and plot panes stable until analysts explicitly open the log from the View menu. Documented the new default in the plot tools guide and logged the behaviour change in patch notes.
+
+**References**:
+- `app/main.py`
+- `docs/user/plot_tools.md`
+- `docs/history/PATCH_NOTES.md`
+
+---

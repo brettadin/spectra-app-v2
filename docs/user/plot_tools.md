@@ -87,7 +87,7 @@ Choosing **File → Export → Manifest** now opens a short configuration dialog
 - **Wide CSV** – emits a companion table where every spectrum receives a dedicated wavelength/intensity column pair. Comment headers preserve the bundle metadata so the file can be re-imported directly; the CSV importer recognises the `spectra-wide-v1` layout and expands it back into individual spectra.
 - **Composite CSV** – averages the visible spectra onto the first trace’s wavelength grid (skipping regions that are not covered by all sources) and records the contributing sample count per row. This is useful for building a reference envelope you can compare against laboratory standards without manually exporting each input.
 
-All artefacts share the same base filename. For example, exporting `~/spectra/argon.json` with both options selected yields `argon.json` (manifest), `argon.csv` (combined bundle), `argon_wide.csv`, `argon_composite.csv`, the `argon.png` snapshot, and the usual log file. The History dock summarises which files were written, and the Knowledge Log remains reserved for high-level insights rather than per-export bookkeeping.
+All artefacts share the same base filename. For example, exporting `~/spectra/argon.json` with both options selected yields `argon.json` (manifest), `argon.csv` (combined bundle), `argon_wide.csv`, `argon_composite.csv`, the `argon.png` snapshot, and the usual log file. The History dock summarises which files were written, and the Knowledge Log remains reserved for high-level insights rather than per-export bookkeeping. The dock now starts hidden to keep the workspace compact—enable it via **View → History** whenever you need to audit the session log.
 
 ## Performance best practices
 

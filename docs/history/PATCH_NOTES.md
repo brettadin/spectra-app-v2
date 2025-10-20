@@ -403,14 +403,8 @@
 - Added an automated smoke workflow test that instantiates the preview shell, ingests CSV/FITS data, exercises unit toggles, and exports a provenance bundle.
 - Centralised the reusable FITS fixture under `tests/conftest.py` to support regression suites.
 - Documented the new smoke validation loop for developers and provided a matching user checklist.
-## 2025-10-19 (Knowledge log import persistence) (3:57 pm edt)
+## 2025-10-19T20:12:10-04:00 — History dock hidden by default
 
-- Ensured Spectra records import and remote-import events to the knowledge log so session history persists across restarts.
-- Documented the change in `docs/user/importing.md`, clarifying how summaries are captured while raw paths stay in the cache view.
-- Verified the smoke history workflow under pytest to confirm the UI updates after ingesting a CSV.
-
-## 2025-10-19 (NIST input validation) (19:54 EDT / 23:54 UTC)
-
-- Caught ValueError exceptions from NIST line queries so invalid element symbols or ion stages now surface a warning instead of closing the dialog. 【F:app/main.py†L2370-L2394】
-- Clarified the reference-data guide to note that invalid NIST inputs show an inline warning for quick corrections. 【F:docs/user/reference_data.md†L55-L59】
+- Hid the History dock on launch so the inspector layout no longer jumps when browsing datasets; the dock stays available under **View → History**.
+- Updated the plot tools guide to explain the new default and how to re-enable the runtime log when needed.
 

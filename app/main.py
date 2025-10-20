@@ -679,6 +679,11 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
 
         self.history_dock.setWidget(container)
         self.addDockWidget(QtCore.Qt.DockWidgetArea.RightDockWidgetArea, self.history_dock)
+        # Keep the History dock out of the default layout to avoid shrinking the
+        # inspector pane or triggering layout jumps when the application starts.
+        # Operators can still enable it from View → History when they need to
+        # audit the runtime log.
+        self.history_dock.hide()
         self._history_ui_ready = True
         self._load_history_entries()
 
