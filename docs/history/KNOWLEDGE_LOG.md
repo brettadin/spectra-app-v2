@@ -28,6 +28,23 @@ Each entry in this document should follow this structure:
 
 ---
 
+## 2025-10-20 14:54 – [CI]
+
+**Author**: agent
+
+**Context**: GitHub Actions Windows runners building numpy from source despite
+wheel availability.
+
+**Summary**: Taught the CI workflow to install numpy with `--only-binary=:all:`
+and pass `--prefer-binary` for the remaining dependencies so Windows jobs reuse
+official wheels. Verified locally that the adjusted install sequence no longer
+prints `Building wheel for numpy`, aligning CI with the launcher guidance and
+reducing run times.
+
+**References**: `.github/workflows/ci.yml`, `docs/history/PATCH_NOTES.md`.
+
+---
+
 ## 2025-10-20 14:09 – Library hint stability & prefer-binary installs
 
 **Author**: agent

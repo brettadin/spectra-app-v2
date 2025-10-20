@@ -1,5 +1,15 @@
 # Patch Notes
 
+## 2025-10-20 (CI prefers binary wheels on Windows) (14:54 EDT / 18:54 UTC)
+
+- Updated the GitHub Actions workflow to install numpy with
+  `--only-binary=:all:` and pass `--prefer-binary` to other pip installs so the
+  Windows runners reuse prebuilt wheels instead of attempting local builds.
+- Re-ran the workflow locally to verify that pip resolves numpy from wheels and
+  no longer emits `Building wheel for numpy` on Windows-equivalent runs.
+- Logged the CI fix in the knowledge log to keep future agents aware of the
+  wheel-first constraint for Windows environments.
+
 ## 2025-10-20 (Library hint stays fixed, prefer-binary install guidance) (14:09 EDT / 18:09 UTC)
 
 - Fixed the Library tab hint label height and kept word wrapping enabled so
