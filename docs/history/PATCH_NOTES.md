@@ -420,3 +420,8 @@
 - Hid the History dock on launch so the inspector layout no longer jumps when browsing datasets; the dock stays available under **View → History**.
 - Updated the plot tools guide to explain the new default and how to re-enable the runtime log when needed.
 
+## 2025-10-19T20:41:06-04:00 — Library detail moved to side panel
+
+- Reoriented the Library splitter horizontally so cached metadata lives beside the table, preventing the dock from pushing the bottom log out of view when entries are selected.
+- Documented the side-panel layout in the importing and remote-data guides to keep the user workflow aligned with the UI.
+

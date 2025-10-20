@@ -381,7 +381,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.library_search.textChanged.connect(self._on_library_filter_changed)
         layout.addWidget(self.library_search)
 
-        splitter = QtWidgets.QSplitter(QtCore.Qt.Orientation.Vertical)
+        splitter = QtWidgets.QSplitter(QtCore.Qt.Orientation.Horizontal)
         splitter.setChildrenCollapsible(False)
         splitter.setHandleWidth(8)
 
@@ -395,6 +395,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.library_list.header().setSectionResizeMode(1, QtWidgets.QHeaderView.ResizeToContents)
         self.library_list.header().setSectionResizeMode(2, QtWidgets.QHeaderView.ResizeToContents)
         self.library_list.header().setSectionResizeMode(3, QtWidgets.QHeaderView.Stretch)
+        self.library_list.setMinimumWidth(220)
         splitter.addWidget(self.library_list)
 
         self.library_detail = QtWidgets.QPlainTextEdit()
@@ -403,12 +404,13 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.library_detail.setPlaceholderText("Select a cached entry to inspect metadata and provenance.")
         self.library_detail.setSizePolicy(
             QtWidgets.QSizePolicy.Policy.Expanding,
-            QtWidgets.QSizePolicy.Policy.Expanding,
+            QtWidgets.QSizePolicy.Policy.Preferred,
         )
+        self.library_detail.setMinimumWidth(260)
         splitter.addWidget(self.library_detail)
-        splitter.setStretchFactor(0, 3)
-        splitter.setStretchFactor(1, 2)
-        splitter.setSizes([320, 200])
+        splitter.setStretchFactor(0, 2)
+        splitter.setStretchFactor(1, 3)
+        splitter.setSizes([280, 360])
 
         layout.addWidget(splitter, 1)
 

@@ -46,6 +46,9 @@ This document tracks feature batches, validation status, and outstanding backlog
 - [x] Added a dataset-dock filter for large sessions, updated plot tools/user
       onboarding docs with cross-platform timestamp guidance, and recorded the
       workflow in patch notes and the knowledge log.
+- [x] Reoriented the Library metadata pane into a side-by-side layout so cached
+      selections keep the log dock visible, and synced the importing/remote data
+      guides plus historical logs with the new UI.
 - [x] Consolidated the Datasets and Library views into a single Data dock with
       tabbed navigation, rebuilt the library tab so it disables cleanly when
       persistence is off, updated user/developer guides, and extended Qt

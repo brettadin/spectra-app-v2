@@ -718,3 +718,18 @@ Import/Remote Import entries remain after the cleanup.
 - `docs/history/PATCH_NOTES.md`
 
 ---
+## 2025-10-19T20:41:06-04:00 / 2025-10-20T00:41:06+00:00 – Library detail panel horizontal layout
+
+**Author**: agent
+
+**Context**: Selecting cached spectra still caused the Data dock to elongate vertically, hiding the bottom log panel despite the earlier splitter guard.
+
+**Summary**: Swapped the Library splitter to a horizontal arrangement, fixed minimum widths for the table and detail pane, and updated the user guides so cached metadata renders beside the table without expanding downward. This keeps the log dock visible while preserving access to provenance details.
+
+**References**:
+- `app/main.py`
+- `docs/user/importing.md`
+- `docs/user/remote_data.md`
+- `docs/history/PATCH_NOTES.md`
+
+---

@@ -84,7 +84,8 @@ The **Library** tab in the **Data** dock lists every cached artefact recorded by
 Double-clicking an entry re-ingests the stored file without touching the
 original download location—handy when reviewing spectra offline or comparing
 multiple normalisations. The table mirrors cache metadata (provider, checksum,
-timestamps) so you can audit provenance without sifting through raw log entries.
+timestamps) while the detail panel on the right renders provenance and storage
+paths so you can audit downloads without sifting through raw log entries.
 
 ## Offline behaviour and caching
 
