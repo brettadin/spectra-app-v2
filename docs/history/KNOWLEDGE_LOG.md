@@ -27,6 +27,24 @@ Each entry in this document should follow this structure:
   applicable).
 
 ---
+## 2025-10-20T16:47:27-04:00 / 2025-10-20T20:47:29+00:00 – MAST product filtering & provenance metadata
+
+**Author**: agent
+
+**Context**: Remote Data service – MAST catalogue integration and UI provenance fields.
+
+**Summary**: Taught the MAST search adapter to request the observation product
+list, keep calibrated spectroscopic downloads as the default, and surface
+mission/instrument metadata plus preview URLs inside each remote record so
+provenance remains visible in the Library dock. Expanded the regression suite
+with product-list mocks to cover the new filtering and download path.
+
+**References**: `app/services/remote_data_service.py`【F:app/services/remote_data_service.py†L241-L345】,
+`tests/test_remote_data_service.py`【F:tests/test_remote_data_service.py†L202-L360】,
+`docs/user/remote_data.md`【F:docs/user/remote_data.md†L53-L59】,
+`docs/history/PATCH_NOTES.md`【F:docs/history/PATCH_NOTES.md†L3-L13】.
+
+---
 ## 2025-10-20T15:39:03-04:00 / 2025-10-20T19:39:03+00:00 – Dependency window widened for NumPy 2.x wheels
 
 **Author**: agent

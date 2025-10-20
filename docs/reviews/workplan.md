@@ -19,6 +19,8 @@ This document tracks feature batches, validation status, and outstanding backlog
       remains).
 - [ ] Validate remote catalogue UX: expand the provider roster beyond MAST once
       dependency checks stabilise and new spectroscopy sources are vetted.
+      (MAST product-list filtering and provenance metadata landed
+      2025-10-20; additional providers still pending.)
 - [x] Refresh START_HERE, MASTER PROMPT, AGENTS, and brains documentation so
       onboarding instructions match the current repository layout (AGENTS and
       START_HERE refreshed 2025-10-19; MASTER PROMPT timestamp guidance synced
