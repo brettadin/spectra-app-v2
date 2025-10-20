@@ -17,8 +17,9 @@ This document tracks feature batches, validation status, and outstanding backlog
       and user ingests are categorised by instrument/type with working search
       (Data dock consolidation + filter landed 2025-10-19; grouping backlog
       remains).
-- [ ] Validate remote catalogue UX: expand the provider roster beyond MAST once
-      dependency checks stabilise and new spectroscopy sources are vetted.
+- [x] Validate remote catalogue UX: expand the provider roster beyond MAST once
+      dependency checks stabilise and new spectroscopy sources are vetted
+      (MAST ExoSystems provider, Exo.MAST integration, curated fallbacks).
 - [x] Refresh START_HERE, MASTER PROMPT, AGENTS, and brains documentation so
       onboarding instructions match the current repository layout (AGENTS and
       START_HERE refreshed 2025-10-19; MASTER PROMPT timestamp guidance synced

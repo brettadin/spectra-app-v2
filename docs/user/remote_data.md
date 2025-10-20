@@ -27,6 +27,7 @@ directly against laboratory references.
 1. Choose **File → Fetch Remote Data…** (or press `Ctrl+Shift+R`).
 2. Pick a catalogue from the *Catalogue* selector. The current build focuses on:
    - **MAST** (MAST data products via `astroquery.mast`)
+   - **MAST ExoSystems** (NExScI exoplanet metadata cross-matched with MAST missions and Exo.MAST curated spectra)
    
    > **Note**: NIST spectral line lookups now live in the Inspector’s **Reference → Spectral lines** tab, where you can pin
    > multiple element/ion queries and manage colour palettes directly within the preview plot.
@@ -46,6 +47,18 @@ directly against laboratory references.
   HD 189733 so you can trigger a query without retyping common names. Tick
   **Include imaging** to relax the product filter so calibrated imaging results
   appear alongside spectra.
+- **MAST ExoSystems** – Start with a planet or host-star name. The adapter asks
+  `astroquery.ipac.nexsci.NasaExoplanetArchive` for PS/PSCompPars metadata,
+  captures host/planet properties, and extracts RA/Dec so MAST region/object
+  queries automatically focus on the correct field. Each matching observation is
+  expanded into its product list, merging `obs_collection`, `instrument_name`,
+  `filters`, preview thumbnails, and DOI/citation metadata into the preview
+  panel. Confirmed transiting planets trigger an additional Exo.MAST
+  `/spectra/{planet}/filelist` lookup so curated transmission/emission spectra
+  appear alongside mission products. When the Exoplanet Archive lacks an entry,
+  the service falls back to curated solar-system and stellar standards (e.g.
+  Jupiter, Mars, Tau Ceti, Vega) so you still see spectroscopy-ready MAST
+  products and provenance details.
 
 The hint banner beneath the results table updates as you switch providers and
 also surfaces dependency warnings when optional clients are missing.

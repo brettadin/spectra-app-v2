@@ -27,6 +27,25 @@ Each entry in this document should follow this structure:
   applicable).
 
 ---
+## 2025-10-20T16:51:06-04:00 / 2025-10-20T20:51:08+00:00 – MAST ExoSystems provider lands
+
+**Author**: agent
+
+**Context**: Remote catalogue workflow, MAST integrations, provenance.
+
+**Summary**: Added a dedicated **MAST ExoSystems** provider that resolves
+exoplanet metadata through the NASA Exoplanet Archive before querying MAST by
+sky coordinates, wiring Exo.MAST spectra into transiting-target results, and
+recording curated fallbacks for solar-system planets and stellar standards when
+NExScI lacks entries. Documented the workflow in the remote-data guide and
+expanded regression coverage to mock the NExScI, Exo.MAST, and MAST calls so the
+metadata assembly remains stable.
+
+**References**: `app/services/remote_data_service.py`,
+`tests/test_remote_data_service.py`, `docs/user/remote_data.md`,
+`docs/history/PATCH_NOTES.md`.
+
+---
 ## 2025-10-20T15:39:03-04:00 / 2025-10-20T19:39:03+00:00 – Dependency window widened for NumPy 2.x wheels
 
 **Author**: agent
