@@ -143,6 +143,7 @@ class RemoteDataDialog(QtWidgets.QDialog):
         self._search_worker: _SearchWorker | None = None
         self._download_thread: QtCore.QThread | None = None
         self._download_worker: _DownloadWorker | None = None
+        self._shutdown_guard_connected = False
         self._busy = False
         self._download_total = 0
         self._download_completed = 0
@@ -510,10 +511,131 @@ class RemoteDataDialog(QtWidgets.QDialog):
             queued,
         )
 
+    def _await_thread_shutdown(
+        self,
+        *,
+        thread_attr: str,
+        worker_attr: str,
+        timeout_ms: int | None = None,
+    ) -> bool:
+        """Request shutdown and optionally wait for the worker thread.
+
+        Returns ``True`` when the thread has stopped and been cleaned up. When
+        ``timeout_ms`` is ``None`` the call blocks until the thread exits. A
+        finite timeout keeps the UI responsive by allowing the caller to poll
+        for completion using ``QtCore.QTimer``.
+        """
+
+        thread = getattr(self, thread_attr)
+        worker = getattr(self, worker_attr)
+        if thread is None:
+            return True
+        if thread.isRunning():
+            thread.quit()
+            if timeout_ms is not None:
+                if not thread.wait(timeout_ms):
+                    return False
+            else:
+                thread.wait()
+        if worker is not None:
+            worker.deleteLater()
+        thread.deleteLater()
+        setattr(self, worker_attr, None)
+        setattr(self, thread_attr, None)
+        return True
+
+    def _schedule_thread_shutdown(
+        self,
+        pending: list[tuple[str, str]],
+        *,
+        interval_ms: int = 100,
+    ) -> None:
+        """Retry thread shutdown without blocking the UI."""
+
+        # ``QtCore.QTimer.singleShot`` copies basic Python values, so we keep the
+        # payload small and rebuild the remaining list on each poll.
+
+        def _poll() -> None:
+            remaining: list[tuple[str, str]] = []
+            for thread_attr, worker_attr in pending:
+                if not self._await_thread_shutdown(
+                    thread_attr=thread_attr,
+                    worker_attr=worker_attr,
+                    timeout_ms=0,
+                ):
+                    remaining.append((thread_attr, worker_attr))
+            if remaining:
+                next_interval = min(interval_ms * 2, 1000)
+                QtCore.QTimer.singleShot(
+                    next_interval,
+                    lambda rem=remaining, iv=next_interval: self._schedule_thread_shutdown(
+                        rem,
+                        interval_ms=iv,
+                    ),
+                )
+            else:
+                self._release_thread_shutdown_guard()
+
+        QtCore.QTimer.singleShot(interval_ms, _poll)
+
     def reject(self) -> None:
         self._cancel_search_worker()
         self._cancel_download_worker()
+        pending: list[tuple[str, str]] = []
+        if not self._await_thread_shutdown(
+            thread_attr="_search_thread",
+            worker_attr="_search_worker",
+            timeout_ms=25,
+        ):
+            pending.append(("_search_thread", "_search_worker"))
+        if not self._await_thread_shutdown(
+            thread_attr="_download_thread",
+            worker_attr="_download_worker",
+            timeout_ms=25,
+        ):
+            pending.append(("_download_thread", "_download_worker"))
+        if pending:
+            self._ensure_thread_shutdown_guard()
+            self._schedule_thread_shutdown(pending)
+        else:
+            self._release_thread_shutdown_guard()
         super().reject()
+
+    def _ensure_thread_shutdown_guard(self) -> None:
+        if self._shutdown_guard_connected:
+            return
+        app = QtWidgets.QApplication.instance()
+        if app is None:
+            return
+        app.aboutToQuit.connect(self._block_until_threads_stopped)
+        self._shutdown_guard_connected = True
+
+    def _release_thread_shutdown_guard(self) -> None:
+        if not self._shutdown_guard_connected:
+            return
+        app = QtWidgets.QApplication.instance()
+        if app is None:
+            self._shutdown_guard_connected = False
+            return
+        try:
+            app.aboutToQuit.disconnect(self._block_until_threads_stopped)
+        except (TypeError, RuntimeError):  # pragma: no cover - defensive disconnect
+            pass
+        self._shutdown_guard_connected = False
+
+    def _block_until_threads_stopped(self) -> None:
+        # Application shutdown stops the event loop, so ensure worker threads have
+        # exited before Qt tears down the dialog and its children.
+        for thread_attr, worker_attr in (
+            ("_search_thread", "_search_worker"),
+            ("_download_thread", "_download_worker"),
+        ):
+            self._await_thread_shutdown(
+                thread_attr=thread_attr,
+                worker_attr=worker_attr,
+                timeout_ms=None,
+            )
+        self._release_thread_shutdown_guard()
 
     def _on_provider_changed(self, index: int | None = None) -> None:
         # Accept the index argument emitted by Qt while keeping the logic driven

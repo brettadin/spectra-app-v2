@@ -1,5 +1,15 @@
 # Patch Notes
 
+## 2025-10-20 (Remote dialog threads shut down safely on close) (18:42 EDT / 22:42 UTC)
+
+- Ensured the Remote Data dialog waits for active search/download worker threads
+  to finish after requesting cancellation so closing the window no longer risks
+  `QThread: Destroyed while thread is still running` crashes on long-running
+  remote calls.
+- Reused the worker-cleanup path to dispose threads/workers after joining so
+  cancellation behaves consistently whether triggered via Reject or completion
+  signals.
+
 ## 2025-10-20 (Remote dialog streams results without blocking) (18:28 EDT / 22:28 UTC)
 
 - Moved remote catalogue searches and downloads onto threaded workers so the dialog
@@ -493,6 +503,12 @@
 - Added an automated smoke workflow test that instantiates the preview shell, ingests CSV/FITS data, exercises unit toggles, and exports a provenance bundle.
 - Centralised the reusable FITS fixture under `tests/conftest.py` to support regression suites.
 - Documented the new smoke validation loop for developers and provided a matching user checklist.
+## 2025-10-20T19:31:47-04:00 — Remote dialog thread shutdown guard
+
+- Connected the remote data dialog to the Qt ``aboutToQuit`` signal so worker threads
+  are joined synchronously during application shutdown, preventing Qt from destroying
+  running ``QThread`` instances when the dialog is dismissed immediately before exit.
+
 ## 2025-10-19T20:12:10-04:00 — History dock hidden by default
 
 - Hid the History dock on launch so the inspector layout no longer jumps when browsing datasets; the dock stays available under **View → History**.
