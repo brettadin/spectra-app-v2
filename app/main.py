@@ -382,6 +382,8 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         layout.addWidget(self.library_search)
 
         splitter = QtWidgets.QSplitter(QtCore.Qt.Orientation.Vertical)
+        splitter.setChildrenCollapsible(False)
+        splitter.setHandleWidth(8)
 
         self.library_list = QtWidgets.QTreeWidget()
         self.library_list.setColumnCount(4)
@@ -399,9 +401,14 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.library_detail.setObjectName("library-detail")
         self.library_detail.setReadOnly(True)
         self.library_detail.setPlaceholderText("Select a cached entry to inspect metadata and provenance.")
+        self.library_detail.setSizePolicy(
+            QtWidgets.QSizePolicy.Policy.Expanding,
+            QtWidgets.QSizePolicy.Policy.Expanding,
+        )
         splitter.addWidget(self.library_detail)
         splitter.setStretchFactor(0, 3)
         splitter.setStretchFactor(1, 2)
+        splitter.setSizes([320, 200])
 
         layout.addWidget(splitter, 1)
 
@@ -409,6 +416,10 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             "Double-click a cached entry to load it into the workspace without re-downloading."
         )
         self.library_hint.setWordWrap(True)
+        self.library_hint.setTextInteractionFlags(
+            QtCore.Qt.TextInteractionFlag.TextSelectableByMouse
+            | QtCore.Qt.TextInteractionFlag.LinksAccessibleByMouse
+        )
         layout.addWidget(self.library_hint)
 
         self._library_tab_index = self.data_tabs.addTab(container, "Library")
@@ -511,15 +522,14 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         del blocker
         self.library_list.setUpdatesEnabled(True)
 
-        if self.library_hint is not None:
-            if items:
-                self.library_hint.setText(
-                    "Select a cached entry to inspect metadata or double-click to reload it into the session."
-                )
-            else:
-                self.library_hint.setText(
-                    "No cached spectra available yet. Import data or fetch a remote record to populate the library."
-                )
+        if items:
+            self._set_library_hint_message(
+                "Select a cached entry to inspect metadata or double-click to reload it into the session."
+            )
+        else:
+            self._set_library_hint_message(
+                "No cached spectra available yet. Import data or fetch a remote record to populate the library."
+            )
 
         self._update_library_detail()
 
@@ -577,10 +587,9 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             return
         if self.library_list is None or self.library_list.currentItem() is None:
             self.library_detail.clear()
-            if self.library_hint is not None:
-                self.library_hint.setText(
-                    "Select a cached entry to inspect metadata or double-click to reload it into the session."
-                )
+            self._set_library_hint_message(
+                "Select a cached entry to inspect metadata or double-click to reload it into the session."
+            )
             return
 
         item = self.library_list.currentItem()
@@ -588,22 +597,20 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         entry = self._library_entries.get(str(sha)) if sha else None
         if not isinstance(entry, Mapping):
             self.library_detail.clear()
-            if self.library_hint is not None:
-                self.library_hint.setText(
-                    "The selected cache entry could not be read from disk."
-                )
+            self._set_library_hint_message(
+                "The selected cache entry could not be read from disk."
+            )
             return
 
         detail = self._format_library_entry(entry)
         self.library_detail.setPlainText(detail)
-        if self.library_hint is not None:
-            stored_path = entry.get("stored_path")
-            if stored_path:
-                self.library_hint.setText(f"Cached at: {stored_path}")
-            else:
-                self.library_hint.setText(
-                    "Double-click the entry to load it into the workspace without re-downloading."
-                )
+        stored_path = entry.get("stored_path")
+        if stored_path:
+            self._set_library_hint_path(str(stored_path))
+        else:
+            self._set_library_hint_message(
+                "Double-click the entry to load it into the workspace without re-downloading."
+            )
 
     def _format_library_entry(self, entry: Mapping[str, Any]) -> str:
         payload: Dict[str, Any] = {
@@ -625,6 +632,21 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         if isinstance(provenance, Mapping):
             payload["provenance"] = provenance
         return json_pretty(payload)
+
+    def _set_library_hint_message(self, message: str) -> None:
+        if self.library_hint is None:
+            return
+        self.library_hint.setText(message)
+        self.library_hint.setToolTip("")
+
+    def _set_library_hint_path(self, stored_path: str) -> None:
+        if self.library_hint is None:
+            return
+        width = max(self.library_hint.width(), self.library_hint.sizeHint().width(), 260)
+        metrics = self.library_hint.fontMetrics()
+        elided = metrics.elidedText(stored_path, QtCore.Qt.TextElideMode.ElideMiddle, width)
+        self.library_hint.setText(f"Cached at: {elided}")
+        self.library_hint.setToolTip(stored_path)
 
     def _build_history_dock(self) -> None:
         self.history_dock = QtWidgets.QDockWidget("History", self)

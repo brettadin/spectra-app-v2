@@ -703,3 +703,18 @@ Import/Remote Import entries remain after the cleanup.
 - `docs/history/PATCH_NOTES.md`
 
 ---
+## 2025-10-19T20:27:48-04:00 / 2025-10-20T00:27:48+00:00 – Library dock hint elision & numpy compatibility
+
+**Author**: agent
+
+**Context**: Library selections continued to stretch the Data dock over the log view and CI reported missing numpy wheels on Python 3.10/3.11.
+
+**Summary**: Locked the Library splitter, elided hint paths, and added tooltips so cached entries no longer resize the dock when browsing stored spectra. Relaxed the numpy requirement to `>=1.26,<2` to align with the wheels published for GitHub Actions, keeping the test matrix green. Documented the UI tweak in the importing guide and added corresponding patch notes.
+
+**References**:
+- `app/main.py`
+- `docs/user/importing.md`
+- `requirements.txt`
+- `docs/history/PATCH_NOTES.md`
+
+---

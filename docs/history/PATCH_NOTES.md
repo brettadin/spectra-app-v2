@@ -1,5 +1,17 @@
 # Patch Notes
 
+## 2025-10-19 (Library dock stays compact, CI pins numpy) (20:27 EDT / 00:27 UTC)
+
+- Locked the Library dock splitter and elided long cache paths so selecting
+  cached spectra no longer forces the Data dock to expand over the log panel.
+- Added tooltips for full cache paths and documented the behaviour in
+  `docs/user/importing.md` so analysts know where to find the complete
+  locations.
+- Relaxed the numpy requirement to `>=1.26,<2` to keep GitHub Actions green on
+  Python 3.10/3.11, matching the wheels available on both Windows and Linux.
+- Ran `pytest` to confirm the UI regression tests still pass with the updated
+  layout and dependency pin.
+
 ## 2025-10-19 (Data table toggle respects user choice) (19:38 EDT / 23:38 UTC)
 
 - Stopped the Data dock from forcing the numerical table open when selecting a
