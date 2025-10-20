@@ -22,7 +22,9 @@ This document tracks feature batches, validation status, and outstanding backlog
       (2025-10-20: Exo.MAST enrichment, host/planet summaries, and citation
       previews landed; next pass to evaluate additional providers. 2025-10-20:
       Reject now waits for worker threads so long searches/downloads can be
-      cancelled safely.)
+      cancelled safely. 2025-10-20: aboutToQuit guard blocks shutdown until
+      worker threads exit so closing the dialog during app quit no longer risks
+      destroying running QThreads.)
 - [x] Validate remote catalogue UX: expand the provider roster beyond MAST once
       dependency checks stabilise and new spectroscopy sources are vetted
       (MAST ExoSystems provider, Exo.MAST integration, curated fallbacks).
@@ -92,6 +94,7 @@ This document tracks feature batches, validation status, and outstanding backlog
 
 ### Batch 14 QA Log
 
+- 2025-10-20: ⚠️ Tests not run (Qt bindings unavailable in CI container)
 - 2025-10-19: ✅ `pytest`
 - 2025-10-17: ✅ `pytest`
 

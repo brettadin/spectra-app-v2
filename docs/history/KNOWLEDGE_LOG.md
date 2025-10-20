@@ -27,6 +27,19 @@ Each entry in this document should follow this structure:
   applicable).
 
 ---
+## 2025-10-20T19:31:47-04:00 / 2025-10-20T23:31:47+00:00 – Remote dialog thread shutdown guard
+
+**Author**: agent
+
+**Context**: Remote catalogue worker shutdown during application exit.
+
+**Summary**: Linked the remote dialog to ``QApplication.aboutToQuit`` so the reject
+path blocks until the search and download threads finish, preventing Qt from
+destroying running ``QThread`` instances when the window closes while quitting.
+
+**References**: `app/ui/remote_data_dialog.py`, `docs/history/PATCH_NOTES.md`.
+
+---
 ## 2025-10-20T18:42:45-04:00 / 2025-10-20T22:42:47+00:00 – Remote Data dialog joins worker threads on close
 
 **Author**: agent
