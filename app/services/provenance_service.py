@@ -213,17 +213,31 @@ class ProvenanceService:
 
         base = spectra_list[0]
         base_x = np.asarray(base.x, dtype=float)
+        base_y = np.asarray(base.y, dtype=float)
         if base_x.size == 0:
             raise ValueError("Composite export requires non-empty spectra")
+
+        base_order = np.argsort(base_x)
+        base_x = base_x[base_order]
+        base_y = base_y[base_order]
 
         aligned: List[np.ndarray] = []
         counts = np.zeros_like(base_x, dtype=int)
 
-        for spectrum in spectra_list:
+        base_values = base_y.astype(float)
+        base_mask = np.isfinite(base_values)
+        counts[base_mask] += 1
+        aligned.append(np.where(base_mask, base_values, np.nan))
+
+        for spectrum in spectra_list[1:]:
             src_x = np.asarray(spectrum.x, dtype=float)
             src_y = np.asarray(spectrum.y, dtype=float)
             if src_x.size == 0 or src_y.size == 0:
                 continue
+
+            order = np.argsort(src_x)
+            src_x = src_x[order]
+            src_y = src_y[order]
             if np.array_equal(src_x, base_x):
                 interpolated = src_y.astype(float)
             else:

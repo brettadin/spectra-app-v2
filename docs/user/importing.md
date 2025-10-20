@@ -147,6 +147,14 @@ bundle contains:
     compare a blended envelope against laboratory references without manually
     averaging outside the application.
 
+Composite exports normalise every source onto the first spectrum’s wavelength
+grid **after** sorting the base wavelengths (and their intensities) into
+ascending order. Each contributing spectrum is likewise sorted before
+interpolation so descending or unsorted inputs still produce a stable mean.
+If a dataset contains duplicate wavelengths, only the sorted order is
+preserved—ensure your imported references are sampled monotonically whenever
+possible so averaging can proceed without ambiguity.
+
 The top-level CSV now leads with the numeric wavelength/intensity columns and
 records provenance fields (`spectrum_id`, `spectrum_name`, units, point index)
 to the right. When you re-import this combined CSV—or the wide variant with the
