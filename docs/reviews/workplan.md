@@ -27,6 +27,9 @@ This document tracks feature batches, validation status, and outstanding backlog
 
 ### Recently Completed (2025-10-19)
 
+- [x] Restored the NIST ASD provider in the Remote Data dialog once dependency
+      gating stabilised, refreshed the remote data user guide and smoke tests,
+      and reinstated provider-specific hints for spectral line searches.
 - [x] Redesigned the Reference tab with dedicated Spectral lines/IR/Line-shape panels, wired the embedded NIST query form to
       astroquery, refreshed the reference data guide, and extended Qt regression tests for the new workflow.
 - [x] Ensured the data table remains opt-in so dataset selections no longer force the panel open; cached the last overlay views

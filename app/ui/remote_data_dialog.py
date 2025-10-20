@@ -241,32 +241,48 @@ class RemoteDataDialog(QtWidgets.QDialog):
         self.accept()
 
     def _refresh_provider_state(self) -> None:
-        providers = [
-            provider
-            for provider in self.remote_service.providers()
-            if provider != RemoteDataService.PROVIDER_NIST
-        ]
+        providers = list(self.remote_service.providers())
         self.provider_combo.clear()
         if providers:
             self.provider_combo.addItems(providers)
             self.provider_combo.setEnabled(True)
             self.search_edit.setEnabled(True)
             self.search_button.setEnabled(True)
-            self._provider_placeholders = {
+            provider_placeholders = {
+                RemoteDataService.PROVIDER_NIST: "Element or ion (e.g. Fe II, Ca II, H 656.28 nm)…",
                 RemoteDataService.PROVIDER_MAST: "JWST spectroscopic target (e.g. WASP-96 b, NIRSpec)…",
             }
-            self._provider_hints = {
+            provider_hints = {
+                RemoteDataService.PROVIDER_NIST: (
+                    "NIST ASD queries return normalised line lists. Provide an element, ion stage, or "
+                    "specific transition to scope the results; optional wavelength bounds further "
+                    "narrow the CSV payload."
+                ),
                 RemoteDataService.PROVIDER_MAST: (
                     "MAST requests favour calibrated spectra (IFS cubes, slits, prisms). Enable "
                     "\"Include imaging\" to broaden results with calibrated image products."
                 ),
             }
-            self._provider_examples = {
+            provider_examples = {
+                RemoteDataService.PROVIDER_NIST: [
+                    ("Iron – Fe II multiplet", "Fe II"),
+                    ("Calcium triplet – Ca II", "Ca II"),
+                    ("Hydrogen Balmer α – H I", "H I 656.28 nm"),
+                ],
                 RemoteDataService.PROVIDER_MAST: [
                     ("WASP-96 b – JWST/NIRSpec", "WASP-96 b"),
                     ("WASP-39 b – JWST/NIRSpec", "WASP-39 b"),
                     ("HD 189733 – JWST/NIRISS", "HD 189733"),
                 ],
+            }
+            self._provider_placeholders = {
+                key: value for key, value in provider_placeholders.items() if key in providers
+            }
+            self._provider_hints = {
+                key: value for key, value in provider_hints.items() if key in providers
+            }
+            self._provider_examples = {
+                key: list(value) for key, value in provider_examples.items() if key in providers
             }
         else:
             self.provider_combo.setEnabled(False)

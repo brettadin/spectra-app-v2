@@ -26,10 +26,8 @@ directly against laboratory references.
 
 1. Choose **File → Fetch Remote Data…** (or press `Ctrl+Shift+R`).
 2. Pick a catalogue from the *Catalogue* selector. The current build focuses on:
+   - **NIST ASD** (spectral line lists backed by the astroquery NIST adapter)
    - **MAST** (MAST data products via `astroquery.mast`)
-   
-   > **Note**: NIST spectral line lookups now live in the Inspector’s **Reference → Spectral lines** tab, where you can pin
-   > multiple element/ion queries and manage colour palettes directly within the preview plot.
 3. Enter a keyword, element symbol, or target name in the search field (or pick
    one of the curated **Examples…** entries) and click **Search**. The dialog
    blocks empty submissions so you always send provider-specific filters rather
@@ -37,6 +35,11 @@ directly against laboratory references.
 
 ### Provider-specific search tips
 
+- **NIST ASD** – Free-text input is passed directly to the astroquery helper as
+  the spectrum identifier. Enter an element (e.g. `Fe`), an ion stage (`Fe II`),
+  or a specific transition (`H I 656.28 nm`). The dialog records optional
+  wavelength bounds, vacuum/air preferences, and Ritz lookups so narrower CSV
+  payloads download when you refine the query.
 - **MAST** – Free-text input is rewritten to `target_name` before invoking
   `astroquery.mast.Observations.query_criteria`, and the adapter injects
   `dataproduct_type="spectrum"`, `intentType="SCIENCE"`, and
