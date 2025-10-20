@@ -25,7 +25,9 @@ def sample_csv(tmp_path: Path) -> Path:
 def test_ingest_produces_canonical_spectrum(sample_csv: Path):
     units = UnitsService()
     ingest = DataIngestService(units)
-    spectrum = ingest.ingest(sample_csv)
+    spectra = ingest.ingest(sample_csv)
+    assert len(spectra) == 1
+    spectrum = spectra[0]
     assert spectrum.x_unit == 'nm'
     assert spectrum.y_unit == 'absorbance'
     assert 'source_units' in spectrum.metadata
@@ -37,7 +39,7 @@ def test_overlay_returns_views(sample_csv: Path):
     units = UnitsService()
     ingest = DataIngestService(units)
     overlay = OverlayService(units)
-    spectrum = ingest.ingest(sample_csv)
+    spectrum = ingest.ingest(sample_csv)[0]
     overlay.add(spectrum)
     views = overlay.overlay([spectrum.id], 'cm^-1', 'transmittance')
     assert len(views) == 1
@@ -51,7 +53,7 @@ def test_math_operations(sample_csv: Path):
     units = UnitsService()
     ingest = DataIngestService(units)
     math_service = MathService(epsilon=1e-6)
-    spectrum = ingest.ingest(sample_csv)
+    spectrum = ingest.ingest(sample_csv)[0]
     overlay = OverlayService(units)
     overlay.add(spectrum)
 
