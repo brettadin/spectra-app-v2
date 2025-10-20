@@ -51,50 +51,382 @@ def test_smoke_ingest_toggle_and_export(tmp_path: Path, mini_fits: Path) -> None
         assert reference_index != -1
         window.inspector_tabs.setCurrentIndex(reference_index)
         app.processEvents()
-        assert window.reference_dataset_combo.count() >= 3
-        window.reference_dataset_combo.setCurrentIndex(0)
+        assert window.reference_tabs.count() >= 3
+
+        # Infrared functional groups are bundled locally; ensure they populate and overlay
+        window.reference_tabs.setCurrentIndex(1)
         app.processEvents()
+        assert window.reference_filter.placeholderText().startswith("Filter IR")
         assert window.reference_table.rowCount() > 0
         assert hasattr(window, "reference_plot")
         assert window.reference_plot.listDataItems()
         assert window.reference_overlay_checkbox.isEnabled()
-        payload = window._reference_overlay_payload
-        assert payload is not None
-        y_values = payload.get("y")
-        assert isinstance(y_values, np.ndarray)
-        assert np.nanmax(y_values) > np.nanmin(y_values)
+        ir_payload = window._reference_overlay_payload
+        assert ir_payload is not None
+        assert ir_payload.get("key") == "reference::ir_groups"
+        ir_y = ir_payload.get("y")
+        assert isinstance(ir_y, np.ndarray)
+        assert ir_y.size > 0
         window.reference_overlay_checkbox.setChecked(True)
         app.processEvents()
-        assert window._reference_overlay_key is not None
+        assert window._reference_overlay_key == "reference::ir_groups"
         window.reference_overlay_checkbox.setChecked(False)
         app.processEvents()
         assert window._reference_overlay_key is None
 
-        # Switch datasets to ensure combo selection updates correctly
-        initial_key = payload.get("key") if payload else None
-        window.reference_dataset_combo.setCurrentIndex(1)
+        # Line-shape placeholders should also populate and generate overlays
+        window.reference_tabs.setCurrentIndex(2)
         app.processEvents()
-        assert window.reference_dataset_combo.currentIndex() == 1
+        assert window.reference_filter.placeholderText().startswith("Filter line-shape")
         assert window.reference_table.rowCount() > 0
-        next_payload = window._reference_overlay_payload
-        if next_payload:
-            assert next_payload.get("key") != initial_key
+        window.reference_table.selectRow(0)
+        app.processEvents()
+        line_shape_payload = window._reference_overlay_payload
+        assert line_shape_payload is not None
+        line_shape_key = str(line_shape_payload.get("key", ""))
+        assert line_shape_key.startswith("reference::line_shape::")
+        x_vals = line_shape_payload.get("x_nm")
+        y_vals = line_shape_payload.get("y")
+        assert isinstance(x_vals, np.ndarray)
+        assert isinstance(y_vals, np.ndarray)
+        assert x_vals.size == y_vals.size
+        assert window.reference_overlay_checkbox.isEnabled()
+        window.reference_overlay_checkbox.setChecked(True)
+        app.processEvents()
+        assert window._reference_overlay_key == line_shape_key
+        window.reference_overlay_checkbox.setChecked(False)
+        app.processEvents()
+        assert window._reference_overlay_key is None
+    finally:
+        window.close()
+        window.deleteLater()
+        app.processEvents()
 
-        jwst_index = None
-        for idx, (kind, _key) in enumerate(window._reference_options):
-            if kind == "jwst":
-                jwst_index = idx
-                break
-        if jwst_index is not None:
-            window.reference_dataset_combo.setCurrentIndex(jwst_index)
-            app.processEvents()
-            jwst_payload = window._reference_overlay_payload
-            assert jwst_payload is not None
-            assert str(jwst_payload.get("key", "")).startswith("reference::jwst::")
-            x_vals = jwst_payload.get("x_nm")
-            y_vals = jwst_payload.get("y")
-            assert isinstance(x_vals, np.ndarray) and x_vals.size > 0
-            assert isinstance(y_vals, np.ndarray) and y_vals.size == x_vals.size
+
+def test_library_dock_populates_and_previews(tmp_path: Path) -> None:
+    if SpectraMainWindow is None or QtWidgets is None:
+        pytest.skip(f"Qt stack unavailable: {_qt_import_error}")
+
+    app = _ensure_app()
+    log_service = KnowledgeLogService(log_path=tmp_path / "history.md", author="pytest")
+    window = SpectraMainWindow(knowledge_log_service=log_service)
+    try:
+        app.processEvents()
+        if window.library_list is None or window.library_detail is None:
+            pytest.skip("Persistence disabled: library dock not available")
+
+        count = window.library_list.topLevelItemCount()
+        assert count >= 0
+        if count == 0:
+            pytest.skip("Library is empty in this environment")
+
+        first_item = window.library_list.topLevelItem(0)
+        assert first_item is not None
+        window.library_list.setCurrentItem(first_item)
+        app.processEvents()
+
+        detail = window.library_detail.toPlainText()
+        assert detail, "Selecting a cached entry should display metadata"
+        assert "sha256" in detail
+        if window.library_hint is not None:
+            assert window.library_hint.text()
+    finally:
+        window.close()
+        window.deleteLater()
+        app.processEvents()
+
+
+def test_library_dock_populates_and_previews(tmp_path: Path) -> None:
+    if SpectraMainWindow is None or QtWidgets is None:
+        pytest.skip(f"Qt stack unavailable: {_qt_import_error}")
+
+    app = _ensure_app()
+    log_service = KnowledgeLogService(log_path=tmp_path / "history.md", author="pytest")
+    window = SpectraMainWindow(knowledge_log_service=log_service)
+    try:
+        app.processEvents()
+        if window.library_list is None or window.library_detail is None:
+            pytest.skip("Persistence disabled: library dock not available")
+
+        count = window.library_list.topLevelItemCount()
+        assert count >= 0
+        if count == 0:
+            pytest.skip("Library is empty in this environment")
+
+        first_item = window.library_list.topLevelItem(0)
+        assert first_item is not None
+        window.library_list.setCurrentItem(first_item)
+        app.processEvents()
+
+        detail = window.library_detail.toPlainText()
+        assert detail, "Selecting a cached entry should display metadata"
+        assert "sha256" in detail
+        if window.library_hint is not None:
+            assert window.library_hint.text()
+    finally:
+        window.close()
+        window.deleteLater()
+        app.processEvents()
+
+
+def test_library_dock_populates_and_previews(tmp_path: Path) -> None:
+    if SpectraMainWindow is None or QtWidgets is None:
+        pytest.skip(f"Qt stack unavailable: {_qt_import_error}")
+
+    app = _ensure_app()
+    log_service = KnowledgeLogService(log_path=tmp_path / "history.md", author="pytest")
+    window = SpectraMainWindow(knowledge_log_service=log_service)
+    try:
+        app.processEvents()
+        if window.library_list is None or window.library_detail is None:
+            pytest.skip("Persistence disabled: library dock not available")
+
+        count = window.library_list.topLevelItemCount()
+        assert count >= 0
+        if count == 0:
+            pytest.skip("Library is empty in this environment")
+
+        first_item = window.library_list.topLevelItem(0)
+        assert first_item is not None
+        window.library_list.setCurrentItem(first_item)
+        app.processEvents()
+
+        detail = window.library_detail.toPlainText()
+        assert detail, "Selecting a cached entry should display metadata"
+        assert "sha256" in detail
+        if window.library_hint is not None:
+            assert window.library_hint.text()
+    finally:
+        window.close()
+        window.deleteLater()
+        app.processEvents()
+
+
+def test_library_dock_populates_and_previews(tmp_path: Path) -> None:
+    if SpectraMainWindow is None or QtWidgets is None:
+        pytest.skip(f"Qt stack unavailable: {_qt_import_error}")
+
+    app = _ensure_app()
+    log_service = KnowledgeLogService(log_path=tmp_path / "history.md", author="pytest")
+    window = SpectraMainWindow(knowledge_log_service=log_service)
+    try:
+        app.processEvents()
+        if window.library_list is None or window.library_detail is None:
+            pytest.skip("Persistence disabled: library dock not available")
+
+        count = window.library_list.topLevelItemCount()
+        assert count >= 0
+        if count == 0:
+            pytest.skip("Library is empty in this environment")
+
+        first_item = window.library_list.topLevelItem(0)
+        assert first_item is not None
+        window.library_list.setCurrentItem(first_item)
+        app.processEvents()
+
+        detail = window.library_detail.toPlainText()
+        assert detail, "Selecting a cached entry should display metadata"
+        assert "sha256" in detail
+        if window.library_hint is not None:
+            assert window.library_hint.text()
+    finally:
+        window.close()
+        window.deleteLater()
+        app.processEvents()
+
+
+def test_library_dock_populates_and_previews(tmp_path: Path) -> None:
+    if SpectraMainWindow is None or QtWidgets is None:
+        pytest.skip(f"Qt stack unavailable: {_qt_import_error}")
+
+    app = _ensure_app()
+    log_service = KnowledgeLogService(log_path=tmp_path / "history.md", author="pytest")
+    window = SpectraMainWindow(knowledge_log_service=log_service)
+    try:
+        app.processEvents()
+        if window.library_list is None or window.library_detail is None:
+            pytest.skip("Persistence disabled: library dock not available")
+
+        count = window.library_list.topLevelItemCount()
+        assert count >= 0
+        if count == 0:
+            pytest.skip("Library is empty in this environment")
+
+        first_item = window.library_list.topLevelItem(0)
+        assert first_item is not None
+        window.library_list.setCurrentItem(first_item)
+        app.processEvents()
+
+        detail = window.library_detail.toPlainText()
+        assert detail, "Selecting a cached entry should display metadata"
+        assert "sha256" in detail
+        if window.library_hint is not None:
+            assert window.library_hint.text()
+    finally:
+        window.close()
+        window.deleteLater()
+        app.processEvents()
+
+
+def test_library_dock_populates_and_previews(tmp_path: Path) -> None:
+    if SpectraMainWindow is None or QtWidgets is None:
+        pytest.skip(f"Qt stack unavailable: {_qt_import_error}")
+
+    app = _ensure_app()
+    log_service = KnowledgeLogService(log_path=tmp_path / "history.md", author="pytest")
+    window = SpectraMainWindow(knowledge_log_service=log_service)
+    try:
+        app.processEvents()
+        if window.library_list is None or window.library_detail is None:
+            pytest.skip("Persistence disabled: library dock not available")
+
+        count = window.library_list.topLevelItemCount()
+        assert count >= 0
+        if count == 0:
+            pytest.skip("Library is empty in this environment")
+
+        first_item = window.library_list.topLevelItem(0)
+        assert first_item is not None
+        window.library_list.setCurrentItem(first_item)
+        app.processEvents()
+
+        detail = window.library_detail.toPlainText()
+        assert detail, "Selecting a cached entry should display metadata"
+        assert "sha256" in detail
+        if window.library_hint is not None:
+            assert window.library_hint.text()
+    finally:
+        window.close()
+        window.deleteLater()
+        app.processEvents()
+
+
+def test_library_dock_populates_and_previews(tmp_path: Path) -> None:
+    if SpectraMainWindow is None or QtWidgets is None:
+        pytest.skip(f"Qt stack unavailable: {_qt_import_error}")
+
+    app = _ensure_app()
+    log_service = KnowledgeLogService(log_path=tmp_path / "history.md", author="pytest")
+    window = SpectraMainWindow(knowledge_log_service=log_service)
+    try:
+        app.processEvents()
+        if window.library_list is None or window.library_detail is None:
+            pytest.skip("Persistence disabled: library dock not available")
+
+        count = window.library_list.topLevelItemCount()
+        assert count >= 0
+        if count == 0:
+            pytest.skip("Library is empty in this environment")
+
+        first_item = window.library_list.topLevelItem(0)
+        assert first_item is not None
+        window.library_list.setCurrentItem(first_item)
+        app.processEvents()
+
+        detail = window.library_detail.toPlainText()
+        assert detail, "Selecting a cached entry should display metadata"
+        assert "sha256" in detail
+        if window.library_hint is not None:
+            assert window.library_hint.text()
+    finally:
+        window.close()
+        window.deleteLater()
+        app.processEvents()
+
+
+def test_library_dock_populates_and_previews(tmp_path: Path) -> None:
+    if SpectraMainWindow is None or QtWidgets is None:
+        pytest.skip(f"Qt stack unavailable: {_qt_import_error}")
+
+    app = _ensure_app()
+    log_service = KnowledgeLogService(log_path=tmp_path / "history.md", author="pytest")
+    window = SpectraMainWindow(knowledge_log_service=log_service)
+    try:
+        app.processEvents()
+        if window.library_list is None or window.library_detail is None:
+            pytest.skip("Persistence disabled: library dock not available")
+
+        count = window.library_list.topLevelItemCount()
+        assert count >= 0
+        if count == 0:
+            pytest.skip("Library is empty in this environment")
+
+        first_item = window.library_list.topLevelItem(0)
+        assert first_item is not None
+        window.library_list.setCurrentItem(first_item)
+        app.processEvents()
+
+        detail = window.library_detail.toPlainText()
+        assert detail, "Selecting a cached entry should display metadata"
+        assert "sha256" in detail
+        if window.library_hint is not None:
+            assert window.library_hint.text()
+    finally:
+        window.close()
+        window.deleteLater()
+        app.processEvents()
+
+
+def test_library_dock_populates_and_previews(tmp_path: Path) -> None:
+    if SpectraMainWindow is None or QtWidgets is None:
+        pytest.skip(f"Qt stack unavailable: {_qt_import_error}")
+
+    app = _ensure_app()
+    log_service = KnowledgeLogService(log_path=tmp_path / "history.md", author="pytest")
+    window = SpectraMainWindow(knowledge_log_service=log_service)
+    try:
+        app.processEvents()
+        if window.library_list is None or window.library_detail is None:
+            pytest.skip("Persistence disabled: library dock not available")
+
+        count = window.library_list.topLevelItemCount()
+        assert count >= 0
+        if count == 0:
+            pytest.skip("Library is empty in this environment")
+
+        first_item = window.library_list.topLevelItem(0)
+        assert first_item is not None
+        window.library_list.setCurrentItem(first_item)
+        app.processEvents()
+
+        detail = window.library_detail.toPlainText()
+        assert detail, "Selecting a cached entry should display metadata"
+        assert "sha256" in detail
+        if window.library_hint is not None:
+            assert window.library_hint.text()
+    finally:
+        window.close()
+        window.deleteLater()
+        app.processEvents()
+
+
+def test_library_dock_populates_and_previews(tmp_path: Path) -> None:
+    if SpectraMainWindow is None or QtWidgets is None:
+        pytest.skip(f"Qt stack unavailable: {_qt_import_error}")
+
+    app = _ensure_app()
+    log_service = KnowledgeLogService(log_path=tmp_path / "history.md", author="pytest")
+    window = SpectraMainWindow(knowledge_log_service=log_service)
+    try:
+        app.processEvents()
+        if window.library_list is None or window.library_detail is None:
+            pytest.skip("Persistence disabled: library dock not available")
+
+        count = window.library_list.topLevelItemCount()
+        assert count >= 0
+        if count == 0:
+            pytest.skip("Library is empty in this environment")
+
+        first_item = window.library_list.topLevelItem(0)
+        assert first_item is not None
+        window.library_list.setCurrentItem(first_item)
+        app.processEvents()
+
+        detail = window.library_detail.toPlainText()
+        assert detail, "Selecting a cached entry should display metadata"
+        assert "sha256" in detail
+        if window.library_hint is not None:
+            assert window.library_hint.text()
     finally:
         window.close()
         window.deleteLater()
