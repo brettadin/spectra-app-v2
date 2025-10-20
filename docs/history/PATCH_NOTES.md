@@ -1,5 +1,17 @@
 # Patch Notes
 
+## 2025-10-20 (Remote dialog streams results without blocking) (18:28 EDT / 22:28 UTC)
+
+- Moved remote catalogue searches and downloads onto threaded workers so the dialog
+  streams results, disables controls while busy, and reports cancellations or
+  exceptions through the status banner instead of modal message boxes.
+- Added an inline spinner/progress label plus busy-state handling that pauses
+  provider controls during searches/downloads and re-enables them when work
+  completes or is cancelled.
+- Updated `docs/user/remote_data.md` with the non-blocking workflow details and
+  extended `tests/test_remote_data_dialog.py` to stub the worker, stream
+  incremental results, and assert the UI remains responsive.
+
 ## 2025-10-20 (Remote dialog surfaces Exo.MAST metadata) (16:53 EDT / 20:53 UTC)
 
 - Expanded the Remote Data dialog results table with host/planet summaries,

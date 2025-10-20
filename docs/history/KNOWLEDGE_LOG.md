@@ -27,6 +27,18 @@ Each entry in this document should follow this structure:
   applicable).
 
 ---
+---
+## 2025-10-20T18:28:38-04:00 / 2025-10-20T22:28:41+00:00 – Remote Data dialog adopts background workers
+
+**Author**: agent
+
+**Context**: Remote catalogue UX responsiveness and ingestion pipeline feedback.
+
+**Summary**: Shifted search and download handling onto threaded workers so the UI stays responsive, rows stream into the table while work continues, and cancellations/exceptions surface via the status banner instead of modal message boxes. Added a spinner-backed progress label, disabled controls during active jobs, and refreshed the smoke tests plus user guide to cover the asynchronous flow.
+
+**References**: `app/ui/remote_data_dialog.py`, `tests/test_remote_data_dialog.py`, `docs/user/remote_data.md`, `docs/history/PATCH_NOTES.md`.
+
+---
 ## 2025-10-20T16:53:29-04:00 / 2025-10-20T20:53:31+00:00 – Remote Data dialog gains Exo.MAST context
 
 **Author**: agent
