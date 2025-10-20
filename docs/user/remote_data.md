@@ -27,48 +27,28 @@ directly against laboratory references.
 1. Choose **File → Fetch Remote Data…** (or press `Ctrl+Shift+R`).
 2. Pick a catalogue from the *Catalogue* selector. The current build focuses on:
    - **MAST** (MAST data products via `astroquery.mast`)
-   - **MAST ExoSystems** (NExScI exoplanet metadata cross-matched with MAST missions and Exo.MAST curated spectra)
    
    > **Note**: NIST spectral line lookups now live in the Inspector’s **Reference → Spectral lines** tab, where you can pin
    > multiple element/ion queries and manage colour palettes directly within the preview plot.
 3. Enter a keyword, element symbol, or target name in the search field (or pick
    one of the curated **Examples…** entries) and click **Search**. The dialog
    blocks empty submissions so you always send provider-specific filters rather
-   than unbounded catalogue sweeps. While the remote service responds the main
-   controls are temporarily disabled, a spinner appears beside the status
-   banner, and rows stream into the table as soon as each record is processed.
-   The examples highlight solar-system benchmarks (e.g. Jupiter),
-   representative stellar standards (HD 189733), and exoplanet hosts such as
-   TRAPPIST‑1 that are pre-indexed by the Exo.MAST catalogue.
-
-### Streaming search results
-
-Remote catalogue lookups now run on a worker thread, so the dialog stays
-responsive even when the provider takes a few seconds to answer. The spinner in
-the status area starts as soon as the query is dispatched, the record counter
-increments while results arrive, and the preview pane updates dynamically if the
-first result changes mid-stream. Pressing **Cancel** (or closing the dialog)
-signals the worker to stop and clears any partial rows; errors surface in the
-status banner instead of blocking the interface with modal message boxes.
+   than unbounded catalogue sweeps.
 
 ### Provider-specific search tips
 
-- **MAST / Exo.MAST** – Free-text input is rewritten to `target_name` before
-  invoking `astroquery.mast.Observations.query_criteria`, and the adapter injects
+- **MAST** – Free-text input is rewritten to `target_name` before invoking
+  `astroquery.mast.Observations.query_criteria`, and the adapter injects
   `dataproduct_type="spectrum"`, `intentType="SCIENCE"`, and
-  `calib_level=[2, 3]` filters automatically. When available, Exo.MAST augments
-  each record with NASA Exoplanet Archive host/planet parameters so the dialog
-  can summarise orbital periods, discovery methods, and stellar temperatures.
-  Supply JWST target names, instrument identifiers, or planet hosts (e.g.
-  `Jupiter`, `TRAPPIST-1`, `WASP-96 b`). Tick **Include imaging** to relax the
-  product filter so calibrated imaging results appear alongside spectra.
+  `calib_level=[2, 3]` filters automatically. Supply JWST target names or
+  instrument identifiers (e.g. `WASP-96 b`, `NIRSpec grism`). The examples menu
+  preloads spectroscopy-friendly targets such as WASP‑96 b, WASP‑39 b, and
+  HD 189733 so you can trigger a query without retyping common names. Tick
+  **Include imaging** to relax the product filter so calibrated imaging results
+  appear alongside spectra.
 
 The hint banner beneath the results table updates as you switch providers and
 also surfaces dependency warnings when optional clients are missing.
-
-### Reading the expanded results table
-
-The table now surfaces richer provenance for each match:
 
 * **ID / Title** – Stable identifiers and mission-provided labels.
 * **Target / Host** – Planet names, host stars, or solar-system bodies derived
@@ -85,6 +65,14 @@ Selecting a row displays a narrative summary in the preview pane (planet/host,
 mission, instrument, and citation) followed by the full JSON payload. The status
 bar beneath the table also echoes the host/planet summary so you can scan for
 relevant targets without opening the preview pane.
+
+> **Background execution**
+>
+> Searches and downloads now run on background threads. The status banner at
+> the bottom of the dialog reports progress while the search/download buttons
+> remain disabled. This keeps the main window responsive—even long JWST queries
+> no longer freeze the shell—and any warnings from the background worker are
+> surfaced once the operation completes.
 
 ## Downloading and importing spectra
 
@@ -105,29 +93,15 @@ Behind the scenes the application:
 * Hands the stored path to `DataIngestService` so the file benefits from the
   existing importer registry, unit normalisation, and provenance hooks.
 
+If any downloads fail mid-batch, the worker aggregates those messages and shows
+a single warning dialog when the import completes so you can review the
+identifiers that need attention without dismissing multiple pop-ups.
+
 Imported spectra appear in the dataset tree immediately. They behave exactly
 like manual imports: overlays update, the data table refreshes, and the history
 dock records a "Remote Import" entry noting the provider. File-level metadata
 now lives in the Library tab inside the Data dock so the consolidated knowledge
 log stays focused on high-level insights.
-
-### Exo.MAST and NASA Exoplanet Archive workflow
-
-MAST queries for exoplanet systems automatically request Exo.MAST augmentations
-so the dialog includes discovery metadata and host-star parameters alongside the
-instrument context. Typical flow:
-
-1. Enter an exoplanet or host star (e.g. `WASP-96 b`, `TRAPPIST-1`,
-   `HD 189733`).
-2. Exo.MAST enriches the response with orbital period, stellar temperature,
-   discovery method, and citation strings from the NASA Exoplanet Archive.
-3. The results table displays those fields in the **Target / Host** and
-   **Preview / Citation** columns, while the status banner summarises the host
-   system (e.g. `WASP-96 b around WASP-96 • Discovery: Transit • Period: 3.42 d`).
-4. Download and ingest the calibrated JWST/HST spectrum as usual.
-
-Use the narrative preview to capture citation details for reports or to confirm
-the observing programme before importing data into Spectra.
 
 ### Working with cached downloads
 

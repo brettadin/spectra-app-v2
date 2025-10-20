@@ -27,91 +27,6 @@ Each entry in this document should follow this structure:
   applicable).
 
 ---
-## 2025-10-20T19:31:47-04:00 / 2025-10-20T23:31:47+00:00 – Remote dialog thread shutdown guard
-
-**Author**: agent
-
-**Context**: Remote catalogue worker shutdown during application exit.
-
-**Summary**: Linked the remote dialog to ``QApplication.aboutToQuit`` so the reject
-path blocks until the search and download threads finish, preventing Qt from
-destroying running ``QThread`` instances when the window closes while quitting.
-
-**References**: `app/ui/remote_data_dialog.py`, `docs/history/PATCH_NOTES.md`.
-
----
-## 2025-10-20T18:42:45-04:00 / 2025-10-20T22:42:47+00:00 – Remote Data dialog joins worker threads on close
-
-**Author**: agent
-
-**Context**: Remote catalogue worker lifecycle and dialog shutdown stability.
-
-**Summary**: Updated the Reject handler to cancel in-flight workers, wait for the
-background QThreads to finish, and dispose of the worker/thread pair so closing
-the dialog during long-running remote calls no longer risks `QThread` destruction
-warnings or crashes.
-
-**References**: `app/ui/remote_data_dialog.py`, `docs/history/PATCH_NOTES.md`.
----
----
-## 2025-10-20T18:28:38-04:00 / 2025-10-20T22:28:41+00:00 – Remote Data dialog adopts background workers
-
-**Author**: agent
-
-**Context**: Remote catalogue UX responsiveness and ingestion pipeline feedback.
-
-**Summary**: Shifted search and download handling onto threaded workers so the UI stays responsive, rows stream into the table while work continues, and cancellations/exceptions surface via the status banner instead of modal message boxes. Added a spinner-backed progress label, disabled controls during active jobs, and refreshed the smoke tests plus user guide to cover the asynchronous flow.
-
-**References**: `app/ui/remote_data_dialog.py`, `tests/test_remote_data_dialog.py`, `docs/user/remote_data.md`, `docs/history/PATCH_NOTES.md`.
-## 2025-10-20T18:23:24-04:00 / 2025-10-20T22:23:26+00:00 – Composite export sorts descending grids
-
-**Author**: agent
-
-**Context**: Provenance composites and user documentation for averaging workflows.
-
-**Summary**: Sorted the base spectrum before generating composite CSV exports,
-re-ordered every contributing spectrum ahead of interpolation, and added a
-regression test to confirm descending grids produce the expected mean. Updated
-the importing and reference-data guides plus patch notes to document the
-sorted-grid assumption.
-
-**References**: `app/services/provenance_service.py`, `tests/test_provenance.py`,
-`docs/user/importing.md`, `docs/user/reference_data.md`,
-`docs/history/PATCH_NOTES.md`.
-
----
-## 2025-10-20T16:53:29-04:00 / 2025-10-20T20:53:31+00:00 – Remote Data dialog gains Exo.MAST context
-
-**Author**: agent
-
-**Context**: Remote catalogue UX and provenance summaries.
-
-**Summary**: Expanded the Remote Data dialog table to surface host/planet
-metadata, mission/instrument columns, and hyperlink downloads powered by
-Exo.MAST enrichment. The preview pane now narrates discovery details, and docs
-describe the Exoplanet Archive workflow alongside updated Qt coverage.
-
-**References**: `app/ui/remote_data_dialog.py`, `tests/test_remote_data_dialog.py`,
-`docs/user/remote_data.md`, `docs/dev/Accessing and Comparing Real Spectral Data from JWST and Other Telescopes.md`,
-## 2025-10-20T16:51:06-04:00 / 2025-10-20T20:51:08+00:00 – MAST ExoSystems provider lands
-
-**Author**: agent
-
-**Context**: Remote catalogue workflow, MAST integrations, provenance.
-
-**Summary**: Added a dedicated **MAST ExoSystems** provider that resolves
-exoplanet metadata through the NASA Exoplanet Archive before querying MAST by
-sky coordinates, wiring Exo.MAST spectra into transiting-target results, and
-recording curated fallbacks for solar-system planets and stellar standards when
-NExScI lacks entries. Documented the workflow in the remote-data guide and
-expanded regression coverage to mock the NExScI, Exo.MAST, and MAST calls so the
-metadata assembly remains stable.
-
-**References**: `app/services/remote_data_service.py`,
-`tests/test_remote_data_service.py`, `docs/user/remote_data.md`,
-`docs/history/PATCH_NOTES.md`.
-
----
 ## 2025-10-20T15:39:03-04:00 / 2025-10-20T19:39:03+00:00 – Dependency window widened for NumPy 2.x wheels
 
 **Author**: agent
@@ -899,6 +814,21 @@ Import/Remote Import entries remain after the cleanup.
 **References**:
 - `.github/workflows/ci.yml`
 - `docs/history/MASTER PROMPT.md`
+- `docs/history/PATCH_NOTES.md`
+
+---
+## 2025-10-20T19:47:28-04:00 / 2025-10-20T23:47:28+00:00 – Remote data background workers
+
+**Author**: agent
+
+**Context**: Remote catalogue searches and downloads still ran on the UI thread, freezing the Spectra shell during long MAST responses and leaving no documented guidance for the responsive workflow.
+
+**Summary**: Introduced background worker threads that keep the Remote Data dialog responsive while searches/downloads run, gated controls and aggregated warnings to surface once jobs finish, and updated the user guide plus Qt smoke tests to reflect the asynchronous behaviour.
+
+**References**:
+- `app/ui/remote_data_dialog.py`
+- `tests/test_remote_data_dialog.py`
+- `docs/user/remote_data.md`
 - `docs/history/PATCH_NOTES.md`
 
 ---

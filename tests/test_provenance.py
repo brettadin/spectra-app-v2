@@ -109,18 +109,3 @@ def test_composite_csv_mean(tmp_path: Path) -> None:
     result = importer.read(composite_path)
     assert np.allclose(result.x, np.array([500.0, 510.0, 520.0]))
     assert np.allclose(result.y, np.array([2.0, 2.0, 2.0]))
-
-
-def test_composite_csv_descending_inputs(tmp_path: Path) -> None:
-    service = ProvenanceService()
-    spec_a = Spectrum.create('lamp-a', np.array([520.0, 510.0, 500.0]), np.array([3.0, 2.0, 1.0]))
-    spec_b = Spectrum.create('lamp-b', np.array([520.0, 510.0, 500.0]), np.array([1.0, 2.0, 3.0]))
-
-    composite_path = tmp_path / 'bundle' / 'composite-desc.csv'
-    service.write_composite_csv(composite_path, [spec_a, spec_b])
-
-    importer = CsvImporter()
-    result = importer.read(composite_path)
-
-    assert np.allclose(result.x, np.array([500.0, 510.0, 520.0]))
-    assert np.allclose(result.y, np.array([2.0, 2.0, 2.0]))

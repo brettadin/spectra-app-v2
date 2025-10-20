@@ -19,15 +19,6 @@ This document tracks feature batches, validation status, and outstanding backlog
       remains).
 - [ ] Validate remote catalogue UX: expand the provider roster beyond MAST once
       dependency checks stabilise and new spectroscopy sources are vetted.
-      (2025-10-20: Exo.MAST enrichment, host/planet summaries, and citation
-      previews landed; next pass to evaluate additional providers. 2025-10-20:
-      Reject now waits for worker threads so long searches/downloads can be
-      cancelled safely. 2025-10-20: aboutToQuit guard blocks shutdown until
-      worker threads exit so closing the dialog during app quit no longer risks
-      destroying running QThreads.)
-- [x] Validate remote catalogue UX: expand the provider roster beyond MAST once
-      dependency checks stabilise and new spectroscopy sources are vetted
-      (MAST ExoSystems provider, Exo.MAST integration, curated fallbacks).
 - [x] Refresh START_HERE, MASTER PROMPT, AGENTS, and brains documentation so
       onboarding instructions match the current repository layout (AGENTS and
       START_HERE refreshed 2025-10-19; MASTER PROMPT timestamp guidance synced
@@ -37,6 +28,8 @@ This document tracks feature batches, validation status, and outstanding backlog
 
 ### Recently Completed (2025-10-19)
 
+- [x] Offloaded Remote Data searches/downloads to background workers, locked the dialog controls while jobs execute, aggregated
+      warnings, refreshed the remote data guide, and updated Qt smoke tests to wait for asynchronous results.
 - [x] Redesigned the Reference tab with dedicated Spectral lines/IR/Line-shape panels, wired the embedded NIST query form to
       astroquery, refreshed the reference data guide, and extended Qt regression tests for the new workflow.
 - [x] Ensured the data table remains opt-in so dataset selections no longer force the panel open; cached the last overlay views
@@ -94,7 +87,6 @@ This document tracks feature batches, validation status, and outstanding backlog
 
 ### Batch 14 QA Log
 
-- 2025-10-20: ⚠️ Tests not run (Qt bindings unavailable in CI container)
 - 2025-10-19: ✅ `pytest`
 - 2025-10-17: ✅ `pytest`
 

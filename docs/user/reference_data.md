@@ -63,10 +63,6 @@ spectroscopy-focused resources that align with the app’s analytical goals.
    with clustered labels, and line-shape previews overlay simulated profiles returned by `app/services/line_shapes.py`.
 5. The metadata drawer captures citations, astroquery parameters, and retrieval timestamps so exported manifests can trace the
    exact reference dataset used during analysis.
-6. Before exporting composites that include reference overlays, verify the
-   wavelength axis is monotonic. The provenance exporter sorts each spectrum
-   ascending prior to interpolation so descending grids are re-ordered and any
-   duplicate samples are collapsed onto that sorted grid.
 
 ## Roadmap hooks
 

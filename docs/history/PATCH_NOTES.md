@@ -1,63 +1,5 @@
 # Patch Notes
 
-## 2025-10-20 (Remote dialog threads shut down safely on close) (18:42 EDT / 22:42 UTC)
-
-- Ensured the Remote Data dialog waits for active search/download worker threads
-  to finish after requesting cancellation so closing the window no longer risks
-  `QThread: Destroyed while thread is still running` crashes on long-running
-  remote calls.
-- Reused the worker-cleanup path to dispose threads/workers after joining so
-  cancellation behaves consistently whether triggered via Reject or completion
-  signals.
-
-## 2025-10-20 (Remote dialog streams results without blocking) (18:28 EDT / 22:28 UTC)
-
-- Moved remote catalogue searches and downloads onto threaded workers so the dialog
-  streams results, disables controls while busy, and reports cancellations or
-  exceptions through the status banner instead of modal message boxes.
-- Added an inline spinner/progress label plus busy-state handling that pauses
-  provider controls during searches/downloads and re-enables them when work
-  completes or is cancelled.
-- Updated `docs/user/remote_data.md` with the non-blocking workflow details and
-  extended `tests/test_remote_data_dialog.py` to stub the worker, stream
-  incremental results, and assert the UI remains responsive.
-## 2025-10-20 (Composite export enforces sorted wavelength grids) (18:23 EDT / 22:23 UTC)
-
-- Sorted the base spectrum when building composite exports so wavelength and
-  intensity samples align before averaging, and applied the same ordering to the
-  interpolation masks.
-- Normalised every contributing spectrum before `np.interp` to guarantee
-  descending arrays yield correct composite means.
-- Documented the sorted-grid assumption in the importing and reference-data
-  guides and added regression coverage for descending sample inputs.
-
-## 2025-10-20 (Remote dialog surfaces Exo.MAST metadata) (16:53 EDT / 20:53 UTC)
-
-- Expanded the Remote Data dialog results table with host/planet summaries,
-  mission/instrument columns, hyperlink downloads, and citation/preview widgets
-  sourced from Exo.MAST metadata. The status banner now highlights host-star
-  context and the preview pane narrates discovery details alongside raw JSON.
-- Updated provider examples to spotlight solar-system planets, benchmark stars,
-  and exoplanet hosts that flow through the Exo.MAST enrichment pipeline.
-- Documented the workflow in `docs/user/remote_data.md` and refreshed the JWST
-  developer guide with the Exoplanet Archive/Exo.MAST integration.
-- Extended the Qt smoke test to assert the new column layout, hyperlink
-  rendering, and enriched preview/status behaviour.
-# 2025-10-20 (ExoSystems provider surfaces cross-matched spectra) (16:51 EDT / 20:51 UTC)
-
-- Added a **MAST ExoSystems** provider to `RemoteDataService` that resolves
-  planets/hosts through the NASA Exoplanet Archive, queries MAST by
-  sky-coordinates, and merges `obs_collection`, instrument, filter, preview, and
-  citation metadata into each result. Transiting targets now pull curated
-  spectra from Exo.MAST and bundle the provenance alongside mission products.
-- Introduced curated fallbacks for flagship solar-system planets and stellar
-  standards so the provider still returns spectroscopy-ready assets when the
-  Exoplanet Archive lacks an entry. Remote searches capture the fallback
-  provenance and cite the source collections directly in record metadata.
-- Expanded the remote-data regression suite to mock NExScI, Exo.MAST, and MAST
-  calls, validating metadata assembly end to end, and refreshed the remote-data
-  user guide to document the new provider behaviour and dependencies.
-
 ## 2025-10-20 (Numpy window widened for Python 3.12+) (15:39 EDT / 19:39 UTC)
 
 - Relaxed the numpy dependency to `>=1.26,<3` so Windows launches on Python 3.12+
@@ -503,12 +445,6 @@
 - Added an automated smoke workflow test that instantiates the preview shell, ingests CSV/FITS data, exercises unit toggles, and exports a provenance bundle.
 - Centralised the reusable FITS fixture under `tests/conftest.py` to support regression suites.
 - Documented the new smoke validation loop for developers and provided a matching user checklist.
-## 2025-10-20T19:31:47-04:00 — Remote dialog thread shutdown guard
-
-- Connected the remote data dialog to the Qt ``aboutToQuit`` signal so worker threads
-  are joined synchronously during application shutdown, preventing Qt from destroying
-  running ``QThread`` instances when the dialog is dismissed immediately before exit.
-
 ## 2025-10-19T20:12:10-04:00 — History dock hidden by default
 
 - Hid the History dock on launch so the inspector layout no longer jumps when browsing datasets; the dock stays available under **View → History**.
@@ -528,4 +464,9 @@
 
 - Updated `.github/workflows/ci.yml` so dependency installs pass `--prefer-binary`, keeping Windows runners on prebuilt NumPy wheels in line with the launcher guidance.
 - Synced `docs/history/MASTER PROMPT.md` with the agent manual by documenting Windows, Unix, and Python fallback commands for capturing ISO timestamps.
+
+## 2025-10-20T19:47:28-04:00 — Remote data background workers
+
+- Offloaded Remote Data searches and downloads onto background threads, locking controls and aggregating warnings so long-running JWST queries no longer freeze the shell.
+- Updated `docs/user/remote_data.md` and the Qt smoke test to document and exercise the asynchronous workflow.
 
