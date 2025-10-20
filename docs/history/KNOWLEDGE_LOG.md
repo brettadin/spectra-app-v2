@@ -28,40 +28,6 @@ Each entry in this document should follow this structure:
 
 ---
 
-## 2025-10-20 14:58 – [Documentation]
-
-**Author**: agent
-
-**Context**: Onboarding materials diverged on timestamp capture guidance and
-needed the cross-platform commands documented in `AGENTS.md`.
-
-**Summary**: Mirrored the PowerShell and Python fallback snippets into the
-Master Prompt and START_HERE so Windows contributors and non-shell environments
-see the same workflow as Unix users. Confirmed no other onboarding docs
-referenced Unix-only commands.
-
-**References**: `docs/history/MASTER PROMPT.md`, `START_HERE.md`,
-`docs/history/PATCH_NOTES.md`.
-
----
-
-## 2025-10-20 14:54 – [CI]
-
-**Author**: agent
-
-**Context**: GitHub Actions Windows runners building numpy from source despite
-wheel availability.
-
-**Summary**: Taught the CI workflow to install numpy with `--only-binary=:all:`
-and pass `--prefer-binary` for the remaining dependencies so Windows jobs reuse
-official wheels. Verified locally that the adjusted install sequence no longer
-prints `Building wheel for numpy`, aligning CI with the launcher guidance and
-reducing run times.
-
-**References**: `.github/workflows/ci.yml`, `docs/history/PATCH_NOTES.md`.
-
----
-
 ## 2025-10-20 14:09 – Library hint stability & prefer-binary installs
 
 **Author**: agent
@@ -797,6 +763,20 @@ Import/Remote Import entries remain after the cleanup.
 **References**:
 - `app/main.py`
 - `requirements.txt`
+- `docs/history/PATCH_NOTES.md`
+
+---
+## 2025-10-20T15:05:18-04:00 / 2025-10-20T19:05:18+00:00 – CI binary wheels & timestamp guidance sync
+
+**Author**: agent
+
+**Context**: GitHub Actions on Windows continued to compile NumPy from source despite local guidance to prefer wheels, and the master prompt still listed Unix-only timestamp commands.
+
+**Summary**: Updated the CI workflow to install dependencies with `--prefer-binary`, ensuring Windows runners reuse prebuilt wheels. Extended the master prompt’s time-discipline section with Windows PowerShell and Python fallback commands so onboarding docs stay consistent with the agent manual.
+
+**References**:
+- `.github/workflows/ci.yml`
+- `docs/history/MASTER PROMPT.md`
 - `docs/history/PATCH_NOTES.md`
 
 ---

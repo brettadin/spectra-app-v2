@@ -19,9 +19,10 @@ This document tracks feature batches, validation status, and outstanding backlog
       remains).
 - [ ] Validate remote catalogue UX: expand the provider roster beyond MAST once
       dependency checks stabilise and new spectroscopy sources are vetted.
-- [ ] Refresh START_HERE, MASTER PROMPT, AGENTS, and brains documentation so
+- [x] Refresh START_HERE, MASTER PROMPT, AGENTS, and brains documentation so
       onboarding instructions match the current repository layout (AGENTS and
-      START_HERE refreshed 2025-10-19; MASTER PROMPT/brains follow-ups pending).
+      START_HERE refreshed 2025-10-19; MASTER PROMPT timestamp guidance synced
+      2025-10-20; brains entries continue per docs/brains/README.md cadence).
 - [x] Document dependency prerequisites (requests, astroquery, pandas, astropy)
       and add installation verification guidance for Windows 11 users.
 
@@ -38,6 +39,8 @@ This document tracks feature batches, validation status, and outstanding backlog
       behaviour, and added a Qt regression that patches the save dialog to verify hidden traces are excluded.
 - [x] Allowed provenance CSV bundles to re-import as individual spectra by teaching the CSV importer to expose bundle metadata,
       updating the ingest service/UI to handle list-based ingestion, expanding tests, and documenting the revised workflow.
+- [x] Forced CI dependency installs to prefer binary wheels and aligned the master prompt with cross-platform timestamp
+      guidance so onboarding instructions remain consistent with the agent manual.
 - [x] Fixed the Library hint label height/word wrap so cached selections stay
       within the dock and updated installation guidance (`RunSpectraApp.cmd`,
       `START_HERE`, `AGENTS`) to use `pip --prefer-binary`, keeping numpy

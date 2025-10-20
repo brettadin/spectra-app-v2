@@ -9,24 +9,24 @@ the spectroscopy workflow without breaking provenance or UI contracts.
 ## Time & Locale Discipline
 Whenever you record a timestamp (docs, logs, manifests), compute the current
 America/New_York time and express it as ISO-8601 with offset. Pair it with the
-UTC value when writing knowledge-log or brains entries. Use the platform
-specific commands below so both strings are captured in one pass:
+UTC value when writing knowledge-log or brains entries. Use the commands that
+match your environment:
 
-- **Windows PowerShell** (5.1 or newer, including `pwsh`):
+- **Windows PowerShell**
 
   ```powershell
   [System.TimeZoneInfo]::ConvertTimeBySystemTimeZoneId([DateTime]::UtcNow,"Eastern Standard Time").ToString("o")
   (Get-Date).ToUniversalTime().ToString("o")
   ```
 
-- **macOS/Linux shells**:
+- **macOS/Linux shells**
 
   ```bash
   TZ=America/New_York date --iso-8601=seconds
   date -u --iso-8601=seconds
   ```
 
-- **Python fallback (any platform)**:
+- **Python fallback (any platform)**
 
   ```bash
   python - <<'PY'

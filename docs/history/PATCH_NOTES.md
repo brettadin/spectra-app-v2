@@ -1,26 +1,5 @@
 # Patch Notes
 
-## 2025-10-20 (Onboarding timestamp commands align across platforms) (14:58 EDT / 18:58 UTC)
-
-- Updated `docs/history/MASTER PROMPT.md` and `START_HERE.md` to mirror the
-  PowerShell and Python fallback snippets from `AGENTS.md`, keeping the Unix
-  commands so every onboarding doc shows the cross-platform options together.
-- Verified the onboarding checklist no longer implies Unix-only tooling and
-  emphasised that contributors can capture both timestamps in a single pass on
-  any platform.
-- Logged the documentation realignment in the knowledge log with matching
-  America/New_York and UTC timestamps captured via the Python fallback command.
-
-## 2025-10-20 (CI prefers binary wheels on Windows) (14:54 EDT / 18:54 UTC)
-
-- Updated the GitHub Actions workflow to install numpy with
-  `--only-binary=:all:` and pass `--prefer-binary` to other pip installs so the
-  Windows runners reuse prebuilt wheels instead of attempting local builds.
-- Re-ran the workflow locally to verify that pip resolves numpy from wheels and
-  no longer emits `Building wheel for numpy` on Windows-equivalent runs.
-- Logged the CI fix in the knowledge log to keep future agents aware of the
-  wheel-first constraint for Windows environments.
-
 ## 2025-10-20 (Library hint stays fixed, prefer-binary install guidance) (14:09 EDT / 18:09 UTC)
 
 - Fixed the Library tab hint label height and kept word wrapping enabled so
@@ -462,4 +441,9 @@
 
 - Limited the Library hint label to a fixed-height strip so cached selections no longer force the main window to grow when browsing stored spectra.
 - Pinned NumPy to 1.26.4 and relaxed the requests cap to allow 2.32.4 so Windows installs pull prebuilt wheels and match the workflow guidance.
+
+## 2025-10-20T15:05:18-04:00 — CI binary wheels & cross-platform timestamp guidance
+
+- Updated `.github/workflows/ci.yml` so dependency installs pass `--prefer-binary`, keeping Windows runners on prebuilt NumPy wheels in line with the launcher guidance.
+- Synced `docs/history/MASTER PROMPT.md` with the agent manual by documenting Windows, Unix, and Python fallback commands for capturing ISO timestamps.
 

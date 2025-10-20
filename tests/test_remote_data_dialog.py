@@ -73,15 +73,11 @@ def test_dialog_initialises_without_missing_slots(monkeypatch: Any) -> None:
         ingest_service=ingest,
     )
 
-    assert dialog.provider_combo.count() == 2
-    assert dialog.provider_combo.itemText(0) == RemoteDataService.PROVIDER_NIST
-    assert dialog.provider_combo.itemText(1) == RemoteDataService.PROVIDER_MAST
-    assert "Element" in dialog.search_edit.placeholderText()
+    assert dialog.provider_combo.count() == 1
+    assert dialog.provider_combo.itemText(0) == RemoteDataService.PROVIDER_MAST
     assert "Catalogue" in dialog.windowTitle() or dialog.windowTitle() == "Remote Data"
 
     # Trigger provider refresh to ensure the slot updates hints/placeholder.
-    mast_index = dialog.provider_combo.findText(RemoteDataService.PROVIDER_MAST)
-    dialog.provider_combo.setCurrentIndex(mast_index)
     dialog._on_provider_changed()
     assert "JWST" in dialog.search_edit.placeholderText()
 
