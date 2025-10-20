@@ -28,41 +28,19 @@ Each entry in this document should follow this structure:
 
 ---
 
-## 2025-10-19 19:31 – Data dock layout stability
-## 2025-10-19 19:54 – NIST input validation safeguards
-
-**Author**: agent
-
-**Context**: Reference tab NIST spectral line fetch UX and error handling.
-
-**Summary**: Caught ValueError exceptions from the NIST fetch routine so invalid
-element symbols or ion stages now show a warning dialog instead of closing the
-Reference window. Updated the reference-data guide to describe the behaviour and
-logged the change in patch notes for traceability.
-
-**NYC time**: 2025-10-19T19:54:35-04:00
-
-**UTC time**: 2025-10-19T23:54:37+00:00
-
-**References**: `app/main.py`, `docs/user/reference_data.md`,
-`docs/history/PATCH_NOTES.md`.
-
----
-
 ## 2025-10-19 19:38 – Data table toggle no longer auto-opens
 
 **Author**: agent
 
-**Context**: Workspace ergonomics after consolidating the Data dock.
+**Context**: Plot data table ergonomics and layout stability on Windows builds.
 
-**Summary**: Wrapped the Data dock tabs in a neutral container with
-expanding size policies so selecting dataset rows no longer forces the main
-window to shrink the bottom docks on Windows builds. Updated the plot-tools
-guide and regression suite to lock in the layout behaviour.
+**Summary**: Stopped the dataset selection handler from forcing the numerical
+table to appear by default. The main window now remembers the last overlay
+payload, repopulates the table only when **View → Show Data Table** is checked,
+and leaves the layout unchanged otherwise.
 
-**References**: `app/main.py`【F:app/main.py†L277-L318】,
-`tests/test_dataset_filter.py`【F:tests/test_dataset_filter.py†L32-L42】,
-`docs/user/plot_tools.md`【F:docs/user/plot_tools.md†L24-L28】.
+**References**: `app/main.py`, `docs/user/plot_tools.md`,
+`docs/history/PATCH_NOTES.md`, `docs/reviews/workplan.md`.
 
 ---
 

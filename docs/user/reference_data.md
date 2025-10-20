@@ -53,8 +53,7 @@ spectroscopy-focused resources that align with the app’s analytical goals.
 ### Workflow tips
 
 1. Choose the appropriate tab (Spectral lines, IR groups, or Line-shape models). For NIST queries, press **Fetch lines** after
-   configuring the element and bounds; IR and line-shape data load instantly. Invalid element symbols or ion stages will trigger
-   a warning instead of closing the dialog so you can correct the query and retry.
+   configuring the element and bounds; IR and line-shape data load instantly.
 2. Use the filter field below the tabs to narrow long tables by wavelength, functional group, or parameter name. Filtering only
    affects the active pinned line set—other sets stay visible for cross-comparison.
 3. Manage pinned sets from the list beneath the controls: select an entry to focus the table, remove it when a study is

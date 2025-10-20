@@ -1,13 +1,14 @@
 # Patch Notes
 
-## 2025-10-19 (Data dock layout stability) (19:31 EDT / 23:31 UTC)
+## 2025-10-19 (Data table toggle respects user choice) (19:38 EDT / 23:38 UTC)
 
-- Wrapped the Data dock’s tab widget in a dedicated container with expanding
-  size policies so selecting datasets no longer forces the main window to
-  reflow or hide the bottom docks on Windows builds.
-- Documented the behaviour in `docs/user/plot_tools.md` and extended the
-  dataset filter regression test to assert the container/size-policy wiring.
-- Verified the fix with `pytest` to keep the Qt regression suite green.
+- Stopped the Data dock from forcing the numerical table open when selecting a
+  dataset by tracking the latest overlay views and only populating the table
+  when **View → Show Data Table** remains checked.
+- Added `_last_display_views` bookkeeping so manual toggles repopulate the panel
+  on demand without requerying the overlay service.
+- Documented the change in `docs/user/plot_tools.md` and refreshed the workplan
+  plus knowledge log with the timestamped entry.
 
 ## 2025-10-19 (Data dock consolidation) (18:46 EDT / 22:46 UTC)
 

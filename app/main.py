@@ -135,6 +135,8 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self._library_tab_index: int | None = None
         self._use_uniform_palette = False
         self._uniform_color = QtGui.QColor("#4F6D7A")
+        self._last_display_views: List[Dict[str, object]] = []
+        self._data_table_attached = False
 
         self._setup_ui()
         self._setup_menu()
@@ -267,9 +269,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.data_table.setHorizontalHeaderLabels(["Spectrum", "Point", "X", "Y"])
         self.data_table.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.Stretch)
         self.data_table.hide()
-        self.central_split.addWidget(self.data_table)
-        self.central_split.setStretchFactor(0, 4)
-        self.central_split.setStretchFactor(1, 3)
+        self.central_split.setStretchFactor(0, 1)
 
         self.dataset_dock = QtWidgets.QDockWidget("Data", self)
         self.dataset_dock.setObjectName("dock-datasets")
@@ -277,9 +277,6 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             QtCore.Qt.DockWidgetArea.LeftDockWidgetArea | QtCore.Qt.DockWidgetArea.RightDockWidgetArea
         )
         dataset_container = QtWidgets.QWidget()
-        dataset_container.setSizePolicy(
-            QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Expanding)
-        )
         dataset_layout = QtWidgets.QVBoxLayout(dataset_container)
         dataset_layout.setContentsMargins(6, 6, 6, 6)
         dataset_layout.setSpacing(6)
@@ -308,22 +305,8 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
 
         self.data_tabs = QtWidgets.QTabWidget()
         self.data_tabs.setObjectName("data-tabs")
-        self.data_tabs.setSizePolicy(
-            QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
-        )
         self.data_tabs.addTab(dataset_container, "Datasets")
-
-        dock_container = QtWidgets.QWidget()
-        dock_container.setObjectName("data-dock-container")
-        dock_container.setSizePolicy(
-            QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Expanding)
-        )
-        dock_layout = QtWidgets.QVBoxLayout(dock_container)
-        dock_layout.setContentsMargins(0, 0, 0, 0)
-        dock_layout.setSpacing(0)
-        dock_layout.addWidget(self.data_tabs)
-
-        self.dataset_dock.setWidget(dock_container)
+        self.dataset_dock.setWidget(self.data_tabs)
         self.addDockWidget(QtCore.Qt.DockWidgetArea.LeftDockWidgetArea, self.dataset_dock)
 
         self._build_library_tab()
@@ -1183,10 +1166,8 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             selected_ids = [sid for sid, visible in self._visibility.items() if visible]
         if not selected_ids:
             self._last_display_views = []
-            self.data_table.clearContents()
-            self.data_table.setRowCount(0)
-            if self.data_table.isVisible():
-                self.data_table.hide()
+            if self._data_table_attached:
+                self._detach_data_table()
             if self.data_table_action.isChecked():
                 self.data_table_action.blockSignals(True)
                 self.data_table_action.setChecked(False)
@@ -1195,8 +1176,8 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         selected_ids = [sid for sid in selected_ids if self._visibility.get(sid, True)]
         if not selected_ids:
             self._last_display_views = []
-            if self.data_table.isVisible():
-                self.data_table.hide()
+            if self._data_table_attached:
+                self._detach_data_table()
             if self.data_table_action.isChecked():
                 self.data_table_action.blockSignals(True)
                 self.data_table_action.setChecked(False)
@@ -1225,12 +1206,14 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
 
         self._last_display_views = display_views
         if self.data_table_action.isChecked():
+            if not self._data_table_attached:
+                self._attach_data_table()
             if not self.data_table.isVisible():
                 self.data_table.show()
             self._populate_data_table(display_views)
         else:
-            if self.data_table.isVisible():
-                self.data_table.hide()
+            if self._data_table_attached:
+                self._detach_data_table()
 
         all_ids = [spec.id for spec in self.overlay_service.list()]
         if not all_ids:
@@ -1809,12 +1792,32 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             self.plot.set_visible(spec_id, self._visibility[spec_id])
         self.refresh_overlay()
 
+    def _attach_data_table(self) -> None:
+        if self.data_table.parent() is not self.central_split:
+            self.data_table.setParent(self.central_split)
+        if self.central_split.indexOf(self.data_table) == -1:
+            self.central_split.addWidget(self.data_table)
+        self.central_split.setStretchFactor(0, 4)
+        self.central_split.setStretchFactor(1, 3)
+        self._data_table_attached = True
+
+    def _detach_data_table(self) -> None:
+        self.data_table.hide()
+        self.data_table.clearContents()
+        self.data_table.setRowCount(0)
+        index = self.central_split.indexOf(self.data_table)
+        if index != -1:
+            self.central_split.widget(index).setParent(None)
+        self.data_table.setParent(None)
+        self._data_table_attached = False
+
     def _toggle_data_table(self, checked: bool) -> None:
         if checked:
+            self._attach_data_table()
             self._populate_data_table(self._last_display_views)
             self.data_table.show()
         else:
-            self.data_table.hide()
+            self._detach_data_table()
 
     def _swap_math_selection(self) -> None:
         idx_a = self.math_a.currentIndex()
@@ -2410,9 +2413,6 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             return
         except nist_asd_service.NistQueryError as exc:
             QtWidgets.QMessageBox.critical(self, "Query failed", str(exc))
-            return
-        except ValueError as exc:
-            QtWidgets.QMessageBox.warning(self, "Invalid NIST query", str(exc))
             return
 
         self._register_nist_payload(payload)
