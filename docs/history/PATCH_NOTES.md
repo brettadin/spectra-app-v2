@@ -1,5 +1,17 @@
 # Patch Notes
 
+## 2025-10-20 (MAST product list surfaces calibrated spectra) (16:47 EDT / 20:47 UTC)
+
+- Updated the MAST adapter to request observation products after the initial
+  query, filter to calibrated spectroscopic payloads by default, and keep
+  previews/images opt-in via **Include imaging**.
+- Injected mission, instrument, filename, and preview metadata into each remote
+  record so the Library dock and dataset details expose provenance alongside the
+  download URI.
+- Expanded the remote data service regression tests with product-list mocks to
+  assert the new filtering, metadata fields, and `astroquery`
+  download behaviour.
+
 ## 2025-10-20 (Numpy window widened for Python 3.12+) (15:39 EDT / 19:39 UTC)
 
 - Relaxed the numpy dependency to `>=1.26,<3` so Windows launches on Python 3.12+

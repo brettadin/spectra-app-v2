@@ -52,7 +52,11 @@ also surfaces dependency warnings when optional clients are missing.
 
 The results table displays identifiers, titles, and the source URI for each
 match. Selecting a row shows the raw metadata payload in the preview panel so
-you can confirm provenance before downloading.
+you can confirm provenance before downloading. MAST queries now expand the
+observation product list and return calibrated spectroscopic downloads by
+default, populating each row with the mission/collection, instrument name,
+target, product filename, and any preview thumbnails. Enable **Include imaging**
+to surface preview/image assets alongside the calibrated spectra.
 
 ## Downloading and importing spectra
 
