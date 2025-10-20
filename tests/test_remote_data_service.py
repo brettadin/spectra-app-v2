@@ -360,6 +360,165 @@ def test_search_mast_can_include_previews_and_imaging(
     assert preview_record.metadata["previewURL"] == "https://mast.stsci.edu/preview.jpg"
 
 
+def test_search_exosystems_merges_metadata(
+    store: LocalStore, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    class DummyArchive:
+        calls: list[dict[str, Any]] = []
+
+        @classmethod
+        def query_object(cls, name: str, table: str | None = None) -> list[dict[str, Any]]:
+            cls.calls.append({"name": name, "table": table})
+            return [
+                {
+                    "pl_name": "WASP-96 b",
+                    "hostname": "WASP-96",
+                    "ra": 210.0123,
+                    "dec": -41.321,
+                    "pl_tranflag": 1,
+                    "pl_refname": "Nikolov et al. (2018)",
+                    "disc_year": 2018,
+                }
+            ]
+
+    class DummyObservations:
+        last_region: dict[str, Any] | None = None
+        last_product_request: Any | None = None
+
+        @classmethod
+        def query_region(cls, coordinates: str, radius: str | None = None) -> list[dict[str, Any]]:
+            cls.last_region = {"coordinates": coordinates, "radius": radius}
+            return [
+                {
+                    "obsid": "JWST123",
+                    "target_name": "WASP-96 b",
+                    "obs_collection": "JWST",
+                    "instrument_name": "NIRSpec",
+                    "filters": "PRISM",
+                    "dataproduct_type": "spectrum",
+                }
+            ]
+
+        @classmethod
+        def query_object(cls, name: str) -> list[dict[str, Any]]:
+            return []
+
+        @classmethod
+        def get_product_list(cls, obs_row: dict[str, Any]) -> list[dict[str, Any]]:
+            cls.last_product_request = obs_row
+            return [
+                {
+                    "obsid": obs_row.get("obsid"),
+                    "productFilename": "jwst_product.fits",
+                    "dataURI": "mast:JWST/jwst_product.fits",
+                    "filters": "PRISM",
+                    "previewURL": "https://mast.stsci.edu/preview",
+                    "proposal_id": "3210",
+                    "doi": "10.1234/example",
+                }
+            ]
+
+    class DummyMast:
+        Observations = DummyObservations
+
+    service = RemoteDataService(store, session=None)
+    monkeypatch.setattr(service, "_ensure_exoplanet_archive", lambda: DummyArchive)
+    monkeypatch.setattr(service, "_ensure_mast", lambda: DummyMast)
+    monkeypatch.setattr(service, "_fetch_exomast_filelist", lambda name: {"files": ["spec1"], "citation": "Exo.MAST"})
+
+    records = service.search(
+        RemoteDataService.PROVIDER_EXOSYSTEMS,
+        {"text": "WASP-96 b"},
+    )
+
+    assert DummyArchive.calls == [
+        {"name": "WASP-96 b", "table": "pscomppars"},
+    ]
+    assert DummyObservations.last_region == {
+        "coordinates": "210.0123 -41.321",
+        "radius": RemoteDataService._DEFAULT_REGION_RADIUS,
+    }
+    assert DummyObservations.last_product_request is not None
+    assert DummyObservations.last_product_request.get("obsid") == "JWST123"
+    assert len(records) == 1
+    record = records[0]
+    assert record.provider == RemoteDataService.PROVIDER_EXOSYSTEMS
+    assert record.download_url == "mast:JWST/jwst_product.fits"
+    assert "NIRSpec" in record.title
+    metadata = record.metadata
+    assert metadata["target"]["exoplanet_archive"]["table"] == "pscomppars"
+    assert metadata["mast"]["instrument_name"] == "NIRSpec"
+    assert metadata["mast"]["filters"] == "PRISM"
+    assert metadata["mast"]["previewURL"] == "https://mast.stsci.edu/preview"
+    assert metadata["exomast"]["citation"] == "Exo.MAST"
+    assert any(item.get("value") == "10.1234/example" for item in metadata["citations"])
+
+
+def test_search_exosystems_curated_fallback(
+    store: LocalStore, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    class DummyArchive:
+        @staticmethod
+        def query_object(name: str, table: str | None = None) -> list[dict[str, Any]]:
+            return []
+
+    class DummyObservations:
+        last_object: str | None = None
+        last_product_request: Any | None = None
+
+        @classmethod
+        def query_region(cls, coordinates: str, radius: str | None = None) -> list[dict[str, Any]]:
+            raise RuntimeError("should not use region without coordinates")
+
+        @classmethod
+        def query_object(cls, name: str) -> list[dict[str, Any]]:
+            cls.last_object = name
+            return [
+                {
+                    "obsid": "JUPITER1",
+                    "target_name": "Jupiter",
+                    "obs_collection": "JWST",
+                    "instrument_name": "NIRSpec",
+                    "filters": "F070LP",
+                    "dataproduct_type": "spectrum",
+                }
+            ]
+
+        @classmethod
+        def get_product_list(cls, obs_row: dict[str, Any]) -> list[dict[str, Any]]:
+            cls.last_product_request = obs_row
+            return [
+                {
+                    "obsid": obs_row.get("obsid"),
+                    "productFilename": "jupiter_spectrum.fits",
+                    "dataURI": "mast:JWST/jupiter_spectrum.fits",
+                    "previewURL": "https://mast.stsci.edu/jupiter",
+                }
+            ]
+
+    class DummyMast:
+        Observations = DummyObservations
+
+    service = RemoteDataService(store, session=None)
+    monkeypatch.setattr(service, "_ensure_exoplanet_archive", lambda: DummyArchive)
+    monkeypatch.setattr(service, "_ensure_mast", lambda: DummyMast)
+    monkeypatch.setattr(service, "_fetch_exomast_filelist", lambda name: None)
+
+    records = service.search(RemoteDataService.PROVIDER_EXOSYSTEMS, {"text": "Jupiter"})
+
+    assert DummyObservations.last_object is not None
+    assert "Jupiter" in DummyObservations.last_object
+    assert DummyObservations.last_product_request is not None
+    assert DummyObservations.last_product_request.get("obsid") == "JUPITER1"
+    assert len(records) == 1
+    record = records[0]
+    assert record.provider == RemoteDataService.PROVIDER_EXOSYSTEMS
+    assert record.download_url == "mast:JWST/jupiter_spectrum.fits"
+    assert record.metadata["provenance"]["curated_fallback"] is True
+    assert record.metadata["target"]["display_name"] == "Jupiter"
+    assert any(citation.get("title") for citation in record.metadata.get("target", {}).get("citations", []))
+
+
 def test_search_mast_requires_non_empty_criteria(store: LocalStore) -> None:
     service = RemoteDataService(store, session=None)
 
@@ -416,12 +575,14 @@ def test_providers_hide_missing_dependencies(monkeypatch: pytest.MonkeyPatch, st
     monkeypatch.setattr(remote_module.nist_asd_service, "dependencies_available", lambda: False)
     monkeypatch.setattr(remote_module, "astroquery_mast", None)
     monkeypatch.setattr(remote_module, "_HAS_PANDAS", False)
+    monkeypatch.setattr(remote_module, "astroquery_nexsci", None)
     service = RemoteDataService(store, session=None)
 
     assert service.providers() == []
     unavailable = service.unavailable_providers()
     assert remote_module.RemoteDataService.PROVIDER_NIST in unavailable
     assert remote_module.RemoteDataService.PROVIDER_MAST in unavailable
+    assert remote_module.RemoteDataService.PROVIDER_EXOSYSTEMS in unavailable
 
     # Restoring NIST while keeping MAST dependencies missing yields only NIST.
     monkeypatch.setattr(remote_module.nist_asd_service, "dependencies_available", lambda: True)
@@ -430,3 +591,24 @@ def test_providers_hide_missing_dependencies(monkeypatch: pytest.MonkeyPatch, st
     assert service.providers() == [remote_module.RemoteDataService.PROVIDER_NIST]
     unavailable = service.unavailable_providers()
     assert remote_module.RemoteDataService.PROVIDER_MAST in unavailable
+    assert remote_module.RemoteDataService.PROVIDER_EXOSYSTEMS in unavailable
+
+
+def test_providers_include_exosystems_when_dependencies_present(
+    monkeypatch: pytest.MonkeyPatch, store: LocalStore
+) -> None:
+    monkeypatch.setattr(remote_module.nist_asd_service, "dependencies_available", lambda: True)
+
+    class DummyRequests:
+        pass
+
+    monkeypatch.setattr(remote_module, "astroquery_mast", object())
+    monkeypatch.setattr(remote_module, "astroquery_nexsci", object())
+    monkeypatch.setattr(remote_module, "_HAS_PANDAS", True)
+    monkeypatch.setattr(remote_module, "requests", DummyRequests)
+
+    service = RemoteDataService(store, session=None)
+
+    providers = service.providers()
+    assert remote_module.RemoteDataService.PROVIDER_EXOSYSTEMS in providers
+    assert providers[0] == remote_module.RemoteDataService.PROVIDER_NIST

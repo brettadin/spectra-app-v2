@@ -27,22 +27,23 @@ Each entry in this document should follow this structure:
   applicable).
 
 ---
-## 2025-10-20T16:47:27-04:00 / 2025-10-20T20:47:29+00:00 – MAST product filtering & provenance metadata
+## 2025-10-20T16:51:06-04:00 / 2025-10-20T20:51:08+00:00 – MAST ExoSystems provider lands
 
 **Author**: agent
 
-**Context**: Remote Data service – MAST catalogue integration and UI provenance fields.
+**Context**: Remote catalogue workflow, MAST integrations, provenance.
 
-**Summary**: Taught the MAST search adapter to request the observation product
-list, keep calibrated spectroscopic downloads as the default, and surface
-mission/instrument metadata plus preview URLs inside each remote record so
-provenance remains visible in the Library dock. Expanded the regression suite
-with product-list mocks to cover the new filtering and download path.
+**Summary**: Added a dedicated **MAST ExoSystems** provider that resolves
+exoplanet metadata through the NASA Exoplanet Archive before querying MAST by
+sky coordinates, wiring Exo.MAST spectra into transiting-target results, and
+recording curated fallbacks for solar-system planets and stellar standards when
+NExScI lacks entries. Documented the workflow in the remote-data guide and
+expanded regression coverage to mock the NExScI, Exo.MAST, and MAST calls so the
+metadata assembly remains stable.
 
-**References**: `app/services/remote_data_service.py`【F:app/services/remote_data_service.py†L241-L345】,
-`tests/test_remote_data_service.py`【F:tests/test_remote_data_service.py†L202-L360】,
-`docs/user/remote_data.md`【F:docs/user/remote_data.md†L53-L59】,
-`docs/history/PATCH_NOTES.md`【F:docs/history/PATCH_NOTES.md†L3-L13】.
+**References**: `app/services/remote_data_service.py`,
+`tests/test_remote_data_service.py`, `docs/user/remote_data.md`,
+`docs/history/PATCH_NOTES.md`.
 
 ---
 ## 2025-10-20T15:39:03-04:00 / 2025-10-20T19:39:03+00:00 – Dependency window widened for NumPy 2.x wheels
