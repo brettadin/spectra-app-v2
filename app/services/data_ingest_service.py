@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from copy import deepcopy
 from pathlib import Path
-from typing import Any, Dict, Iterable, List, Sequence, cast
+from typing import Any, Dict, Iterable, List, Mapping, Sequence, cast
 
 from .spectrum import Spectrum
 from .units_service import UnitsService
@@ -93,10 +94,20 @@ class DataIngestService:
             source_path=source_path,
         )
         if self.store is not None and record_store:
-            source_summary = {
-                "ingest": dict(meta.get("ingest", {})),
-                "source_units": dict(meta.get("source_units", {})),
-            }
+            existing_source = self._find_existing_source_details(source_path)
+            source_summary: Dict[str, Any] = (
+                deepcopy(existing_source) if existing_source is not None else {}
+            )
+            ingest_details = dict(meta.get("ingest", {}))
+            if ingest_details:
+                source_summary = self._merge_source_details(
+                    source_summary, {"ingest": ingest_details}
+                )
+            source_units = meta.get("source_units")
+            if isinstance(source_units, Mapping):
+                source_summary = self._merge_source_details(
+                    source_summary, {"source_units": dict(source_units)}
+                )
             record = self.store.record(
                 source_path,
                 x_unit=spectrum.x_unit,
@@ -115,6 +126,41 @@ class DataIngestService:
                 cache_record=record,
             )
         return spectrum
+
+    def _find_existing_source_details(self, source_path: Path) -> Mapping[str, Any] | None:
+        if self.store is None:
+            return None
+        entries = self.store.list_entries()
+        str_path = str(source_path)
+        for entry in entries.values():
+            if not isinstance(entry, Mapping):
+                continue
+            stored_path = entry.get("stored_path")
+            original_path = entry.get("original_path")
+            if stored_path == str_path or original_path == str_path:
+                existing = entry.get("source")
+                if isinstance(existing, Mapping):
+                    return existing
+                return None
+        return None
+
+    @staticmethod
+    def _merge_source_details(
+        base: Dict[str, Any], updates: Mapping[str, Any]
+    ) -> Dict[str, Any]:
+        merged = dict(base)
+        for key, value in updates.items():
+            if (
+                isinstance(value, Mapping)
+                and isinstance(merged.get(key), Mapping)
+            ):
+                nested_base = dict(merged[key])  # type: ignore[index]
+                merged[key] = DataIngestService._merge_source_details(
+                    nested_base, value
+                )
+            else:
+                merged[key] = value
+        return merged
 
     def _ingest_bundle(
         self,
