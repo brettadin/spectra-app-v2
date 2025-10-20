@@ -50,9 +50,21 @@ directly against laboratory references.
 The hint banner beneath the results table updates as you switch providers and
 also surfaces dependency warnings when optional clients are missing.
 
-The results table displays identifiers, titles, and the source URI for each
-match. Selecting a row shows the raw metadata payload in the preview panel so
-you can confirm provenance before downloading.
+* **ID / Title** – Stable identifiers and mission-provided labels.
+* **Target / Host** – Planet names, host stars, or solar-system bodies derived
+  from Exo.MAST metadata.
+* **Telescope / Mission** – Observatory names, programmes, and proposal IDs.
+* **Instrument / Mode** – Instrument configuration and observing mode.
+* **Product Type** – Spectroscopic vs. imaging products plus calibration level.
+* **Download** – Clickable hyperlinks (MAST URIs are rewritten to
+  `https://mast.stsci.edu/portal/Download/...` so they open in a browser).
+* **Preview / Citation** – Thumbnail links and mission citations when provided
+  by MAST or the Exoplanet Archive.
+
+Selecting a row displays a narrative summary in the preview pane (planet/host,
+mission, instrument, and citation) followed by the full JSON payload. The status
+bar beneath the table also echoes the host/planet summary so you can scan for
+relevant targets without opening the preview pane.
 
 > **Background execution**
 >
@@ -66,7 +78,9 @@ you can confirm provenance before downloading.
 
 1. Select one or more rows in the results table.
 2. Click **Download & Import** to fetch the source files and pipe them through
-   the normal ingestion pipeline.
+   the normal ingestion pipeline. The same status spinner appears while
+   downloads run, the action buttons are disabled, and the banner reports how
+   many products were imported (plus any failures) once the worker finishes.
 
 Behind the scenes the application:
 
@@ -105,7 +119,10 @@ Every download is associated with its remote URI. If you request the same file
 again the dialog reuses the cached copy instead of issuing another network
 request. This makes it safe to build collections during limited connectivity:
 the cache stores the raw download alongside canonical units so future sessions
-can ingest the files instantly.
+can ingest the files instantly. NIST line lists now embed the full query
+parameters (element, ion stage, wavelength bounds, Ritz preference) in their
+pseudo URI, so distinct searches produce unique cache entries instead of
+colliding on a shared label.
 
 If persistent caching is disabled in **File → Enable Persistent Cache**, remote
 fetches are stored in a temporary data directory for the current session. The

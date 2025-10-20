@@ -4,13 +4,14 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, Any
+from typing import Any, Dict, Sequence
 
 import numpy as np
 import pyqtgraph as pg
 import pyqtgraph.exporters
 
 from app.qt_compat import get_qt
+from .palettes import DEFAULT_PALETTE_KEY, PaletteDefinition, load_palette_definitions
 
 QtCore: Any
 QtGui: Any
@@ -383,3 +384,15 @@ class PlotPane(QtWidgets.QWidget):
     def end_bulk_update(self) -> None:
         self._plot.setUpdatesEnabled(True)
         self.autoscale()
+    @staticmethod
+    def palette_definitions() -> Sequence[PaletteDefinition]:
+        """Expose the shared palette registry to callers."""
+
+        return list(load_palette_definitions())
+
+    @staticmethod
+    def default_palette_key() -> str:
+        """Return the key of the palette used for new sessions."""
+
+        return DEFAULT_PALETTE_KEY
+

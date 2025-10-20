@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+import csv
+import io
+import hashlib
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 import csv
@@ -9,7 +12,7 @@ import json
 import tempfile
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Mapping
-from urllib.parse import urlparse
+from urllib.parse import quote, urlencode, urlparse
 
 from . import nist_asd_service
 from .store import LocalStore
@@ -21,8 +24,24 @@ except Exception:  # pragma: no cover - handled by dependency guards
 
 try:  # Optional dependency – astroquery is heavy and not always bundled
     from astroquery import mast as astroquery_mast
+    from astroquery.ipac import nexsci as astroquery_nexsci
 except Exception:  # pragma: no cover - handled by dependency guards
     astroquery_mast = None  # type: ignore[assignment]
+    astroquery_nexsci = None  # type: ignore[assignment]
+else:  # pragma: no branch
+    try:
+        from astroquery.ipac.nexsci import NasaExoplanetArchive as _ExoplanetArchive
+    except Exception:  # pragma: no cover - some astroquery builds omit NExScI
+        _ExoplanetArchive = None  # type: ignore[assignment]
+    else:  # pragma: no branch
+        astroquery_nexsci = _ExoplanetArchive
+
+try:  # Optional dependency – astroquery depends on pandas at runtime
+    import pandas  # type: ignore  # noqa: F401
+except Exception:  # pragma: no cover - handled by dependency guards
+    _HAS_PANDAS = False
+else:  # pragma: no branch - simple flag wiring
+    _HAS_PANDAS = True
 
 try:  # Optional dependency – astroquery depends on pandas at runtime
     import pandas  # type: ignore  # noqa: F401
@@ -79,9 +98,80 @@ class RemoteDataService:
     mast_product_fields: Iterable[str] = field(
         default_factory=lambda: ("obsid", "target_name", "productFilename", "dataURI")
     )
+    nist_page_size: int = 100
 
     PROVIDER_NIST = "NIST ASD"
     PROVIDER_MAST = "MAST"
+    PROVIDER_EXOSYSTEMS = "MAST ExoSystems"
+
+    _DEFAULT_REGION_RADIUS = "0.02 deg"
+
+    _CURATED_TARGETS: tuple[Dict[str, Any], ...] = (
+        {
+            "names": {"jupiter", "io", "europa", "ganymede", "callisto"},
+            "display_name": "Jupiter",
+            "object_name": "Jupiter",
+            "classification": "Solar System planet",
+            "citations": [
+                {
+                    "title": "JWST Early Release Observations",
+                    "doi": "10.3847/1538-4365/acbd9a",
+                    "notes": "JWST ERS quick-look spectra curated for Jovian system.",
+                }
+            ],
+        },
+        {
+            "names": {"mars"},
+            "display_name": "Mars",
+            "object_name": "Mars",
+            "classification": "Solar System planet",
+            "citations": [
+                {
+                    "title": "JWST/NIRSpec Mars observations",
+                    "doi": "10.3847/1538-4365/abf3cb",
+                    "notes": "Quick-look spectra distributed via Exo.MAST science highlights.",
+                }
+            ],
+        },
+        {
+            "names": {"saturn", "enceladus", "titan"},
+            "display_name": "Saturn",
+            "object_name": "Saturn",
+            "classification": "Solar System planet",
+            "citations": [
+                {
+                    "title": "Cassini / JWST comparative spectra",
+                    "notes": "Curated composite assembled for Spectra examples",
+                }
+            ],
+        },
+        {
+            "names": {"g2v", "solar analog", "sun-like", "hd 10700", "tau cet"},
+            "display_name": "Tau Ceti (G8V)",
+            "object_name": "HD 10700",
+            "classification": "Nearby solar-type star",
+            "citations": [
+                {
+                    "title": "Pickles stellar spectral library",
+                    "doi": "10.1086/316293",
+                    "notes": "Representative solar-type spectrum maintained in Spectra samples.",
+                }
+            ],
+        },
+        {
+            "names": {"a0v", "vega"},
+            "display_name": "Vega (A0V)",
+            "object_name": "Vega",
+            "classification": "Spectral standard",
+            "citations": [
+                {
+                    "title": "HST CALSPEC standards",
+                    "doi": "10.1086/383228",
+                    "notes": "CALSPEC flux standards distributed via MAST.",
+                }
+            ],
+        },
+    )
 
     def providers(self) -> List[str]:
         """Return the list of remote providers whose dependencies are satisfied."""
@@ -248,19 +338,217 @@ class RemoteDataService:
             identifier = str(metadata.get("obsid") or metadata.get("ObservationID") or metadata.get("id"))
             if not identifier:
                 continue
-            title = str(metadata.get("target_name") or metadata.get("target") or identifier)
-            download_uri = metadata.get("dataURI") or metadata.get("ProductURI") or metadata.get("download_uri")
-            if not download_uri:
+            rows = self._table_to_records(result)
+            if not rows:
                 continue
-            units_map = metadata.get("units") if isinstance(metadata.get("units"), Mapping) else None
-            records.append(
-                RemoteRecord(
-                    provider=self.PROVIDER_MAST,
-                    identifier=identifier,
-                    title=title,
-                    download_url=str(download_uri),
-                    metadata=metadata,
-                    units=units_map,
+            base_row = dict(rows[0])
+            resolved_table = table_name
+            break
+
+        if not base_row:
+            return None
+
+        ra = base_row.get("ra") or base_row.get("rastr") or base_row.get("ra_str")
+        dec = base_row.get("dec") or base_row.get("decstr") or base_row.get("dec_str")
+        try:
+            ra_value = float(ra) if ra is not None else None
+        except (TypeError, ValueError):  # pragma: no cover - depends on astroquery payload
+            ra_value = None
+        try:
+            dec_value = float(dec) if dec is not None else None
+        except (TypeError, ValueError):  # pragma: no cover - depends on astroquery payload
+            dec_value = None
+
+        canonical_name = str(
+            base_row.get("pl_name")
+            or base_row.get("hostname")
+            or base_row.get("star_name")
+            or cleaned_target
+        )
+        host_name = base_row.get("hostname") or base_row.get("star_name")
+
+        for key in ("pl_name", "pl_letter", "hostname", "star_name", "sy_sname"):
+            value = base_row.get(key)
+            if isinstance(value, str):
+                aliases.append(value)
+
+        citation_keys = (
+            "pl_refname",
+            "disc_pubdate",
+            "discoverymethod",
+            "disc_facility",
+            "disc_year",
+        )
+        citations: List[Dict[str, Any]] = []
+        for key in citation_keys:
+            if base_row.get(key) is not None:
+                citations.append({"field": key, "value": base_row.get(key)})
+
+        transiting = False
+        for key in ("pl_tranflag", "tran_flag", "transit_flag"):
+            if base_row.get(key) in (1, True, "1", "true", "True"):
+                transiting = True
+                break
+
+        coordinates: Dict[str, Any] | None = None
+        if ra_value is not None and dec_value is not None:
+            coordinates = {
+                "ra": ra_value,
+                "dec": dec_value,
+                "epoch": base_row.get("epoch") or base_row.get("ra_epoch"),
+            }
+
+        metadata: Dict[str, Any] = {
+            "canonical_name": canonical_name,
+            "display_name": base_row.get("pl_name") or canonical_name,
+            "host_star": host_name,
+            "aliases": sorted({alias for alias in aliases if alias}),
+            "coordinates": coordinates,
+            "search_radius": self._DEFAULT_REGION_RADIUS,
+            "transiting": transiting,
+            "citations": citations,
+            "exoplanet_archive": {
+                "table": resolved_table,
+                "row": base_row,
+            },
+        }
+        return metadata
+
+    def _resolve_curated_target(self, target: str) -> Dict[str, Any] | None:
+        lower = target.strip().lower()
+        for entry in self._CURATED_TARGETS:
+            if lower in entry["names"]:
+                aliases = sorted(entry["names"] - {lower})
+                metadata = {
+                    "canonical_name": entry["display_name"],
+                    "display_name": entry["display_name"],
+                    "aliases": aliases,
+                    "coordinates": None,
+                    "object_name": entry.get("object_name"),
+                    "search_radius": entry.get("search_radius", self._DEFAULT_REGION_RADIUS),
+                    "classification": entry.get("classification"),
+                    "citations": entry.get("citations", []),
+                    "transiting": entry.get("transiting", False),
+                    "curated": True,
+                }
+                return metadata
+        return None
+
+    def _fetch_exomast_filelist(self, planet_name: Any) -> Dict[str, Any] | None:
+        if not planet_name or not isinstance(planet_name, str):
+            return None
+        if not self._has_requests():
+            return None
+        session = self._ensure_session()
+        url = (
+            "https://exo.mast.stsci.edu/api/v0.1/spectra/"
+            f"{quote(planet_name.strip())}/filelist"
+        )
+        try:
+            response = session.get(url, timeout=60)
+            response.raise_for_status()
+        except Exception:  # pragma: no cover - network failures handled gracefully
+            return None
+        try:
+            payload = response.json()
+        except Exception:  # pragma: no cover - JSON decoding fallback
+            return None
+        if isinstance(payload, Mapping):
+            return dict(payload)
+        return None
+
+    def _is_spectroscopic(self, metadata: Mapping[str, Any]) -> bool:
+        """Return True when the MAST row represents spectroscopic data."""
+
+        product = str(metadata.get("dataproduct_type") or "").lower()
+        if product in {"spectrum", "spectral_energy_distribution"}:
+            return True
+        if "spect" in product:
+            return True
+
+        product_type = str(metadata.get("productType") or "").lower()
+        spectro_tokens = ("spectrum", "spectroscopy", "grism", "ifu", "slit", "prism")
+        if any(token in product_type for token in spectro_tokens):
+            return True
+
+        description = str(metadata.get("description") or metadata.get("display_name") or "").lower()
+        if any(token in description for token in spectro_tokens):
+            return True
+
+        return False
+
+    def _is_imaging(self, metadata: Mapping[str, Any]) -> bool:
+        product = str(metadata.get("dataproduct_type") or "").lower()
+        if product in {"image", "image_cube", "preview"}:
+            return True
+        product_type = str(metadata.get("productType") or "").lower()
+        if "image" in product_type or "imaging" in product_type:
+            return True
+        description = str(metadata.get("description") or metadata.get("display_name") or "").lower()
+        if "image" in description:
+            return True
+        return False
+
+    def _fetch_remote(self, record: RemoteRecord) -> tuple[Path, bool]:
+        if record.provider == self.PROVIDER_NIST:
+            return self._generate_nist_csv(record), True
+        if self._should_use_mast(record):
+            return self._fetch_via_mast(record), True
+        return self._fetch_via_http(record), True
+
+    def _generate_nist_csv(self, record: RemoteRecord) -> Path:
+        lines = record.metadata.get("lines") if isinstance(record.metadata, Mapping) else None
+        if not isinstance(lines, list) or not lines:
+            query_meta = (
+                record.metadata.get("query")
+                if isinstance(record.metadata, Mapping)
+                else {}
+            )
+            identifier = str(
+                (query_meta.get("identifier") if isinstance(query_meta, Mapping) else None)
+                or record.metadata.get("query_text")
+                if isinstance(record.metadata, Mapping)
+                else None
+                or record.identifier
+            )
+            element_symbol = (
+                record.metadata.get("element_symbol")
+                if isinstance(record.metadata, Mapping)
+                else None
+            )
+            ion_stage_number = (
+                record.metadata.get("ion_stage_number")
+                if isinstance(record.metadata, Mapping)
+                else None
+            )
+            try:
+                payload = nist_asd_service.fetch_lines(
+                    identifier,
+                    element=element_symbol,
+                    ion_stage=ion_stage_number,
+                    lower_wavelength=(
+                        float(query_meta.get("lower_wavelength"))
+                        if isinstance(query_meta, Mapping)
+                        and query_meta.get("lower_wavelength") is not None
+                        else None
+                    ),
+                    upper_wavelength=(
+                        float(query_meta.get("upper_wavelength"))
+                        if isinstance(query_meta, Mapping)
+                        and query_meta.get("upper_wavelength") is not None
+                        else None
+                    ),
+                    wavelength_unit=str(
+                        query_meta.get("wavelength_unit", "nm") if isinstance(query_meta, Mapping) else "nm"
+                    ),
+                    use_ritz=bool(query_meta.get("use_ritz", True))
+                    if isinstance(query_meta, Mapping)
+                    else True,
+                    wavelength_type=str(
+                        query_meta.get("wavelength_type", "vacuum")
+                        if isinstance(query_meta, Mapping)
+                        else "vacuum"
+                    ),
                 )
                 )
         return records
@@ -460,6 +748,70 @@ class RemoteDataService:
         return record.download_url.startswith("mast:")
 
     # ------------------------------------------------------------------
+    @staticmethod
+    def _normalise_nist_query(identifier: str, meta: Mapping[str, Any]) -> Dict[str, Any]:
+        """Return a stable mapping that captures the effective NIST query."""
+
+        query_meta: Dict[str, Any] = {}
+        raw_query = meta.get("query") if isinstance(meta, Mapping) else None
+        if isinstance(raw_query, Mapping):
+            query_meta.update(raw_query)
+
+        query_meta.setdefault("identifier", identifier)
+        if "linename" not in query_meta and "spectrum" in query_meta:
+            query_meta["linename"] = query_meta["spectrum"]
+        if meta.get("element_symbol"):
+            query_meta.setdefault("element_symbol", meta.get("element_symbol"))
+        if meta.get("ion_stage_number") is not None:
+            query_meta.setdefault("ion_stage_number", meta.get("ion_stage_number"))
+        if meta.get("ion_stage"):
+            query_meta.setdefault("ion_stage", meta.get("ion_stage"))
+        if meta.get("label"):
+            query_meta.setdefault("label", meta.get("label"))
+
+        # Ensure wavelength bounds are represented explicitly for caching.
+        lower = query_meta.get("lower_wavelength")
+        upper = query_meta.get("upper_wavelength")
+        if lower is not None:
+            query_meta["lower_wavelength"] = float(lower)
+        if upper is not None:
+            query_meta["upper_wavelength"] = float(upper)
+
+        unit = query_meta.get("wavelength_unit")
+        if unit is not None:
+            query_meta["wavelength_unit"] = str(unit)
+        wtype = query_meta.get("wavelength_type")
+        if wtype is not None:
+            query_meta["wavelength_type"] = str(wtype)
+        if "use_ritz" in query_meta:
+            query_meta["use_ritz"] = bool(query_meta["use_ritz"])
+
+        return query_meta
+
+    @staticmethod
+    def _build_nist_download_url(label: str, query_meta: Mapping[str, Any]) -> str:
+        """Create a cache-safe pseudo URI for a NIST line query."""
+
+        safe_label = quote(str(label).strip().replace(" ", "_"), safe="+-_.") or "lines"
+
+        def _stringify(value: Any) -> str:
+            if isinstance(value, bool):
+                return "true" if value else "false"
+            if isinstance(value, float):
+                return f"{value:.9g}"
+            return str(value)
+
+        params: List[tuple[str, str]] = []
+        for key in sorted(query_meta):
+            value = query_meta[key]
+            if value is None:
+                continue
+            params.append((key, _stringify(value)))
+
+        query_string = urlencode(params, doseq=True, safe="+-_.:")
+        base = f"nist-asd://lines/{safe_label}"
+        return f"{base}?{query_string}" if query_string else base
+
     def _find_cached(self, uri: str) -> Dict[str, Any] | None:
         entries = self.store.list_entries()
         for entry in entries.values():
@@ -471,11 +823,24 @@ class RemoteDataService:
                 return dict(entry)
         return None
 
+    def _build_nist_cache_uri(self, token: str, query_signature: Mapping[str, Any]) -> str:
+        payload = json.dumps(
+            query_signature,
+            sort_keys=True,
+            separators=(",", ":"),
+            default=str,
+        )
+        digest = hashlib.sha256(payload.encode("utf-8")).hexdigest()[:12]
+        return f"nist-asd:{token}:{digest}"
+
     def _ensure_session(self):
         if self.session is not None:
             return self.session
         if requests is None:
-            raise RuntimeError("The 'requests' package is required for remote downloads")
+            raise RuntimeError(
+                "The 'requests' package is required for remote downloads. "
+                "Install it via `pip install -r requirements.txt` or `poetry install --with remote`."
+            )
         self.session = requests.Session()
         return self.session
 
