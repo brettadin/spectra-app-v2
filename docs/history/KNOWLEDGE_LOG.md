@@ -27,6 +27,26 @@ Each entry in this document should follow this structure:
   applicable).
 
 ---
+## 2025-10-20T15:20:00-04:00 / 2025-10-20T19:20:00+00:00 – Windows pip binary guard reset
+
+**Author**: agent
+
+**Context**: The Windows launcher and manual setup instructions still allowed
+inherited `PIP_NO_BINARY` settings, causing pip to build NumPy from source even
+after adding `--prefer-binary`.
+
+**Summary**: Cleared `PIP_NO_BINARY` and forced `PIP_ONLY_BINARY=numpy` /
+`PIP_PREFER_BINARY=1` in `RunSpectraApp.cmd`, then mirrored the steps in
+`START_HERE.md` and `AGENTS.md` so developers consistently request prebuilt
+NumPy wheels during setup.
+
+**References**:
+- `RunSpectraApp.cmd`
+- `AGENTS.md`
+- `START_HERE.md`
+- `docs/history/PATCH_NOTES.md`
+
+---
 
 ## 2025-10-20 14:09 – Library hint stability & prefer-binary installs
 

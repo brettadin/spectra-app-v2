@@ -23,6 +23,9 @@ REM ---- Upgrade pip (optional) ----
 
 REM ---- Install deps ----
 echo Installing dependencies from requirements.txt...
+set "PIP_NO_BINARY="
+set "PIP_ONLY_BINARY=numpy"
+set "PIP_PREFER_BINARY=1"
 "%PY_EXE%" -m pip install --prefer-binary -r "%PROJ_ROOT%\requirements.txt" || (
   echo Dependency install failed.
   echo If numpy attempts to build from source, install the latest Microsoft C++ Build Tools ^

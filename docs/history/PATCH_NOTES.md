@@ -1,5 +1,14 @@
 # Patch Notes
 
+## 2025-10-20 (Windows pip clears binary overrides) (15:20 EDT / 19:21 UTC)
+
+- Updated `RunSpectraApp.cmd` to clear `PIP_NO_BINARY` and set
+  `PIP_ONLY_BINARY=numpy` / `PIP_PREFER_BINARY=1` before installing
+  dependencies so Windows launches always request prebuilt NumPy wheels.
+- Refreshed `AGENTS.md` and `START_HERE.md` with the same guidance for manual
+  setups, ensuring agents know how to recover if global pip settings force
+  source builds.
+
 ## 2025-10-20 (Library hint stays fixed, prefer-binary install guidance) (14:09 EDT / 18:09 UTC)
 
 - Fixed the Library tab hint label height and kept word wrapping enabled so

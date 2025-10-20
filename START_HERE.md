@@ -34,9 +34,12 @@ RunSpectraApp.cmd
 # Manual setup
 py -3.11 -m venv .venv
 .\.venv\Scripts\activate
+set PIP_NO_BINARY=
+set PIP_ONLY_BINARY=numpy
+set PIP_PREFER_BINARY=1
 pip install --prefer-binary -r requirements.txt
 
-# If numpy attempts to build from source (Windows without C++ build tools)
+# If numpy still attempts to build from source (Windows without C++ build tools)
 python -m pip install --prefer-binary "numpy>=1.26,<2"
 ```
 
