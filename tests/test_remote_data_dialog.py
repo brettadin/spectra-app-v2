@@ -79,7 +79,7 @@ def test_dialog_initialises_without_missing_slots(monkeypatch: Any) -> None:
 
     # Trigger provider refresh to ensure the slot updates hints/placeholder.
     dialog._on_provider_changed()
-    assert "JWST" in dialog.search_edit.placeholderText()
+    assert "Solar system" in dialog.search_edit.placeholderText()
 
     # Clean up the dialog explicitly for Qt stability in headless tests.
     dialog.deleteLater()
@@ -178,6 +178,93 @@ def test_include_imaging_toggle_passes_flag(monkeypatch: Any) -> None:
     assert service.calls, "Search should record include_imaging flag"
     _, _, include_imaging = service.calls[-1]
     assert include_imaging is True
+
+    dialog.deleteLater()
+    if QtWidgets.QApplication.instance() is app and not app.topLevelWidgets():
+        app.quit()
+
+
+def test_results_table_displays_extended_columns_and_preview(monkeypatch: Any) -> None:
+    app = _ensure_app()
+    service = TrackingRemoteService()
+    ingest = IngestServiceStub()
+
+    metadata = {
+        "target_name": "WASP-96 b",
+        "host_name": "WASP-96",
+        "planet_name": "WASP-96 b",
+        "mission": "JWST",
+        "telescope": "JWST",
+        "instrument_name": "NIRSpec",
+        "observation_mode": "Bright Object Time Series",
+        "dataproduct_type": "spectrum",
+        "productType": "SCIENCE",
+        "previewURL": "https://example.test/preview.png",
+        "citation": "Ahrer et al. 2022, JWST ERS",
+        "calib_level": 3,
+        "exomast": {
+            "pl_name": "WASP-96 b",
+            "hostname": "WASP-96",
+            "discoverymethod": "Transit",
+            "pl_orbper": 3.425,
+            "st_teff": 5600,
+        },
+    }
+
+    record = RemoteRecord(
+        provider=RemoteDataService.PROVIDER_MAST,
+        identifier="obsid-1",
+        title="WASP-96 b",
+        download_url="mast:JWST/product.fits",
+        metadata=metadata,
+        units={"x": "um", "y": "flux"},
+    )
+    service.queue_record(record)
+
+    dialog = RemoteDataDialog(
+        None,
+        remote_service=service,
+        ingest_service=ingest,
+    )
+
+    provider_index = dialog.provider_combo.findText(RemoteDataService.PROVIDER_MAST)
+    dialog.provider_combo.setCurrentIndex(provider_index)
+    dialog.search_edit.setText("WASP-96 b")
+    dialog._on_search()
+
+    headers = [dialog.results.horizontalHeaderItem(i).text() for i in range(dialog.results.columnCount())]
+    assert headers == [
+        "ID",
+        "Title",
+        "Target / Host",
+        "Telescope / Mission",
+        "Instrument / Mode",
+        "Product Type",
+        "Download",
+        "Preview / Citation",
+    ]
+
+    download_column = headers.index("Download")
+    download_widget = dialog.results.cellWidget(0, download_column)
+    assert isinstance(download_widget, QtWidgets.QLabel)
+    assert "href" in download_widget.text()
+    assert "https://mast.stsci.edu/portal/Download/file?uri=" in download_widget.text()
+
+    preview_column = headers.index("Preview / Citation")
+    preview_widget = dialog.results.cellWidget(0, preview_column)
+    assert isinstance(preview_widget, QtWidgets.QLabel)
+    assert "Preview" in preview_widget.text()
+    assert "Ahrer et al. 2022" in preview_widget.text()
+
+    status_text = dialog.status_label.text()
+    assert "WASP-96 b around WASP-96" in status_text
+    assert "JWST" in status_text
+
+    dialog.results.selectRow(0)
+    QtWidgets.QApplication.processEvents()
+    preview_text = dialog.preview.toPlainText()
+    assert "WASP-96 b around WASP-96" in preview_text
+    assert "Citation: Ahrer et al. 2022" in preview_text
 
     dialog.deleteLater()
     if QtWidgets.QApplication.instance() is app and not app.topLevelWidgets():

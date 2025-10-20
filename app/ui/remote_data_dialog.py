@@ -2,9 +2,13 @@
 
 from __future__ import annotations
 
+import html
 import json
+import math
+from collections.abc import Mapping, Sequence
 from pathlib import Path
-from typing import List
+from typing import Any, List
+from urllib.parse import quote
 
 from app.qt_compat import get_qt
 from app.services import DataIngestService, RemoteDataService, RemoteRecord
@@ -81,11 +85,24 @@ class RemoteDataDialog(QtWidgets.QDialog):
         layout.addWidget(splitter, 1)
 
         self.results = QtWidgets.QTableWidget(self)
-        self.results.setColumnCount(3)
-        self.results.setHorizontalHeaderLabels(["ID", "Title", "Source"])
+        self._results_headers = [
+            "ID",
+            "Title",
+            "Target / Host",
+            "Telescope / Mission",
+            "Instrument / Mode",
+            "Product Type",
+            "Download",
+            "Preview / Citation",
+        ]
+        self.results.setColumnCount(len(self._results_headers))
+        self.results.setHorizontalHeaderLabels(self._results_headers)
         self.results.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectionBehavior.SelectRows)
         self.results.setSelectionMode(QtWidgets.QAbstractItemView.SelectionMode.ExtendedSelection)
-        self.results.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.ResizeMode.Stretch)
+        header = self.results.horizontalHeader()
+        header.setSectionResizeMode(QtWidgets.QHeaderView.ResizeMode.Stretch)
+        for column in (0, 6, 7):
+            header.setSectionResizeMode(column, QtWidgets.QHeaderView.ResizeMode.ResizeToContents)
         self.results.verticalHeader().setVisible(False)
         self.results.itemSelectionChanged.connect(self._update_preview)
         splitter.addWidget(self.results)
@@ -143,12 +160,12 @@ class RemoteDataDialog(QtWidgets.QDialog):
             return
 
         self._records = records
-        self.results.setRowCount(len(records))
-        for row, record in enumerate(records):
-            self.results.setItem(row, 0, QtWidgets.QTableWidgetItem(record.identifier))
-            self.results.setItem(row, 1, QtWidgets.QTableWidgetItem(record.title))
-            self.results.setItem(row, 2, QtWidgets.QTableWidgetItem(record.download_url))
-        self.status_label.setText(f"{len(records)} result(s) fetched from {provider}.")
+        self._populate_results_table(records)
+        summary = self._format_status_summary(records)
+        status = f"{len(records)} result(s) fetched from {provider}."
+        if summary:
+            status = f"{status} {summary}"
+        self.status_label.setText(status)
         if records:
             self.results.selectRow(0)
         else:
@@ -211,8 +228,103 @@ class RemoteDataDialog(QtWidgets.QDialog):
         if not indexes:
             self.preview.clear()
             return
-        payload = self._records[indexes[0].row()].metadata
-        self.preview.setPlainText(json.dumps(payload, indent=2, ensure_ascii=False))
+        record = self._records[indexes[0].row()]
+        metadata = record.metadata if isinstance(record.metadata, Mapping) else {}
+        narrative_lines: list[str] = []
+        summary = self._format_exoplanet_summary(metadata)
+        if summary:
+            narrative_lines.append(summary)
+        instrument = self._format_instrument(record.metadata)
+        mission = self._format_mission(record.metadata)
+        mission_parts = [part for part in (mission, instrument) if part]
+        if mission_parts:
+            narrative_lines.append(" | ".join(mission_parts))
+        citation = self._extract_citation(record.metadata)
+        if citation:
+            narrative_lines.append(f"Citation: {citation}")
+        if narrative_lines:
+            narrative_lines.append("")
+        narrative_lines.append(json.dumps(metadata, indent=2, ensure_ascii=False))
+        self.preview.setPlainText("\n".join(narrative_lines))
+
+    def _populate_results_table(self, records: Sequence[RemoteRecord]) -> None:
+        self._clear_result_widgets()
+        self.results.setRowCount(len(records))
+        for row, record in enumerate(records):
+            self._set_table_text(row, 0, record.identifier)
+            self._set_table_text(row, 1, record.title)
+            self._set_table_text(row, 2, self._format_target(record))
+            self._set_table_text(row, 3, self._format_mission(record.metadata))
+            self._set_table_text(row, 4, self._format_instrument(record.metadata))
+            self._set_table_text(row, 5, self._format_product(record.metadata))
+            self._set_table_text(row, 6, "")
+            self._set_download_widget(row, 6, record.download_url)
+            self._set_table_text(row, 7, "")
+            self._set_preview_widget(row, 7, record.metadata)
+
+    def _set_table_text(self, row: int, column: int, value: str | None) -> None:
+        item = QtWidgets.QTableWidgetItem(value or "")
+        item.setFlags(item.flags() & ~QtCore.Qt.ItemFlag.ItemIsEditable)
+        self.results.setItem(row, column, item)
+
+    def _set_download_widget(self, row: int, column: int, url: str) -> None:
+        label = QtWidgets.QLabel(self.results)
+        hyperlink = self._link_for_download(url)
+        escaped = html.escape(hyperlink)
+        label.setText(f'<a href="{escaped}">Open</a>')
+        label.setOpenExternalLinks(True)
+        label.setTextInteractionFlags(QtCore.Qt.TextInteractionFlag.TextBrowserInteraction)
+        label.setAlignment(QtCore.Qt.AlignmentFlag.AlignLeft | QtCore.Qt.AlignmentFlag.AlignVCenter)
+        tooltip = url
+        if hyperlink != url:
+            tooltip = f"{url}\n{hyperlink}"
+        label.setToolTip(tooltip)
+        label.setFocusPolicy(QtCore.Qt.FocusPolicy.NoFocus)
+        self.results.setCellWidget(row, column, label)
+
+    def _set_preview_widget(self, row: int, column: int, metadata: Mapping[str, Any] | Any) -> None:
+        mapping = metadata if isinstance(metadata, Mapping) else {}
+        preview_url = self._first_text(mapping, [
+            "preview_url",
+            "previewURL",
+            "preview_uri",
+            "QuicklookURL",
+            "quicklook_url",
+            "productPreviewURL",
+            "thumbnailURL",
+            "thumbnail_uri",
+        ])
+        citation = self._extract_citation(mapping)
+        if not preview_url and not citation:
+            self.results.setCellWidget(row, column, None)
+            self._set_table_text(row, column, "")
+            return
+
+        label = QtWidgets.QLabel(self.results)
+        label.setOpenExternalLinks(True)
+        label.setTextInteractionFlags(QtCore.Qt.TextInteractionFlag.TextBrowserInteraction)
+        label.setAlignment(QtCore.Qt.AlignmentFlag.AlignLeft | QtCore.Qt.AlignmentFlag.AlignVCenter)
+        label.setWordWrap(True)
+        label.setFocusPolicy(QtCore.Qt.FocusPolicy.NoFocus)
+
+        fragments: list[str] = []
+        if preview_url:
+            escaped_url = html.escape(preview_url)
+            fragments.append(f'<a href="{escaped_url}">Preview</a>')
+            label.setToolTip(preview_url)
+        if citation:
+            fragments.append(html.escape(citation))
+        label.setText("<br/>".join(fragments))
+        self.results.setCellWidget(row, column, label)
+
+    def _clear_result_widgets(self) -> None:
+        for row in range(self.results.rowCount()):
+            for column in range(self.results.columnCount()):
+                widget = self.results.cellWidget(row, column)
+                if widget is not None:
+                    widget.deleteLater()
+                    self.results.setCellWidget(row, column, None)
+        self.results.clearContents()
 
     def _on_queue_downloads(self) -> None:
         selected = self.results.selectionModel().selectedRows()
@@ -253,19 +365,21 @@ class RemoteDataDialog(QtWidgets.QDialog):
             self.search_edit.setEnabled(True)
             self.search_button.setEnabled(True)
             self._provider_placeholders = {
-                RemoteDataService.PROVIDER_MAST: "JWST spectroscopic target (e.g. WASP-96 b, NIRSpec)…",
+                RemoteDataService.PROVIDER_MAST: (
+                    "Solar system body, host star, or exoplanet target (e.g. Jupiter, TRAPPIST-1, WASP-96 b)…"
+                ),
             }
             self._provider_hints = {
                 RemoteDataService.PROVIDER_MAST: (
-                    "MAST requests favour calibrated spectra (IFS cubes, slits, prisms). Enable "
-                    "\"Include imaging\" to broaden results with calibrated image products."
+                    "MAST requests favour calibrated spectra (IFS cubes, slits, prisms) and Exo.MAST cross-matching with the "
+                    "NASA Exoplanet Archive. Enable \"Include imaging\" to add calibrated previews alongside spectra."
                 ),
             }
             self._provider_examples = {
                 RemoteDataService.PROVIDER_MAST: [
-                    ("WASP-96 b – JWST/NIRSpec", "WASP-96 b"),
-                    ("WASP-39 b – JWST/NIRSpec", "WASP-39 b"),
-                    ("HD 189733 – JWST/NIRISS", "HD 189733"),
+                    ("Jupiter – JWST/NIRCam (solar system)", "Jupiter"),
+                    ("TRAPPIST-1e – JWST/NIRSpec (exoplanet host)", "TRAPPIST-1"),
+                    ("HD 189733 – HST/STIS (stellar benchmark)", "HD 189733"),
                 ],
             }
         else:
@@ -300,4 +414,155 @@ class RemoteDataDialog(QtWidgets.QDialog):
             self.status_label.clear()
 
         self._on_provider_changed()
+
+    # ------------------------------------------------------------------
+    def _format_status_summary(self, records: Sequence[RemoteRecord]) -> str:
+        if not records:
+            return ""
+        metadata = records[0].metadata if isinstance(records[0].metadata, Mapping) else {}
+        focus = [self._format_exoplanet_summary(metadata)]
+        mission = self._format_mission(metadata)
+        instrument = self._format_instrument(metadata)
+        focus.extend([mission, instrument])
+        cleaned = [part for part in focus if part]
+        return " | ".join(cleaned)
+
+    def _format_target(self, record: RemoteRecord) -> str:
+        metadata = record.metadata if isinstance(record.metadata, Mapping) else {}
+        target = self._first_text(metadata, ["target_name", "target", "title"]) or record.title
+        host = self._first_text(metadata, ["host_name", "hostname", "star_name", "st_name"])
+        planet = self._first_text(metadata, ["planet_name", "pl_name", "exoplanet", "object"])
+        label_parts: list[str] = []
+        if planet and host:
+            label_parts.append(f"{planet} ({host})")
+        elif planet:
+            label_parts.append(str(planet))
+        elif host and target and host != target:
+            label_parts.append(f"{target} ({host})")
+        if target and target not in label_parts:
+            label_parts.append(str(target))
+        return " • ".join(dict.fromkeys([part for part in label_parts if part]))
+
+    def _format_mission(self, metadata: Mapping[str, Any] | Any) -> str:
+        mapping = metadata if isinstance(metadata, Mapping) else {}
+        mission_candidates = [
+            self._first_text(mapping, ["telescope", "mission", "facility", "obs_collection", "project"]),
+            self._first_text(mapping, ["proposal_id", "proposal_title"]),
+        ]
+        mission_parts = [part for part in mission_candidates if part]
+        return " • ".join(dict.fromkeys(mission_parts))
+
+    def _format_instrument(self, metadata: Mapping[str, Any] | Any) -> str:
+        mapping = metadata if isinstance(metadata, Mapping) else {}
+        instrument = self._first_text(mapping, ["instrument_name", "instrument", "detector", "channel"])
+        mode = self._first_text(mapping, ["observation_mode", "mode", "obsmode", "configuration", "aperture"])
+        parts = [part for part in (instrument, mode) if part]
+        return " • ".join(parts)
+
+    def _format_product(self, metadata: Mapping[str, Any] | Any) -> str:
+        mapping = metadata if isinstance(metadata, Mapping) else {}
+        product = self._first_text(mapping, ["dataproduct_type", "productType", "intentType"])
+        calibration = self._first_text(mapping, ["calib_level", "dataRights"])
+        parts = [part for part in (product, calibration) if part]
+        return " • ".join(parts)
+
+    def _extract_citation(self, metadata: Mapping[str, Any] | Any) -> str:
+        mapping = metadata if isinstance(metadata, Mapping) else {}
+        citation = self._first_text(
+            mapping,
+            [
+                "citation",
+                "short_citation",
+                "reference",
+                "bib_reference",
+                "bibcode",
+                "proposal_pi",
+            ],
+        )
+        if citation:
+            return str(citation)
+        pi = self._first_text(mapping, ["proposal_pi"])
+        cycle = self._first_text(mapping, ["proposal_cycle", "cycle"])
+        if pi or cycle:
+            descriptor = ", ".join(part for part in (pi, cycle) if part)
+            return descriptor
+        return ""
+
+    def _format_exoplanet_summary(self, metadata: Mapping[str, Any]) -> str:
+        planet = self._first_text(metadata, ["planet_name", "pl_name", "target_name", "object"])
+        host = self._first_text(metadata, ["host_name", "hostname", "star_name", "st_name"])
+        discovery = self._first_text(metadata, ["discoverymethod", "disc_method", "discovery_method"])
+        period = self._first_number(metadata, ["pl_orbper", "orbital_period", "period_days"])
+        teff = self._first_number(metadata, ["st_teff", "teff", "stellar_temperature"])
+        summary_parts: list[str] = []
+        if planet and host:
+            summary_parts.append(f"{planet} around {host}")
+        elif planet:
+            summary_parts.append(str(planet))
+        elif host:
+            summary_parts.append(str(host))
+        if discovery:
+            summary_parts.append(f"Discovery: {discovery}")
+        if period is not None:
+            formatted_period = self._format_numeric(period, " d", decimals=2)
+            if formatted_period:
+                summary_parts.append(f"Period: {formatted_period}")
+        if teff is not None:
+            formatted_teff = self._format_numeric(teff, " K", decimals=0)
+            if formatted_teff:
+                summary_parts.append(f"T_eff: {formatted_teff}")
+        return " • ".join(summary_parts)
+
+    def _first_text(self, metadata: Mapping[str, Any], keys: Sequence[str]) -> str:
+        for key in keys:
+            value = self._lookup_metadata(metadata, key)
+            if value is None:
+                continue
+            if isinstance(value, (list, tuple, set)):
+                text = ", ".join(str(part).strip() for part in value if str(part).strip())
+            else:
+                text = str(value).strip()
+            if text:
+                return text
+        return ""
+
+    def _first_number(self, metadata: Mapping[str, Any], keys: Sequence[str]) -> float | None:
+        for key in keys:
+            value = self._lookup_metadata(metadata, key)
+            if value is None:
+                continue
+            try:
+                number = float(value)
+            except (TypeError, ValueError):
+                continue
+            if math.isfinite(number):
+                return number
+        return None
+
+    def _lookup_metadata(self, metadata: Mapping[str, Any], key: str) -> Any:
+        candidates = [metadata]
+        nested_keys = ("exomast", "exo_mast", "exoplanet_archive", "exoplanet", "planet", "host")
+        for nested in nested_keys:
+            value = metadata.get(nested)
+            if isinstance(value, Mapping):
+                candidates.append(value)
+        for candidate in candidates:
+            if not isinstance(candidate, Mapping):
+                continue
+            if key in candidate and candidate[key] not in (None, ""):
+                return candidate[key]
+        return None
+
+    def _format_numeric(self, value: float, suffix: str, *, decimals: int) -> str:
+        if not math.isfinite(value):
+            return ""
+        if abs(value - round(value)) < 10 ** -(decimals + 1):
+            return f"{int(round(value))}{suffix}"
+        return f"{value:.{decimals}f}{suffix}"
+
+    def _link_for_download(self, url: str) -> str:
+        if url.startswith("mast:"):
+            encoded = quote(url, safe="")
+            return f"https://mast.stsci.edu/portal/Download/file?uri={encoded}"
+        return url
 
