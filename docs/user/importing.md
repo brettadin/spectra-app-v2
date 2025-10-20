@@ -31,6 +31,10 @@ cache for provenance-aware reuse.
    provenance-aware cache records the canonical units alongside a copy of the
    upload so repeat loads avoid re-parsing.
 
+> **Need datasets?** Consult `docs/link_collection.md` for curated spectroscopy
+> portals, lab standards, and instrument handbooks that pair well with the
+> importer and remote catalogue workflow.
+
 ### Cache persistence controls
 
 The ingest pipeline now writes to the on-disk cache automatically, which keeps
@@ -44,6 +48,20 @@ Imported spectra always appear in canonical units inside the application. Use
  the unit toggle on the toolbar to view alternative axes without mutating the
  underlying data. The raw source file remains untouched in the provenance
  bundle created during export.
+
+### Browsing cached files
+
+Open the **Data** dock and switch to the **Library** tab to inspect cached
+uploads. Each row lists the stored alias, units, timestamp, provider/importer,
+and checksum. Selecting a row now fills the metadata preview beneath the table
+with the entry’s provenance, canonical units, byte size, and storage location,
+so you can audit the cache without re-opening the file. Use the search bar to
+filter by alias, units, provider, or checksum tokens. Double-click an entry to
+re-load it without touching the original path—ideal when you want to compare
+different normalisations or revisit a session offline. Routine imports no
+longer spam the knowledge log with raw file paths; only high-level summaries
+remain in `docs/history/KNOWLEDGE_LOG.md` while the library exposes the full
+cache index for auditability.
 
 ## Intelligent parsing of messy tables
 
@@ -112,11 +130,29 @@ bundle contains:
 - `manifest.json` — human-readable metadata describing the session, import
   source, applied unit conversions, and any math operations performed.
 - `spectra/` — canonicalised arrays in CSV format (`wavelength_nm`,
-  `intensity`) for each trace present in the workspace at export time.
+  `intensity`) for each trace that remains visible in the workspace at export time.
 - `sources/` — verbatim copies of the original uploads alongside their SHA256
   hashes so you can independently verify integrity.
 - `log.txt` — a chronological history of ingest, analysis, and export actions
   captured by the provenance service.
+- Optional extras (if selected in the export dialog):
+  - `*_wide.csv` — a paired-column view tagged with `# spectra-wide-v1` comment
+    headers so the CSV importer can expand each spectrum back into its own
+    trace. This is designed for spreadsheet workflows where keeping values side
+    by side is helpful before returning to Spectra.
+  - `*_composite.csv` — an averaged intensity profile that records how many
+    sources contributed to each wavelength sample. Use this when you want to
+    compare a blended envelope against laboratory references without manually
+    averaging outside the application.
+
+The top-level CSV now leads with the numeric wavelength/intensity columns and
+records provenance fields (`spectrum_id`, `spectrum_name`, units, point index)
+to the right. When you re-import this combined CSV—or the wide variant with the
+`spectra-wide-v1` header—the ingest pipeline spots the metadata, splits the
+file into per-trace bundles, and restores each spectrum individually. You can
+also ingest the composite CSV directly; the importer detects the standard
+`wavelength_nm,intensity` prefix and ignores the `source_count` bookkeeping
+column when choosing axes.
 
 Because the manifest records the units detected during import, round-tripping
 through Ångström, micrometre, or wavenumber views does not alter the stored

@@ -7,7 +7,8 @@ from app.services import DataIngestService, UnitsService
 
 def test_jcamp_ingest_fixture():
     service = DataIngestService(UnitsService())
-    spectrum = service.ingest(Path("tests/data/mini.dx.jcamp"))
+    spectra = service.ingest(Path("tests/data/mini.dx.jcamp"))
+    spectrum = spectra[0]
 
     ingest_meta = spectrum.metadata["ingest"]
     assert ingest_meta["importer"] == "JcampImporter"
