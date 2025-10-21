@@ -480,3 +480,9 @@
 - Wrapped the Remote Data status banner in a dedicated layout with a busy progress bar so the dialog no longer references an undefined `progress_container` during initialisation.
 - Search and download workflows now toggle the indicator while work is running, keeping the asynchronous UX aligned with the documentation.
 
+## 2025-10-20T20:54:53-04:00 — Exoplanet archive pipeline restored
+
+- Rebuilt the remote fetching stack so Exo.MAST, NASA’s Exoplanet Archive, and MAST product listings are chained together, yielding telescope, instrument, and citation metadata for solar-system targets, stellar standards, and transiting exoplanets.
+- Expanded the Remote Data dialog with mission/instrument columns, preview links, and enriched previews while documenting the new ExoSystems provider in the user guide.
+- Added regression coverage for the product-level MAST flow and the exoplanet resolution path, keeping the pipeline stable when dependencies are mocked in tests.
+

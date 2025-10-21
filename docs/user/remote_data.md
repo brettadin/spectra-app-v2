@@ -26,10 +26,10 @@ directly against laboratory references.
 
 1. Choose **File → Fetch Remote Data…** (or press `Ctrl+Shift+R`).
 2. Pick a catalogue from the *Catalogue* selector. The current build focuses on:
-   - **MAST** (MAST data products via `astroquery.mast`)
-   
-   > **Note**: NIST spectral line lookups now live in the Inspector’s **Reference → Spectral lines** tab, where you can pin
-   > multiple element/ion queries and manage colour palettes directly within the preview plot.
+   - **MAST ExoSystems** – Chains NASA’s Exoplanet Archive (PS/PSCompPars), curated solar-system targets, and Exo.MAST spectra before querying MAST for calibrated products.
+   - **MAST** – Direct access to the Mikulski Archive observations catalogue via `astroquery.mast`.
+
+   > **Note**: NIST spectral line lookups now live in the Inspector’s **Reference → Spectral lines** tab, where you can pin multiple element/ion queries and manage colour palettes directly within the preview plot.
 3. Enter a keyword, element symbol, or target name in the search field (or pick
    one of the curated **Examples…** entries) and click **Search**. The dialog
    blocks empty submissions so you always send provider-specific filters rather
@@ -37,34 +37,12 @@ directly against laboratory references.
 
 ### Provider-specific search tips
 
-- **MAST** – Free-text input is rewritten to `target_name` before invoking
-  `astroquery.mast.Observations.query_criteria`, and the adapter injects
-  `dataproduct_type="spectrum"`, `intentType="SCIENCE"`, and
-  `calib_level=[2, 3]` filters automatically. Supply JWST target names or
-  instrument identifiers (e.g. `WASP-96 b`, `NIRSpec grism`). The examples menu
-  preloads spectroscopy-friendly targets such as WASP‑96 b, WASP‑39 b, and
-  HD 189733 so you can trigger a query without retyping common names. Tick
-  **Include imaging** to relax the product filter so calibrated imaging results
-  appear alongside spectra.
+- **MAST ExoSystems** – Accepts planet, host-star, and solar-system names. The dialog resolves planets via the Exoplanet Archive, merges curated fallbacks (e.g. Jupiter, Vega, Tau Ceti), fetches Exo.MAST file lists, and finally queries MAST around the resolved coordinates. Expect enriched metadata (host parameters, discovery method, curated citations) alongside each spectrum. The **Examples…** menu highlights WASP‑39 b, TRAPPIST‑1, Jupiter, and Vega. Enable **Include imaging** to surface calibrated preview images in addition to spectra.
+
+- **MAST** – Free-text input is rewritten to `target_name` before invoking `astroquery.mast.Observations.query_criteria`, and the adapter injects `dataproduct_type="spectrum"`, `intentType="SCIENCE"`, and `calib_level=[2, 3]` filters automatically. Supply JWST target names or instrument identifiers (e.g. `NGC 7023`, `NIRSpec grism`). Tick **Include imaging** to relax the product filter so calibrated imaging results appear alongside spectra.
 
 The hint banner beneath the results table updates as you switch providers and
 also surfaces dependency warnings when optional clients are missing.
-
-> **Background execution**
->
-> Searches and downloads now run on background threads. The status banner at
-> the bottom of the dialog reports progress while the search/download buttons
-> remain disabled. This keeps the main window responsive—even long JWST queries
-> no longer freeze the shell—and any warnings from the background worker are
-> surfaced once the operation completes.
-
-> **Background execution**
->
-> Searches and downloads now run on background threads. The status banner at
-> the bottom of the dialog reports progress while the search/download buttons
-> remain disabled. This keeps the main window responsive—even long JWST queries
-> no longer freeze the shell—and any warnings from the background worker are
-> surfaced once the operation completes.
 
 > **Background execution**
 >
