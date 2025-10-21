@@ -73,11 +73,15 @@ also surfaces dependency warnings when optional clients are missing.
 
 The results table now surfaces a richer snapshot for each match—identifier,
 target, mission, instrument, product type, plus quick links for preview and
-download. Selecting a row shows the raw metadata payload in the preview panel so
-you can confirm provenance before downloading, with citation metadata rendered as
-bullet points alongside mission/instrument context. The preview/download links
-open in your default browser when you want to inspect the provider portal
-directly or follow the bundled ExoSystems references.
+download. Download cells expose the provider-safe hyperlink while keeping the
+original URI in the tooltip so you can copy either form when documenting your
+workflow. Preview cells likewise keep the quicklook URL in the tooltip and show
+the first available citation inline. Selecting a row shows the raw metadata
+payload in the preview panel so you can confirm provenance before downloading,
+with citation metadata rendered as bullet points alongside mission/instrument
+context. The preview/download links open in your default browser when you want
+to inspect the provider portal directly or follow the bundled ExoSystems
+references.
 
 > **Background execution**
 >

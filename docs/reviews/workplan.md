@@ -44,6 +44,8 @@ This document tracks feature batches, validation status, and outstanding backlog
       exoplanet/astrochemistry sections, then cross-linked the resources from the
       Remote Data user guide and developer notes so ingestion work references the
       curated pipelines.
+- [x] Consolidated the Remote Data dialog's download/preview cell helpers so tooltip handling stays consistent, guarded empty
+      URIs, extended quicklook key coverage, refreshed the user guide, and added a regression test for the rendered links.
 
 ### Recently Completed (2025-10-19)
 
