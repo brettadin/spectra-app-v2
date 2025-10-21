@@ -8,6 +8,13 @@
   results. (`tests/test_remote_data_service.py`)
 - Documented the resilient behaviour in the Remote Data user guide so analysts know curated searches continue even when bundles
   are offline. (`docs/user/remote_data.md`)
+## 2025-10-21 (Resource guide adds usage & maintenance notes) (18:42 EDT / 22:42 UTC)
+
+- Expanded the JWST/exoplanet tooling sections in `docs/link_collection.md` with
+  per-repository usage steps and maintenance tips so agents know how to run each
+  pipeline and verify whether upstream dependencies are still current.
+- Highlighted CRDS alignment checks for JWST notebooks/pipelines and reminded
+  analysts to pin commit hashes when relying on research-grade retrieval codes.
 
 ## 2025-10-21 (Solar System Archive rename and curated bundle refresh) (18:13 EDT / 22:13 UTC)
 
