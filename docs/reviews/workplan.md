@@ -19,8 +19,8 @@ This document tracks feature batches, validation status, and outstanding backlog
       remains).
 - [x] Validate remote catalogue UX: expand the provider roster beyond MAST once
       dependency checks stabilise and new spectroscopy sources are vetted.
-      (ExoSystems manifests now bundle curated spectra and surface citations in
-      the Remote Data dialog.)
+      (Solar System Archive manifests now bundle curated spectra and surface
+      citations in the Remote Data dialog.)
 - [x] Refresh START_HERE, MASTER PROMPT, AGENTS, and brains documentation so
       onboarding instructions match the current repository layout (AGENTS and
       START_HERE refreshed 2025-10-19; MASTER PROMPT timestamp guidance synced
@@ -30,11 +30,15 @@ This document tracks feature batches, validation status, and outstanding backlog
 
 ### Recently Completed (2025-10-21)
 
+- [x] Renamed the curated remote provider and bundled samples to the Solar
+      System Archive label, refreshed manifest paths plus descriptions, updated
+      Remote Data dialog copy, and aligned regression tests/documentation with
+      the new terminology.
 - [x] Restored the NIST ASD provider in the Remote Data dialog with refreshed
       hints/placeholders, keyword-aware query parsing, Qt coverage for NIST-only
       services, and user-guide updates directing persistent overlays back to the
       Inspector reference tab.
-- [x] Added a curated ExoSystems provider backed by bundled manifests/sample
+- [x] Added a curated Solar System Archive provider backed by bundled manifests/sample
       spectra, refreshed the Remote Data dialog hints/examples, rendered
       citations in the preview pane, and extended regression coverage for the
       local search/download path.

@@ -11,7 +11,7 @@
   "instrument": "MASCS/VIRS",
   "product_type": "Reflectance spectrum",
   "asset": {
-    "path": "samples/exosystems/mercury_messenger_mascs.csv",
+    "path": "samples/solar_system/mercury_messenger_mascs.csv",
     "columns": ["wavelength_nm", "reflectance"],
     "units": {"x": "nm", "y": "reflectance"},
     "description": "Synthetic Mercury reflectance sample derived from public MASCS quick-look products."

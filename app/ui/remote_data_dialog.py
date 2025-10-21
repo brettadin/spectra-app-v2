@@ -335,7 +335,7 @@ class RemoteDataDialog(QtWidgets.QDialog):
             return {"target_name": stripped} if stripped else {}
         if provider == RemoteDataService.PROVIDER_NIST:
             return self._build_nist_query(stripped)
-        if provider == RemoteDataService.PROVIDER_EXOSYSTEMS:
+        if provider == RemoteDataService.PROVIDER_SOLAR_SYSTEM:
             if stripped:
                 return {"text": stripped}
             return {"text": "", "include_all": "true"}
@@ -707,15 +707,15 @@ class RemoteDataDialog(QtWidgets.QDialog):
                     ("WASP-39 b – JWST/NIRSpec", "WASP-39 b"),
                     ("HD 189733 – JWST/NIRISS", "HD 189733"),
                 ]
-            if RemoteDataService.PROVIDER_EXOSYSTEMS in providers:
-                placeholders[RemoteDataService.PROVIDER_EXOSYSTEMS] = (
+            if RemoteDataService.PROVIDER_SOLAR_SYSTEM in providers:
+                placeholders[RemoteDataService.PROVIDER_SOLAR_SYSTEM] = (
                     "Curated solar system or stellar target (e.g. Jupiter, Vega)…"
                 )
-                hints[RemoteDataService.PROVIDER_EXOSYSTEMS] = (
-                    "ExoSystems samples are bundled manifests mapped to local spectra. Leave the field blank "
+                hints[RemoteDataService.PROVIDER_SOLAR_SYSTEM] = (
+                    "Solar System Archive samples are bundled manifests mapped to local spectra. Leave the field blank "
                     "to list every curated target, or search by planet/moon/star name to filter the table."
                 )
-                examples[RemoteDataService.PROVIDER_EXOSYSTEMS] = [
+                examples[RemoteDataService.PROVIDER_SOLAR_SYSTEM] = [
                     ("Mercury – MESSENGER MASCS", "Mercury"),
                     ("Jupiter – JWST ERS composite", "Jupiter"),
                     ("Vega – HST CALSPEC standard", "Vega"),

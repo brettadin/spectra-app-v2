@@ -11,7 +11,7 @@
   "instrument": "VIMS",
   "product_type": "Reflectance spectrum",
   "asset": {
-    "path": "samples/exosystems/saturn_cassini_composite.csv",
+    "path": "samples/solar_system/saturn_cassini_composite.csv",
     "columns": ["wavelength_nm", "reflectance"],
     "units": {"x": "nm", "y": "reflectance"},
     "description": "Synthetic Cassini/JWST composite reflectance profile for Saturn and major moons."

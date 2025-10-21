@@ -11,7 +11,7 @@
   "instrument": "NIRSpec/IFU",
   "product_type": "Reflectance spectrum",
   "asset": {
-    "path": "samples/exosystems/jupiter_jwst_ers.csv",
+    "path": "samples/solar_system/jupiter_jwst_ers.csv",
     "columns": ["wavelength_nm", "reflectance"],
     "units": {"x": "nm", "y": "reflectance"},
     "description": "Synthetic Jovian system reflectance assembled for curated examples."

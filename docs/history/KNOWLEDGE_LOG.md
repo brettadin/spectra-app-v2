@@ -27,6 +27,17 @@ Each entry in this document should follow this structure:
   applicable).
 
 ---
+## 2025-10-21T18:13:33-04:00 / 2025-10-21T22:13:36+00:00 – Solar System Archive rename
+
+**Author**: agent
+
+**Context**: Renamed the curated remote provider and bundled samples to the Solar System Archive label.
+
+**Summary**: Updated the remote data service/provider enums, UI copy, and curated manifest paths to adopt the Solar System Archive naming. Renamed the bundled directory to `samples/solar_system/`, refreshed associated manifests, and aligned the remote data user guide plus regression tests with the new terminology.
+
+**References**: `app/services/remote_data_service.py`, `app/ui/remote_data_dialog.py`, `samples/solar_system/`, `tests/test_remote_data_service.py`, `docs/user/remote_data.md`.
+
+---
 ## 2025-10-21T18:03:23-04:00 / 2025-10-21T22:03:23+00:00 – Documentation cross-links for JWST & exoplanet tooling
 
 **Author**: agent
@@ -45,14 +56,14 @@ ingestion or dependency work can align with the curated tooling.
 
 **Author**: agent
 
-**Context**: Bundled ExoSystems samples and UI affordances for the curated provider.
+**Context**: Bundled Solar System Archive samples (formerly ExoSystems) and UI affordances for the curated provider.
 
-**Summary**: Implemented a local search branch for the ExoSystems provider so curated names resolve to JSON manifests and
-synthetic spectra bundled under `samples/exosystems/`. Wired the Remote Data dialog with provider-specific hints/examples, taught
+**Summary**: Implemented a local search branch for the Solar System Archive provider so curated names resolve to JSON manifests and
+synthetic spectra bundled under `samples/solar_system/`. Wired the Remote Data dialog with provider-specific hints/examples, taught
 the preview pane to render citation bullets, and documented the workflow. Added regression coverage to exercise the curated
 search/download paths.
 
-**References**: `app/services/remote_data_service.py`, `samples/exosystems/`, `app/ui/remote_data_dialog.py`,
+**References**: `app/services/remote_data_service.py`, `samples/solar_system/`, `app/ui/remote_data_dialog.py`,
 `tests/test_remote_data_service.py`, `docs/user/remote_data.md`.
 
 ---

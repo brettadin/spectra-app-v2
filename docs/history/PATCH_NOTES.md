@@ -1,5 +1,12 @@
 # Patch Notes
 
+## 2025-10-21 (Solar System Archive rename and curated bundle refresh) (18:13 EDT / 22:13 UTC)
+
+- Renamed the curated remote provider to **Solar System Archive**, updating constants, provider lists, and cache metadata. (`app/services/remote_data_service.py`)
+- Refreshed Remote Data dialog placeholders, hints, and examples to use Solar System Archive terminology. (`app/ui/remote_data_dialog.py`)
+- Moved curated manifests and spectra to `samples/solar_system/`, adjusting manifest paths/descriptions plus regression tests. (`samples/solar_system/*`, `tests/test_remote_data_service.py`)
+- Updated the remote data user guide and historical documentation to reflect the new label. (`docs/user/remote_data.md`, `docs/history/KNOWLEDGE_LOG.md`)
+
 ## 2025-10-21 (Link collection adds JWST/exoplanet tooling cross-references) (18:03 EDT / 22:03 UTC)
 
 - Documented JWST analysis toolkits and exoplanet/astrochemistry packages in
@@ -7,18 +14,18 @@
   workflows.
 - Cross-referenced the new sections from the Remote Data user guide so operators
   know which pipelines to run before importing JWST spectra and how to pair
-  ExoSystems manifests with retrieval tooling.
+  Solar System Archive manifests with retrieval tooling.
 - Added developer guidance pointing to the curated notebooks/packages when
   extending ingestion scripts or choosing external dependencies.
 
-## 2025-10-21 (Curated ExoSystems manifests ship with citations) (17:18 EDT / 21:18 UTC)
+## 2025-10-21 (Curated Solar System Archive manifests ship with citations) (17:18 EDT / 21:18 UTC)
 
-- Added a lightweight search branch for the ExoSystems provider so curated names map to local manifests and emit `RemoteRecord`
-  entries with mission/instrument metadata and citation lists. (`app/services/remote_data_service.py`, `samples/exosystems/`)
+- Added a lightweight search branch for the Solar System Archive provider so curated names map to local manifests and emit `RemoteRecord`
+  entries with mission/instrument metadata and citation lists. (`app/services/remote_data_service.py`, `samples/solar_system/`)
 - Wired the new provider into the Remote Data dialog with dedicated placeholders/examples and taught the preview pane to render
   citation bullets pulled from manifest metadata. (`app/ui/remote_data_dialog.py`)
-- Bundled synthetic spectra/manifest pairs for each curated target and extended regression coverage to exercise the ExoSystems
-  search and download paths. (`samples/exosystems/*`, `tests/test_remote_data_service.py`)
+- Bundled synthetic spectra/manifest pairs for each curated target and extended regression coverage to exercise the Solar System Archive
+  search and download paths. (`samples/solar_system/*`, `tests/test_remote_data_service.py`)
 - Documented the curated workflow in the remote data user guide and noted the enhanced preview output. (`docs/user/remote_data.md`)
 
 ## 2025-10-21 (Remote Data dialog restores NIST provider) (14:22 EDT / 18:22 UTC)
