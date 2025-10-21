@@ -214,6 +214,7 @@ This document tracks feature batches, validation status, and outstanding backlog
 # 2025-10-20 — Remote data regression checks
 
 - 2025-10-20: ✅ `pytest`
+- 2025-10-21: ✅ `pytest tests/test_remote_data_dialog.py tests/test_remote_data_service.py`
 
 ## Batch 3 (2025-10-14)
 

@@ -486,3 +486,9 @@
 - Expanded the Remote Data dialog with mission/instrument columns, preview links, and enriched previews while documenting the new ExoSystems provider in the user guide.
 - Added regression coverage for the product-level MAST flow and the exoplanet resolution path, keeping the pipeline stable when dependencies are mocked in tests.
 
+## 2025-10-21T19:20:08-04:00 — Exo.MAST metadata resilience
+
+- Guarded the ExoSystems preview against `NaN` discovery years so selecting planets with incomplete archive records no longer raises errors.
+- Removed manual `%20` replacements when building Exo.MAST file-list requests so planets with spaces in their names (e.g. WASP-39 b) resolve citations again.
+- Documented the behaviour changes in the remote data guide and recorded the regression run in the workplan.
+

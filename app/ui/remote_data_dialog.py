@@ -5,7 +5,6 @@ from __future__ import annotations
 import html
 import json
 import math
-import re
 from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Any, List
@@ -1005,30 +1004,45 @@ class RemoteDataDialog(QtWidgets.QDialog):
 
     def _format_exoplanet_summary(self, metadata: Mapping[str, Any] | Any) -> str:
         mapping = metadata if isinstance(metadata, Mapping) else {}
-        summary = mapping.get("exoplanet_summary")
-        if isinstance(summary, str) and summary.strip():
-            return summary.strip()
-        exoplanet = mapping.get("exoplanet")
-        if isinstance(exoplanet, Mapping):
-            name = self._first_text(exoplanet, ["display_name", "name"])
-            classification = self._first_text(exoplanet, ["classification", "type"])
-            host = self._first_text(exoplanet, ["host_star", "host"])
+        exosystem = mapping.get("exosystem") if isinstance(mapping.get("exosystem"), Mapping) else None
+        if not exosystem:
+            return ""
+        parts: list[str] = []
+        planet = self._first_text(exosystem, ["planet_name", "display_name"])
+        host = self._first_text(exosystem, ["host_name", "object_name"])
+        if planet and host:
+            parts.append(f"{planet} orbiting {host}")
+        elif host:
+            parts.append(host)
+        elif planet:
+            parts.append(planet)
 
-            discovery_year_raw = exoplanet.get("discovery_year")
-            discovery_year = self._format_discovery_year(discovery_year_raw)
+        params = exosystem.get("parameters") if isinstance(exosystem.get("parameters"), Mapping) else {}
+        if params:
+            teff = params.get("stellar_teff")
+            if teff is not None:
+                parts.append(f"Tₑₓₜ ≈ {self._format_number(teff, suffix=' K')}")
+            distance = params.get("system_distance_pc")
+            if distance is not None:
+                parts.append(f"Distance ≈ {self._format_number(distance, suffix=' pc')}")
+            method = params.get("discovery_method")
+            year = params.get("discovery_year")
+            if method or year:
+                discovery = method or "Discovery"
+                year_text = ""
+                if year not in (None, ""):
+                    try:
+                        number = float(year)
+                    except (TypeError, ValueError):
+                        year_text = str(year).strip()
+                    else:
+                        if not math.isnan(number):
+                            year_text = str(int(number))
+                if year_text:
+                    discovery = f"{discovery} ({year_text})"
+                parts.append(discovery)
 
-            details = [
-                part
-                for part in (
-                    classification,
-                    host and f"Host: {host}",
-                    discovery_year and f"Discovered {discovery_year}",
-                )
-                if part
-            ]
-            if name or details:
-                return " – ".join(filter(None, [name, ", ".join(details) if details else ""]))
-        return ""
+        return " | ".join(parts)
 
     def _format_discovery_year(self, value: Any) -> str:
         if value is None:
@@ -1106,44 +1120,4 @@ class RemoteDataDialog(QtWidgets.QDialog):
         else:
             formatted = f"{number:.3g}"
         return f"{formatted}{suffix}"
-
-    def _first_number(self, metadata: Mapping[str, Any], keys: Sequence[str]) -> float | None:
-        for key in keys:
-            value = self._lookup_metadata(metadata, key)
-            if value is None:
-                continue
-            try:
-                number = float(value)
-            except (TypeError, ValueError):
-                continue
-            if math.isfinite(number):
-                return number
-        return None
-
-    def _lookup_metadata(self, metadata: Mapping[str, Any], key: str) -> Any:
-        candidates = [metadata]
-        nested_keys = ("exomast", "exo_mast", "exoplanet_archive", "exoplanet", "planet", "host")
-        for nested in nested_keys:
-            value = metadata.get(nested)
-            if isinstance(value, Mapping):
-                candidates.append(value)
-        for candidate in candidates:
-            if not isinstance(candidate, Mapping):
-                continue
-            if key in candidate and candidate[key] not in (None, ""):
-                return candidate[key]
-        return None
-
-    def _format_numeric(self, value: float, suffix: str, *, decimals: int) -> str:
-        if not math.isfinite(value):
-            return ""
-        if abs(value - round(value)) < 10 ** -(decimals + 1):
-            return f"{int(round(value))}{suffix}"
-        return f"{value:.{decimals}f}{suffix}"
-
-    def _link_for_download(self, url: str) -> str:
-        if url.startswith("mast:"):
-            encoded = quote(url, safe="")
-            return f"https://mast.stsci.edu/portal/Download/file?uri={encoded}"
-        return url
 

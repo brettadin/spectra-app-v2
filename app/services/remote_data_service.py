@@ -676,11 +676,8 @@ class RemoteDataService:
         if not planet_name or not self._has_requests():
             return None
         session = self._ensure_session()
-        name = str(planet_name).strip()
-        if not name:
-            return None
         url = "https://exo.mast.stsci.edu/api/v0.1/spectra/{}/filelist".format(
-            quote(name, safe="")
+            quote(str(planet_name).strip(), safe="")
         )
         try:
             response = session.get(url, timeout=30)

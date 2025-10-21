@@ -876,3 +876,18 @@ Import/Remote Import entries remain after the cleanup.
 - `docs/history/PATCH_NOTES.md`
 
 ---
+---
+## 2025-10-21T19:20:08-04:00 / 2025-10-21T23:20:10+00:00 – ExoSystems preview hardening
+
+**Author**: agent
+
+**Context**: Selecting planets with missing discovery years raised `ValueError` in the Remote Data dialog, and Exo.MAST file-list calls double-encoded planet names containing spaces, preventing metadata from resolving.
+
+**Summary**: Added NaN-aware coercion before formatting discovery years and removed the redundant `%20` replacement ahead of URL quoting so Exo.MAST lookups succeed for common targets like WASP-39 b while the preview stays stable on incomplete records.
+
+**References**:
+- `app/ui/remote_data_dialog.py`
+- `app/services/remote_data_service.py`
+- `docs/user/remote_data.md`
+- `docs/history/PATCH_NOTES.md`
+

@@ -37,7 +37,9 @@ directly against laboratory references.
 
 ### Provider-specific search tips
 
-- **MAST ExoSystems** – Accepts planet, host-star, and solar-system names. The dialog resolves planets via the Exoplanet Archive, merges curated fallbacks (e.g. Jupiter, Vega, Tau Ceti), fetches Exo.MAST file lists, and finally queries MAST around the resolved coordinates. Expect enriched metadata (host parameters, discovery method, curated citations) alongside each spectrum. The **Examples…** menu highlights WASP‑39 b, TRAPPIST‑1, Jupiter, and Vega. Enable **Include imaging** to surface calibrated preview images in addition to spectra.
+- **MAST ExoSystems** – Accepts planet, host-star, and solar-system names. The dialog resolves planets via the Exoplanet Archive, merges curated fallbacks (e.g. Jupiter, Vega, Tau Ceti), fetches Exo.MAST file lists, and finally queries MAST around the resolved coordinates. Expect enriched metadata (host parameters, discovery method, curated citations) alongside each spectrum. The **Examples…** menu highlights WASP‑39 b, TRAPPIST‑1, Jupiter, and Vega. Enable **Include imaging** to surface calibrated preview images in addition to spectra. Names with spaces (for example `WASP-39 b`) are handled automatically; no manual encoding is required.
+
+  Planet previews omit the discovery year when the archive reports it as unknown so incomplete metadata no longer interrupts the dialog.
 
 - **MAST** – Free-text input is rewritten to `target_name` before invoking `astroquery.mast.Observations.query_criteria`, and the adapter injects `dataproduct_type="spectrum"`, `intentType="SCIENCE"`, and `calib_level=[2, 3]` filters automatically. Supply JWST target names or instrument identifiers (e.g. `NGC 7023`, `NIRSpec grism`). Tick **Include imaging** to relax the product filter so calibrated imaging results appear alongside spectra.
 
