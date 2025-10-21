@@ -1,5 +1,14 @@
 # Patch Notes
 
+## 2025-10-21 (Remote Data dialog restores NIST provider) (14:22 EDT / 18:22 UTC)
+
+- Reintroduced the NIST ASD catalogue to the Remote Data dialog and refreshed provider hints, placeholders, and examples so
+  keyword-aware element/ion parsing keeps search context in cached exports. (`app/ui/remote_data_dialog.py`)
+- Extended the Qt regression suite to assert NIST availability, cover NIST-only service scenarios, and verify the query builder
+  forwards `element=`/`keyword=` clauses. (`tests/test_remote_data_dialog.py`)
+- Updated the remote data user guide to describe the reinstated NIST workflow and when to hand off to the Inspector’s pinned
+  view for long-lived overlays. (`docs/user/remote_data.md`)
+
 ## 2025-10-21 (Fixed NumPy deprecation and pytest marker warnings) (10:04 EDT / 14:04 UTC)
 
 - Replaced deprecated `np.trapz` with `np.trapezoid` in `overlay_service.py` and `test_overlay_service.py` to eliminate NumPy 2.x deprecation warnings.
@@ -507,3 +516,4 @@
 - Restored the Remote Data table helpers so search results populate all rows, selection changes refresh the metadata preview, and the download button only activates when rows are highlighted.
 - Added mission/instrument/product columns plus preview/download hyperlinks, and updated the user guide to describe the richer snapshot exposed for each catalogue match.
 
+# #? maybe? ensure inserted at top after header?? need to check file start.

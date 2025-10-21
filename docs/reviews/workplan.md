@@ -26,6 +26,13 @@ This document tracks feature batches, validation status, and outstanding backlog
 - [x] Document dependency prerequisites (requests, astroquery, pandas, astropy)
       and add installation verification guidance for Windows 11 users.
 
+### Recently Completed (2025-10-21)
+
+- [x] Restored the NIST ASD provider in the Remote Data dialog with refreshed
+      hints/placeholders, keyword-aware query parsing, Qt coverage for NIST-only
+      services, and user-guide updates directing persistent overlays back to the
+      Inspector reference tab.
+
 ### Recently Completed (2025-10-19)
 
 - [x] Offloaded Remote Data searches/downloads to background workers, locked the dialog controls while jobs execute, aggregated

@@ -5,6 +5,7 @@ from __future__ import annotations
 import html
 import json
 import math
+import re
 from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Any, List
@@ -321,7 +322,73 @@ class RemoteDataDialog(QtWidgets.QDialog):
         stripped = text.strip()
         if provider == RemoteDataService.PROVIDER_MAST:
             return {"target_name": stripped} if stripped else {}
+        if provider == RemoteDataService.PROVIDER_NIST:
+            return self._build_nist_query(stripped)
         return {"text": stripped} if stripped else {}
+
+    def _build_nist_query(self, stripped: str) -> dict[str, str]:
+        if not stripped:
+            return {}
+
+        element: str | None = None
+        ion_stage: str | None = None
+        keywords: list[str] = []
+
+        def assign_keyword(value: str) -> None:
+            normalized = value.strip()
+            if normalized:
+                keywords.append(normalized)
+
+        parts = [part.strip() for part in re.split(r"[;,\n]+", stripped) if part.strip()]
+        element_prefix = re.compile(
+            r"^(?P<element>[A-Za-z]{1,2}(?:\s*(?:[IVXLCDM]+|\d+\+?))?)(?P<rest>.*)$",
+            re.IGNORECASE,
+        )
+        element_only = re.compile(
+            r"^[A-Za-z]{1,2}(?:\s*(?:[IVXLCDM]+|\d+\+?))?$",
+            re.IGNORECASE,
+        )
+
+        for part in parts:
+            key_match = re.split(r"[:=]", part, maxsplit=1)
+            if len(key_match) == 2 and key_match[0].strip():
+                key = key_match[0].strip().lower()
+                value = key_match[1].strip()
+                if not value:
+                    continue
+                if key in {"element", "species"}:
+                    element = value
+                    continue
+                if key in {"ion", "ion_stage"}:
+                    ion_stage = value
+                    continue
+                if key in {"keyword", "keywords"}:
+                    assign_keyword(value)
+                    continue
+            if element is None:
+                prefix_match = element_prefix.match(part)
+                if prefix_match:
+                    candidate = prefix_match.group("element").strip()
+                    rest = prefix_match.group("rest").strip()
+                    if candidate and element_only.match(candidate):
+                        element = candidate
+                        if rest:
+                            assign_keyword(rest)
+                        continue
+            assign_keyword(part)
+
+        query: dict[str, str] = {}
+        if element:
+            query["element"] = element
+        if ion_stage:
+            query["ion_stage"] = ion_stage
+        if keywords:
+            query["text"] = " ".join(keywords)
+        elif element:
+            query["text"] = element
+        else:
+            query["text"] = stripped
+        return query
 
     def _on_example_selected(self, index: int) -> None:
         if index <= 0:
@@ -471,33 +538,45 @@ class RemoteDataDialog(QtWidgets.QDialog):
         self._start_download_worker(worker)
 
     def _refresh_provider_state(self) -> None:
-        providers = [
-            provider
-            for provider in self.remote_service.providers()
-            if provider != RemoteDataService.PROVIDER_NIST
-        ]
+        providers = list(self.remote_service.providers())
         self.provider_combo.clear()
         if providers:
             self.provider_combo.addItems(providers)
             self.provider_combo.setEnabled(True)
             self.search_edit.setEnabled(True)
             self.search_button.setEnabled(True)
-            self._provider_placeholders = {
-                RemoteDataService.PROVIDER_MAST: "JWST spectroscopic target (e.g. WASP-96 b, NIRSpec)…",
-            }
-            self._provider_hints = {
-                RemoteDataService.PROVIDER_MAST: (
+            placeholders: dict[str, str] = {}
+            hints: dict[str, str] = {}
+            examples: dict[str, list[tuple[str, str]]] = {}
+            if RemoteDataService.PROVIDER_NIST in providers:
+                placeholders[RemoteDataService.PROVIDER_NIST] = (
+                    "NIST element (e.g. Fe II) with optional keyword clauses (keyword=aurora)…"
+                )
+                hints[RemoteDataService.PROVIDER_NIST] = (
+                    "NIST ASD line lists accept element/ion identifiers (Fe II, O III) and optional "
+                    "`keyword=` filters (e.g. `keyword=nebula`) to narrow transitions before export."
+                )
+                examples[RemoteDataService.PROVIDER_NIST] = [
+                    ("Fe II – UV multiplets", "Fe II"),
+                    ("O III – nebular lines", "element=O III; keyword=nebula"),
+                    ("Ca II – H & K", "Ca II; keyword=H&K"),
+                ]
+            if RemoteDataService.PROVIDER_MAST in providers:
+                placeholders[RemoteDataService.PROVIDER_MAST] = (
+                    "JWST spectroscopic target (e.g. WASP-96 b, NIRSpec)…"
+                )
+                hints[RemoteDataService.PROVIDER_MAST] = (
                     "MAST requests favour calibrated spectra (IFS cubes, slits, prisms). Enable "
-                    "\"Include imaging\" to broaden results with calibrated image products."
-                ),
-            }
-            self._provider_examples = {
-                RemoteDataService.PROVIDER_MAST: [
+                    '"Include imaging" to broaden results with calibrated image products.'
+                )
+                examples[RemoteDataService.PROVIDER_MAST] = [
                     ("WASP-96 b – JWST/NIRSpec", "WASP-96 b"),
                     ("WASP-39 b – JWST/NIRSpec", "WASP-39 b"),
                     ("HD 189733 – JWST/NIRISS", "HD 189733"),
-                ],
-            }
+                ]
+            self._provider_placeholders = placeholders
+            self._provider_hints = hints
+            self._provider_examples = examples
         else:
             self.provider_combo.setEnabled(False)
             self.search_edit.setEnabled(False)
