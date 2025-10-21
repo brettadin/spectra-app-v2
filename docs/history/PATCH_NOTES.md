@@ -1,5 +1,14 @@
 # Patch Notes
 
+## 2025-10-21 (Curated search skips missing bundles) (18:44 EDT / 22:44 UTC)
+
+- Hardened the Solar System Archive search loop so missing or malformed curated manifests/assets are skipped instead of aborting
+  the entire search call. (`app/services/remote_data_service.py`)
+- Added regression coverage that appends broken manifests/assets to the curated roster and asserts searches still return valid
+  results. (`tests/test_remote_data_service.py`)
+- Documented the resilient behaviour in the Remote Data user guide so analysts know curated searches continue even when bundles
+  are offline. (`docs/user/remote_data.md`)
+
 ## 2025-10-21 (Solar System Archive rename and curated bundle refresh) (18:13 EDT / 22:13 UTC)
 
 - Renamed the curated remote provider to **Solar System Archive**, updating constants, provider lists, and cache metadata. (`app/services/remote_data_service.py`)

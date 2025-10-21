@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 from typing import Any
 
@@ -357,7 +358,7 @@ def test_providers_hide_missing_dependencies(monkeypatch: pytest.MonkeyPatch, st
         remote_module.RemoteDataService.PROVIDER_SOLAR_SYSTEM,
     ]
     assert service.providers(include_reference=False) == [
-        remote_module.RemoteDataService.PROVIDER_EXOSYSTEMS,
+        remote_module.RemoteDataService.PROVIDER_SOLAR_SYSTEM,
     ]
     unavailable = service.unavailable_providers()
     assert remote_module.RemoteDataService.PROVIDER_MAST in unavailable
@@ -375,11 +376,11 @@ def test_providers_exclude_reference_catalogues_when_requested(
     assert service.providers() == [
         remote_module.RemoteDataService.PROVIDER_NIST,
         remote_module.RemoteDataService.PROVIDER_MAST,
-        remote_module.RemoteDataService.PROVIDER_EXOSYSTEMS,
+        remote_module.RemoteDataService.PROVIDER_SOLAR_SYSTEM,
     ]
     assert service.providers(include_reference=False) == [
         remote_module.RemoteDataService.PROVIDER_MAST,
-        remote_module.RemoteDataService.PROVIDER_EXOSYSTEMS,
+        remote_module.RemoteDataService.PROVIDER_SOLAR_SYSTEM,
     ]
 
 
@@ -405,6 +406,72 @@ def test_search_curated_returns_manifest_records(store: LocalStore) -> None:
         {"text": "", "include_all": "true"},
     )
     assert len(all_records) >= len(service._CURATED_TARGETS)
+
+
+def test_search_curated_skips_missing_manifest(
+    monkeypatch: pytest.MonkeyPatch, store: LocalStore
+) -> None:
+    broken_entry = {
+        "names": {"missing"},
+        "display_name": "Missing Manifest",
+        "manifest": "samples/solar_system/does_not_exist.json",
+    }
+    monkeypatch.setattr(
+        remote_module.RemoteDataService,
+        "_CURATED_TARGETS",
+        remote_module.RemoteDataService._CURATED_TARGETS + (broken_entry,),
+    )
+
+    service = RemoteDataService(store, session=None)
+
+    records = service.search(
+        RemoteDataService.PROVIDER_SOLAR_SYSTEM,
+        {"text": "", "include_all": "true"},
+    )
+    assert records, "Expected curated records even when a manifest is missing"
+    for record in records:
+        manifest_meta = record.metadata.get("manifest_path")
+        if manifest_meta:
+            assert Path(manifest_meta).name != "does_not_exist.json"
+
+
+def test_search_curated_skips_missing_asset(
+    monkeypatch: pytest.MonkeyPatch, store: LocalStore, tmp_path: Path
+) -> None:
+    manifest_path = tmp_path / "broken_manifest.json"
+    manifest_path.write_text(
+        json.dumps(
+            {
+                "id": "broken-target",
+                "title": "Broken Target",
+                "asset": {"path": str(tmp_path / "missing.csv")},
+                "target": {"name": "Broken Target"},
+            }
+        ),
+        encoding="utf-8",
+    )
+    broken_entry = {
+        "names": {"broken"},
+        "display_name": "Broken Asset",
+        "manifest": str(manifest_path),
+    }
+    monkeypatch.setattr(
+        remote_module.RemoteDataService,
+        "_CURATED_TARGETS",
+        remote_module.RemoteDataService._CURATED_TARGETS + (broken_entry,),
+    )
+
+    service = RemoteDataService(store, session=None)
+
+    records = service.search(
+        RemoteDataService.PROVIDER_SOLAR_SYSTEM,
+        {"text": "", "include_all": "true"},
+    )
+    assert records, "Expected curated records even when an asset file is missing"
+    for record in records:
+        manifest_meta = record.metadata.get("manifest_path")
+        if manifest_meta:
+            assert Path(manifest_meta) != manifest_path
 
 
 def test_download_curated_uses_local_manifest(store: LocalStore) -> None:
