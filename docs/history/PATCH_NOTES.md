@@ -1,96 +1,5 @@
 # Patch Notes
 
-## 2025-10-21 (Curated search skips missing bundles) (18:44 EDT / 22:44 UTC)
-
-- Hardened the Solar System Archive search loop so missing or malformed curated manifests/assets are skipped instead of aborting
-  the entire search call. (`app/services/remote_data_service.py`)
-- Added regression coverage that appends broken manifests/assets to the curated roster and asserts searches still return valid
-  results. (`tests/test_remote_data_service.py`)
-- Documented the resilient behaviour in the Remote Data user guide so analysts know curated searches continue even when bundles
-  are offline. (`docs/user/remote_data.md`)
-## 2025-10-21 (Resource guide adds usage & maintenance notes) (18:42 EDT / 22:42 UTC)
-
-- Expanded the JWST/exoplanet tooling sections in `docs/link_collection.md` with
-  per-repository usage steps and maintenance tips so agents know how to run each
-  pipeline and verify whether upstream dependencies are still current.
-- Highlighted CRDS alignment checks for JWST notebooks/pipelines and reminded
-  analysts to pin commit hashes when relying on research-grade retrieval codes.
-
-## 2025-10-21 (Solar System Archive rename and curated bundle refresh) (18:13 EDT / 22:13 UTC)
-
-- Renamed the curated remote provider to **Solar System Archive**, updating constants, provider lists, and cache metadata. (`app/services/remote_data_service.py`)
-- Refreshed Remote Data dialog placeholders, hints, and examples to use Solar System Archive terminology. (`app/ui/remote_data_dialog.py`)
-- Moved curated manifests and spectra to `samples/solar_system/`, adjusting manifest paths/descriptions plus regression tests. (`samples/solar_system/*`, `tests/test_remote_data_service.py`)
-- Updated the remote data user guide and historical documentation to reflect the new label. (`docs/user/remote_data.md`, `docs/history/KNOWLEDGE_LOG.md`)
-## 2025-10-21 (Remote Data dialog defers NIST to Reference dock) (18:13 EDT / 22:13 UTC)
-
-- Added an `include_reference` flag to `RemoteDataService.providers()` and taught the Remote Data dialog to pass it so only
-  MAST and curated ExoSystems catalogues surface in the combo box while the Reference dock retains NIST access.
-- Removed the NIST placeholder/hint/example branch from the dialog UI and refreshed the Qt smoke tests to assert the combo
-  excludes NIST, handles reference-only services gracefully, and still wires the **Include imaging** toggle for MAST.
-- Documented the workflow change in the Remote Data user guide, steering ASD line-list retrieval through the Reference dock and
-  clarifying how cached exports capture query parameters.
-## 2025-10-21 (Remote data dialog consolidates link widgets) (18:13 EDT / 22:13 UTC)
-
-- Consolidated the duplicate preview/download widget helpers in the Remote Data dialog so a single implementation now guards
-  empty hyperlinks and preserves provider URIs in the tooltip alongside the sanitized browser link. (`app/ui/remote_data_dialog.py`)
-- Added a focused regression test that instantiates the dialog with mock records to assert the rendered links and tooltips for
-  both download and preview cells. (`tests/test_remote_data_dialog.py`)
-- Documented the tooltip behaviour in the remote data user guide so operators know where to copy the original URI versus the
-  browser-safe link. (`docs/user/remote_data.md`)
-
-## 2025-10-21 (Link collection adds JWST/exoplanet tooling cross-references) (18:03 EDT / 22:03 UTC)
-
-- Documented JWST analysis toolkits and exoplanet/astrochemistry packages in
-  `docs/link_collection.md`, highlighting how each integrates with Spectra
-  workflows.
-- Cross-referenced the new sections from the Remote Data user guide so operators
-  know which pipelines to run before importing JWST spectra and how to pair
-  Solar System Archive manifests with retrieval tooling.
-- Added developer guidance pointing to the curated notebooks/packages when
-  extending ingestion scripts or choosing external dependencies.
-
-## 2025-10-21 (Curated Solar System Archive manifests ship with citations) (17:18 EDT / 21:18 UTC)
-
-- Added a lightweight search branch for the Solar System Archive provider so curated names map to local manifests and emit `RemoteRecord`
-  entries with mission/instrument metadata and citation lists. (`app/services/remote_data_service.py`, `samples/solar_system/`)
-- Wired the new provider into the Remote Data dialog with dedicated placeholders/examples and taught the preview pane to render
-  citation bullets pulled from manifest metadata. (`app/ui/remote_data_dialog.py`)
-- Bundled synthetic spectra/manifest pairs for each curated target and extended regression coverage to exercise the Solar System Archive
-  search and download paths. (`samples/solar_system/*`, `tests/test_remote_data_service.py`)
-- Documented the curated workflow in the remote data user guide and noted the enhanced preview output. (`docs/user/remote_data.md`)
-
-## 2025-10-21 (Remote Data dialog restores NIST provider) (14:22 EDT / 18:22 UTC)
-
-- Reintroduced the NIST ASD catalogue to the Remote Data dialog and refreshed provider hints, placeholders, and examples so
-  keyword-aware element/ion parsing keeps search context in cached exports. (`app/ui/remote_data_dialog.py`)
-- Extended the Qt regression suite to assert NIST availability, cover NIST-only service scenarios, and verify the query builder
-  forwards `element=`/`keyword=` clauses. (`tests/test_remote_data_dialog.py`)
-- Updated the remote data user guide to describe the reinstated NIST workflow and when to hand off to the Inspector’s pinned
-  view for long-lived overlays. (`docs/user/remote_data.md`)
-
-## 2025-10-21 (Fixed NumPy deprecation and pytest marker warnings) (10:04 EDT / 14:04 UTC)
-
-- Replaced deprecated `np.trapz` with `np.trapezoid` in `overlay_service.py` and `test_overlay_service.py` to eliminate NumPy 2.x deprecation warnings.
-- Added pytest marker registration in `pyproject.toml` for `roundtrip` and `ui_contract` custom marks.
-- Updated normalization metadata basis from "abs-trapz" to "abs-trapezoid" for consistency.
-- All 68 tests pass with 0 warnings (down from 4 warnings).
-
-## 2025-10-21 (Added all solar system planets to curated targets) (09:57 EDT / 13:57 UTC)
-
-- Extended `RemoteDataService._CURATED_TARGETS` to include all major solar system planets (Mercury, Venus, Earth/Moon, Uranus, Neptune) in addition to existing Mars, Jupiter, Saturn.
-- Planets are now ordered from innermost to outermost following solar system structure.
-- Each new planet entry includes proper classification, display names, MAST object names, and scientific citations with DOIs.
-- Added comprehensive test `test_curated_targets_include_all_solar_system_planets` to validate all 8 planets are present with required metadata fields.
-- All 68 tests pass (20 skipped) with new planetary data accessible via MAST remote data dialog.
-
-## 2025-10-21 (Fixed missing records variable in MAST search) (00:30 EDT / 04:30 UTC)
-
-- Fixed `NameError` in `RemoteDataService._search_mast` where `records` variable was not initialized (was incorrectly named `systems`).
-- Updated test expectations in `test_search_mast_filters_products_and_records_metadata` to match the current implementation which uses observation `obsid` as identifier rather than `productFilename`.
-- Removed unused `get_product_list` method from test mock to avoid confusion.
-- All 67 tests now pass with 20 skipped.
-
 ## 2025-10-20 (Numpy window widened for Python 3.12+) (15:39 EDT / 19:39 UTC)
 
 - Relaxed the numpy dependency to `>=1.26,<3` so Windows launches on Python 3.12+
@@ -571,9 +480,9 @@
 - Wrapped the Remote Data status banner in a dedicated layout with a busy progress bar so the dialog no longer references an undefined `progress_container` during initialisation.
 - Search and download workflows now toggle the indicator while work is running, keeping the asynchronous UX aligned with the documentation.
 
-## 2025-10-20T23:18:18-04:00 — Remote data results table stabilised
+## 2025-10-20T20:54:53-04:00 — Exoplanet archive pipeline restored
 
-- Restored the Remote Data table helpers so search results populate all rows, selection changes refresh the metadata preview, and the download button only activates when rows are highlighted.
-- Added mission/instrument/product columns plus preview/download hyperlinks, and updated the user guide to describe the richer snapshot exposed for each catalogue match.
+- Rebuilt the remote fetching stack so Exo.MAST, NASA’s Exoplanet Archive, and MAST product listings are chained together, yielding telescope, instrument, and citation metadata for solar-system targets, stellar standards, and transiting exoplanets.
+- Expanded the Remote Data dialog with mission/instrument columns, preview links, and enriched previews while documenting the new ExoSystems provider in the user guide.
+- Added regression coverage for the product-level MAST flow and the exoplanet resolution path, keeping the pipeline stable when dependencies are mocked in tests.
 
-# #? maybe? ensure inserted at top after header?? need to check file start.
