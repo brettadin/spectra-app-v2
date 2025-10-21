@@ -152,6 +152,8 @@ class RemoteDataDialog(QtWidgets.QDialog):
         self._download_in_progress = False
         self._download_warnings: list[str] = []
         self._busy: bool = False
+        self._shutdown_timer: QtCore.QTimer | None = None
+        self._shutdown_requested = False
 
         self._build_ui()
 
@@ -766,6 +768,70 @@ class RemoteDataDialog(QtWidgets.QDialog):
             and not self._download_in_progress
         )
         self.download_button.setEnabled(enabled)
+
+    # ------------------------------------------------------------------
+    def reject(self) -> None:  # type: ignore[override]
+        if self._shutdown_requested:
+            return
+
+        threads = [
+            thread
+            for thread in (self._search_thread, self._download_thread)
+            if thread is not None and thread.isRunning()
+        ]
+        if not threads:
+            self._finish_reject()
+            return
+
+        self._shutdown_requested = True
+        self._set_busy(True)
+        self.progress_indicator.setRange(0, 0)
+        self.progress_indicator.setVisible(True)
+        self.status_label.setText(
+            "Closing Remote Data… waiting for background tasks to finish."
+        )
+        timer = self._ensure_shutdown_timer()
+        self._poll_shutdown_threads()
+        if self._shutdown_requested:
+            timer.start()
+
+    def _ensure_shutdown_timer(self) -> QtCore.QTimer:
+        if self._shutdown_timer is None:
+            timer = QtCore.QTimer(self)
+            timer.setInterval(150)
+            timer.setSingleShot(False)
+            timer.timeout.connect(self._poll_shutdown_threads)
+            self._shutdown_timer = timer
+        return self._shutdown_timer
+
+    def _poll_shutdown_threads(self) -> None:
+        if not self._shutdown_requested:
+            return
+
+        active = False
+        for thread in (self._search_thread, self._download_thread):
+            if thread is None:
+                continue
+            if thread.isRunning():
+                if not thread.wait(0):
+                    active = True
+                    continue
+            thread.wait(0)
+
+        if active:
+            return
+
+        self._finish_reject()
+
+    def _finish_reject(self) -> None:
+        timer = self._shutdown_timer
+        if timer is not None:
+            timer.stop()
+            timer.deleteLater()
+            self._shutdown_timer = None
+        self._shutdown_requested = False
+        self._set_busy(False)
+        super().reject()
 
     # ------------------------------------------------------------------
     def _format_target(self, record: RemoteRecord) -> str:

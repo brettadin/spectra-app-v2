@@ -30,6 +30,8 @@ This document tracks feature batches, validation status, and outstanding backlog
 
 ### Recently Completed (2025-10-21)
 
+- [x] Taught the Remote Data dialog cancel flow to poll worker shutdown with a Qt timer so the window closes responsively while
+      background network calls finish, and surfaced busy/status messaging during the wait.
 - [x] Renamed the curated remote provider and bundled samples to the Solar
       System Archive label, refreshed manifest paths plus descriptions, updated
       Remote Data dialog copy, and aligned regression tests/documentation with

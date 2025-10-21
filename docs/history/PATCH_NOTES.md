@@ -1,5 +1,11 @@
 # Patch Notes
 
+## 2025-10-21 (Remote Data cancel waits asynchronously) (19:21 EDT / 23:21 UTC)
+
+- Updated the Remote Data dialog cancel/close path to poll background search/download threads with a Qt timer so the UI stays
+  responsive while we wait for synchronous network calls to finish. (`app/ui/remote_data_dialog.py`)
+- Surfaced a busy indicator and status copy that explains the dialog is waiting on outstanding background tasks during shutdown.
+
 ## 2025-10-21 (Curated search skips missing bundles) (18:44 EDT / 22:44 UTC)
 
 - Hardened the Solar System Archive search loop so missing or malformed curated manifests/assets are skipped instead of aborting

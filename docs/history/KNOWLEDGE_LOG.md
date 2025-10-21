@@ -27,6 +27,20 @@ Each entry in this document should follow this structure:
   applicable).
 
 ---
+## 2025-10-21T19:21:16-04:00 / 2025-10-21T23:21:18+00:00 – Remote Data dialog shutdown responsiveness
+
+**Author**: agent
+
+**Context**: Remote Data dialog cancel/close workflow.
+
+**Summary**: Reworked the dialog's reject path to defer closing until background search/download threads stop while keeping the
+UI responsive. A Qt timer now polls thread completion instead of blocking on `thread.wait()`, and the cancel action shows a busy
+indicator plus status message so analysts know shutdown is pending. This prevents the main window from freezing during slow
+network calls.
+
+**References**: `app/ui/remote_data_dialog.py`, `docs/history/PATCH_NOTES.md`.
+
+---
 ## 2025-10-21T18:44:51-04:00 / 2025-10-21T22:44:53+00:00 – Curated search resiliency
 
 **Author**: agent
