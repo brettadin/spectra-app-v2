@@ -296,7 +296,10 @@ class RemoteDataDialog(QtWidgets.QDialog):
             # the provider string so the argument is intentionally ignored.
             pass
         provider = self.provider_combo.currentText()
-        is_mast = provider == RemoteDataService.PROVIDER_MAST
+        is_mast = provider in {
+            RemoteDataService.PROVIDER_MAST,
+            RemoteDataService.PROVIDER_EXOSYSTEMS,
+        }
         placeholder = self._provider_placeholders.get(provider)
         if placeholder:
             self.search_edit.setPlaceholderText(placeholder)
@@ -329,6 +332,8 @@ class RemoteDataDialog(QtWidgets.QDialog):
         stripped = text.strip()
         if provider == RemoteDataService.PROVIDER_MAST:
             return {"target_name": stripped} if stripped else {}
+        if provider == RemoteDataService.PROVIDER_EXOSYSTEMS:
+            return {"text": stripped} if stripped else {}
         return {"text": stripped} if stripped else {}
 
     def _on_example_selected(self, index: int) -> None:
@@ -487,18 +492,31 @@ class RemoteDataDialog(QtWidgets.QDialog):
             self.search_edit.setEnabled(True)
             self.search_button.setEnabled(True)
             self._provider_placeholders = {
-                RemoteDataService.PROVIDER_MAST: "JWST spectroscopic target (e.g. WASP-96 b, NIRSpec)…",
+                RemoteDataService.PROVIDER_EXOSYSTEMS: (
+                    "Planet, host star, or solar system target (e.g. WASP-39 b, TRAPPIST-1, Jupiter)…"
+                ),
+                RemoteDataService.PROVIDER_MAST: "MAST target name or observation keyword (e.g. NIRSpec, NGC 7023)…",
             }
             self._provider_hints = {
+                RemoteDataService.PROVIDER_EXOSYSTEMS: (
+                    "Chains NASA Exoplanet Archive coordinates with MAST product listings and Exo.MAST file lists."
+                    " Returns calibrated spectra for solar-system planets, representative stars, and exoplanet hosts."
+                ),
                 RemoteDataService.PROVIDER_MAST: (
                     "MAST requests favour calibrated spectra (IFS cubes, slits, prisms). Enable "
                     "\"Include imaging\" to broaden results with calibrated image products."
                 ),
             }
             self._provider_examples = {
-                RemoteDataService.PROVIDER_MAST: [
-                    ("WASP-96 b – JWST/NIRSpec", "WASP-96 b"),
+                RemoteDataService.PROVIDER_EXOSYSTEMS: [
                     ("WASP-39 b – JWST/NIRSpec", "WASP-39 b"),
+                    ("TRAPPIST-1 system", "TRAPPIST-1"),
+                    ("Jupiter – solar system", "Jupiter"),
+                    ("Vega – CALSPEC standard", "Vega"),
+                ],
+                RemoteDataService.PROVIDER_MAST: [
+                    ("NGC 7023 – JWST/NIRSpec", "NGC 7023"),
+                    ("SN 1987A – HST/STIS", "SN 1987A"),
                     ("HD 189733 – JWST/NIRISS", "HD 189733"),
                 ],
             }
@@ -567,12 +585,10 @@ class RemoteDataDialog(QtWidgets.QDialog):
 
     def _handle_search_results(self, records: list[RemoteRecord]) -> None:
         self._records = list(records)
-        self.results.setRowCount(len(records))
-        for row, record in enumerate(records):
-            self.results.setItem(row, 0, QtWidgets.QTableWidgetItem(record.identifier))
-            self.results.setItem(row, 1, QtWidgets.QTableWidgetItem(record.title))
-            self.results.setItem(row, 2, QtWidgets.QTableWidgetItem(record.download_url))
-        self.status_label.setText(f"{len(records)} result(s) fetched from {self.provider_combo.currentText()}.")
+        self._populate_results_table(records)
+        self.status_label.setText(
+            f"{len(records)} result(s) fetched from {self.provider_combo.currentText()}."
+        )
         if records:
             self.results.selectRow(0)
         else:
@@ -669,4 +685,142 @@ class RemoteDataDialog(QtWidgets.QDialog):
         else:
             self.progress_indicator.setVisible(False)
             self.progress_indicator.setRange(0, 1)
+
+    # ------------------------------------------------------------------
+    @staticmethod
+    def _first_text(mapping: Mapping[str, Any] | Any, keys: list[str]) -> str:
+        source = mapping if isinstance(mapping, Mapping) else {}
+        for key in keys:
+            value = source.get(key)
+            if value is None:
+                continue
+            if isinstance(value, (list, tuple)):
+                for item in value:
+                    if item is None:
+                        continue
+                    text = str(item).strip()
+                    if text:
+                        return text
+                continue
+            text = str(value).strip()
+            if text:
+                return text
+        return ""
+
+    def _format_target(self, record: RemoteRecord) -> str:
+        metadata = record.metadata if isinstance(record.metadata, Mapping) else {}
+        exosystem = metadata.get("exosystem") if isinstance(metadata.get("exosystem"), Mapping) else None
+        if exosystem:
+            planet = self._first_text(exosystem, ["planet_name", "display_name"])
+            host = self._first_text(exosystem, ["host_name", "object_name"])
+            if planet and host:
+                return f"{planet} (host: {host})"
+            if planet:
+                return planet
+            if host:
+                return host
+        return self._first_text(metadata, ["target_display", "target_name", "object_name", "obs_id"]) or record.title
+
+    def _format_mission(self, metadata: Mapping[str, Any] | Any) -> str:
+        mission = self._first_text(metadata, ["obs_collection", "telescope_name", "project"])
+        proposal = self._first_text(metadata, ["proposal_pi", "proposal_id"])
+        if mission and proposal:
+            return f"{mission} (PI: {proposal})"
+        return mission
+
+    def _format_instrument(self, metadata: Mapping[str, Any] | Any) -> str:
+        instrument = self._first_text(metadata, ["instrument_name", "instrument", "filters"])
+        aperture = self._first_text(metadata, ["aperture", "optical_element"])
+        if instrument and aperture:
+            return f"{instrument} ({aperture})"
+        return instrument
+
+    def _format_product(self, metadata: Mapping[str, Any] | Any) -> str:
+        product = self._first_text(metadata, ["productType", "dataproduct_type", "product_type"])
+        calib = metadata.get("calib_level") if isinstance(metadata, Mapping) else None
+        if product and calib is not None:
+            return f"{product} (calib {calib})"
+        return product
+
+    def _format_exoplanet_summary(self, metadata: Mapping[str, Any] | Any) -> str:
+        mapping = metadata if isinstance(metadata, Mapping) else {}
+        exosystem = mapping.get("exosystem") if isinstance(mapping.get("exosystem"), Mapping) else None
+        if not exosystem:
+            return ""
+        parts: list[str] = []
+        planet = self._first_text(exosystem, ["planet_name", "display_name"])
+        host = self._first_text(exosystem, ["host_name", "object_name"])
+        if planet and host:
+            parts.append(f"{planet} orbiting {host}")
+        elif host:
+            parts.append(host)
+        elif planet:
+            parts.append(planet)
+
+        params = exosystem.get("parameters") if isinstance(exosystem.get("parameters"), Mapping) else {}
+        if params:
+            teff = params.get("stellar_teff")
+            if teff is not None:
+                parts.append(f"Tₑₓₜ ≈ {self._format_number(teff, suffix=' K')}")
+            distance = params.get("system_distance_pc")
+            if distance is not None:
+                parts.append(f"Distance ≈ {self._format_number(distance, suffix=' pc')}")
+            method = params.get("discovery_method")
+            year = params.get("discovery_year")
+            if method or year:
+                discovery = method or "Discovery"
+                if year:
+                    discovery = f"{discovery} ({int(year)})" if isinstance(year, (int, float)) else f"{discovery} ({year})"
+                parts.append(discovery)
+
+        return " | ".join(parts)
+
+    def _extract_citation(self, metadata: Mapping[str, Any] | Any) -> str:
+        mapping = metadata if isinstance(metadata, Mapping) else {}
+        citations: list[str] = []
+
+        def _collect(source: Any) -> None:
+            if not isinstance(source, list):
+                return
+            for entry in source:
+                if not isinstance(entry, Mapping):
+                    continue
+                title = entry.get("title") or entry.get("name")
+                note = entry.get("notes")
+                doi = entry.get("doi")
+                url = entry.get("url")
+                fragment = title or url or doi
+                if not fragment:
+                    continue
+                detail_parts = [fragment]
+                if doi:
+                    detail_parts.append(f"DOI: {doi}")
+                if url:
+                    detail_parts.append(url)
+                if note:
+                    detail_parts.append(note)
+                citations.append(" — ".join(detail_parts))
+
+        _collect(mapping.get("citations"))
+        exosystem = mapping.get("exosystem") if isinstance(mapping.get("exosystem"), Mapping) else None
+        if exosystem:
+            _collect(exosystem.get("citations"))
+
+        return "; ".join(dict.fromkeys(citations))
+
+    @staticmethod
+    def _format_number(value: Any, *, suffix: str = "") -> str:
+        try:
+            number = float(value)
+        except (TypeError, ValueError):
+            return str(value)
+        if math.isnan(number):
+            return "?"
+        if abs(number) >= 1000:
+            formatted = f"{number:,.0f}"
+        elif abs(number) >= 1:
+            formatted = f"{number:,.1f}"
+        else:
+            formatted = f"{number:.3g}"
+        return f"{formatted}{suffix}"
 
