@@ -46,6 +46,13 @@
   focused on slit/grism/IFS products that align with laboratory references. Only
   override these defaults when a workflow explicitly requires imaging products
   and document the change in the workplan/user guide.
+- For end-to-end JWST reductions, consult the
+  [`JWST analysis notebooks & toolkits`](link_collection.md#jwst-analysis-notebooks--toolkits)
+  section before wiring new ingestion scripts—the listed pipelines align with
+  the calibration stages our provenance schema expects. Exoplanet retrieval or
+  astrochemistry features should reference the
+  [`exoplanet retrieval & astrochemistry packages`](link_collection.md#exoplanet-retrieval--astrochemistry-packages)
+  collection when selecting external dependencies.
 - Trace colouring can be toggled between the high-contrast palette and a uniform
   colour via the Style tab combo box; respect the `_use_uniform_palette`
   attribute when adding new plot interactions.

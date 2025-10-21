@@ -27,6 +27,20 @@ Each entry in this document should follow this structure:
   applicable).
 
 ---
+## 2025-10-21T18:03:23-04:00 / 2025-10-21T22:03:23+00:00 – Documentation cross-links for JWST & exoplanet tooling
+
+**Author**: agent
+
+**Context**: Expanded resource curation for JWST reduction workflows and exoplanet/astrochemistry integrations.
+
+**Summary**: Added dedicated sections to `docs/link_collection.md` covering JWST analysis notebooks/pipelines and exoplanet plus
+astrochemistry packages, noting how each feeds Spectra’s ingest and overlay workflows. Cross-referenced the new material from
+the Remote Data user guide so operators know when to run external reductions or retrievals, and from developer notes so future
+ingestion or dependency work can align with the curated tooling.
+
+**References**: `docs/link_collection.md`, `docs/user/remote_data.md`, `docs/developer_notes.md`.
+
+---
 ## 2025-10-21T17:18:38-04:00 / 2025-10-21T21:18:40+00:00 – Remote data curated provider
 
 **Author**: agent

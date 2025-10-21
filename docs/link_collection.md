@@ -47,14 +47,60 @@ resource into build scripts or documentation updates quickly.
 ## Data processing libraries
 
 - [`specutils`](https://specutils.readthedocs.io/) – Spectrum container and
-  analysis utilities (binning, smoothing, centroiding).
+  analysis utilities (binning, smoothing, centroiding). Pair with the exoplanet
+  retrieval frameworks below to keep post-fit spectra aligned with Spectra’s
+  unit conventions.
 - [`astropy`](https://docs.astropy.org/en/stable/) – Units, FITS IO, WCS; already
   a dependency for FITS ingest.
 - [`astroquery`](https://astroquery.readthedocs.io/) – Remote catalogue access
-  (NIST, MAST, VizieR). Our remote service currently relies on it for MAST.
+  (NIST, MAST, VizieR). Our remote service currently relies on it for MAST and
+  dovetails with the JWST notebooks listed below.
 - [`pyvo`](https://pyvo.readthedocs.io/) – VO TAP helper for VAMDC/ESO queries.
 - [`scikit-spectra`](https://pypi.org/project/scikit-spectra/) – Exploratory tools
   for chemometric analysis; evaluate before integrating additional math modules.
+
+## JWST analysis notebooks & toolkits
+
+- [`gbrammer/msaexp`](https://github.com/gbrammer/msaexp) – JWST/NIRSpec
+  reduction and extraction pipeline. Use it to generate calibrated 1D spectra
+  and slit metadata before ingesting the products via the Remote Data dialog.
+- [`spacetelescope/jdat_notebooks`](https://github.com/spacetelescope/jdat_notebooks)
+  – Worked examples from the JWST Data Analysis Tools initiative. Reference
+  their calibration and visualisation recipes when documenting Spectra workflows
+  for JWST cubes or mosaics.
+- [`spacetelescope/jwst`](https://github.com/spacetelescope/jwst) – The official
+  JWST calibration pipeline. Align Spectra’s provenance notes with its stages
+  (Detector1, Spec2, Spec3) when importing calibrated FITS.
+- [`spacetelescope/jwst_mast_query`](https://github.com/spacetelescope/jwst_mast_query)
+  – Helper scripts for constructing MAST API queries. Combine with our MAST
+  adapter to script batch downloads that feed Spectra’s cache.
+
+## Exoplanet retrieval & astrochemistry packages
+
+- [`natashabatalha/PandExo`](https://github.com/natashabatalha/PandExo) – JWST
+  exposure time and noise simulator. Export model spectra to compare predicted
+  SNR against imported observations inside Spectra.
+- [`OpenExoplanetCatalogue/open_exoplanet_catalogue`](https://github.com/OpenExoplanetCatalogue/open_exoplanet_catalogue)
+  – Curated planetary parameters in XML. Map key fields (radius, equilibrium
+  temperature) into Spectra metadata before running retrieval tools.
+- [`google-research/exoplanet-ml`](https://github.com/google-research/exoplanet-ml)
+  – Machine-learning models for transit detection. Use its vetting notebooks to
+  pre-select targets whose spectra will be analysed in Spectra.
+- [`MartianColonist/POSEIDON`](https://github.com/MartianColonist/POSEIDON) –
+  Atmospheric retrieval framework. Export posterior spectra and overlay the
+  credible intervals within Spectra traces.
+- [`ucl-exoplanets/Spectra_Sensitivity_analysis`](https://github.com/ucl-exoplanets/Spectra_Sensitivity_analysis)
+  – Sensitivity studies for transmission spectra. Plug the generated perturbation
+  grids into Spectra’s math tools to validate feature robustness.
+- [`uclchem/UCLCHEM`](https://github.com/uclchem/UCLCHEM) – Time-dependent
+  astrochemical modelling. Compare predicted abundances with lab references to
+  inform Spectra’s line-identification overlays.
+- [`laserkelvin/astrochem_embedding`](https://github.com/laserkelvin/astrochem_embedding)
+  – Embedding models for molecular spectra. Use embeddings to cluster imported
+  laboratory datasets before linking them to observational spectra.
+- [`yqiuu/spectuner`](https://github.com/yqiuu/spectuner) – Spectral neural
+  network tuner for molecular features. Apply trained models to refine line
+  identifications and feed the outputs back into Spectra overlays.
 
 ## Usage guidelines
 

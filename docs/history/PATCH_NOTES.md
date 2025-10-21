@@ -1,5 +1,16 @@
 # Patch Notes
 
+## 2025-10-21 (Link collection adds JWST/exoplanet tooling cross-references) (18:03 EDT / 22:03 UTC)
+
+- Documented JWST analysis toolkits and exoplanet/astrochemistry packages in
+  `docs/link_collection.md`, highlighting how each integrates with Spectra
+  workflows.
+- Cross-referenced the new sections from the Remote Data user guide so operators
+  know which pipelines to run before importing JWST spectra and how to pair
+  ExoSystems manifests with retrieval tooling.
+- Added developer guidance pointing to the curated notebooks/packages when
+  extending ingestion scripts or choosing external dependencies.
+
 ## 2025-10-21 (Curated ExoSystems manifests ship with citations) (17:18 EDT / 21:18 UTC)
 
 - Added a lightweight search branch for the ExoSystems provider so curated names map to local manifests and emit `RemoteRecord`
