@@ -17,10 +17,8 @@ This document tracks feature batches, validation status, and outstanding backlog
       and user ingests are categorised by instrument/type with working search
       (Data dock consolidation + filter landed 2025-10-19; grouping backlog
       remains).
-- [x] Validate remote catalogue UX: expand the provider roster beyond MAST once
+- [ ] Validate remote catalogue UX: expand the provider roster beyond MAST once
       dependency checks stabilise and new spectroscopy sources are vetted.
-      (Solar System Archive manifests now bundle curated spectra and surface
-      citations in the Remote Data dialog.)
 - [x] Refresh START_HERE, MASTER PROMPT, AGENTS, and brains documentation so
       onboarding instructions match the current repository layout (AGENTS and
       START_HERE refreshed 2025-10-19; MASTER PROMPT timestamp guidance synced
@@ -244,6 +242,11 @@ This document tracks feature batches, validation status, and outstanding backlog
 ### Batch 4 QA Log
 
 - 2025-10-15: ✅ `pytest -q`
+
+# 2025-10-20 — Remote data regression checks
+
+- 2025-10-20: ✅ `pytest`
+- 2025-10-21: ✅ `pytest tests/test_remote_data_dialog.py tests/test_remote_data_service.py`
 
 ## Batch 3 (2025-10-14)
 

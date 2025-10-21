@@ -26,12 +26,10 @@ directly against laboratory references.
 
 1. Choose **File → Fetch Remote Data…** (or press `Ctrl+Shift+R`).
 2. Pick a catalogue from the *Catalogue* selector. The current build focuses on:
-   - **MAST** (MAST data products via `astroquery.mast`)
-   - **Solar System Archive** (bundled curated manifests mapped to local sample spectra)
+   - **MAST ExoSystems** – Chains NASA’s Exoplanet Archive (PS/PSCompPars), curated solar-system targets, and Exo.MAST spectra before querying MAST for calibrated products.
+   - **MAST** – Direct access to the Mikulski Archive observations catalogue via `astroquery.mast`.
 
-   > **NIST ASD access**: The Inspector’s **Reference → Spectral lines** tab now handles NIST queries exclusively. Run ASD
-   > searches from that dock when you need atomic line lists, pin the overlays, or export CSV results. The Remote Data dialog
-   > concentrates on MAST catalogues and curated solar-system samples so the Reference dock owns all NIST provenance.
+   > **Note**: NIST spectral line lookups now live in the Inspector’s **Reference → Spectral lines** tab, where you can pin multiple element/ion queries and manage colour palettes directly within the preview plot.
 3. Enter a keyword, element symbol, or target name in the search field (or pick
    one of the curated **Examples…** entries) and click **Search**. The dialog
    blocks empty submissions so you always send provider-specific filters rather
@@ -39,36 +37,11 @@ directly against laboratory references.
 
 ### Provider-specific search tips
 
-- **MAST** – Free-text input is rewritten to `target_name` before invoking
-  `astroquery.mast.Observations.query_criteria`, and the adapter injects
-  `dataproduct_type="spectrum"`, `intentType="SCIENCE"`, and
-  `calib_level=[2, 3]` filters automatically. Supply JWST target names or
-  instrument identifiers (e.g. `WASP-96 b`, `NIRSpec grism`). The examples menu
-  preloads spectroscopy-friendly targets including all major solar system planets
-  (Mercury, Venus, Earth/Moon, Mars, Jupiter, Saturn, Uranus, Neptune), exoplanets
-  such as WASP‑96 b and WASP‑39 b, and stellar standards like Vega, so you can
-  trigger a query without retyping common names. Tick
-  **Include imaging** to relax the product filter so calibrated imaging results
-  appear alongside spectra.
-  See the [JWST analysis notebooks & toolkits](../link_collection.md#jwst-analysis-notebooks--toolkits)
-  section for end-to-end reduction pipelines you can run before importing the
-  calibrated spectra.
-- **Solar System Archive** – Provides a local catalogue of curated manifests and sample
-  spectra that mirror the targets highlighted on Exo.MAST. Leave the search box
-  blank (the dialog automatically supplies `include_all=true`) to list every
-  bundled asset, or type a planet/moon/star name (e.g. `Jupiter`, `Mercury`,
-  `Vega`) to filter the results. Each entry records citations, mission/instrument
-  tags, and file paths to the bundled CSV so the preview pane surfaces the
-  provenance before you ingest the sample. Missing or corrupted manifests are
-  skipped automatically so the rest of the curated catalogue remains usable even
-  if a single bundle goes offline.
-  Pair these assets with the [exoplanet retrieval & astrochemistry packages](../link_collection.md#exoplanet-retrieval--astrochemistry-packages)
-  when you want simulated spectra or retrieval posteriors to compare against the
-  imported observations.
+- **MAST ExoSystems** – Accepts planet, host-star, and solar-system names. The dialog resolves planets via the Exoplanet Archive, merges curated fallbacks (e.g. Jupiter, Vega, Tau Ceti), fetches Exo.MAST file lists, and finally queries MAST around the resolved coordinates. Expect enriched metadata (host parameters, discovery method, curated citations) alongside each spectrum. The **Examples…** menu highlights WASP‑39 b, TRAPPIST‑1, Jupiter, and Vega. Enable **Include imaging** to surface calibrated preview images in addition to spectra. Names with spaces (for example `WASP-39 b`) are handled automatically; no manual encoding is required.
 
-> **Need NIST lines?** Use the Reference dock’s **Spectral lines** panel. It wraps the same `RemoteDataService` NIST adapter,
-> keeps pinned overlays in sync with the inspector plot, and exposes CSV export actions so ASD line lists remain available even
-> though the Remote Data dialog now focuses on MAST catalogues.
+  Planet previews omit the discovery year when the archive reports it as unknown so incomplete metadata no longer interrupts the dialog.
+
+- **MAST** – Free-text input is rewritten to `target_name` before invoking `astroquery.mast.Observations.query_criteria`, and the adapter injects `dataproduct_type="spectrum"`, `intentType="SCIENCE"`, and `calib_level=[2, 3]` filters automatically. Supply JWST target names or instrument identifiers (e.g. `NGC 7023`, `NIRSpec grism`). Tick **Include imaging** to relax the product filter so calibrated imaging results appear alongside spectra.
 
 The hint banner beneath the results table updates as you switch providers and
 also surfaces dependency warnings when optional clients are missing.
@@ -141,10 +114,10 @@ Every download is associated with its remote URI. If you request the same file
 again the dialog reuses the cached copy instead of issuing another network
 request. This makes it safe to build collections during limited connectivity:
 the cache stores the raw download alongside canonical units so future sessions
-can ingest the files instantly. When you export line lists from the Reference
-dock’s NIST panel the cached pseudo URI embeds the full query parameters
-(element, ion stage, wavelength bounds, Ritz preference), so distinct searches
-produce unique cache entries instead of colliding on a shared label.
+can ingest the files instantly. NIST line lists now embed the full query
+parameters (element, ion stage, wavelength bounds, Ritz preference) in their
+pseudo URI, so distinct searches produce unique cache entries instead of
+colliding on a shared label.
 
 If persistent caching is disabled in **File → Enable Persistent Cache**, remote
 fetches are stored in a temporary data directory for the current session. The
