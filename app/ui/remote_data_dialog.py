@@ -2,9 +2,13 @@
 
 from __future__ import annotations
 
+import html
 import json
+import math
+from collections.abc import Mapping, Sequence
 from pathlib import Path
-from typing import List
+from typing import Any, List
+from urllib.parse import quote
 
 from app.qt_compat import get_qt
 from app.services import DataIngestService, RemoteDataService, RemoteRecord
@@ -183,13 +187,26 @@ class RemoteDataDialog(QtWidgets.QDialog):
         layout.addWidget(splitter, 1)
 
         self.results = QtWidgets.QTableWidget(self)
-        self.results.setColumnCount(3)
-        self.results.setHorizontalHeaderLabels(["ID", "Title", "Source"])
+        self._results_headers = [
+            "ID",
+            "Title",
+            "Target / Host",
+            "Telescope / Mission",
+            "Instrument / Mode",
+            "Product Type",
+            "Download",
+            "Preview / Citation",
+        ]
+        self.results.setColumnCount(len(self._results_headers))
+        self.results.setHorizontalHeaderLabels(self._results_headers)
         self.results.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectionBehavior.SelectRows)
         self.results.setSelectionMode(QtWidgets.QAbstractItemView.SelectionMode.ExtendedSelection)
-        self.results.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.ResizeMode.Stretch)
+        header = self.results.horizontalHeader()
+        header.setSectionResizeMode(QtWidgets.QHeaderView.ResizeMode.Stretch)
+        for column in (0, 6, 7):
+            header.setSectionResizeMode(column, QtWidgets.QHeaderView.ResizeMode.ResizeToContents)
         self.results.verticalHeader().setVisible(False)
-        self.results.itemSelectionChanged.connect(self._update_preview)
+        self.results.itemSelectionChanged.connect(self._on_selection_changed)
         splitter.addWidget(self.results)
 
         self.preview = QtWidgets.QPlainTextEdit(self)
@@ -198,7 +215,9 @@ class RemoteDataDialog(QtWidgets.QDialog):
         splitter.addWidget(self.preview)
 
         buttons = QtWidgets.QDialogButtonBox(self)
-        self.download_button = buttons.addButton("Download & Import", QtWidgets.QDialogButtonBox.ButtonRole.AcceptRole)
+        self.download_button = buttons.addButton(
+            "Download & Import", QtWidgets.QDialogButtonBox.ButtonRole.AcceptRole
+        )
         self.download_button.clicked.connect(self._on_queue_downloads)
         cancel = buttons.addButton(QtWidgets.QDialogButtonBox.StandardButton.Cancel)
         cancel.clicked.connect(self.reject)
@@ -212,7 +231,14 @@ class RemoteDataDialog(QtWidgets.QDialog):
         self.status_label = QtWidgets.QLabel(self)
         self.status_label.setObjectName("remote-status")
         self.status_label.setWordWrap(True)
-        layout.addWidget(self.status_label)
+        progress_container.addWidget(self.status_label, 1)
+        layout.addLayout(progress_container)
+
+        self._refresh_provider_state()
+        self._update_download_button_state()
+
+        self._refresh_provider_state()
+        self._update_enabled_state()
 
         self._refresh_provider_state()
         self._update_enabled_state()
@@ -312,13 +338,118 @@ class RemoteDataDialog(QtWidgets.QDialog):
         if not indexes:
             self.preview.clear()
             return
-        payload = self._records[indexes[0].row()].metadata
-        self.preview.setPlainText(json.dumps(payload, indent=2, ensure_ascii=False))
+        record = self._records[indexes[0].row()]
+        metadata = record.metadata if isinstance(record.metadata, Mapping) else {}
+        narrative_lines: list[str] = []
+        summary = self._format_exoplanet_summary(metadata)
+        if summary:
+            narrative_lines.append(summary)
+        instrument = self._format_instrument(record.metadata)
+        mission = self._format_mission(record.metadata)
+        mission_parts = [part for part in (mission, instrument) if part]
+        if mission_parts:
+            narrative_lines.append(" | ".join(mission_parts))
+        citation = self._extract_citation(record.metadata)
+        if citation:
+            narrative_lines.append(f"Citation: {citation}")
+        if narrative_lines:
+            narrative_lines.append("")
+        narrative_lines.append(json.dumps(metadata, indent=2, ensure_ascii=False))
+        self.preview.setPlainText("\n".join(narrative_lines))
+
+    def _on_selection_changed(self) -> None:
+        self._update_preview()
+        self._update_download_button_state()
+
+    def _populate_results_table(self, records: Sequence[RemoteRecord]) -> None:
+        self._clear_result_widgets()
+        self.results.setRowCount(len(records))
+        for row, record in enumerate(records):
+            self._set_table_text(row, 0, record.identifier)
+            self._set_table_text(row, 1, record.title)
+            self._set_table_text(row, 2, self._format_target(record))
+            self._set_table_text(row, 3, self._format_mission(record.metadata))
+            self._set_table_text(row, 4, self._format_instrument(record.metadata))
+            self._set_table_text(row, 5, self._format_product(record.metadata))
+            self._set_table_text(row, 6, "")
+            self._set_download_widget(row, 6, record.download_url)
+            self._set_table_text(row, 7, "")
+            self._set_preview_widget(row, 7, record.metadata)
+
+    def _set_table_text(self, row: int, column: int, value: str | None) -> None:
+        item = QtWidgets.QTableWidgetItem(value or "")
+        item.setFlags(item.flags() & ~QtCore.Qt.ItemFlag.ItemIsEditable)
+        self.results.setItem(row, column, item)
+
+    def _set_download_widget(self, row: int, column: int, url: str) -> None:
+        label = QtWidgets.QLabel(self.results)
+        hyperlink = self._link_for_download(url)
+        escaped = html.escape(hyperlink)
+        label.setText(f'<a href="{escaped}">Open</a>')
+        label.setOpenExternalLinks(True)
+        label.setTextInteractionFlags(QtCore.Qt.TextInteractionFlag.TextBrowserInteraction)
+        label.setAlignment(QtCore.Qt.AlignmentFlag.AlignLeft | QtCore.Qt.AlignmentFlag.AlignVCenter)
+        tooltip = url
+        if hyperlink != url:
+            tooltip = f"{url}\n{hyperlink}"
+        label.setToolTip(tooltip)
+        label.setFocusPolicy(QtCore.Qt.FocusPolicy.NoFocus)
+        self.results.setCellWidget(row, column, label)
+
+    def _set_preview_widget(self, row: int, column: int, metadata: Mapping[str, Any] | Any) -> None:
+        mapping = metadata if isinstance(metadata, Mapping) else {}
+        preview_url = self._first_text(mapping, [
+            "preview_url",
+            "previewURL",
+            "preview_uri",
+            "QuicklookURL",
+            "quicklook_url",
+            "productPreviewURL",
+            "thumbnailURL",
+            "thumbnail_uri",
+        ])
+        citation = self._extract_citation(mapping)
+        if not preview_url and not citation:
+            self.results.setCellWidget(row, column, None)
+            self._set_table_text(row, column, "")
+            return
+
+        label = QtWidgets.QLabel(self.results)
+        label.setOpenExternalLinks(True)
+        label.setTextInteractionFlags(QtCore.Qt.TextInteractionFlag.TextBrowserInteraction)
+        label.setAlignment(QtCore.Qt.AlignmentFlag.AlignLeft | QtCore.Qt.AlignmentFlag.AlignVCenter)
+        label.setWordWrap(True)
+        label.setFocusPolicy(QtCore.Qt.FocusPolicy.NoFocus)
+
+        fragments: list[str] = []
+        if preview_url:
+            escaped_url = html.escape(preview_url)
+            fragments.append(f'<a href="{escaped_url}">Preview</a>')
+            label.setToolTip(preview_url)
+        if citation:
+            fragments.append(html.escape(citation))
+        label.setText("<br/>".join(fragments))
+        self.results.setCellWidget(row, column, label)
+
+    def _clear_result_widgets(self) -> None:
+        for row in range(self.results.rowCount()):
+            for column in range(self.results.columnCount()):
+                widget = self.results.cellWidget(row, column)
+                if widget is not None:
+                    widget.deleteLater()
+                    self.results.setCellWidget(row, column, None)
+        self.results.clearContents()
+        self.results.setRowCount(0)
+
+    def _reset_results_table(self) -> None:
+        self._clear_result_widgets()
 
     def _on_queue_downloads(self) -> None:
+        if self._busy:
+            return
         selected = self.results.selectionModel().selectedRows()
         if not selected:
-            QtWidgets.QMessageBox.information(self, "No selection", "Select at least one record to import.")
+            self.status_label.setText("Select at least one record to import.")
             return
 
         records = [self._records[index.row()] for index in selected]
