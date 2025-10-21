@@ -13,10 +13,26 @@ from app.services import remote_data_service as remote_module
 
 
 class DummyResponse:
-    def __init__(self, *, json_payload: Any | None = None, content: bytes = b"", status: int = 200):
+    def __init__(
+        self,
+        *,
+        json_payload: Any | None = None,
+        content: bytes = b"",
+        text: str | None = None,
+        status: int = 200,
+    ):
         self._json = json_payload or {}
         self.content = content
         self.status_code = status
+        if text is not None:
+            self.text = text
+        elif content:
+            try:
+                self.text = content.decode("utf-8")
+            except UnicodeDecodeError:
+                self.text = ""
+        else:
+            self.text = ""
 
     def json(self) -> Any:
         return self._json
@@ -183,7 +199,9 @@ def test_download_nist_generates_csv_and_records_provenance(store: LocalStore) -
     assert Path(cached.cache_entry["stored_path"]) == stored_path
 
 
-def test_search_mast_table_conversion(store: LocalStore, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_search_mast_filters_products_and_records_metadata(
+    store: LocalStore, monkeypatch: pytest.MonkeyPatch
+) -> None:
     class DummyObservations:
         criteria: dict[str, Any] | None = None
 
@@ -210,7 +228,9 @@ def test_search_mast_table_conversion(store: LocalStore, monkeypatch: pytest.Mon
         Observations = DummyObservations
 
     service = RemoteDataService(store, session=None)
+    monkeypatch.setattr(service, "_ensure_exoplanet_archive", lambda: DummyArchive)
     monkeypatch.setattr(service, "_ensure_mast", lambda: DummyMast)
+    monkeypatch.setattr(service, "_fetch_exomast_filelist", lambda name: {"files": ["spec1"], "citation": "Exo.MAST"})
 
     records = service.search(RemoteDataService.PROVIDER_MAST, {"text": "WASP-96 b"})
 

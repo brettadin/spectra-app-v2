@@ -50,9 +50,21 @@ directly against laboratory references.
 The hint banner beneath the results table updates as you switch providers and
 also surfaces dependency warnings when optional clients are missing.
 
-The results table displays identifiers, titles, and the source URI for each
-match. Selecting a row shows the raw metadata payload in the preview panel so
-you can confirm provenance before downloading.
+> **Background execution**
+>
+> Searches and downloads now run on background threads. The status banner at
+> the bottom of the dialog reports progress while the search/download buttons
+> remain disabled. This keeps the main window responsive—even long JWST queries
+> no longer freeze the shell—and any warnings from the background worker are
+> surfaced once the operation completes.
+
+> **Background execution**
+>
+> Searches and downloads now run on background threads. The status banner at
+> the bottom of the dialog reports progress while the search/download buttons
+> remain disabled. This keeps the main window responsive—even long JWST queries
+> no longer freeze the shell—and any warnings from the background worker are
+> surfaced once the operation completes.
 
 > **Background execution**
 >
@@ -66,7 +78,9 @@ you can confirm provenance before downloading.
 
 1. Select one or more rows in the results table.
 2. Click **Download & Import** to fetch the source files and pipe them through
-   the normal ingestion pipeline.
+   the normal ingestion pipeline. The same status spinner appears while
+   downloads run, the action buttons are disabled, and the banner reports how
+   many products were imported (plus any failures) once the worker finishes.
 
 Behind the scenes the application:
 
@@ -105,7 +119,10 @@ Every download is associated with its remote URI. If you request the same file
 again the dialog reuses the cached copy instead of issuing another network
 request. This makes it safe to build collections during limited connectivity:
 the cache stores the raw download alongside canonical units so future sessions
-can ingest the files instantly.
+can ingest the files instantly. NIST line lists now embed the full query
+parameters (element, ion stage, wavelength bounds, Ritz preference) in their
+pseudo URI, so distinct searches produce unique cache entries instead of
+colliding on a shared label.
 
 If persistent caching is disabled in **File → Enable Persistent Cache**, remote
 fetches are stored in a temporary data directory for the current session. The

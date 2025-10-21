@@ -1,0 +1,428 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://spectra-app.org/schemas/provenance_schema/1.2.0",
+  "title": "Spectra App Provenance Manifest",
+  "description": "Authoritative provenance schema for export bundles. Versioned and validated in CI.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": { "const": "1.2.0", "description": "Semantic version of this schema." },
+    "app_version": { "type": "string" },
+    "manifest_id": { "type": "string", "minLength": 8 },
+    "created_at_et": { "type": "string", "format": "date-time", "description": "Wall time in America/New_York. CI warns if not ET offset." },
+    "platform": { "type": "string" },
+
+    "seed": { "type": "integer", "minimum": 0 },
+    "notes": { "type": "string" },
+
+    "inputs": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/input" }
+    },
+
+    "transforms": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/transform" }
+    },
+
+    "calibration": { "$ref": "#/$defs/calibration" },
+    "identification": { "$ref": "#/$defs/identification" },
+    "view_state": { "$ref": "#/$defs/view_state" },
+
+    "outputs": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/output" }
+    },
+
+    "citations": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/citation" }
+    }
+  },
+  "required": [
+    "schema_version",
+    "app_version",
+    "manifest_id",
+    "created_at_et",
+    "inputs",
+    "outputs"
+  ],
+
+  "$defs": {
+    "hash": {
+      "type": "string",
+      "pattern": "^[a-fA-F0-9]{64}$",
+      "description": "SHA-256 hex"
+    },
+
+    "units": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "x_unit": { "enum": ["nm"] },
+        "y_unit": { "enum": ["absorbance", "transmittance", "percent_transmittance", "intensity"] }
+      },
+      "required": ["x_unit", "y_unit"]
+    },
+
+    "input": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string" },
+        "kind": { "enum": ["upload", "remote", "bundled", "generated"] },
+        "source_path_or_uri": { "type": "string" },
+        "hash_sha256": { "$ref": "#/$defs/hash" },
+        "units": { "$ref": "#/$defs/units" },
+        "instrument": {
+          "type": "object",
+          "additionalProperties": true,
+          "properties": {
+            "name": { "type": "string" },
+            "resolution_fwhm_nm": { "type": "number", "minimum": 0 }
+          }
+        },
+        "metadata": { "type": "object", "additionalProperties": true }
+      },
+      "required": ["id", "kind", "source_path_or_uri", "hash_sha256", "units"]
+    },
+
+    "transform_airvac": {
+      "type": "object",
+      "properties": {
+        "kind": { "const": "airvac_convert" },
+        "params": {
+          "type": "object",
+          "properties": { "to": { "enum": ["air", "vacuum"] } },
+          "required": ["to"],
+          "additionalProperties": false
+        },
+        "citation": { "type": "string" }
+      },
+      "required": ["kind", "params"],
+      "additionalProperties": false
+    },
+
+    "transform_velocity": {
+      "type": "object",
+      "properties": {
+        "kind": { "const": "velocity_shift" },
+        "params": {
+          "type": "object",
+          "properties": {
+            "rv_kms": { "type": "number" },
+            "frame": { "enum": ["topocentric", "heliocentric", "barycentric"] }
+          },
+          "required": ["rv_kms", "frame"],
+          "additionalProperties": false
+        },
+        "citation": { "type": "string" }
+      },
+      "required": ["kind", "params"],
+      "additionalProperties": false
+    },
+
+    "transform_lsf": {
+      "type": "object",
+      "properties": {
+        "kind": { "const": "lsf_convolve" },
+        "params": {
+          "type": "object",
+          "properties": {
+            "kernel": { "enum": ["gaussian", "lorentzian", "voigt"] },
+            "fwhm_nm": { "type": "number", "exclusiveMinimum": 0 },
+            "convolve_down_only": { "type": "boolean" }
+          },
+          "required": ["kernel", "fwhm_nm"],
+          "additionalProperties": false
+        },
+        "citation": { "type": "string" }
+      },
+      "required": ["kind", "params"],
+      "additionalProperties": false
+    },
+
+    "transform_resample": {
+      "type": "object",
+      "properties": {
+        "kind": { "const": "resample" },
+        "params": {
+          "type": "object",
+          "properties": {
+            "method": { "enum": ["linear", "cubic", "fourier"] },
+            "grid": { "enum": ["canon_nm"] }
+          },
+          "required": ["method", "grid"],
+          "additionalProperties": false
+        }
+      },
+      "required": ["kind", "params"],
+      "additionalProperties": false
+    },
+
+    "transform_normalize": {
+      "type": "object",
+      "properties": {
+        "kind": { "const": "normalize" },
+        "params": {
+          "type": "object",
+          "properties": { "mode": { "enum": ["none", "max", "area"] } },
+          "required": ["mode"],
+          "additionalProperties": false
+        }
+      },
+      "required": ["kind", "params"],
+      "additionalProperties": false
+    },
+
+    "transform_smooth": {
+      "type": "object",
+      "properties": {
+        "kind": { "const": "smooth" },
+        "params": {
+          "type": "object",
+          "properties": {
+            "method": { "enum": ["sg", "off"] },
+            "window": { "type": "integer", "minimum": 3 },
+            "poly": { "type": "integer", "minimum": 1 }
+          },
+          "required": ["method"],
+          "additionalProperties": false
+        }
+      },
+      "required": ["kind", "params"],
+      "additionalProperties": false
+    },
+
+    "transform_mask": {
+      "type": "object",
+      "properties": {
+        "kind": { "const": "mask_interval" },
+        "params": {
+          "type": "object",
+          "properties": {
+            "x_nm_start": { "type": "number" },
+            "x_nm_end": { "type": "number" },
+            "reason": { "type": "string" }
+          },
+          "required": ["x_nm_start", "x_nm_end"],
+          "additionalProperties": false
+        }
+      },
+      "required": ["kind", "params"],
+      "additionalProperties": false
+    },
+
+    "transform_math": {
+      "type": "object",
+      "properties": {
+        "kind": { "const": "math_op" },
+        "params": {
+          "type": "object",
+          "properties": {
+            "op": { "enum": ["A_minus_B", "A_div_B"] },
+            "inputs": {
+              "type": "array",
+              "minItems": 2,
+              "items": { "type": "string" }
+            },
+            "epsilon": { "type": "number" }
+          },
+          "required": ["op", "inputs"],
+          "additionalProperties": false
+        }
+      },
+      "required": ["kind", "params"],
+      "additionalProperties": false
+    },
+
+    "transform": {
+      "oneOf": [
+        { "$ref": "#/$defs/transform_airvac" },
+        { "$ref": "#/$defs/transform_velocity" },
+        { "$ref": "#/$defs/transform_lsf" },
+        { "$ref": "#/$defs/transform_resample" },
+        { "$ref": "#/$defs/transform_normalize" },
+        { "$ref": "#/$defs/transform_smooth" },
+        { "$ref": "#/$defs/transform_mask" },
+        { "$ref": "#/$defs/transform_math" }
+      ]
+    },
+
+    "calibration": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "applied_steps": {
+          "type": "array",
+          "items": {
+            "oneOf": [
+              { "$ref": "#/$defs/transform_airvac" },
+              { "$ref": "#/$defs/transform_velocity" },
+              { "$ref": "#/$defs/transform_lsf" }
+            ]
+          }
+        },
+        "engine": {
+          "type": "object",
+          "additionalProperties": true,
+          "properties": {
+            "version": { "type": "string" },
+            "seed": { "type": "integer" }
+          }
+        },
+        "notes": { "type": "string" }
+      }
+    },
+
+    "identification": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "catalog": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": { "type": "string" },
+            "version": { "type": "string" },
+            "hash": { "$ref": "#/$defs/hash" }
+          },
+          "required": ["name"]
+        },
+        "bandpass_nm": {
+          "type": "array",
+          "items": { "type": "number" },
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "peak_params": {
+          "type": "object",
+          "additionalProperties": true,
+          "properties": {
+            "min_prom": { "type": "number", "minimum": 0 },
+            "min_dist_nm": { "type": "number", "minimum": 0 },
+            "smoothing": { "type": "string" }
+          }
+        },
+        "rv_grid": {
+          "type": "object",
+          "properties": {
+            "min_kms": { "type": "number" },
+            "max_kms": { "type": "number" },
+            "step": { "type": "number", "exclusiveMinimum": 0 }
+          },
+          "required": ["min_kms", "max_kms", "step"],
+          "additionalProperties": false
+        },
+        "weights": {
+          "type": "object",
+          "properties": {
+            "peaks": { "type": "number", "minimum": 0, "maximum": 1 },
+            "xcorr": { "type": "number", "minimum": 0, "maximum": 1 },
+            "consistency": { "type": "number", "minimum": 0, "maximum": 1 }
+          }
+        },
+        "score": { "type": "number", "minimum": 0, "maximum": 1 },
+        "components": {
+          "type": "object",
+          "properties": {
+            "peaks": { "type": "number", "minimum": 0, "maximum": 1 },
+            "xcorr": { "type": "number", "minimum": 0, "maximum": 1 },
+            "consistency": { "type": "number", "minimum": 0, "maximum": 1 }
+          }
+        },
+        "uncertainty": { "type": "number", "minimum": 0 },
+        "best_rv_kms": { "type": "number" },
+        "seed": { "type": "integer" }
+      }
+    },
+
+    "mask_interval": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "x_nm_start": { "type": "number" },
+        "x_nm_end": { "type": "number" },
+        "reason": { "type": "string" }
+      },
+      "required": ["x_nm_start", "x_nm_end"]
+    },
+
+    "view_state": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "display_unit": { "enum": ["nm", "angstrom", "micrometer", "wavenumber_cm-1"] },
+        "normalization": { "enum": ["none", "max", "area"] },
+        "smoothing": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "method": { "enum": ["off", "sg"] },
+            "window": { "type": "integer", "minimum": 3 },
+            "poly": { "type": "integer", "minimum": 1 }
+          }
+        },
+        "palette_key": { "type": "string" },
+        "lod_budget_points": { "type": "integer", "minimum": 1000 },
+        "crosshair_visible": { "type": "boolean" },
+        "uncertainty_visible": { "type": "boolean" },
+        "snap_to_peak": { "type": "boolean" },
+        "snap_radius_nm": { "type": "number", "minimum": 0 },
+        "masks": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/mask_interval" }
+        },
+        "calibration_banner": {
+          "type": "object",
+          "additionalProperties": true,
+          "properties": {
+            "kernel": { "enum": ["gaussian", "lorentzian", "voigt", "none"] },
+            "fwhm_nm": { "type": "number" },
+            "frame": { "enum": ["topocentric", "heliocentric", "barycentric"] },
+            "rv_kms": { "type": "number" }
+          }
+        },
+        "active_traces": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "id": { "type": "string" },
+              "visible": { "type": "boolean" },
+              "order": { "type": "integer", "minimum": 0 }
+            },
+            "required": ["id", "visible"]
+          }
+        }
+      }
+    },
+
+    "output": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "path": { "type": "string" },
+        "kind": { "enum": ["png", "csv", "json", "txt"] },
+        "hash_sha256": { "$ref": "#/$defs/hash" }
+      },
+      "required": ["path", "kind"]
+    },
+
+    "citation": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "title": { "type": "string" },
+        "authors": { "type": "array", "items": { "type": "string" } },
+        "year": { "type": "integer", "minimum": 1800, "maximum": 2200 },
+        "doi": { "type": "string" },
+        "url": { "type": "string" }
+      },
+      "required": ["title"]
+    }
+  }
+}
