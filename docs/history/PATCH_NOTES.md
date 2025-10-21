@@ -1,5 +1,14 @@
 # Patch Notes
 
+## 2025-10-21 (Remote data dialog consolidates link widgets) (18:13 EDT / 22:13 UTC)
+
+- Consolidated the duplicate preview/download widget helpers in the Remote Data dialog so a single implementation now guards
+  empty hyperlinks and preserves provider URIs in the tooltip alongside the sanitized browser link. (`app/ui/remote_data_dialog.py`)
+- Added a focused regression test that instantiates the dialog with mock records to assert the rendered links and tooltips for
+  both download and preview cells. (`tests/test_remote_data_dialog.py`)
+- Documented the tooltip behaviour in the remote data user guide so operators know where to copy the original URI versus the
+  browser-safe link. (`docs/user/remote_data.md`)
+
 ## 2025-10-21 (Link collection adds JWST/exoplanet tooling cross-references) (18:03 EDT / 22:03 UTC)
 
 - Documented JWST analysis toolkits and exoplanet/astrochemistry packages in

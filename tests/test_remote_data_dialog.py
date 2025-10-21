@@ -329,6 +329,62 @@ def test_populate_results_table_builds_links_and_preview(monkeypatch: Any) -> No
         app.quit()
 
 
+def test_download_and_preview_cells_include_tooltips(monkeypatch: Any) -> None:
+    app = _ensure_app()
+    ingest = IngestServiceStub()
+    dialog = RemoteDataDialog(
+        None,
+        remote_service=StubRemoteService(),
+        ingest_service=ingest,
+    )
+
+    mast_metadata = {
+        "target_name": "HD 189733 b",
+        "obs_collection": "JWST",
+        "preview_download": "https://example.invalid/quicklook.png",
+        "citation": "DOI 10.5555/example",
+    }
+    mast_record = RemoteRecord(
+        provider=RemoteDataService.PROVIDER_MAST,
+        identifier="mast-0001",
+        title="HD 189733 b transit",
+        download_url="mast:JWST/product.fits",
+        metadata=mast_metadata,
+        units={"x": "um", "y": "flux"},
+    )
+
+    empty_record = RemoteRecord(
+        provider=RemoteDataService.PROVIDER_MAST,
+        identifier="mast-0002",
+        title="Metadata only",
+        download_url="",
+        metadata={"citation": "Reference only"},
+        units={},
+    )
+
+    dialog._handle_search_results([mast_record, empty_record])
+
+    download_widget = dialog.results.cellWidget(0, 6)
+    assert isinstance(download_widget, QtWidgets.QLabel)
+    assert "https://mast.stsci.edu/api" in download_widget.text()
+    assert download_widget.toolTip() == (
+        "mast:JWST/product.fits\nhttps://mast.stsci.edu/api/v0.1/Download/file?uri=mast:JWST/product.fits"
+    )
+
+    preview_widget = dialog.results.cellWidget(0, 7)
+    assert isinstance(preview_widget, QtWidgets.QLabel)
+    assert "Preview" in preview_widget.text()
+    assert "DOI 10.5555/example" in preview_widget.text()
+    assert preview_widget.toolTip() == "https://example.invalid/quicklook.png"
+
+    assert dialog.results.cellWidget(1, 6) is None
+    assert dialog.results.item(1, 6).text() == ""
+
+    dialog.deleteLater()
+    if QtWidgets.QApplication.instance() is app and not app.topLevelWidgets():
+        app.quit()
+
+
 class IngestServiceStub:
     """Minimal stub mimicking the ingest service used by the dialog."""
 
