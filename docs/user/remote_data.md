@@ -27,7 +27,7 @@ directly against laboratory references.
 1. Choose **File → Fetch Remote Data…** (or press `Ctrl+Shift+R`).
 2. Pick a catalogue from the *Catalogue* selector. The current build focuses on:
    - **MAST** (MAST data products via `astroquery.mast`)
-   - **MAST ExoSystems** (bundled curated manifests mapped to local sample spectra)
+   - **Solar System Archive** (bundled curated manifests mapped to local sample spectra)
 
    > **NIST ASD access**: The Inspector’s **Reference → Spectral lines** tab now handles NIST queries exclusively. Run ASD
    > searches from that dock when you need atomic line lists, pin the overlays, or export CSV results. The Remote Data dialog
@@ -53,7 +53,7 @@ directly against laboratory references.
   See the [JWST analysis notebooks & toolkits](../link_collection.md#jwst-analysis-notebooks--toolkits)
   section for end-to-end reduction pipelines you can run before importing the
   calibrated spectra.
-- **MAST ExoSystems** – Provides a local catalogue of curated manifests and sample
+- **Solar System Archive** – Provides a local catalogue of curated manifests and sample
   spectra that mirror the targets highlighted on Exo.MAST. Leave the search box
   blank (the dialog automatically supplies `include_all=true`) to list every
   bundled asset, or type a planet/moon/star name (e.g. `Jupiter`, `Mercury`,
@@ -73,15 +73,11 @@ also surfaces dependency warnings when optional clients are missing.
 
 The results table now surfaces a richer snapshot for each match—identifier,
 target, mission, instrument, product type, plus quick links for preview and
-download. Download cells expose the provider-safe hyperlink while keeping the
-original URI in the tooltip so you can copy either form when documenting your
-workflow. Preview cells likewise keep the quicklook URL in the tooltip and show
-the first available citation inline. Selecting a row shows the raw metadata
-payload in the preview panel so you can confirm provenance before downloading,
-with citation metadata rendered as bullet points alongside mission/instrument
-context. The preview/download links open in your default browser when you want
-to inspect the provider portal directly or follow the bundled ExoSystems
-references.
+download. Selecting a row shows the raw metadata payload in the preview panel so
+you can confirm provenance before downloading, with citation metadata rendered as
+bullet points alongside mission/instrument context. The preview/download links
+open in your default browser when you want to inspect the provider portal
+directly or follow the bundled Solar System Archive references.
 
 > **Background execution**
 >

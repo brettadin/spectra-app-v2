@@ -11,10 +11,10 @@
   "instrument": "IR2",
   "product_type": "Reflectance spectrum",
   "asset": {
-    "path": "samples/exosystems/venus_venera_vnir.csv",
+    "path": "samples/solar_system/venus_venera_vnir.csv",
     "columns": ["wavelength_nm", "reflectance"],
     "units": {"x": "nm", "y": "reflectance"},
-    "description": "Synthetic Venus cloud-top reflectance profile used for curated ExoSystems demos."
+    "description": "Synthetic Venus cloud-top reflectance profile used for curated Solar System Archive demos."
   },
   "citations": [
     {

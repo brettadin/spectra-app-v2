@@ -1,7 +1,7 @@
 {
   "id": "neptune_ir",
   "title": "Neptune near-IR reflectance (synthetic sample)",
-  "summary": "Synthetic Neptune/Triton near-infrared reflectance profile for curated ExoSystems demos.",
+  "summary": "Synthetic Neptune/Triton near-infrared reflectance profile for curated Solar System Archive demos.",
   "target": {
     "name": "Neptune",
     "aliases": ["neptune", "triton"],
@@ -11,7 +11,7 @@
   "instrument": "SpeX",
   "product_type": "Reflectance spectrum",
   "asset": {
-    "path": "samples/exosystems/neptune_ir.csv",
+    "path": "samples/solar_system/neptune_ir.csv",
     "columns": ["wavelength_nm", "reflectance"],
     "units": {"x": "nm", "y": "reflectance"},
     "description": "Synthetic Neptune/Triton near-IR reflectance sequence compiled for curated examples."

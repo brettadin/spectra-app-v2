@@ -343,7 +343,7 @@ def test_providers_hide_missing_dependencies(monkeypatch: pytest.MonkeyPatch, st
     monkeypatch.setattr(remote_module, "_HAS_PANDAS", False)
     service = RemoteDataService(store, session=None)
 
-    assert service.providers() == [remote_module.RemoteDataService.PROVIDER_EXOSYSTEMS]
+    assert service.providers() == [remote_module.RemoteDataService.PROVIDER_SOLAR_SYSTEM]
     unavailable = service.unavailable_providers()
     assert remote_module.RemoteDataService.PROVIDER_NIST in unavailable
     assert remote_module.RemoteDataService.PROVIDER_MAST in unavailable
@@ -354,7 +354,7 @@ def test_providers_hide_missing_dependencies(monkeypatch: pytest.MonkeyPatch, st
 
     assert service.providers() == [
         remote_module.RemoteDataService.PROVIDER_NIST,
-        remote_module.RemoteDataService.PROVIDER_EXOSYSTEMS,
+        remote_module.RemoteDataService.PROVIDER_SOLAR_SYSTEM,
     ]
     assert service.providers(include_reference=False) == [
         remote_module.RemoteDataService.PROVIDER_EXOSYSTEMS,
@@ -386,10 +386,10 @@ def test_providers_exclude_reference_catalogues_when_requested(
 def test_search_curated_returns_manifest_records(store: LocalStore) -> None:
     service = RemoteDataService(store, session=None)
 
-    records = service.search(RemoteDataService.PROVIDER_EXOSYSTEMS, {"text": "Mercury"})
+    records = service.search(RemoteDataService.PROVIDER_SOLAR_SYSTEM, {"text": "Mercury"})
     assert records, "Expected at least one curated record for Mercury"
     record = records[0]
-    assert record.provider == RemoteDataService.PROVIDER_EXOSYSTEMS
+    assert record.provider == RemoteDataService.PROVIDER_SOLAR_SYSTEM
     assert record.download_url.startswith("curated:")
     assert record.units and record.units.get("x") == "nm"
     assert record.units.get("y") in {"reflectance", "relative_flux"}
@@ -401,7 +401,7 @@ def test_search_curated_returns_manifest_records(store: LocalStore) -> None:
     assert asset_path.exists()
 
     all_records = service.search(
-        RemoteDataService.PROVIDER_EXOSYSTEMS,
+        RemoteDataService.PROVIDER_SOLAR_SYSTEM,
         {"text": "", "include_all": "true"},
     )
     assert len(all_records) >= len(service._CURATED_TARGETS)
@@ -410,7 +410,7 @@ def test_search_curated_returns_manifest_records(store: LocalStore) -> None:
 def test_download_curated_uses_local_manifest(store: LocalStore) -> None:
     service = RemoteDataService(store, session=None)
     record = service.search(
-        RemoteDataService.PROVIDER_EXOSYSTEMS,
+        RemoteDataService.PROVIDER_SOLAR_SYSTEM,
         {"text": "Mercury"},
     )[0]
 

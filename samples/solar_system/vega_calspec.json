@@ -11,7 +11,7 @@
   "instrument": "STIS",
   "product_type": "Flux-calibrated spectrum",
   "asset": {
-    "path": "samples/exosystems/vega_calspec.csv",
+    "path": "samples/solar_system/vega_calspec.csv",
     "columns": ["wavelength_nm", "relative_flux"],
     "units": {"x": "nm", "y": "relative_flux"},
     "description": "Synthetic Vega CALSPEC-inspired flux standard for curated demos."

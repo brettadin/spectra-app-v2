@@ -11,7 +11,7 @@
   "instrument": "HRI",
   "product_type": "Reflectance spectrum",
   "asset": {
-    "path": "samples/exosystems/earth_disk_albedo.csv",
+    "path": "samples/solar_system/earth_disk_albedo.csv",
     "columns": ["wavelength_nm", "reflectance"],
     "units": {"x": "nm", "y": "reflectance"},
     "description": "Synthetic Earth-as-an-exoplanet reflectance profile including lunar contribution."

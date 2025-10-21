@@ -87,7 +87,7 @@ class RemoteDataService:
 
     PROVIDER_NIST = "NIST ASD"
     PROVIDER_MAST = "MAST"
-    PROVIDER_EXOSYSTEMS = "MAST ExoSystems"
+    PROVIDER_SOLAR_SYSTEM = "Solar System Archive"
 
     _DEFAULT_REGION_RADIUS = "0.02 deg"
     _CURATED_BASE_DIR = Path(__file__).resolve().parents[2]
@@ -96,52 +96,52 @@ class RemoteDataService:
         {
             "names": {"mercury"},
             "display_name": "Mercury",
-            "manifest": "samples/exosystems/mercury_messenger_mascs.json",
+            "manifest": "samples/solar_system/mercury_messenger_mascs.json",
         },
         {
             "names": {"venus"},
             "display_name": "Venus",
-            "manifest": "samples/exosystems/venus_akatsuki_ir2.json",
+            "manifest": "samples/solar_system/venus_akatsuki_ir2.json",
         },
         {
             "names": {"earth", "moon"},
             "display_name": "Earth/Moon",
-            "manifest": "samples/exosystems/earth_astronomy_earthshine.json",
+            "manifest": "samples/solar_system/earth_astronomy_earthshine.json",
         },
         {
             "names": {"mars"},
             "display_name": "Mars",
-            "manifest": "samples/exosystems/mars_jwst_nirspec.json",
+            "manifest": "samples/solar_system/mars_jwst_nirspec.json",
         },
         {
             "names": {"jupiter", "io", "europa", "ganymede", "callisto"},
             "display_name": "Jupiter",
-            "manifest": "samples/exosystems/jupiter_jwst_ers.json",
+            "manifest": "samples/solar_system/jupiter_jwst_ers.json",
         },
         {
             "names": {"saturn", "enceladus", "titan"},
             "display_name": "Saturn",
-            "manifest": "samples/exosystems/saturn_cassini_composite.json",
+            "manifest": "samples/solar_system/saturn_cassini_composite.json",
         },
         {
             "names": {"uranus"},
             "display_name": "Uranus",
-            "manifest": "samples/exosystems/uranus_near_ir.json",
+            "manifest": "samples/solar_system/uranus_near_ir.json",
         },
         {
             "names": {"neptune", "triton"},
             "display_name": "Neptune",
-            "manifest": "samples/exosystems/neptune_ir.json",
+            "manifest": "samples/solar_system/neptune_ir.json",
         },
         {
             "names": {"g2v", "solar analog", "sun-like", "hd 10700", "tau cet"},
             "display_name": "Tau Ceti (G8V)",
-            "manifest": "samples/exosystems/tau_ceti_pickles.json",
+            "manifest": "samples/solar_system/tau_ceti_pickles.json",
         },
         {
             "names": {"a0v", "vega"},
             "display_name": "Vega (A0V)",
-            "manifest": "samples/exosystems/vega_calspec.json",
+            "manifest": "samples/solar_system/vega_calspec.json",
         },
     )
 
@@ -154,7 +154,7 @@ class RemoteDataService:
         if self._has_mast_support():
             providers.append(self.PROVIDER_MAST)
         if self._has_curated_support():
-            providers.append(self.PROVIDER_EXOSYSTEMS)
+            providers.append(self.PROVIDER_SOLAR_SYSTEM)
         return providers
 
     def unavailable_providers(self) -> Dict[str, str]:
@@ -170,8 +170,8 @@ class RemoteDataService:
                 "Install the 'astroquery' and 'pandas' packages to enable MAST searches."
             )
         if not self._has_curated_support():
-            reasons[self.PROVIDER_EXOSYSTEMS] = (
-                "Curated ExoSystems manifests are missing from the application bundle."
+            reasons[self.PROVIDER_SOLAR_SYSTEM] = (
+                "Curated Solar System manifests are missing from the application bundle."
             )
         return reasons
 
@@ -187,7 +187,7 @@ class RemoteDataService:
             return self._search_nist(query)
         if provider == self.PROVIDER_MAST:
             return self._search_mast(query, include_imaging=include_imaging)
-        if provider == self.PROVIDER_EXOSYSTEMS:
+        if provider == self.PROVIDER_SOLAR_SYSTEM:
             return self._search_curated(query)
         raise ValueError(f"Unsupported provider: {provider}")
 
@@ -450,7 +450,7 @@ class RemoteDataService:
             "summary": manifest.get("summary"),
             "citations": manifest.get("citations", []),
             "units": units,
-            "provider": self.PROVIDER_EXOSYSTEMS,
+            "provider": self.PROVIDER_SOLAR_SYSTEM,
         }
 
         # Remove empty optional fields while keeping explicit falsy values like [] for citations.
@@ -466,7 +466,7 @@ class RemoteDataService:
 
         download_url = f"curated:{asset_path.name}"
         return RemoteRecord(
-            provider=self.PROVIDER_EXOSYSTEMS,
+            provider=self.PROVIDER_SOLAR_SYSTEM,
             identifier=identifier,
             title=title,
             download_url=download_url,
@@ -544,7 +544,7 @@ class RemoteDataService:
         return False
 
     def _fetch_remote(self, record: RemoteRecord) -> tuple[Path, bool, Path | None]:
-        if record.provider == self.PROVIDER_EXOSYSTEMS:
+        if record.provider == self.PROVIDER_SOLAR_SYSTEM:
             return self._fetch_curated(record)
         if record.provider == self.PROVIDER_NIST:
             return self._generate_nist_csv(record), True, None

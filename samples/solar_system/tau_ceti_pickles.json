@@ -11,7 +11,7 @@
   "instrument": "Composite",
   "product_type": "Flux-calibrated spectrum",
   "asset": {
-    "path": "samples/exosystems/tau_ceti_pickles.csv",
+    "path": "samples/solar_system/tau_ceti_pickles.csv",
     "columns": ["wavelength_nm", "relative_flux"],
     "units": {"x": "nm", "y": "relative_flux"},
     "description": "Synthetic Tau Ceti reference assembled from Pickles spectral standards."

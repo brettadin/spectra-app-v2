@@ -11,7 +11,7 @@
   "instrument": "SpeX",
   "product_type": "Reflectance spectrum",
   "asset": {
-    "path": "samples/exosystems/uranus_near_ir.csv",
+    "path": "samples/solar_system/uranus_near_ir.csv",
     "columns": ["wavelength_nm", "reflectance"],
     "units": {"x": "nm", "y": "reflectance"},
     "description": "Synthetic Uranus near-IR reflectance sequence referencing long-slit observations."
