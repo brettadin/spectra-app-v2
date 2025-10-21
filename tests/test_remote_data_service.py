@@ -224,29 +224,6 @@ def test_search_mast_filters_products_and_records_metadata(
                 },
             ]
 
-        @classmethod
-        def get_product_list(cls, table: Any) -> list[dict[str, Any]]:
-            cls.products_requested = table
-            return [
-                {
-                    "obsid": "12345",
-                    "productFilename": "jwst_calibrated.fits",
-                    "dataURI": "mast:JWST/jwst_calibrated.fits",
-                    "dataproduct_type": "spectrum",
-                    "productType": "SCIENCE",
-                    "calib_level": 3,
-                    "previewURL": "https://mast.stsci.edu/preview1.jpg",
-                    "units": {"x": "um", "y": "flux"},
-                    "dataproduct_type": "spectrum",
-                },
-                {
-                    "obsid": "12346",
-                    "target_name": "WASP-96 b",
-                    "dataURI": "mast:JWST/image.fits",
-                    "dataproduct_type": "image",
-                },
-            ]
-
     class DummyMast:
         Observations = DummyObservations
 

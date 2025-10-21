@@ -845,3 +845,17 @@ Import/Remote Import entries remain after the cleanup.
 - `docs/history/PATCH_NOTES.md`
 
 ---
+## 2025-10-20T20:26:50-04:00 / 2025-10-21T00:26:50+00:00 – Remote data progress indicator fix
+
+**Author**: agent
+
+**Context**: Launching the Remote Data dialog raised a `NameError` because `_build_ui` referenced an undefined `progress_container`, leaving the status banner without its intended layout while the documentation already described a progress display.
+
+**Summary**: Introduced an explicit progress layout housing a busy progress bar beside the status label and wired the search/download workflows to toggle it so asynchronous jobs expose their state without crashing at startup.
+
+**References**:
+- `app/ui/remote_data_dialog.py`
+- `docs/user/remote_data.md`
+- `docs/history/PATCH_NOTES.md`
+
+---

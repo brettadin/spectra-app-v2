@@ -50,11 +50,6 @@ directly against laboratory references.
 The hint banner beneath the results table updates as you switch providers and
 also surfaces dependency warnings when optional clients are missing.
 
-Selecting a row displays a narrative summary in the preview pane (planet/host,
-mission, instrument, and citation) followed by the full JSON payload. The status
-bar beneath the table also echoes the host/planet summary so you can scan for
-relevant targets without opening the preview pane.
-
 > **Background execution**
 >
 > Searches and downloads now run on background threads. The status banner at
@@ -70,6 +65,14 @@ relevant targets without opening the preview pane.
 > remain disabled. This keeps the main window responsive—even long JWST queries
 > no longer freeze the shell—and any warnings from the background worker are
 > surfaced once the operation completes.
+
+> **Background execution**
+>
+> Searches and downloads now run on background threads. A compact progress bar
+> beside the status banner lights up while work is in flight, and the
+> search/download buttons remain disabled. This keeps the main window
+> responsive—even long JWST queries no longer freeze the shell—and any warnings
+> from the background worker are surfaced once the operation completes.
 
 ## Downloading and importing spectra
 

@@ -228,20 +228,25 @@ class RemoteDataDialog(QtWidgets.QDialog):
         self.hint_label.setWordWrap(True)
         layout.addWidget(self.hint_label)
 
+        progress_container = QtWidgets.QHBoxLayout()
+        progress_container.setContentsMargins(0, 0, 0, 0)
+        layout.addLayout(progress_container)
+
+        self.progress_indicator = QtWidgets.QProgressBar(self)
+        self.progress_indicator.setRange(0, 1)
+        self.progress_indicator.setTextVisible(False)
+        self.progress_indicator.setFixedWidth(140)
+        self.progress_indicator.setVisible(False)
+        progress_container.addWidget(self.progress_indicator)
+
         self.status_label = QtWidgets.QLabel(self)
         self.status_label.setObjectName("remote-status")
         self.status_label.setWordWrap(True)
         progress_container.addWidget(self.status_label, 1)
-        layout.addLayout(progress_container)
-
-        self._refresh_provider_state()
-        self._update_download_button_state()
 
         self._refresh_provider_state()
         self._update_enabled_state()
-
-        self._refresh_provider_state()
-        self._update_enabled_state()
+        self._set_busy(False)
 
     # ------------------------------------------------------------------
     def _on_search(self) -> None:
@@ -267,6 +272,7 @@ class RemoteDataDialog(QtWidgets.QDialog):
 
         self._search_in_progress = True
         self._update_enabled_state()
+        self._set_busy(True)
         self.status_label.setText(f"Searching {provider}…")
         self.search_started.emit(provider)
 
@@ -457,6 +463,7 @@ class RemoteDataDialog(QtWidgets.QDialog):
         self._download_in_progress = True
         self._download_warnings = []
         self._update_enabled_state()
+        self._set_busy(True)
         self.status_label.setText(f"Downloading {len(records)} selection(s)…")
         self.download_started.emit(len(records))
 
@@ -527,6 +534,7 @@ class RemoteDataDialog(QtWidgets.QDialog):
             self.status_label.clear()
 
         self._on_provider_changed()
+        self._set_busy(False)
 
     # ------------------------------------------------------------------
     def _start_search_worker(self, worker: _SearchWorker) -> None:
@@ -579,6 +587,7 @@ class RemoteDataDialog(QtWidgets.QDialog):
     def _search_finished(self) -> None:
         self._search_in_progress = False
         self._update_enabled_state()
+        self._set_busy(False)
 
     def _handle_download_completed(self, spectra: list[object]) -> None:
         self._ingested = list(spectra)
@@ -615,6 +624,7 @@ class RemoteDataDialog(QtWidgets.QDialog):
         self._download_in_progress = False
         self._update_enabled_state()
         self._download_warnings.clear()
+        self._set_busy(False)
 
     def _update_enabled_state(self) -> None:
         searching = self._search_in_progress
@@ -651,4 +661,12 @@ class RemoteDataDialog(QtWidgets.QDialog):
             self._download_thread.wait()
             self._download_thread = None
         self._download_worker = None
+
+    def _set_busy(self, busy: bool) -> None:
+        if busy:
+            self.progress_indicator.setRange(0, 0)
+            self.progress_indicator.setVisible(True)
+        else:
+            self.progress_indicator.setVisible(False)
+            self.progress_indicator.setRange(0, 1)
 

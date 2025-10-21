@@ -57,6 +57,13 @@ except Exception:  # pragma: no cover - handled by dependency guards
 else:  # pragma: no branch - simple flag wiring
     _HAS_PANDAS = True
 
+try:  # Optional dependency – astroquery depends on pandas at runtime
+    import pandas  # type: ignore  # noqa: F401
+except Exception:  # pragma: no cover - handled by dependency guards
+    _HAS_PANDAS = False
+else:  # pragma: no branch - simple flag wiring
+    _HAS_PANDAS = True
+
 
 @dataclass
 class RemoteRecord:

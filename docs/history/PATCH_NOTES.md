@@ -475,3 +475,8 @@
 - Replaced the Remote Data dialog's Qt signal detection with a binding-aware helper so PySide6 uses `Signal` directly and PyQt keeps the `pyqtSignal` fallback.
 - Removes the startup crash observed on Windows now that the dialog no longer references `QtCore.pyqtSignal` when running under PySide6.
 
+## 2025-10-20T20:26:50-04:00 — Remote data progress container fix
+
+- Wrapped the Remote Data status banner in a dedicated layout with a busy progress bar so the dialog no longer references an undefined `progress_container` during initialisation.
+- Search and download workflows now toggle the indicator while work is running, keeping the asynchronous UX aligned with the documentation.
+
