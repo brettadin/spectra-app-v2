@@ -6,10 +6,13 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 import csv
 import json
+import math
 import tempfile
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, Iterable, List, Mapping
-from urllib.parse import urlparse
+from typing import Any, Dict, Iterable, List, Mapping, Sequence
+from urllib.parse import quote, urlencode, urlparse
 
 from . import nist_asd_service
 from .store import LocalStore
@@ -79,9 +82,80 @@ class RemoteDataService:
     mast_product_fields: Iterable[str] = field(
         default_factory=lambda: ("obsid", "target_name", "productFilename", "dataURI")
     )
+    nist_page_size: int = 100
 
     PROVIDER_NIST = "NIST ASD"
     PROVIDER_MAST = "MAST"
+    PROVIDER_EXOSYSTEMS = "MAST ExoSystems"
+
+    _DEFAULT_REGION_RADIUS = "0.02 deg"
+
+    _CURATED_TARGETS: tuple[Dict[str, Any], ...] = (
+        {
+            "names": {"jupiter", "io", "europa", "ganymede", "callisto"},
+            "display_name": "Jupiter",
+            "object_name": "Jupiter",
+            "classification": "Solar System planet",
+            "citations": [
+                {
+                    "title": "JWST Early Release Observations",
+                    "doi": "10.3847/1538-4365/acbd9a",
+                    "notes": "JWST ERS quick-look spectra curated for Jovian system.",
+                }
+            ],
+        },
+        {
+            "names": {"mars"},
+            "display_name": "Mars",
+            "object_name": "Mars",
+            "classification": "Solar System planet",
+            "citations": [
+                {
+                    "title": "JWST/NIRSpec Mars observations",
+                    "doi": "10.3847/1538-4365/abf3cb",
+                    "notes": "Quick-look spectra distributed via Exo.MAST science highlights.",
+                }
+            ],
+        },
+        {
+            "names": {"saturn", "enceladus", "titan"},
+            "display_name": "Saturn",
+            "object_name": "Saturn",
+            "classification": "Solar System planet",
+            "citations": [
+                {
+                    "title": "Cassini / JWST comparative spectra",
+                    "notes": "Curated composite assembled for Spectra examples",
+                }
+            ],
+        },
+        {
+            "names": {"g2v", "solar analog", "sun-like", "hd 10700", "tau cet"},
+            "display_name": "Tau Ceti (G8V)",
+            "object_name": "HD 10700",
+            "classification": "Nearby solar-type star",
+            "citations": [
+                {
+                    "title": "Pickles stellar spectral library",
+                    "doi": "10.1086/316293",
+                    "notes": "Representative solar-type spectrum maintained in Spectra samples.",
+                }
+            ],
+        },
+        {
+            "names": {"a0v", "vega"},
+            "display_name": "Vega (A0V)",
+            "object_name": "Vega",
+            "classification": "Spectral standard",
+            "citations": [
+                {
+                    "title": "HST CALSPEC standards",
+                    "doi": "10.1086/383228",
+                    "notes": "CALSPEC flux standards distributed via MAST.",
+                }
+            ],
+        },
+    )
 
     def providers(self) -> List[str]:
         """Return the list of remote providers whose dependencies are satisfied."""
@@ -236,7 +310,7 @@ class RemoteDataService:
 
         table = observations.Observations.query_criteria(**criteria)
         rows = self._table_to_records(table)
-        records: List[RemoteRecord] = []
+        systems: List[Dict[str, Any]] = []
         for row in rows:
             metadata = dict(row)
             if include_imaging:
@@ -460,6 +534,70 @@ class RemoteDataService:
         return record.download_url.startswith("mast:")
 
     # ------------------------------------------------------------------
+    @staticmethod
+    def _normalise_nist_query(identifier: str, meta: Mapping[str, Any]) -> Dict[str, Any]:
+        """Return a stable mapping that captures the effective NIST query."""
+
+        query_meta: Dict[str, Any] = {}
+        raw_query = meta.get("query") if isinstance(meta, Mapping) else None
+        if isinstance(raw_query, Mapping):
+            query_meta.update(raw_query)
+
+        query_meta.setdefault("identifier", identifier)
+        if "linename" not in query_meta and "spectrum" in query_meta:
+            query_meta["linename"] = query_meta["spectrum"]
+        if meta.get("element_symbol"):
+            query_meta.setdefault("element_symbol", meta.get("element_symbol"))
+        if meta.get("ion_stage_number") is not None:
+            query_meta.setdefault("ion_stage_number", meta.get("ion_stage_number"))
+        if meta.get("ion_stage"):
+            query_meta.setdefault("ion_stage", meta.get("ion_stage"))
+        if meta.get("label"):
+            query_meta.setdefault("label", meta.get("label"))
+
+        # Ensure wavelength bounds are represented explicitly for caching.
+        lower = query_meta.get("lower_wavelength")
+        upper = query_meta.get("upper_wavelength")
+        if lower is not None:
+            query_meta["lower_wavelength"] = float(lower)
+        if upper is not None:
+            query_meta["upper_wavelength"] = float(upper)
+
+        unit = query_meta.get("wavelength_unit")
+        if unit is not None:
+            query_meta["wavelength_unit"] = str(unit)
+        wtype = query_meta.get("wavelength_type")
+        if wtype is not None:
+            query_meta["wavelength_type"] = str(wtype)
+        if "use_ritz" in query_meta:
+            query_meta["use_ritz"] = bool(query_meta["use_ritz"])
+
+        return query_meta
+
+    @staticmethod
+    def _build_nist_download_url(label: str, query_meta: Mapping[str, Any]) -> str:
+        """Create a cache-safe pseudo URI for a NIST line query."""
+
+        safe_label = quote(str(label).strip().replace(" ", "_"), safe="+-_.") or "lines"
+
+        def _stringify(value: Any) -> str:
+            if isinstance(value, bool):
+                return "true" if value else "false"
+            if isinstance(value, float):
+                return f"{value:.9g}"
+            return str(value)
+
+        params: List[tuple[str, str]] = []
+        for key in sorted(query_meta):
+            value = query_meta[key]
+            if value is None:
+                continue
+            params.append((key, _stringify(value)))
+
+        query_string = urlencode(params, doseq=True, safe="+-_.:")
+        base = f"nist-asd://lines/{safe_label}"
+        return f"{base}?{query_string}" if query_string else base
+
     def _find_cached(self, uri: str) -> Dict[str, Any] | None:
         entries = self.store.list_entries()
         for entry in entries.values():
@@ -471,11 +609,24 @@ class RemoteDataService:
                 return dict(entry)
         return None
 
+    def _build_nist_cache_uri(self, token: str, query_signature: Mapping[str, Any]) -> str:
+        payload = json.dumps(
+            query_signature,
+            sort_keys=True,
+            separators=(",", ":"),
+            default=str,
+        )
+        digest = hashlib.sha256(payload.encode("utf-8")).hexdigest()[:12]
+        return f"nist-asd:{token}:{digest}"
+
     def _ensure_session(self):
         if self.session is not None:
             return self.session
         if requests is None:
-            raise RuntimeError("The 'requests' package is required for remote downloads")
+            raise RuntimeError(
+                "The 'requests' package is required for remote downloads. "
+                "Install it via `pip install -r requirements.txt` or `poetry install --with remote`."
+            )
         self.session = requests.Session()
         return self.session
 
@@ -532,4 +683,74 @@ class RemoteDataService:
         if moment.tzinfo is None:
             moment = moment.replace(tzinfo=timezone.utc)
         return moment.isoformat()
+
+    @staticmethod
+    def _normalise_observation_id(metadata: Mapping[str, Any]) -> str:
+        for key in (
+            "obsid",
+            "obs_id",
+            "parent_obsid",
+            "parent_obsID",
+            "ObservationID",
+            "observation_id",
+        ):
+            value = metadata.get(key) if isinstance(metadata, Mapping) else None
+            if value is None:
+                continue
+            text = str(value).strip()
+            if text:
+                return text
+        return ""
+
+    @staticmethod
+    def _first_text(metadata: Mapping[str, Any] | Any, keys: Sequence[str]) -> str:
+        mapping = metadata if isinstance(metadata, Mapping) else {}
+        for key in keys:
+            value = mapping.get(key)
+            if value is None:
+                continue
+            if isinstance(value, (list, tuple)):
+                for item in value:
+                    if item is None:
+                        continue
+                    text = str(item).strip()
+                    if text:
+                        return text
+                continue
+            text = str(value).strip()
+            if text:
+                return text
+        return ""
+
+    def _index_observations(self, rows: Sequence[Mapping[str, Any]]) -> Dict[str, Mapping[str, Any]]:
+        index: Dict[str, Mapping[str, Any]] = {}
+        for row in rows:
+            key = self._normalise_observation_id(row)
+            if key and key not in index:
+                index[key] = dict(row)
+        return index
+
+    def _build_mast_title(self, metadata: Mapping[str, Any]) -> str:
+        target = self._first_text(metadata, ["target_name", "obs_title", "intentDescription"])
+        mission = self._first_text(metadata, ["obs_collection", "telescope_name", "proposal_pi"])
+        instrument = self._first_text(metadata, ["instrument_name", "instrument", "filters"])
+        product = self._first_text(
+            metadata,
+            ["productType", "dataproduct_type", "product_type"],
+        )
+
+        details: list[str] = []
+        mission_parts = [part for part in (mission, instrument) if part]
+        if mission_parts:
+            details.append(" / ".join(mission_parts))
+        if product:
+            details.append(product)
+
+        if target and details:
+            return f"{target} — {'; '.join(details)}"
+        if target:
+            return target
+        if details:
+            return "; ".join(details)
+        return str(metadata.get("productFilename") or metadata.get("obs_id") or "MAST product")
 

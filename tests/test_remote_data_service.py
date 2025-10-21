@@ -13,10 +13,26 @@ from app.services import remote_data_service as remote_module
 
 
 class DummyResponse:
-    def __init__(self, *, json_payload: Any | None = None, content: bytes = b"", status: int = 200):
+    def __init__(
+        self,
+        *,
+        json_payload: Any | None = None,
+        content: bytes = b"",
+        text: str | None = None,
+        status: int = 200,
+    ):
         self._json = json_payload or {}
         self.content = content
         self.status_code = status
+        if text is not None:
+            self.text = text
+        elif content:
+            try:
+                self.text = content.decode("utf-8")
+            except UnicodeDecodeError:
+                self.text = ""
+        else:
+            self.text = ""
 
     def json(self) -> Any:
         return self._json
@@ -183,7 +199,9 @@ def test_download_nist_generates_csv_and_records_provenance(store: LocalStore) -
     assert Path(cached.cache_entry["stored_path"]) == stored_path
 
 
-def test_search_mast_table_conversion(store: LocalStore, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_search_mast_filters_products_and_records_metadata(
+    store: LocalStore, monkeypatch: pytest.MonkeyPatch
+) -> None:
     class DummyObservations:
         criteria: dict[str, Any] | None = None
 
@@ -206,6 +224,27 @@ def test_search_mast_table_conversion(store: LocalStore, monkeypatch: pytest.Mon
                 },
             ]
 
+        @classmethod
+        def get_product_list(cls, table: Any) -> list[dict[str, Any]]:
+            cls.products_requested = table
+            return [
+                {
+                    "obsid": "12345",
+                    "productFilename": "jwst_spec.fits",
+                    "dataURI": "mast:JWST/spec.fits",
+                    "dataproduct_type": "spectrum",
+                    "productType": "SCIENCE",
+                    "units": {"x": "um", "y": "flux"},
+                },
+                {
+                    "obsid": "12345",
+                    "productFilename": "jwst_image.fits",
+                    "dataURI": "mast:JWST/image.fits",
+                    "dataproduct_type": "image",
+                    "productType": "SCIENCE",
+                },
+            ]
+
     class DummyMast:
         Observations = DummyObservations
 
@@ -221,8 +260,8 @@ def test_search_mast_table_conversion(store: LocalStore, monkeypatch: pytest.Mon
     assert DummyObservations.criteria.get("calib_level") == [2, 3]
     assert "text" not in DummyObservations.criteria
     assert len(records) == 1
-    assert records[0].identifier == "12345"
-    assert records[0].download_url == "mast:JWST/product.fits"
+    assert records[0].identifier == "jwst_spec.fits"
+    assert records[0].download_url == "mast:JWST/spec.fits"
     assert records[0].units == {"x": "um", "y": "flux"}
 
 
