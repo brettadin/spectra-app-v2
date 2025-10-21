@@ -63,7 +63,9 @@ target, mission, instrument, product type, plus quick links for preview and
 download. Selecting a row shows the raw metadata payload in the preview panel so
 you can confirm provenance before downloading, and the preview/download links
 open in your default browser when you want to inspect the provider portal
-directly.
+directly. Citations attached to each record appear alongside the preview link,
+and the download button resolves provider-specific URIs (e.g. `mast:`) to the
+canonical HTTPS endpoint so the browser can open them without extra steps.
 
 > **Background execution**
 >

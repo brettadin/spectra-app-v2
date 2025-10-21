@@ -253,6 +253,82 @@ def test_build_provider_query_parses_nist_fields(monkeypatch: Any) -> None:
         app.quit()
 
 
+def test_populate_results_table_builds_links_and_preview(monkeypatch: Any) -> None:
+    app = _ensure_app()
+    ingest = IngestServiceStub()
+    dialog = RemoteDataDialog(
+        None,
+        remote_service=StubRemoteService(),
+        ingest_service=ingest,
+    )
+
+    metadata = {
+        "target_name": "WASP-96 b",
+        "obs_collection": "JWST",
+        "instrument_name": "NIRSpec",
+        "grating": "G395H",
+        "filters": ["F290LP"],
+        "dataproduct_type": "spectrum",
+        "intentType": "SCIENCE",
+        "calib_level": 3,
+        "preview_url": "https://example.invalid/preview.jpg",
+        "citations": [
+            {
+                "title": "JWST early release observations",
+                "doi": "10.1234/example",
+            }
+        ],
+        "exoplanet": {
+            "display_name": "WASP-96 b",
+            "classification": "Hot Jupiter",
+            "host_star": "WASP-96",
+        },
+    }
+
+    record = RemoteRecord(
+        provider=RemoteDataService.PROVIDER_MAST,
+        identifier="obsid-0001",
+        title="WASP-96 b transit",
+        download_url="mast:JWST/product.fits",
+        metadata=metadata,
+        units={"x": "um", "y": "flux"},
+    )
+
+    dialog._handle_search_results([record])
+
+    assert dialog.results.rowCount() == 1
+    assert dialog.results.columnCount() == 8
+    assert dialog.results.horizontalHeaderItem(7).text() == "Preview / Citation"
+
+    target_item = dialog.results.item(0, 2)
+    assert target_item is not None
+    assert target_item.text() == "WASP-96 b"
+
+    product_item = dialog.results.item(0, 5)
+    assert product_item is not None
+    assert "Level 3" in product_item.text()
+
+    download_widget = dialog.results.cellWidget(0, 6)
+    assert isinstance(download_widget, QtWidgets.QLabel)
+    href = "https://mast.stsci.edu/api/v0.1/Download/file?uri=mast:JWST/product.fits"
+    assert href in download_widget.text()
+    assert "Open" in download_widget.text()
+
+    preview_widget = dialog.results.cellWidget(0, 7)
+    assert isinstance(preview_widget, QtWidgets.QLabel)
+    preview_text = preview_widget.text()
+    assert "Preview" in preview_text
+    assert "DOI 10.1234/example" in preview_text
+
+    dialog.results.selectRow(0)
+    dialog._update_preview()
+    assert "Citation: DOI 10.1234/example" in dialog.preview.toPlainText()
+
+    dialog.deleteLater()
+    if QtWidgets.QApplication.instance() is app and not app.topLevelWidgets():
+        app.quit()
+
+
 class IngestServiceStub:
     """Minimal stub mimicking the ingest service used by the dialog."""
 

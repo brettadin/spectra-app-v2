@@ -1,5 +1,17 @@
 # Patch Notes
 
+## 2025-10-21 (Remote Data dialog table helpers consolidated) (14:40 EDT / 18:40 UTC)
+
+- Removed the duplicate results-table implementation in `RemoteDataDialog` and
+  wired all columns (target, mission, instrument, product, preview/download)
+  through a single helper path so preview/citation labels, download links, and
+  selection updates stay in sync. (`app/ui/remote_data_dialog.py`)
+- Added a focused Qt test that instantiates the dialog with mock records and
+  inspects the populated widgets to guarantee the preview and download columns
+  render the expected hyperlinks/citations. (`tests/test_remote_data_dialog.py`)
+- Documented that preview cells now surface provider citations and that download
+  links resolve provider URIs to HTTPS endpoints for browser access. (`docs/user/remote_data.md`)
+
 ## 2025-10-21 (Remote Data dialog restores NIST provider) (14:22 EDT / 18:22 UTC)
 
 - Reintroduced the NIST ASD catalogue to the Remote Data dialog and refreshed provider hints, placeholders, and examples so
