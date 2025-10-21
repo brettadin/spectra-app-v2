@@ -142,6 +142,19 @@ class RemoteDataDialog(QtWidgets.QDialog):
         self._build_ui()
 
     # ------------------------------------------------------------------
+    def accept(self) -> None:  # pragma: no cover - UI integration
+        self._shutdown_workers()
+        super().accept()
+
+    def reject(self) -> None:  # pragma: no cover - UI integration
+        self._shutdown_workers()
+        super().reject()
+
+    def closeEvent(self, event: QtGui.QCloseEvent) -> None:  # pragma: no cover - UI integration
+        self._shutdown_workers()
+        super().closeEvent(event)
+
+    # ------------------------------------------------------------------
     def ingested_spectra(self) -> List[object]:
         return list(self._ingested)
 
@@ -646,4 +659,10 @@ class RemoteDataDialog(QtWidgets.QDialog):
             self._download_thread.wait()
             self._download_thread = None
         self._download_worker = None
+
+    def _shutdown_workers(self) -> None:
+        self._cleanup_search_thread()
+        self._search_in_progress = False
+        self._cleanup_download_thread()
+        self._download_in_progress = False
 
