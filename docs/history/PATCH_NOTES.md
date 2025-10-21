@@ -1,5 +1,12 @@
 # Patch Notes
 
+## 2025-10-21 (Fixed NumPy deprecation and pytest marker warnings) (10:04 EDT / 14:04 UTC)
+
+- Replaced deprecated `np.trapz` with `np.trapezoid` in `overlay_service.py` and `test_overlay_service.py` to eliminate NumPy 2.x deprecation warnings.
+- Added pytest marker registration in `pyproject.toml` for `roundtrip` and `ui_contract` custom marks.
+- Updated normalization metadata basis from "abs-trapz" to "abs-trapezoid" for consistency.
+- All 68 tests pass with 0 warnings (down from 4 warnings).
+
 ## 2025-10-21 (Added all solar system planets to curated targets) (09:57 EDT / 13:57 UTC)
 
 - Extended `RemoteDataService._CURATED_TARGETS` to include all major solar system planets (Mercury, Venus, Earth/Moon, Uranus, Neptune) in addition to existing Mars, Jupiter, Saturn.

@@ -27,6 +27,24 @@ Each entry in this document should follow this structure:
   applicable).
 
 ---
+## 2025-10-21T10:04:38-04:00 / 2025-10-21T14:04:38+00:00 – Code quality improvements
+
+**Author**: agent
+
+**Context**: Test suite showed deprecation warnings from NumPy 2.x regarding `trapz` function and pytest warnings about unregistered custom markers.
+
+**Summary**: Fixed two code quality issues to improve test output cleanliness:
+1. Replaced deprecated `np.trapz` with `np.trapezoid` in both `app/services/overlay_service.py` (line 106) and `tests/test_overlay_service.py` (line 35). Updated the normalization metadata basis field from "abs-trapz" to "abs-trapezoid" for consistency.
+2. Registered custom pytest markers in root `pyproject.toml` by adding `[tool.pytest.ini_options]` section with markers for "roundtrip" and "ui_contract" tests.
+These changes eliminate all warnings from the test suite (previously 4 warnings, now 0). All 68 tests continue to pass.
+
+**References**:
+- `app/services/overlay_service.py` (line 106)
+- `tests/test_overlay_service.py` (line 35)
+- `pyproject.toml` (new [tool.pytest.ini_options] section)
+- NumPy 2.0 migration guide: https://numpy.org/devdocs/numpy_2_0_migration_guide.html
+
+---
 ## 2025-10-21T09:57:10-04:00 / 2025-10-21T13:57:10+00:00 – Complete solar system planetary spectra coverage
 
 **Author**: agent
