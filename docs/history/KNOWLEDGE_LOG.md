@@ -832,3 +832,16 @@ Import/Remote Import entries remain after the cleanup.
 - `docs/history/PATCH_NOTES.md`
 
 ---
+## 2025-10-20T20:08:57-04:00 / 2025-10-21T00:08:57+00:00 – PySide6 signal guard
+
+**Author**: agent
+
+**Context**: Launching Spectra on Windows with PySide6 still failed because the Remote Data dialog attempted to read `QtCore.pyqtSignal`, which does not exist for PySide bindings.
+
+**Summary**: Added a binding-aware helper that prefers `QtCore.Signal` when present and only falls back to `pyqtSignal` on PyQt, preventing the startup crash while keeping developer fallbacks intact.
+
+**References**:
+- `app/ui/remote_data_dialog.py`
+- `docs/history/PATCH_NOTES.md`
+
+---

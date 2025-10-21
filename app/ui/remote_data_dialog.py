@@ -15,10 +15,12 @@ from app.services import DataIngestService, RemoteDataService, RemoteRecord
 
 QtCore, QtGui, QtWidgets, _ = get_qt()
 
-try:  # Qt for Python (PySide) exposes ``Signal``
+if hasattr(QtCore, "Signal"):
     Signal = QtCore.Signal  # type: ignore[attr-defined]
-except AttributeError:  # pragma: no cover - PyQt fallback for developers
-    Signal = getattr(QtCore, "pyqtSignal")  # type: ignore[attr-defined]
+elif hasattr(QtCore, "pyqtSignal"):  # pragma: no cover - PyQt fallback for developers
+    Signal = QtCore.pyqtSignal  # type: ignore[attr-defined]
+else:  # pragma: no cover - fail fast with a clearer error
+    raise ImportError("Qt binding does not expose Signal/pyqtSignal")
 
 
 class _SearchWorker(QtCore.QObject):
@@ -234,6 +236,9 @@ class RemoteDataDialog(QtWidgets.QDialog):
 
         self._refresh_provider_state()
         self._update_download_button_state()
+
+        self._refresh_provider_state()
+        self._update_enabled_state()
 
         self._refresh_provider_state()
         self._update_enabled_state()

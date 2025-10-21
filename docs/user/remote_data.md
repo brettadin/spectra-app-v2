@@ -50,21 +50,18 @@ directly against laboratory references.
 The hint banner beneath the results table updates as you switch providers and
 also surfaces dependency warnings when optional clients are missing.
 
-* **ID / Title** – Stable identifiers and mission-provided labels.
-* **Target / Host** – Planet names, host stars, or solar-system bodies derived
-  from Exo.MAST metadata.
-* **Telescope / Mission** – Observatory names, programmes, and proposal IDs.
-* **Instrument / Mode** – Instrument configuration and observing mode.
-* **Product Type** – Spectroscopic vs. imaging products plus calibration level.
-* **Download** – Clickable hyperlinks (MAST URIs are rewritten to
-  `https://mast.stsci.edu/portal/Download/...` so they open in a browser).
-* **Preview / Citation** – Thumbnail links and mission citations when provided
-  by MAST or the Exoplanet Archive.
-
 Selecting a row displays a narrative summary in the preview pane (planet/host,
 mission, instrument, and citation) followed by the full JSON payload. The status
 bar beneath the table also echoes the host/planet summary so you can scan for
 relevant targets without opening the preview pane.
+
+> **Background execution**
+>
+> Searches and downloads now run on background threads. The status banner at
+> the bottom of the dialog reports progress while the search/download buttons
+> remain disabled. This keeps the main window responsive—even long JWST queries
+> no longer freeze the shell—and any warnings from the background worker are
+> surfaced once the operation completes.
 
 > **Background execution**
 >

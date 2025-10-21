@@ -50,6 +50,13 @@ except Exception:  # pragma: no cover - handled by dependency guards
 else:  # pragma: no branch - simple flag wiring
     _HAS_PANDAS = True
 
+try:  # Optional dependency – astroquery depends on pandas at runtime
+    import pandas  # type: ignore  # noqa: F401
+except Exception:  # pragma: no cover - handled by dependency guards
+    _HAS_PANDAS = False
+else:  # pragma: no branch - simple flag wiring
+    _HAS_PANDAS = True
+
 
 @dataclass
 class RemoteRecord:
@@ -341,214 +348,15 @@ class RemoteDataService:
             rows = self._table_to_records(result)
             if not rows:
                 continue
-            base_row = dict(rows[0])
-            resolved_table = table_name
-            break
-
-        if not base_row:
-            return None
-
-        ra = base_row.get("ra") or base_row.get("rastr") or base_row.get("ra_str")
-        dec = base_row.get("dec") or base_row.get("decstr") or base_row.get("dec_str")
-        try:
-            ra_value = float(ra) if ra is not None else None
-        except (TypeError, ValueError):  # pragma: no cover - depends on astroquery payload
-            ra_value = None
-        try:
-            dec_value = float(dec) if dec is not None else None
-        except (TypeError, ValueError):  # pragma: no cover - depends on astroquery payload
-            dec_value = None
-
-        canonical_name = str(
-            base_row.get("pl_name")
-            or base_row.get("hostname")
-            or base_row.get("star_name")
-            or cleaned_target
-        )
-        host_name = base_row.get("hostname") or base_row.get("star_name")
-
-        for key in ("pl_name", "pl_letter", "hostname", "star_name", "sy_sname"):
-            value = base_row.get(key)
-            if isinstance(value, str):
-                aliases.append(value)
-
-        citation_keys = (
-            "pl_refname",
-            "disc_pubdate",
-            "discoverymethod",
-            "disc_facility",
-            "disc_year",
-        )
-        citations: List[Dict[str, Any]] = []
-        for key in citation_keys:
-            if base_row.get(key) is not None:
-                citations.append({"field": key, "value": base_row.get(key)})
-
-        transiting = False
-        for key in ("pl_tranflag", "tran_flag", "transit_flag"):
-            if base_row.get(key) in (1, True, "1", "true", "True"):
-                transiting = True
-                break
-
-        coordinates: Dict[str, Any] | None = None
-        if ra_value is not None and dec_value is not None:
-            coordinates = {
-                "ra": ra_value,
-                "dec": dec_value,
-                "epoch": base_row.get("epoch") or base_row.get("ra_epoch"),
-            }
-
-        metadata: Dict[str, Any] = {
-            "canonical_name": canonical_name,
-            "display_name": base_row.get("pl_name") or canonical_name,
-            "host_star": host_name,
-            "aliases": sorted({alias for alias in aliases if alias}),
-            "coordinates": coordinates,
-            "search_radius": self._DEFAULT_REGION_RADIUS,
-            "transiting": transiting,
-            "citations": citations,
-            "exoplanet_archive": {
-                "table": resolved_table,
-                "row": base_row,
-            },
-        }
-        return metadata
-
-    def _resolve_curated_target(self, target: str) -> Dict[str, Any] | None:
-        lower = target.strip().lower()
-        for entry in self._CURATED_TARGETS:
-            if lower in entry["names"]:
-                aliases = sorted(entry["names"] - {lower})
-                metadata = {
-                    "canonical_name": entry["display_name"],
-                    "display_name": entry["display_name"],
-                    "aliases": aliases,
-                    "coordinates": None,
-                    "object_name": entry.get("object_name"),
-                    "search_radius": entry.get("search_radius", self._DEFAULT_REGION_RADIUS),
-                    "classification": entry.get("classification"),
-                    "citations": entry.get("citations", []),
-                    "transiting": entry.get("transiting", False),
-                    "curated": True,
-                }
-                return metadata
-        return None
-
-    def _fetch_exomast_filelist(self, planet_name: Any) -> Dict[str, Any] | None:
-        if not planet_name or not isinstance(planet_name, str):
-            return None
-        if not self._has_requests():
-            return None
-        session = self._ensure_session()
-        url = (
-            "https://exo.mast.stsci.edu/api/v0.1/spectra/"
-            f"{quote(planet_name.strip())}/filelist"
-        )
-        try:
-            response = session.get(url, timeout=60)
-            response.raise_for_status()
-        except Exception:  # pragma: no cover - network failures handled gracefully
-            return None
-        try:
-            payload = response.json()
-        except Exception:  # pragma: no cover - JSON decoding fallback
-            return None
-        if isinstance(payload, Mapping):
-            return dict(payload)
-        return None
-
-    def _is_spectroscopic(self, metadata: Mapping[str, Any]) -> bool:
-        """Return True when the MAST row represents spectroscopic data."""
-
-        product = str(metadata.get("dataproduct_type") or "").lower()
-        if product in {"spectrum", "spectral_energy_distribution"}:
-            return True
-        if "spect" in product:
-            return True
-
-        product_type = str(metadata.get("productType") or "").lower()
-        spectro_tokens = ("spectrum", "spectroscopy", "grism", "ifu", "slit", "prism")
-        if any(token in product_type for token in spectro_tokens):
-            return True
-
-        description = str(metadata.get("description") or metadata.get("display_name") or "").lower()
-        if any(token in description for token in spectro_tokens):
-            return True
-
-        return False
-
-    def _is_imaging(self, metadata: Mapping[str, Any]) -> bool:
-        product = str(metadata.get("dataproduct_type") or "").lower()
-        if product in {"image", "image_cube", "preview"}:
-            return True
-        product_type = str(metadata.get("productType") or "").lower()
-        if "image" in product_type or "imaging" in product_type:
-            return True
-        description = str(metadata.get("description") or metadata.get("display_name") or "").lower()
-        if "image" in description:
-            return True
-        return False
-
-    def _fetch_remote(self, record: RemoteRecord) -> tuple[Path, bool]:
-        if record.provider == self.PROVIDER_NIST:
-            return self._generate_nist_csv(record), True
-        if self._should_use_mast(record):
-            return self._fetch_via_mast(record), True
-        return self._fetch_via_http(record), True
-
-    def _generate_nist_csv(self, record: RemoteRecord) -> Path:
-        lines = record.metadata.get("lines") if isinstance(record.metadata, Mapping) else None
-        if not isinstance(lines, list) or not lines:
-            query_meta = (
-                record.metadata.get("query")
-                if isinstance(record.metadata, Mapping)
-                else {}
-            )
-            identifier = str(
-                (query_meta.get("identifier") if isinstance(query_meta, Mapping) else None)
-                or record.metadata.get("query_text")
-                if isinstance(record.metadata, Mapping)
-                else None
-                or record.identifier
-            )
-            element_symbol = (
-                record.metadata.get("element_symbol")
-                if isinstance(record.metadata, Mapping)
-                else None
-            )
-            ion_stage_number = (
-                record.metadata.get("ion_stage_number")
-                if isinstance(record.metadata, Mapping)
-                else None
-            )
-            try:
-                payload = nist_asd_service.fetch_lines(
-                    identifier,
-                    element=element_symbol,
-                    ion_stage=ion_stage_number,
-                    lower_wavelength=(
-                        float(query_meta.get("lower_wavelength"))
-                        if isinstance(query_meta, Mapping)
-                        and query_meta.get("lower_wavelength") is not None
-                        else None
-                    ),
-                    upper_wavelength=(
-                        float(query_meta.get("upper_wavelength"))
-                        if isinstance(query_meta, Mapping)
-                        and query_meta.get("upper_wavelength") is not None
-                        else None
-                    ),
-                    wavelength_unit=str(
-                        query_meta.get("wavelength_unit", "nm") if isinstance(query_meta, Mapping) else "nm"
-                    ),
-                    use_ritz=bool(query_meta.get("use_ritz", True))
-                    if isinstance(query_meta, Mapping)
-                    else True,
-                    wavelength_type=str(
-                        query_meta.get("wavelength_type", "vacuum")
-                        if isinstance(query_meta, Mapping)
-                        else "vacuum"
-                    ),
+            units_map = metadata.get("units") if isinstance(metadata.get("units"), Mapping) else None
+            records.append(
+                RemoteRecord(
+                    provider=self.PROVIDER_MAST,
+                    identifier=identifier,
+                    title=title,
+                    download_url=str(download_uri),
+                    metadata=metadata,
+                    units=units_map,
                 )
                 )
         return records

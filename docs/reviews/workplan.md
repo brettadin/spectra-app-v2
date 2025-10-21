@@ -43,6 +43,8 @@ This document tracks feature batches, validation status, and outstanding backlog
       updating the ingest service/UI to handle list-based ingestion, expanding tests, and documenting the revised workflow.
 - [x] Forced CI dependency installs to prefer binary wheels and aligned the master prompt with cross-platform timestamp
       guidance so onboarding instructions remain consistent with the agent manual.
+- [x] Fixed the Remote Data dialog's signal binding so PySide6 environments launch cleanly without referencing `pyqtSignal`,
+      with patch notes and knowledge log entries capturing the regression fix.
 - [x] Fixed the Library hint label height/word wrap so cached selections stay
       within the dock and updated installation guidance (`RunSpectraApp.cmd`,
       `START_HERE`, `AGENTS`) to use `pip --prefer-binary`, keeping numpy

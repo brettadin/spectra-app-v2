@@ -470,3 +470,8 @@
 - Offloaded Remote Data searches and downloads onto background threads, locking controls and aggregating warnings so long-running JWST queries no longer freeze the shell.
 - Updated `docs/user/remote_data.md` and the Qt smoke test to document and exercise the asynchronous workflow.
 
+## 2025-10-20T20:08:57-04:00 — Restore PySide6 signal wiring
+
+- Replaced the Remote Data dialog's Qt signal detection with a binding-aware helper so PySide6 uses `Signal` directly and PyQt keeps the `pyqtSignal` fallback.
+- Removes the startup crash observed on Windows now that the dialog no longer references `QtCore.pyqtSignal` when running under PySide6.
+

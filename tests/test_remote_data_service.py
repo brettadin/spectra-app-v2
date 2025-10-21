@@ -212,9 +212,16 @@ def test_search_mast_filters_products_and_records_metadata(
                 {
                     "obsid": "12345",
                     "target_name": "WASP-96 b",
-                    "obs_collection": "JWST",
-                    "instrument_name": "NIRSpec",
-                }
+                    "dataURI": "mast:JWST/product.fits",
+                    "units": {"x": "um", "y": "flux"},
+                    "dataproduct_type": "spectrum",
+                },
+                {
+                    "obsid": "12346",
+                    "target_name": "WASP-96 b",
+                    "dataURI": "mast:JWST/image.fits",
+                    "dataproduct_type": "image",
+                },
             ]
 
         @classmethod
