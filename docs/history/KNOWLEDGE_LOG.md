@@ -27,6 +27,19 @@ Each entry in this document should follow this structure:
   applicable).
 
 ---
+## 2025-10-21T14:22:18-04:00 / 2025-10-21T18:22:20+00:00 – Remote data UX
+
+**Author**: agent
+
+**Context**: Remote Data dialog provider availability and NIST query translation.
+
+**Summary**: Restored the NIST ASD provider in the Remote Data dialog, reinstating provider-specific hints/examples and teaching
+the query builder to pass `element=`, `ion=`, and `keyword=` clauses so cached downloads retain their provenance. Added Qt
+regressions for NIST-only services and updated the remote data guide to document the reinstated workflow and inspector hand-off.
+
+**References**: `app/ui/remote_data_dialog.py`, `tests/test_remote_data_dialog.py`, `docs/user/remote_data.md`.
+
+---
 ## 2025-10-21T10:04:38-04:00 / 2025-10-21T14:04:38+00:00 – Code quality improvements
 
 **Author**: agent

@@ -82,15 +82,46 @@ def test_dialog_initialises_without_missing_slots(monkeypatch: Any) -> None:
         ingest_service=ingest,
     )
 
-    assert dialog.provider_combo.count() == 1
-    assert dialog.provider_combo.itemText(0) == RemoteDataService.PROVIDER_MAST
+    assert dialog.provider_combo.count() == 2
+    assert dialog.provider_combo.itemText(0) == RemoteDataService.PROVIDER_NIST
+    assert dialog.provider_combo.itemText(1) == RemoteDataService.PROVIDER_MAST
     assert "Catalogue" in dialog.windowTitle() or dialog.windowTitle() == "Remote Data"
 
     # Trigger provider refresh to ensure the slot updates hints/placeholder.
     dialog._on_provider_changed()
-    assert "JWST" in dialog.search_edit.placeholderText()
+    placeholder = dialog.search_edit.placeholderText()
+    assert "NIST" in placeholder
+    assert "element" in placeholder.lower()
+    assert "NIST" in dialog.hint_label.text()
 
     # Clean up the dialog explicitly for Qt stability in headless tests.
+    dialog.deleteLater()
+    if QtWidgets.QApplication.instance() is app and not app.topLevelWidgets():
+        app.quit()
+
+
+def test_nist_only_provider_populates_combo(monkeypatch: Any) -> None:
+    app = _ensure_app()
+
+    class NistOnlyService(StubRemoteService):
+        def __init__(self) -> None:
+            super().__init__()
+            self._providers = [RemoteDataService.PROVIDER_NIST]
+
+    ingest = IngestServiceStub()
+    dialog = RemoteDataDialog(
+        None,
+        remote_service=NistOnlyService(),
+        ingest_service=ingest,
+    )
+
+    assert dialog.provider_combo.count() == 1
+    assert dialog.provider_combo.itemText(0) == RemoteDataService.PROVIDER_NIST
+
+    dialog._on_provider_changed()
+    assert "NIST" in dialog.hint_label.text()
+    assert "keyword" in dialog.search_edit.placeholderText().lower()
+
     dialog.deleteLater()
     if QtWidgets.QApplication.instance() is app and not app.topLevelWidgets():
         app.quit()
@@ -193,6 +224,29 @@ def test_include_imaging_toggle_passes_flag(monkeypatch: Any) -> None:
     assert service.calls, "Search should record include_imaging flag"
     _, _, include_imaging = service.calls[-1]
     assert include_imaging is True
+
+    dialog.deleteLater()
+    if QtWidgets.QApplication.instance() is app and not app.topLevelWidgets():
+        app.quit()
+
+
+def test_build_provider_query_parses_nist_fields(monkeypatch: Any) -> None:
+    app = _ensure_app()
+    ingest = IngestServiceStub()
+    dialog = RemoteDataDialog(
+        None,
+        remote_service=StubRemoteService(),
+        ingest_service=ingest,
+    )
+
+    query = dialog._build_provider_query(
+        RemoteDataService.PROVIDER_NIST,
+        "element=Fe II; keyword=aurora; ion=III",
+    )
+
+    assert query["element"] == "Fe II"
+    assert query["text"] == "aurora"
+    assert query["ion_stage"] == "III"
 
     dialog.deleteLater()
     if QtWidgets.QApplication.instance() is app and not app.topLevelWidgets():
