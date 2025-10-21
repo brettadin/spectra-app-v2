@@ -145,11 +145,11 @@ class RemoteDataService:
         },
     )
 
-    def providers(self) -> List[str]:
+    def providers(self, *, include_reference: bool = True) -> List[str]:
         """Return the list of remote providers whose dependencies are satisfied."""
 
         providers: List[str] = []
-        if self._has_nist_support():
+        if include_reference and self._has_nist_support():
             providers.append(self.PROVIDER_NIST)
         if self._has_mast_support():
             providers.append(self.PROVIDER_MAST)

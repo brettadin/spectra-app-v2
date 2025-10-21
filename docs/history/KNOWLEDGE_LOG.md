@@ -36,6 +36,19 @@ Each entry in this document should follow this structure:
 **Summary**: Updated the remote data service/provider enums, UI copy, and curated manifest paths to adopt the Solar System Archive naming. Renamed the bundled directory to `samples/solar_system/`, refreshed associated manifests, and aligned the remote data user guide plus regression tests with the new terminology.
 
 **References**: `app/services/remote_data_service.py`, `app/ui/remote_data_dialog.py`, `samples/solar_system/`, `tests/test_remote_data_service.py`, `docs/user/remote_data.md`.
+## 2025-10-21T18:13:48-04:00 / 2025-10-21T22:13:50+00:00 – Remote data provider gating
+
+**Author**: agent
+
+**Context**: Remote Data dialog catalogue list vs. Reference dock workflows.
+
+**Summary**: Added an `include_reference` toggle to `RemoteDataService.providers()` and had the Remote Data dialog call it so the
+combo now lists only MAST and curated ExoSystems catalogues while the Reference dock retains exclusive NIST ASD access. Removed
+the NIST hint/example branch, refreshed the Qt/UI regression coverage plus service-level provider tests, and updated the remote
+data user guide to direct ASD line-list retrieval through the Reference dock with notes about cached query provenance.
+
+**References**: `app/services/remote_data_service.py`, `app/ui/remote_data_dialog.py`, `tests/test_remote_data_dialog.py`,
+`tests/test_remote_data_service.py`, `docs/user/remote_data.md`.
 ## 2025-10-21T18:13:39-04:00 / 2025-10-21T22:13:41+00:00 – Remote data link tooltips
 
 **Author**: agent

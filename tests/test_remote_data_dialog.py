@@ -26,10 +26,18 @@ class StubRemoteService(RemoteDataService):
         self._providers: List[str] = [
             RemoteDataService.PROVIDER_NIST,
             RemoteDataService.PROVIDER_MAST,
+            RemoteDataService.PROVIDER_EXOSYSTEMS,
         ]
 
-    def providers(self) -> List[str]:
-        return list(self._providers)
+    def providers(self, *, include_reference: bool = True) -> List[str]:
+        providers = list(self._providers)
+        if include_reference:
+            return providers
+        return [
+            provider
+            for provider in providers
+            if provider != RemoteDataService.PROVIDER_NIST
+        ]
 
     def unavailable_providers(self) -> dict[str, str]:
         return {}
@@ -83,16 +91,16 @@ def test_dialog_initialises_without_missing_slots(monkeypatch: Any) -> None:
     )
 
     assert dialog.provider_combo.count() == 2
-    assert dialog.provider_combo.itemText(0) == RemoteDataService.PROVIDER_NIST
-    assert dialog.provider_combo.itemText(1) == RemoteDataService.PROVIDER_MAST
+    assert dialog.provider_combo.itemText(0) == RemoteDataService.PROVIDER_MAST
+    assert dialog.provider_combo.itemText(1) == RemoteDataService.PROVIDER_EXOSYSTEMS
+    assert dialog.provider_combo.findText(RemoteDataService.PROVIDER_NIST) == -1
     assert "Catalogue" in dialog.windowTitle() or dialog.windowTitle() == "Remote Data"
 
     # Trigger provider refresh to ensure the slot updates hints/placeholder.
     dialog._on_provider_changed()
     placeholder = dialog.search_edit.placeholderText()
-    assert "NIST" in placeholder
-    assert "element" in placeholder.lower()
-    assert "NIST" in dialog.hint_label.text()
+    assert "JWST" in placeholder
+    assert "MAST" in dialog.hint_label.text()
 
     # Clean up the dialog explicitly for Qt stability in headless tests.
     dialog.deleteLater()
@@ -100,7 +108,7 @@ def test_dialog_initialises_without_missing_slots(monkeypatch: Any) -> None:
         app.quit()
 
 
-def test_nist_only_provider_populates_combo(monkeypatch: Any) -> None:
+def test_reference_only_service_disables_combo(monkeypatch: Any) -> None:
     app = _ensure_app()
 
     class NistOnlyService(StubRemoteService):
@@ -115,12 +123,10 @@ def test_nist_only_provider_populates_combo(monkeypatch: Any) -> None:
         ingest_service=ingest,
     )
 
-    assert dialog.provider_combo.count() == 1
-    assert dialog.provider_combo.itemText(0) == RemoteDataService.PROVIDER_NIST
-
-    dialog._on_provider_changed()
-    assert "NIST" in dialog.hint_label.text()
-    assert "keyword" in dialog.search_edit.placeholderText().lower()
+    assert dialog.provider_combo.count() == 0
+    assert dialog.provider_combo.isEnabled() is False
+    assert dialog.search_edit.isEnabled() is False
+    assert "Remote catalogues" in dialog.status_label.text()
 
     dialog.deleteLater()
     if QtWidgets.QApplication.instance() is app and not app.topLevelWidgets():

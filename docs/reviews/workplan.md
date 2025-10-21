@@ -34,6 +34,8 @@ This document tracks feature batches, validation status, and outstanding backlog
       System Archive label, refreshed manifest paths plus descriptions, updated
       Remote Data dialog copy, and aligned regression tests/documentation with
       the new terminology.
+- [x] Gated the Remote Data dialog to list only MAST and curated ExoSystems catalogues, shifting NIST ASD retrieval to the
+      Reference dock while updating provider tests, UI coverage, and the user guide to reflect the new workflow.
 - [x] Restored the NIST ASD provider in the Remote Data dialog with refreshed
       hints/placeholders, keyword-aware query parsing, Qt coverage for NIST-only
       services, and user-guide updates directing persistent overlays back to the

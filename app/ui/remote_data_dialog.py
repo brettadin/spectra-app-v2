@@ -549,7 +549,7 @@ class RemoteDataDialog(QtWidgets.QDialog):
         self._start_download_worker(worker)
 
     def _refresh_provider_state(self) -> None:
-        providers = list(self.remote_service.providers())
+        providers = list(self.remote_service.providers(include_reference=False))
         self.provider_combo.clear()
         if providers:
             self.provider_combo.addItems(providers)
@@ -559,19 +559,6 @@ class RemoteDataDialog(QtWidgets.QDialog):
             placeholders: dict[str, str] = {}
             hints: dict[str, str] = {}
             examples: dict[str, list[tuple[str, str]]] = {}
-            if RemoteDataService.PROVIDER_NIST in providers:
-                placeholders[RemoteDataService.PROVIDER_NIST] = (
-                    "NIST element (e.g. Fe II) with optional keyword clauses (keyword=aurora)…"
-                )
-                hints[RemoteDataService.PROVIDER_NIST] = (
-                    "NIST ASD line lists accept element/ion identifiers (Fe II, O III) and optional "
-                    "`keyword=` filters (e.g. `keyword=nebula`) to narrow transitions before export."
-                )
-                examples[RemoteDataService.PROVIDER_NIST] = [
-                    ("Fe II – UV multiplets", "Fe II"),
-                    ("O III – nebular lines", "element=O III; keyword=nebula"),
-                    ("Ca II – H & K", "Ca II; keyword=H&K"),
-                ]
             if RemoteDataService.PROVIDER_MAST in providers:
                 placeholders[RemoteDataService.PROVIDER_MAST] = (
                     "JWST spectroscopic target (e.g. WASP-96 b, NIRSpec)…"
