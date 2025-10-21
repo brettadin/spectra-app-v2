@@ -27,6 +27,69 @@ Each entry in this document should follow this structure:
   applicable).
 
 ---
+## 2025-10-21T19:21:16-04:00 / 2025-10-21T23:21:18+00:00 – Remote Data dialog shutdown responsiveness
+
+**Author**: agent
+
+**Context**: Remote Data dialog cancel/close workflow.
+
+**Summary**: Reworked the dialog's reject path to defer closing until background search/download threads stop while keeping the
+UI responsive. A Qt timer now polls thread completion instead of blocking on `thread.wait()`, and the cancel action shows a busy
+indicator plus status message so analysts know shutdown is pending. This prevents the main window from freezing during slow
+network calls.
+
+**References**: `app/ui/remote_data_dialog.py`, `docs/history/PATCH_NOTES.md`.
+
+---
+## 2025-10-21T18:44:51-04:00 / 2025-10-21T22:44:53+00:00 – Curated search resiliency
+
+**Author**: agent
+
+**Context**: Solar System Archive provider resilience when bundled manifests/assets are missing.
+
+**Summary**: Wrapped curated manifest and asset loading in guards so missing files no longer abort Solar System Archive searches,
+allowing available bundles to remain discoverable. Added regression tests that append broken manifests/assets to the curated
+roster to confirm searches continue returning valid targets, and documented the behaviour in the remote data user guide.
+
+**References**: `app/services/remote_data_service.py`, `tests/test_remote_data_service.py`, `docs/user/remote_data.md`.
+## 2025-10-21T18:42:11-04:00 / 2025-10-21T22:42:13+00:00 – JWST/exoplanet resource guidance
+
+**Author**: agent
+
+**Context**: Expanded the spectroscopy link collection with actionable steps and maintenance checks for the newly curated JWST
+and exoplanet tooling repositories.
+
+**Summary**: Augmented the JWST analysis and exoplanet retrieval sections in `docs/link_collection.md` with detailed usage
+instructions (installation hints, workflow entry points) and maintenance tips (CRDS alignment, dependency/version pinning) so
+future agents can adopt the resources without guessing their operational state. Emphasised verifying upstream release notes and
+pinning commit hashes when relying on research-grade prototypes.
+
+**References**: `docs/link_collection.md`, `docs/history/PATCH_NOTES.md`.
+
+---
+## 2025-10-21T18:13:33-04:00 / 2025-10-21T22:13:36+00:00 – Solar System Archive rename
+
+**Author**: agent
+
+**Context**: Renamed the curated remote provider and bundled samples to the Solar System Archive label.
+
+**Summary**: Updated the remote data service/provider enums, UI copy, and curated manifest paths to adopt the Solar System Archive naming. Renamed the bundled directory to `samples/solar_system/`, refreshed associated manifests, and aligned the remote data user guide plus regression tests with the new terminology.
+
+**References**: `app/services/remote_data_service.py`, `app/ui/remote_data_dialog.py`, `samples/solar_system/`, `tests/test_remote_data_service.py`, `docs/user/remote_data.md`.
+## 2025-10-21T18:13:48-04:00 / 2025-10-21T22:13:50+00:00 – Remote data provider gating
+
+**Author**: agent
+
+**Context**: Remote Data dialog catalogue list vs. Reference dock workflows.
+
+**Summary**: Added an `include_reference` toggle to `RemoteDataService.providers()` and had the Remote Data dialog call it so the
+combo now lists only MAST and curated ExoSystems catalogues while the Reference dock retains exclusive NIST ASD access. Removed
+the NIST hint/example branch, refreshed the Qt/UI regression coverage plus service-level provider tests, and updated the remote
+data user guide to direct ASD line-list retrieval through the Reference dock with notes about cached query provenance.
+
+**References**: `app/services/remote_data_service.py`, `app/ui/remote_data_dialog.py`, `tests/test_remote_data_dialog.py`,
+`tests/test_remote_data_service.py`, `docs/user/remote_data.md`.
+## 2025-10-21T18:13:39-04:00 / 2025-10-21T22:13:41+00:00 – Remote data link tooltips
 ## 2025-10-21T19:25:02-04:00 / 2025-10-21T23:25:04+00:00 – Exo.MAST encoding & preview guard
 
 **Author**: agent

@@ -28,6 +28,8 @@ This document tracks feature batches, validation status, and outstanding backlog
 
 ### Recently Completed (2025-10-21)
 
+- [x] Taught the Remote Data dialog cancel flow to poll worker shutdown with a Qt timer so the window closes responsively while
+      background network calls finish, and surfaced busy/status messaging during the wait.
 - [x] Fixed Exo.MAST file-list requests so planet names with spaces no longer
       double-encode, guarded the preview summary against `NaN` discovery years,
       refreshed the regression tests, and documented the behaviour in the remote
