@@ -355,3 +355,39 @@ def test_providers_hide_missing_dependencies(monkeypatch: pytest.MonkeyPatch, st
     assert service.providers() == [remote_module.RemoteDataService.PROVIDER_NIST]
     unavailable = service.unavailable_providers()
     assert remote_module.RemoteDataService.PROVIDER_MAST in unavailable
+
+
+def test_curated_targets_include_all_solar_system_planets(store: LocalStore) -> None:
+    """Verify that all major solar system planets are in the curated targets."""
+    service = RemoteDataService(store, session=None)
+    
+    # Expected planets in solar system order
+    expected_planets = ["mercury", "venus", "earth", "mars", "jupiter", "saturn", "uranus", "neptune"]
+    
+    # Collect all names from curated targets
+    all_names = set()
+    planet_display_names = set()
+    for target in service._CURATED_TARGETS:
+        if target.get("classification") == "Solar System planet":
+            all_names.update(target.get("names", set()))
+            planet_display_names.add(target.get("display_name", ""))
+    
+    # Check that each planet is represented
+    for planet in expected_planets:
+        assert planet in all_names, f"{planet.capitalize()} not found in curated targets"
+    
+    # Verify we have at least 8 solar system planet entries
+    solar_system_count = sum(
+        1 for target in service._CURATED_TARGETS 
+        if target.get("classification") == "Solar System planet"
+    )
+    assert solar_system_count >= 8, f"Expected at least 8 solar system planets, found {solar_system_count}"
+    
+    # Verify each planet entry has required fields
+    for target in service._CURATED_TARGETS:
+        if target.get("classification") == "Solar System planet":
+            assert "names" in target, "Planet target missing 'names' field"
+            assert "display_name" in target, "Planet target missing 'display_name' field"
+            assert "object_name" in target, "Planet target missing 'object_name' field"
+            assert "citations" in target, "Planet target missing 'citations' field"
+            assert len(target["citations"]) > 0, "Planet target has empty citations"
