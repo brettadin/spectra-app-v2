@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import html
 import json
-import re
+import math
 from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Any, List
@@ -15,115 +15,110 @@ from app.services import DataIngestService, RemoteDataService, RemoteRecord
 
 QtCore, QtGui, QtWidgets, _ = get_qt()
 
-if hasattr(QtCore, "Signal"):
-    Signal = QtCore.Signal  # type: ignore[attr-defined]
-elif hasattr(QtCore, "pyqtSignal"):  # pragma: no cover - PyQt fallback for developers
-    Signal = QtCore.pyqtSignal  # type: ignore[attr-defined]
-else:  # pragma: no cover - fail fast with a clearer error
-    raise ImportError("Qt binding does not expose Signal/pyqtSignal")
+Signal = getattr(QtCore, "Signal", getattr(QtCore, "pyqtSignal"))
+Slot = getattr(QtCore, "Slot", getattr(QtCore, "pyqtSlot"))
 
 
 class _SearchWorker(QtCore.QObject):
-    """Background worker that queries a remote catalogue."""
+    """Background worker that streams search results from a remote provider."""
 
-    finished = Signal()
-    results_ready = Signal(list)
-    error = Signal(str)
+    started = Signal()
+    record_found = Signal(object)
+    finished = Signal(list)
+    failed = Signal(str)
+    cancelled = Signal()
 
-    def __init__(
-        self,
-        remote_service: RemoteDataService,
-        provider: str,
-        query: dict[str, str],
-        *,
-        include_imaging: bool,
-    ) -> None:
+    def __init__(self, remote_service: RemoteDataService) -> None:
         super().__init__()
         self._remote_service = remote_service
-        self._provider = provider
-        self._query = query
-        self._include_imaging = include_imaging
+        self._cancel_requested = False
 
-    @QtCore.Slot()
-    def run(self) -> None:
+    @Slot(str, dict, bool)
+    def run(self, provider: str, query: dict[str, str], include_imaging: bool) -> None:
+        self.started.emit()
+        collected: list[RemoteRecord] = []
         try:
             results = self._remote_service.search(
-                self._provider,
-                dict(self._query),
-                include_imaging=self._include_imaging,
+                provider,
+                query,
+                include_imaging=include_imaging,
             )
-        except Exception as exc:  # pragma: no cover - surfaced via error signal
-            self.error.emit(str(exc))
-        else:
-            self.results_ready.emit(results)
-        finally:
-            self.finished.emit()
+            for record in results:
+                if self._cancel_requested:
+                    self.cancelled.emit()
+                    return
+                collected.append(record)
+                self.record_found.emit(record)
+            if self._cancel_requested:
+                self.cancelled.emit()
+                return
+        except Exception as exc:  # pragma: no cover - defensive: surfaced via signal
+            self.failed.emit(str(exc))
+            return
+        self.finished.emit(collected)
+
+    @Slot()
+    def cancel(self) -> None:
+        self._cancel_requested = True
 
 
 class _DownloadWorker(QtCore.QObject):
-    """Background worker that downloads and ingests remote catalogue entries."""
+    """Background worker that downloads and ingests selected remote records."""
 
-    finished = Signal()
-    completed = Signal(list)
-    warning = Signal(str)
-    error = Signal(str)
+    started = Signal(int)
+    record_ingested = Signal(object)
+    record_failed = Signal(object, str)
+    finished = Signal(list)
+    failed = Signal(str)
+    cancelled = Signal()
 
     def __init__(
         self,
         remote_service: RemoteDataService,
         ingest_service: DataIngestService,
-        records: list[RemoteRecord],
     ) -> None:
         super().__init__()
         self._remote_service = remote_service
         self._ingest_service = ingest_service
-        self._records = list(records)
+        self._cancel_requested = False
 
-    @QtCore.Slot()
-    def run(self) -> None:
-        spectra: list[object] = []
+    @Slot(list)
+    def run(self, records: list[RemoteRecord]) -> None:
+        self.started.emit(len(records))
+        ingested: list[object] = []
         try:
-            for record in self._records:
+            for record in records:
+                if self._cancel_requested:
+                    self.cancelled.emit()
+                    return
                 try:
                     download = self._remote_service.download(record)
-                    ingested = self._ingest_service.ingest(
+                    ingested_item = self._ingest_service.ingest(
                         Path(download.cache_entry["stored_path"])
                     )
-                except Exception as exc:  # pragma: no cover - surfaced via warning
-                    self.warning.emit(f"{record.identifier}: {exc}")
+                except Exception as exc:  # pragma: no cover - defensive: surfaced via signal
+                    self.record_failed.emit(record, str(exc))
                     continue
-                if isinstance(ingested, list):
-                    spectra.extend(ingested)
+                if isinstance(ingested_item, list):
+                    ingested.extend(ingested_item)
                 else:
-                    spectra.append(ingested)
-        except Exception as exc:  # pragma: no cover - surfaced via error signal
-            self.error.emit(str(exc))
-        else:
-            self.completed.emit(spectra)
-        finally:
-            self.finished.emit()
+                    ingested.append(ingested_item)
+                self.record_ingested.emit(record)
+            if self._cancel_requested:
+                self.cancelled.emit()
+                return
+        except Exception as exc:  # pragma: no cover - defensive: surfaced via signal
+            self.failed.emit(str(exc))
+            return
+        self.finished.emit(ingested)
+
+    @Slot()
+    def cancel(self) -> None:
+        self._cancel_requested = True
 
 
 class RemoteDataDialog(QtWidgets.QDialog):
     """Interactive browser for remote catalogue search and download."""
-
-    search_started = Signal(str)
-    search_completed = Signal(list)
-    search_failed = Signal(str)
-    download_started = Signal(int)
-    download_completed = Signal(list)
-    download_failed = Signal(str)
-
-    _RESULT_HEADERS: tuple[str, ...] = (
-        "ID",
-        "Title",
-        "Target",
-        "Mission",
-        "Instrument",
-        "Product",
-        "Download",
-        "Preview / Citation",
-    )
 
     def __init__(
         self,
@@ -145,13 +140,19 @@ class RemoteDataDialog(QtWidgets.QDialog):
         self._provider_examples: dict[str, list[tuple[str, str]]] = {}
         self._dependency_hint: str = ""
         self._search_thread: QtCore.QThread | None = None
-        self._download_thread: QtCore.QThread | None = None
         self._search_worker: _SearchWorker | None = None
+        self._download_thread: QtCore.QThread | None = None
         self._download_worker: _DownloadWorker | None = None
-        self._search_in_progress = False
-        self._download_in_progress = False
-        self._download_warnings: list[str] = []
-        self._busy: bool = False
+        self._busy = False
+        self._download_total = 0
+        self._download_completed = 0
+        self._download_errors: list[str] = []
+        self._control_enabled_state: dict[QtWidgets.QWidget, bool] = {}
+
+        self._search_worker_factory = lambda: _SearchWorker(self.remote_service)
+        self._download_worker_factory = lambda: _DownloadWorker(
+            self.remote_service, self.ingest_service
+        )
 
         self._build_ui()
 
@@ -199,8 +200,18 @@ class RemoteDataDialog(QtWidgets.QDialog):
         layout.addWidget(splitter, 1)
 
         self.results = QtWidgets.QTableWidget(self)
-        self.results.setColumnCount(len(self._RESULT_HEADERS))
-        self.results.setHorizontalHeaderLabels(list(self._RESULT_HEADERS))
+        self._results_headers = [
+            "ID",
+            "Title",
+            "Target / Host",
+            "Telescope / Mission",
+            "Instrument / Mode",
+            "Product Type",
+            "Download",
+            "Preview / Citation",
+        ]
+        self.results.setColumnCount(len(self._results_headers))
+        self.results.setHorizontalHeaderLabels(self._results_headers)
         self.results.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectionBehavior.SelectRows)
         self.results.setSelectionMode(QtWidgets.QAbstractItemView.SelectionMode.ExtendedSelection)
         header = self.results.horizontalHeader()
@@ -208,7 +219,6 @@ class RemoteDataDialog(QtWidgets.QDialog):
         for column in (0, 6, 7):
             header.setSectionResizeMode(column, QtWidgets.QHeaderView.ResizeMode.ResizeToContents)
         self.results.verticalHeader().setVisible(False)
-        self.results.setAlternatingRowColors(True)
         self.results.itemSelectionChanged.connect(self._on_selection_changed)
         splitter.addWidget(self.results)
 
@@ -232,34 +242,34 @@ class RemoteDataDialog(QtWidgets.QDialog):
         layout.addWidget(self.hint_label)
 
         progress_container = QtWidgets.QHBoxLayout()
-        progress_container.setContentsMargins(0, 0, 0, 0)
-        layout.addLayout(progress_container)
-
-        self.progress_indicator = QtWidgets.QProgressBar(self)
-        self.progress_indicator.setRange(0, 1)
-        self.progress_indicator.setTextVisible(False)
-        self.progress_indicator.setFixedWidth(140)
-        self.progress_indicator.setVisible(False)
-        progress_container.addWidget(self.progress_indicator)
+        self.progress_label = QtWidgets.QLabel(self)
+        self.progress_label.setObjectName("remote-progress")
+        self.progress_label.setVisible(False)
+        self.progress_movie = QtGui.QMovie(
+            ":/qt-project.org/styles/commonstyle/images/working-32.gif"
+        )
+        if self.progress_movie.isValid():
+            self.progress_label.setMovie(self.progress_movie)
+        else:  # pragma: no cover - fallback when Qt resource missing
+            self.progress_label.setText("Working…")
+        progress_container.addWidget(self.progress_label)
 
         self.status_label = QtWidgets.QLabel(self)
         self.status_label.setObjectName("remote-status")
         self.status_label.setWordWrap(True)
         progress_container.addWidget(self.status_label, 1)
+        layout.addLayout(progress_container)
 
         self._refresh_provider_state()
-        self._update_enabled_state()
-        self._set_busy(False)
+        self._update_download_button_state()
 
     # ------------------------------------------------------------------
     def _on_search(self) -> None:
         provider = self.provider_combo.currentText()
         query = self._build_provider_query(provider, self.search_edit.text())
         if not query:
-            QtWidgets.QMessageBox.information(
-                self,
-                "Enter search criteria",
-                "Provide provider-specific search text before querying the remote catalogue.",
+            self.status_label.setText(
+                "Provide provider-specific search text before querying the remote catalogue."
             )
             return
 
@@ -268,28 +278,342 @@ class RemoteDataDialog(QtWidgets.QDialog):
             and self.include_imaging_checkbox.isEnabled()
             and self.include_imaging_checkbox.isChecked()
         )
+        self._start_search(provider, query, include_imaging)
 
+    def _start_search(
+        self, provider: str, query: dict[str, str], include_imaging: bool
+    ) -> None:
+        self._cancel_search_worker()
         self._records = []
-        self.results.setRowCount(0)
+        self._reset_results_table()
         self.preview.clear()
+        message = f"Searching {provider}…"
+        self._set_busy(True, message=message)
+
+        worker = self._search_worker_factory()
+        thread = QtCore.QThread(self)
+        self._search_worker = worker
+        self._search_thread = thread
+        worker.moveToThread(thread)
+        thread.started.connect(
+            lambda provider=provider, query=query, include_imaging=include_imaging: worker.run(
+                provider, query, include_imaging
+            )
+        )
+        worker.started.connect(lambda: self._set_busy(True, message=message))
+        worker.record_found.connect(self._handle_search_record)
+        worker.finished.connect(self._handle_search_finished)
+        worker.failed.connect(self._handle_search_failed)
+        worker.cancelled.connect(self._handle_search_cancelled)
+        self._connect_worker_cleanup(worker, thread)
+        thread.start()
+
+    def _handle_search_record(self, record: RemoteRecord) -> None:
+        self._records.append(record)
+        row = len(self._records) - 1
+        self.results.insertRow(row)
+        self._set_table_text(row, 0, record.identifier)
+        self._set_table_text(row, 1, record.title)
+        self._set_table_text(row, 2, self._format_target(record))
+        self._set_table_text(row, 3, self._format_mission(record.metadata))
+        self._set_table_text(row, 4, self._format_instrument(record.metadata))
+        self._set_table_text(row, 5, self._format_product(record.metadata))
+        self._set_table_text(row, 6, "")
+        self._set_download_widget(row, 6, record.download_url)
+        self._set_table_text(row, 7, "")
+        self._set_preview_widget(row, 7, record.metadata)
+
+        if row == 0:
+            self.results.selectRow(0)
+        status = f"{len(self._records)} result(s) received from {self.provider_combo.currentText()}…"
+        self.status_label.setText(status)
+
+    def _handle_search_finished(self, records: list[RemoteRecord]) -> None:
+        self._set_busy(False)
+        provider = self.provider_combo.currentText()
+        total = len(records)
+        if not total:
+            self.status_label.setText(f"No results found for {provider}.")
+            self.preview.clear()
+            return
+        summary = self._format_status_summary(records)
+        status = f"{total} result(s) fetched from {provider}."
+        if summary:
+            status = f"{status} {summary}"
+        self.status_label.setText(status)
         self._update_download_button_state()
 
-        self._search_in_progress = True
-        self._update_enabled_state()
-        self._set_busy(True)
-        self.status_label.setText(f"Searching {provider}…")
-        self.search_started.emit(provider)
+    def _handle_search_failed(self, message: str) -> None:
+        self._set_busy(False)
+        self.status_label.setText(f"Search failed: {message}")
+        self._records = []
+        self._reset_results_table()
+        self.preview.clear()
 
-        worker = _SearchWorker(
-            self.remote_service,
-            provider,
-            query,
-            include_imaging=include_imaging,
+    def _handle_search_cancelled(self) -> None:
+        self._set_busy(False)
+        self.status_label.setText("Search cancelled.")
+        self._records = []
+        self._reset_results_table()
+        self.preview.clear()
+
+    def _start_download(self, records: list[RemoteRecord]) -> None:
+        self._cancel_download_worker()
+        if not records:
+            return
+        self._download_errors: list[str] = []
+        self._download_total = len(records)
+        self._download_completed = 0
+        message = f"Preparing download of {self._download_total} record(s)…"
+        self._set_busy(True, message=message)
+
+        worker = self._download_worker_factory()
+        thread = QtCore.QThread(self)
+        self._download_worker = worker
+        self._download_thread = thread
+        worker.moveToThread(thread)
+        thread.started.connect(lambda records=records: worker.run(records))
+        worker.started.connect(self._handle_download_started)
+        worker.record_ingested.connect(self._handle_download_progress)
+        worker.record_failed.connect(self._handle_download_failure)
+        worker.finished.connect(self._handle_download_finished)
+        worker.failed.connect(self._handle_download_failed)
+        worker.cancelled.connect(self._handle_download_cancelled)
+        self._connect_worker_cleanup(worker, thread)
+        thread.start()
+
+    def _handle_download_started(self, total: int) -> None:
+        self._download_total = total
+        self._download_completed = 0
+        self._set_busy(True, message=f"Downloading {total} record(s)…")
+
+    def _handle_download_progress(self, record: RemoteRecord) -> None:
+        self._download_completed += 1
+        status = f"Imported {self._download_completed}/{self._download_total} record(s)…"
+        self.status_label.setText(status)
+
+    def _handle_download_failure(self, record: RemoteRecord, message: str) -> None:
+        self._download_errors.append(f"{record.identifier}: {message}")
+        self.status_label.setText(
+            f"{len(self._download_errors)} failure(s) while importing. Continuing…"
         )
-        worker.results_ready.connect(self._handle_search_results)
-        worker.error.connect(self._handle_search_error)
-        worker.finished.connect(self._search_finished)
-        self._start_search_worker(worker)
+
+    def _handle_download_finished(self, ingested: list[object]) -> None:
+        self._set_busy(False)
+        if not ingested:
+            if self._download_errors:
+                self.status_label.setText(
+                    "Downloads completed with errors; no datasets were imported."
+                )
+            else:
+                self.status_label.setText("No datasets were imported.")
+            return
+
+        self._ingested = ingested
+        if self._download_errors:
+            failures = len(self._download_errors)
+            self.status_label.setText(
+                f"Imported {len(ingested)} dataset(s) with {failures} failure(s)."
+            )
+        else:
+            self.status_label.setText(f"Imported {len(ingested)} dataset(s).")
+        self.accept()
+
+    def _handle_download_failed(self, message: str) -> None:
+        self._set_busy(False)
+        self.status_label.setText(f"Download failed: {message}")
+
+    def _handle_download_cancelled(self) -> None:
+        self._set_busy(False)
+        self.status_label.setText("Download cancelled.")
+
+    def _set_busy(self, busy: bool, *, message: str | None = None) -> None:
+        self._busy = busy
+        controls = [
+            self.provider_combo,
+            self.search_edit,
+            self.search_button,
+            self.example_combo,
+            self.include_imaging_checkbox,
+        ]
+        if busy:
+            self._control_enabled_state = {control: control.isEnabled() for control in controls}
+            for control in controls:
+                control.setEnabled(False)
+        else:
+            for control in controls:
+                enabled = self._control_enabled_state.get(control, True)
+                if control is self.include_imaging_checkbox and not control.isVisible():
+                    control.setEnabled(False)
+                else:
+                    control.setEnabled(enabled)
+            self._control_enabled_state = {}
+        if busy:
+            self.download_button.setEnabled(False)
+            if self.progress_movie and self.progress_movie.isValid():
+                self.progress_movie.start()
+            self.progress_label.setVisible(True)
+        else:
+            if self.progress_movie and self.progress_movie.isValid():
+                self.progress_movie.stop()
+            self.progress_label.setVisible(False)
+            self._update_download_button_state()
+        if message is not None:
+            self.status_label.setText(message)
+
+    def _update_download_button_state(self) -> None:
+        if self._busy:
+            self.download_button.setEnabled(False)
+            return
+        enable = bool(self.results.selectionModel().selectedRows())
+        self.download_button.setEnabled(enable)
+
+    def _connect_worker_cleanup(
+        self,
+        worker: QtCore.QObject,
+        thread: QtCore.QThread,
+    ) -> None:
+        def cleanup(*_args: object) -> None:
+            if thread.isRunning():
+                thread.quit()
+                thread.wait()
+            worker.deleteLater()
+            thread.deleteLater()
+            if worker is self._search_worker:
+                self._search_worker = None
+                self._search_thread = None
+            if worker is self._download_worker:
+                self._download_worker = None
+                self._download_thread = None
+
+        worker.finished.connect(cleanup)
+        worker.failed.connect(cleanup)
+        worker.cancelled.connect(cleanup)
+
+    def _cancel_search_worker(self) -> None:
+        if self._search_worker is None:
+            return
+        queued = getattr(QtCore.Qt, "ConnectionType", QtCore.Qt).QueuedConnection
+        QtCore.QMetaObject.invokeMethod(
+            self._search_worker,
+            "cancel",
+            queued,
+        )
+
+    def _cancel_download_worker(self) -> None:
+        if self._download_worker is None:
+            return
+        queued = getattr(QtCore.Qt, "ConnectionType", QtCore.Qt).QueuedConnection
+        QtCore.QMetaObject.invokeMethod(
+            self._download_worker,
+            "cancel",
+            queued,
+        )
+
+    def _await_thread_shutdown(
+        self,
+        *,
+        thread_attr: str,
+        worker_attr: str,
+        timeout_ms: int | None = None,
+    ) -> bool:
+        """Request shutdown and optionally wait for the worker thread.
+
+        Returns ``True`` when the thread has stopped and been cleaned up. When
+        ``timeout_ms`` is ``None`` the call blocks until the thread exits. A
+        finite timeout keeps the UI responsive by allowing the caller to poll
+        for completion using ``QtCore.QTimer``.
+        """
+
+        thread = getattr(self, thread_attr)
+        worker = getattr(self, worker_attr)
+        if thread is None:
+            return True
+        if thread.isRunning():
+            thread.quit()
+            if timeout_ms is not None:
+                if not thread.wait(timeout_ms):
+                    return False
+            else:
+                thread.wait()
+        if worker is not None:
+            worker.deleteLater()
+        thread.deleteLater()
+        setattr(self, worker_attr, None)
+        setattr(self, thread_attr, None)
+        return True
+
+    def _schedule_thread_shutdown(
+        self,
+        pending: list[tuple[str, str]],
+        *,
+        interval_ms: int = 100,
+    ) -> None:
+        """Retry thread shutdown without blocking the UI."""
+
+        # ``QtCore.QTimer.singleShot`` copies basic Python values, so we keep the
+        # payload small and rebuild the remaining list on each poll.
+
+        def _poll() -> None:
+            remaining: list[tuple[str, str]] = []
+            for thread_attr, worker_attr in pending:
+                if not self._await_thread_shutdown(
+                    thread_attr=thread_attr,
+                    worker_attr=worker_attr,
+                    timeout_ms=0,
+                ):
+                    remaining.append((thread_attr, worker_attr))
+            if remaining:
+                next_interval = min(interval_ms * 2, 1000)
+                QtCore.QTimer.singleShot(
+                    next_interval,
+                    lambda rem=remaining, iv=next_interval: self._schedule_thread_shutdown(
+                        rem,
+                        interval_ms=iv,
+                    ),
+                )
+
+        QtCore.QTimer.singleShot(interval_ms, _poll)
+
+    def reject(self) -> None:
+        self._cancel_search_worker()
+        self._cancel_download_worker()
+        pending: list[tuple[str, str]] = []
+        if not self._await_thread_shutdown(
+            thread_attr="_search_thread",
+            worker_attr="_search_worker",
+            timeout_ms=25,
+        ):
+            pending.append(("_search_thread", "_search_worker"))
+        if not self._await_thread_shutdown(
+            thread_attr="_download_thread",
+            worker_attr="_download_worker",
+            timeout_ms=25,
+        ):
+            pending.append(("_download_thread", "_download_worker"))
+        if pending:
+            self._schedule_thread_shutdown(pending)
+        super().reject()
+
+    def closeEvent(self, event: QtGui.QCloseEvent) -> None:  # pragma: no cover - Qt event hook
+        """Ensure worker threads stop when the application is shutting down."""
+
+        if QtCore.QCoreApplication.closingDown():
+            # ``reject`` keeps the dialog responsive by polling the worker threads
+            # with short timeouts. When the whole application is quitting we no
+            # longer have an event loop to service the timers, so block until the
+            # threads have stopped to avoid crashing Qt's parent–child teardown.
+            self._cancel_search_worker()
+            self._cancel_download_worker()
+            self._await_thread_shutdown(
+                thread_attr="_search_thread",
+                worker_attr="_search_worker",
+            )
+            self._await_thread_shutdown(
+                thread_attr="_download_thread",
+                worker_attr="_download_worker",
+            )
+        super().closeEvent(event)
 
     def _on_provider_changed(self, index: int | None = None) -> None:
         # Accept the index argument emitted by Qt while keeping the logic driven
@@ -333,77 +657,7 @@ class RemoteDataDialog(QtWidgets.QDialog):
         stripped = text.strip()
         if provider == RemoteDataService.PROVIDER_MAST:
             return {"target_name": stripped} if stripped else {}
-        if provider == RemoteDataService.PROVIDER_NIST:
-            return self._build_nist_query(stripped)
-        if provider == RemoteDataService.PROVIDER_SOLAR_SYSTEM:
-            if stripped:
-                return {"text": stripped}
-            return {"text": "", "include_all": "true"}
         return {"text": stripped} if stripped else {}
-
-    def _build_nist_query(self, stripped: str) -> dict[str, str]:
-        if not stripped:
-            return {}
-
-        element: str | None = None
-        ion_stage: str | None = None
-        keywords: list[str] = []
-
-        def assign_keyword(value: str) -> None:
-            normalized = value.strip()
-            if normalized:
-                keywords.append(normalized)
-
-        parts = [part.strip() for part in re.split(r"[;,\n]+", stripped) if part.strip()]
-        element_prefix = re.compile(
-            r"^(?P<element>[A-Za-z]{1,2}(?:\s*(?:[IVXLCDM]+|\d+\+?))?)(?P<rest>.*)$",
-            re.IGNORECASE,
-        )
-        element_only = re.compile(
-            r"^[A-Za-z]{1,2}(?:\s*(?:[IVXLCDM]+|\d+\+?))?$",
-            re.IGNORECASE,
-        )
-
-        for part in parts:
-            key_match = re.split(r"[:=]", part, maxsplit=1)
-            if len(key_match) == 2 and key_match[0].strip():
-                key = key_match[0].strip().lower()
-                value = key_match[1].strip()
-                if not value:
-                    continue
-                if key in {"element", "species"}:
-                    element = value
-                    continue
-                if key in {"ion", "ion_stage"}:
-                    ion_stage = value
-                    continue
-                if key in {"keyword", "keywords"}:
-                    assign_keyword(value)
-                    continue
-            if element is None:
-                prefix_match = element_prefix.match(part)
-                if prefix_match:
-                    candidate = prefix_match.group("element").strip()
-                    rest = prefix_match.group("rest").strip()
-                    if candidate and element_only.match(candidate):
-                        element = candidate
-                        if rest:
-                            assign_keyword(rest)
-                        continue
-            assign_keyword(part)
-
-        query: dict[str, str] = {}
-        if element:
-            query["element"] = element
-        if ion_stage:
-            query["ion_stage"] = ion_stage
-        if keywords:
-            query["text"] = " ".join(keywords)
-        elif element:
-            query["text"] = element
-        else:
-            query["text"] = stripped
-        return query
 
     def _on_example_selected(self, index: int) -> None:
         if index <= 0:
@@ -412,10 +666,6 @@ class RemoteDataDialog(QtWidgets.QDialog):
         if isinstance(query_text, str):
             self.search_edit.setText(query_text)
             self._on_search()
-
-    def _on_selection_changed(self) -> None:
-        self._update_preview()
-        self._update_download_button_state()
 
     def _update_preview(self) -> None:
         indexes = self.results.selectionModel().selectedRows()
@@ -433,20 +683,20 @@ class RemoteDataDialog(QtWidgets.QDialog):
         mission_parts = [part for part in (mission, instrument) if part]
         if mission_parts:
             narrative_lines.append(" | ".join(mission_parts))
-        citations = self._formatted_citations(record.metadata)
-        if citations:
-            narrative_lines.append("Citations:")
-            for citation in citations:
-                narrative_lines.append(f"  - {citation}")
+        citation = self._extract_citation(record.metadata)
+        if citation:
+            narrative_lines.append(f"Citation: {citation}")
         if narrative_lines:
             narrative_lines.append("")
         narrative_lines.append(json.dumps(metadata, indent=2, ensure_ascii=False))
         self.preview.setPlainText("\n".join(narrative_lines))
 
+    def _on_selection_changed(self) -> None:
+        self._update_preview()
+        self._update_download_button_state()
+
     def _populate_results_table(self, records: Sequence[RemoteRecord]) -> None:
         self._clear_result_widgets()
-        self.results.setColumnCount(len(self._RESULT_HEADERS))
-        self.results.setHorizontalHeaderLabels(list(self._RESULT_HEADERS))
         self.results.setRowCount(len(records))
         for row, record in enumerate(records):
             self._set_table_text(row, 0, record.identifier)
@@ -465,51 +715,55 @@ class RemoteDataDialog(QtWidgets.QDialog):
         item.setFlags(item.flags() & ~QtCore.Qt.ItemFlag.ItemIsEditable)
         self.results.setItem(row, column, item)
 
-    def _formatted_citations(self, metadata: Mapping[str, Any] | Any) -> list[str]:
-        formatted: list[str] = []
-        for entry in self._citation_entries(metadata):
-            text = self._format_citation_entry(entry)
-            if text:
-                formatted.append(text)
-        return formatted
+    def _set_download_widget(self, row: int, column: int, url: str) -> None:
+        label = QtWidgets.QLabel(self.results)
+        hyperlink = self._link_for_download(url)
+        escaped = html.escape(hyperlink)
+        label.setText(f'<a href="{escaped}">Open</a>')
+        label.setOpenExternalLinks(True)
+        label.setTextInteractionFlags(QtCore.Qt.TextInteractionFlag.TextBrowserInteraction)
+        label.setAlignment(QtCore.Qt.AlignmentFlag.AlignLeft | QtCore.Qt.AlignmentFlag.AlignVCenter)
+        tooltip = url
+        if hyperlink != url:
+            tooltip = f"{url}\n{hyperlink}"
+        label.setToolTip(tooltip)
+        label.setFocusPolicy(QtCore.Qt.FocusPolicy.NoFocus)
+        self.results.setCellWidget(row, column, label)
 
-    def _citation_entries(self, metadata: Mapping[str, Any] | Any) -> list[Mapping[str, Any]]:
+    def _set_preview_widget(self, row: int, column: int, metadata: Mapping[str, Any] | Any) -> None:
         mapping = metadata if isinstance(metadata, Mapping) else {}
-        entries: list[Mapping[str, Any]] = []
-        raw = mapping.get("citations")
-        if isinstance(raw, Sequence):
-            for item in raw:
-                if isinstance(item, Mapping):
-                    entries.append(item)
-                elif isinstance(item, str) and item.strip():
-                    entries.append({"title": item.strip()})
-        single = mapping.get("citation")
-        if isinstance(single, str) and single.strip():
-            entries.append({"title": single.strip()})
-        return entries
+        preview_url = self._first_text(mapping, [
+            "preview_url",
+            "previewURL",
+            "preview_uri",
+            "QuicklookURL",
+            "quicklook_url",
+            "productPreviewURL",
+            "thumbnailURL",
+            "thumbnail_uri",
+        ])
+        citation = self._extract_citation(mapping)
+        if not preview_url and not citation:
+            self.results.setCellWidget(row, column, None)
+            self._set_table_text(row, column, "")
+            return
 
-    def _format_citation_entry(self, entry: Mapping[str, Any]) -> str:
-        title = str(entry.get("title") or entry.get("label") or "").strip()
-        doi = str(entry.get("doi") or "").strip()
-        url = str(entry.get("url") or entry.get("link") or "").strip()
-        notes = str(entry.get("notes") or "").strip()
+        label = QtWidgets.QLabel(self.results)
+        label.setOpenExternalLinks(True)
+        label.setTextInteractionFlags(QtCore.Qt.TextInteractionFlag.TextBrowserInteraction)
+        label.setAlignment(QtCore.Qt.AlignmentFlag.AlignLeft | QtCore.Qt.AlignmentFlag.AlignVCenter)
+        label.setWordWrap(True)
+        label.setFocusPolicy(QtCore.Qt.FocusPolicy.NoFocus)
 
-        parts: list[str] = []
-        if title:
-            parts.append(title)
-
-        detail_parts: list[str] = []
-        if doi:
-            detail_parts.append(f"DOI {doi}")
-        if url:
-            detail_parts.append(url)
-        if detail_parts:
-            parts.append(", ".join(detail_parts))
-
-        if notes:
-            parts.append(notes)
-
-        return " — ".join(parts) if parts else ""
+        fragments: list[str] = []
+        if preview_url:
+            escaped_url = html.escape(preview_url)
+            fragments.append(f'<a href="{escaped_url}">Preview</a>')
+            label.setToolTip(preview_url)
+        if citation:
+            fragments.append(html.escape(citation))
+        label.setText("<br/>".join(fragments))
+        self.results.setCellWidget(row, column, label)
 
     def _clear_result_widgets(self) -> None:
         for row in range(self.results.rowCount()):
@@ -533,61 +787,38 @@ class RemoteDataDialog(QtWidgets.QDialog):
             return
 
         records = [self._records[index.row()] for index in selected]
-
-        self._download_in_progress = True
-        self._download_warnings = []
-        self._update_enabled_state()
-        self._set_busy(True)
-        self.status_label.setText(f"Downloading {len(records)} selection(s)…")
-        self.download_started.emit(len(records))
-
-        worker = _DownloadWorker(self.remote_service, self.ingest_service, records)
-        worker.completed.connect(self._handle_download_completed)
-        worker.warning.connect(self._handle_download_warning)
-        worker.error.connect(self._handle_download_error)
-        worker.finished.connect(self._download_finished)
-        self._start_download_worker(worker)
+        self._start_download(records)
 
     def _refresh_provider_state(self) -> None:
-        providers = list(self.remote_service.providers(include_reference=False))
+        providers = [
+            provider
+            for provider in self.remote_service.providers()
+            if provider != RemoteDataService.PROVIDER_NIST
+        ]
         self.provider_combo.clear()
         if providers:
             self.provider_combo.addItems(providers)
             self.provider_combo.setEnabled(True)
             self.search_edit.setEnabled(True)
             self.search_button.setEnabled(True)
-            placeholders: dict[str, str] = {}
-            hints: dict[str, str] = {}
-            examples: dict[str, list[tuple[str, str]]] = {}
-            if RemoteDataService.PROVIDER_MAST in providers:
-                placeholders[RemoteDataService.PROVIDER_MAST] = (
-                    "JWST spectroscopic target (e.g. WASP-96 b, NIRSpec)…"
-                )
-                hints[RemoteDataService.PROVIDER_MAST] = (
-                    "MAST requests favour calibrated spectra (IFS cubes, slits, prisms). Enable "
-                    '"Include imaging" to broaden results with calibrated image products.'
-                )
-                examples[RemoteDataService.PROVIDER_MAST] = [
-                    ("WASP-96 b – JWST/NIRSpec", "WASP-96 b"),
-                    ("WASP-39 b – JWST/NIRSpec", "WASP-39 b"),
-                    ("HD 189733 – JWST/NIRISS", "HD 189733"),
-                ]
-            if RemoteDataService.PROVIDER_SOLAR_SYSTEM in providers:
-                placeholders[RemoteDataService.PROVIDER_SOLAR_SYSTEM] = (
-                    "Curated solar system or stellar target (e.g. Jupiter, Vega)…"
-                )
-                hints[RemoteDataService.PROVIDER_SOLAR_SYSTEM] = (
-                    "Solar System Archive samples are bundled manifests mapped to local spectra. Leave the field blank "
-                    "to list every curated target, or search by planet/moon/star name to filter the table."
-                )
-                examples[RemoteDataService.PROVIDER_SOLAR_SYSTEM] = [
-                    ("Mercury – MESSENGER MASCS", "Mercury"),
-                    ("Jupiter – JWST ERS composite", "Jupiter"),
-                    ("Vega – HST CALSPEC standard", "Vega"),
-                ]
-            self._provider_placeholders = placeholders
-            self._provider_hints = hints
-            self._provider_examples = examples
+            self._provider_placeholders = {
+                RemoteDataService.PROVIDER_MAST: (
+                    "Solar system body, host star, or exoplanet target (e.g. Jupiter, TRAPPIST-1, WASP-96 b)…"
+                ),
+            }
+            self._provider_hints = {
+                RemoteDataService.PROVIDER_MAST: (
+                    "MAST requests favour calibrated spectra (IFS cubes, slits, prisms) and Exo.MAST cross-matching with the "
+                    "NASA Exoplanet Archive. Enable \"Include imaging\" to add calibrated previews alongside spectra."
+                ),
+            }
+            self._provider_examples = {
+                RemoteDataService.PROVIDER_MAST: [
+                    ("Jupiter – JWST/NIRCam (solar system)", "Jupiter"),
+                    ("TRAPPIST-1e – JWST/NIRSpec (exoplanet host)", "TRAPPIST-1"),
+                    ("HD 189733 – HST/STIS (stellar benchmark)", "HD 189733"),
+                ],
+            }
         else:
             self.provider_combo.setEnabled(False)
             self.search_edit.setEnabled(False)
@@ -620,362 +851,156 @@ class RemoteDataDialog(QtWidgets.QDialog):
             self.status_label.clear()
 
         self._on_provider_changed()
-        self._set_busy(False)
-
-    # ------------------------------------------------------------------
-    def _start_search_worker(self, worker: _SearchWorker) -> None:
-        self._cleanup_search_thread()
-        thread = QtCore.QThread(self)
-        thread.setObjectName("remote-search-worker")
-        self._search_thread = thread
-        self._search_worker = worker
-        worker.moveToThread(thread)
-        thread.started.connect(worker.run)
-        worker.finished.connect(thread.quit)
-        worker.finished.connect(worker.deleteLater)
-        thread.finished.connect(thread.deleteLater)
-        thread.finished.connect(self._on_search_thread_finished)
-        thread.start()
-
-    def _start_download_worker(self, worker: _DownloadWorker) -> None:
-        self._cleanup_download_thread()
-        thread = QtCore.QThread(self)
-        thread.setObjectName("remote-download-worker")
-        self._download_thread = thread
-        self._download_worker = worker
-        worker.moveToThread(thread)
-        thread.started.connect(worker.run)
-        worker.finished.connect(thread.quit)
-        worker.finished.connect(worker.deleteLater)
-        thread.finished.connect(thread.deleteLater)
-        thread.finished.connect(self._on_download_thread_finished)
-        thread.start()
-
-    def _handle_search_results(self, records: list[RemoteRecord]) -> None:
-        self._records = list(records)
-        self._populate_results_table(self._records)
-        self.status_label.setText(f"{len(records)} result(s) fetched from {self.provider_combo.currentText()}.")
-        if records:
-            self.results.selectRow(0)
-        else:
-            self.preview.clear()
-        self._update_download_button_state()
-        self.search_completed.emit(records)
-
-    def _handle_search_error(self, message: str) -> None:
-        QtWidgets.QMessageBox.critical(self, "Search failed", message)
-        self.status_label.setText(message)
-        self.search_failed.emit(message)
-
-    def _search_finished(self) -> None:
-        self._search_in_progress = False
-        self._update_enabled_state()
-        self._set_busy(False)
-
-    def _handle_download_completed(self, spectra: list[object]) -> None:
-        self._ingested = list(spectra)
-        if self._download_warnings and spectra:
-            QtWidgets.QMessageBox.warning(
-                self,
-                "Partial download",
-                "\n".join(self._download_warnings),
-            )
-            self._download_warnings.clear()
-        if spectra:
-            self.status_label.setText(f"Imported {len(spectra)} spectrum/s.")
-            self.download_completed.emit(spectra)
-            self.accept()
-        elif self._download_warnings:
-            QtWidgets.QMessageBox.warning(
-                self,
-                "Download failed",
-                "\n".join(self._download_warnings),
-            )
-            self._download_warnings.clear()
-        else:
-            self.status_label.setText("No spectra were imported.")
-
-    def _handle_download_warning(self, message: str) -> None:
-        self._download_warnings.append(message)
-
-    def _handle_download_error(self, message: str) -> None:
-        QtWidgets.QMessageBox.critical(self, "Download failed", message)
-        self.status_label.setText(message)
-        self.download_failed.emit(message)
-
-    def _download_finished(self) -> None:
-        self._download_in_progress = False
-        self._update_enabled_state()
-        self._download_warnings.clear()
-        self._set_busy(False)
-
-    def _update_enabled_state(self) -> None:
-        searching = self._search_in_progress
-        downloading = self._download_in_progress
-        providers_available = self.provider_combo.count() > 0
-
-        self.provider_combo.setEnabled(providers_available and not searching)
-        self.search_edit.setEnabled(not searching)
-        self.search_button.setEnabled(not searching)
-        self.example_combo.setEnabled(not searching and self.example_combo.count() > 1)
-        self.include_imaging_checkbox.setEnabled(
-            self.include_imaging_checkbox.isVisible() and not searching
-        )
         self._update_download_button_state()
 
-    def _on_search_thread_finished(self) -> None:
-        self._search_thread = None
-        self._search_worker = None
-
-    def _on_download_thread_finished(self) -> None:
-        self._download_thread = None
-        self._download_worker = None
-
-    def _cleanup_search_thread(self) -> None:
-        if self._search_thread is not None:
-            self._search_thread.quit()
-            self._search_thread.wait()
-            self._search_thread = None
-        self._search_worker = None
-
-    def _cleanup_download_thread(self) -> None:
-        if self._download_thread is not None:
-            self._download_thread.quit()
-            self._download_thread.wait()
-            self._download_thread = None
-        self._download_worker = None
-
-    def _set_busy(self, busy: bool) -> None:
-        self._busy = busy
-        if busy:
-            self.progress_indicator.setRange(0, 0)
-            self.progress_indicator.setVisible(True)
-        else:
-            self.progress_indicator.setVisible(False)
-            self.progress_indicator.setRange(0, 1)
-
-    def _update_download_button_state(self) -> None:
-        has_selection = bool(
-            self.results.selectionModel()
-            and self.results.selectionModel().selectedRows()
-        )
-        enabled = (
-            has_selection
-            and bool(self._records)
-            and not self._search_in_progress
-            and not self._download_in_progress
-        )
-        self.download_button.setEnabled(enabled)
-
     # ------------------------------------------------------------------
+    def _format_status_summary(self, records: Sequence[RemoteRecord]) -> str:
+        if not records:
+            return ""
+        metadata = records[0].metadata if isinstance(records[0].metadata, Mapping) else {}
+        focus = [self._format_exoplanet_summary(metadata)]
+        mission = self._format_mission(metadata)
+        instrument = self._format_instrument(metadata)
+        focus.extend([mission, instrument])
+        cleaned = [part for part in focus if part]
+        return " | ".join(cleaned)
+
     def _format_target(self, record: RemoteRecord) -> str:
         metadata = record.metadata if isinstance(record.metadata, Mapping) else {}
-        target = self._first_text(
-            metadata,
-            [
-                "target_name",
-                "target",
-                "Target Name",
-                "display_name",
-                "obs_target",
-                "intentTargetName",
-            ],
-        )
-        if target:
-            return target
-        return record.title
+        target = self._first_text(metadata, ["target_name", "target", "title"]) or record.title
+        host = self._first_text(metadata, ["host_name", "hostname", "star_name", "st_name"])
+        planet = self._first_text(metadata, ["planet_name", "pl_name", "exoplanet", "object"])
+        label_parts: list[str] = []
+        if planet and host:
+            label_parts.append(f"{planet} ({host})")
+        elif planet:
+            label_parts.append(str(planet))
+        elif host and target and host != target:
+            label_parts.append(f"{target} ({host})")
+        if target and target not in label_parts:
+            label_parts.append(str(target))
+        return " • ".join(dict.fromkeys([part for part in label_parts if part]))
 
     def _format_mission(self, metadata: Mapping[str, Any] | Any) -> str:
         mapping = metadata if isinstance(metadata, Mapping) else {}
-        mission = self._first_text(
-            mapping,
-            [
-                "obs_collection",
-                "mission",
-                "obs_collection_name",
-                "project",
-                "facility_name",
-                "telescope_name",
-            ],
-        )
-        program = self._first_text(mapping, ["program", "program_name", "proposal_pi", "proposal_id"])
-        if mission and program:
-            return f"{mission} ({program})"
-        return mission or program
+        mission_candidates = [
+            self._first_text(mapping, ["telescope", "mission", "facility", "obs_collection", "project"]),
+            self._first_text(mapping, ["proposal_id", "proposal_title"]),
+        ]
+        mission_parts = [part for part in mission_candidates if part]
+        return " • ".join(dict.fromkeys(mission_parts))
 
     def _format_instrument(self, metadata: Mapping[str, Any] | Any) -> str:
         mapping = metadata if isinstance(metadata, Mapping) else {}
-        instrument = self._first_text(
-            mapping,
-            [
-                "instrument_name",
-                "instrument",
-                "instrument_id",
-                "instr_band",
-                "detector",
-            ],
-        )
-        channel = self._first_text(mapping, ["channel", "camera", "module"])
-        grating = self._first_text(mapping, ["grating", "grating_config", "spectral_element"])
-        filters = self._first_text(mapping, ["filters", "filter"])
-        details = [part for part in (instrument, channel, grating, filters) if part]
-        return " / ".join(dict.fromkeys(details)) if details else ""
+        instrument = self._first_text(mapping, ["instrument_name", "instrument", "detector", "channel"])
+        mode = self._first_text(mapping, ["observation_mode", "mode", "obsmode", "configuration", "aperture"])
+        parts = [part for part in (instrument, mode) if part]
+        return " • ".join(parts)
 
     def _format_product(self, metadata: Mapping[str, Any] | Any) -> str:
         mapping = metadata if isinstance(metadata, Mapping) else {}
-        product = self._first_text(
-            mapping,
-            [
-                "productType",
-                "dataproduct_type",
-                "product_type",
-                "Product Type",
-            ],
-        )
-        intent = self._first_text(mapping, ["intentType", "intent_type"])
-        calibration = mapping.get("calib_level")
-        calibration_text = ""
-        if calibration not in (None, ""):
-            calibration_text = f"Level {calibration}"
-        descriptors = [part for part in (product, intent, calibration_text) if part]
-        return "; ".join(dict.fromkeys(descriptors))
-
-    def _format_exoplanet_summary(self, metadata: Mapping[str, Any] | Any) -> str:
-        mapping = metadata if isinstance(metadata, Mapping) else {}
-        summary = mapping.get("exoplanet_summary")
-        if isinstance(summary, str) and summary.strip():
-            return summary.strip()
-        exoplanet = mapping.get("exoplanet")
-        if isinstance(exoplanet, Mapping):
-            name = self._first_text(exoplanet, ["display_name", "name"])
-            classification = self._first_text(exoplanet, ["classification", "type"])
-            host = self._first_text(exoplanet, ["host_star", "host"])
-            details = [part for part in (classification, host and f"Host: {host}") if part]
-            if name or details:
-                return " – ".join(filter(None, [name, ", ".join(details) if details else ""]))
-        return ""
+        product = self._first_text(mapping, ["dataproduct_type", "productType", "intentType"])
+        calibration = self._first_text(mapping, ["calib_level", "dataRights"])
+        parts = [part for part in (product, calibration) if part]
+        return " • ".join(parts)
 
     def _extract_citation(self, metadata: Mapping[str, Any] | Any) -> str:
         mapping = metadata if isinstance(metadata, Mapping) else {}
         citation = self._first_text(
             mapping,
-            ["citation", "citation_text", "Citation", "reference", "reference_text"],
-        )
-        if citation:
-            return citation
-        doi = self._first_text(mapping, ["doi", "DOI", "citation_doi"])
-        url = self._first_text(
-            mapping,
-            ["citation_url", "bibliographic_url", "referenceURL", "url", "link"],
-        )
-        if doi and url:
-            return f"DOI {doi} – {url}"
-        if doi:
-            return f"DOI {doi}"
-        if url:
-            return url
-        citations = mapping.get("citations")
-        if isinstance(citations, Mapping):
-            return self._extract_citation(citations)
-        if isinstance(citations, Sequence) and not isinstance(citations, (str, bytes)):
-            for entry in citations:
-                if not isinstance(entry, Mapping):
-                    continue
-                title = self._first_text(entry, ["title", "citation", "reference"])
-                entry_doi = self._first_text(entry, ["doi", "DOI"])
-                pieces = [part for part in (title, entry_doi and f"DOI {entry_doi}") if part]
-                if pieces:
-                    return " – ".join(pieces)
-        return ""
-
-    def _set_download_widget(self, row: int, column: int, url: str) -> None:
-        hyperlink = self._link_for_download(url)
-        if not hyperlink:
-            self.results.setCellWidget(row, column, None)
-            self._set_table_text(row, column, "")
-            return
-
-        label = QtWidgets.QLabel(self.results)
-        label.setOpenExternalLinks(True)
-        label.setTextInteractionFlags(QtCore.Qt.TextInteractionFlag.TextBrowserInteraction)
-        label.setAlignment(QtCore.Qt.AlignmentFlag.AlignLeft | QtCore.Qt.AlignmentFlag.AlignVCenter)
-        label.setFocusPolicy(QtCore.Qt.FocusPolicy.NoFocus)
-        escaped = html.escape(hyperlink)
-        label.setText(f'<a href="{escaped}">Open</a>')
-        tooltip = url
-        if hyperlink != url:
-            tooltip = f"{url}\n{hyperlink}"
-        label.setToolTip(tooltip)
-        self.results.setCellWidget(row, column, label)
-
-    def _set_preview_widget(self, row: int, column: int, metadata: Mapping[str, Any] | Any) -> None:
-        mapping = metadata if isinstance(metadata, Mapping) else {}
-        preview_url = self._first_text(
-            mapping,
             [
-                "preview_url",
-                "previewURL",
-                "preview_uri",
-                "QuicklookURL",
-                "quicklook_url",
-                "productPreviewURL",
-                "thumbnailURL",
-                "thumbnail_uri",
-                "preview_download",
+                "citation",
+                "short_citation",
+                "reference",
+                "bib_reference",
+                "bibcode",
+                "proposal_pi",
             ],
         )
-        citation = self._extract_citation(mapping)
-        if not preview_url and not citation:
-            self.results.setCellWidget(row, column, None)
-            self._set_table_text(row, column, "")
-            return
-
-        label = QtWidgets.QLabel(self.results)
-        label.setOpenExternalLinks(True)
-        label.setTextInteractionFlags(QtCore.Qt.TextInteractionFlag.TextBrowserInteraction)
-        label.setAlignment(QtCore.Qt.AlignmentFlag.AlignLeft | QtCore.Qt.AlignmentFlag.AlignVCenter)
-        label.setWordWrap(True)
-        label.setFocusPolicy(QtCore.Qt.FocusPolicy.NoFocus)
-
-        fragments: list[str] = []
-        if preview_url:
-            escaped_url = html.escape(preview_url)
-            fragments.append(f'<a href="{escaped_url}">Preview</a>')
-            label.setToolTip(preview_url)
         if citation:
-            fragments.append(html.escape(citation))
-        label.setText("<br/>".join(fragments))
-        self.results.setCellWidget(row, column, label)
+            return str(citation)
+        pi = self._first_text(mapping, ["proposal_pi"])
+        cycle = self._first_text(mapping, ["proposal_cycle", "cycle"])
+        if pi or cycle:
+            descriptor = ", ".join(part for part in (pi, cycle) if part)
+            return descriptor
+        return ""
 
-    @staticmethod
-    def _link_for_download(url: str) -> str:
-        if not url:
-            return ""
-        if url.startswith("mast:"):
-            encoded = quote(url, safe=":/")
-            return f"https://mast.stsci.edu/api/v0.1/Download/file?uri={encoded}"
-        if url.startswith("nist-asd"):
-            encoded = quote(url, safe=":/?=&,+-_.")
-            return f"https://physics.nist.gov/PhysRefData/ASD/lines_form.html?uri={encoded}"
-        return url
+    def _format_exoplanet_summary(self, metadata: Mapping[str, Any]) -> str:
+        planet = self._first_text(metadata, ["planet_name", "pl_name", "target_name", "object"])
+        host = self._first_text(metadata, ["host_name", "hostname", "star_name", "st_name"])
+        discovery = self._first_text(metadata, ["discoverymethod", "disc_method", "discovery_method"])
+        period = self._first_number(metadata, ["pl_orbper", "orbital_period", "period_days"])
+        teff = self._first_number(metadata, ["st_teff", "teff", "stellar_temperature"])
+        summary_parts: list[str] = []
+        if planet and host:
+            summary_parts.append(f"{planet} around {host}")
+        elif planet:
+            summary_parts.append(str(planet))
+        elif host:
+            summary_parts.append(str(host))
+        if discovery:
+            summary_parts.append(f"Discovery: {discovery}")
+        if period is not None:
+            formatted_period = self._format_numeric(period, " d", decimals=2)
+            if formatted_period:
+                summary_parts.append(f"Period: {formatted_period}")
+        if teff is not None:
+            formatted_teff = self._format_numeric(teff, " K", decimals=0)
+            if formatted_teff:
+                summary_parts.append(f"T_eff: {formatted_teff}")
+        return " • ".join(summary_parts)
 
-    @staticmethod
-    def _first_text(metadata: Mapping[str, Any] | Any, keys: Sequence[str]) -> str:
-        mapping = metadata if isinstance(metadata, Mapping) else {}
+    def _first_text(self, metadata: Mapping[str, Any], keys: Sequence[str]) -> str:
         for key in keys:
-            value = mapping.get(key)
+            value = self._lookup_metadata(metadata, key)
             if value is None:
                 continue
-            if isinstance(value, (list, tuple)):
-                for item in value:
-                    if item is None:
-                        continue
-                    text = str(item).strip()
-                    if text:
-                        return text
-                continue
-            text = str(value).strip()
+            if isinstance(value, (list, tuple, set)):
+                text = ", ".join(str(part).strip() for part in value if str(part).strip())
+            else:
+                text = str(value).strip()
             if text:
                 return text
         return ""
+
+    def _first_number(self, metadata: Mapping[str, Any], keys: Sequence[str]) -> float | None:
+        for key in keys:
+            value = self._lookup_metadata(metadata, key)
+            if value is None:
+                continue
+            try:
+                number = float(value)
+            except (TypeError, ValueError):
+                continue
+            if math.isfinite(number):
+                return number
+        return None
+
+    def _lookup_metadata(self, metadata: Mapping[str, Any], key: str) -> Any:
+        candidates = [metadata]
+        nested_keys = ("exomast", "exo_mast", "exoplanet_archive", "exoplanet", "planet", "host")
+        for nested in nested_keys:
+            value = metadata.get(nested)
+            if isinstance(value, Mapping):
+                candidates.append(value)
+        for candidate in candidates:
+            if not isinstance(candidate, Mapping):
+                continue
+            if key in candidate and candidate[key] not in (None, ""):
+                return candidate[key]
+        return None
+
+    def _format_numeric(self, value: float, suffix: str, *, decimals: int) -> str:
+        if not math.isfinite(value):
+            return ""
+        if abs(value - round(value)) < 10 ** -(decimals + 1):
+            return f"{int(round(value))}{suffix}"
+        return f"{value:.{decimals}f}{suffix}"
+
+    def _link_for_download(self, url: str) -> str:
+        if url.startswith("mast:"):
+            encoded = quote(url, safe="")
+            return f"https://mast.stsci.edu/portal/Download/file?uri={encoded}"
+        return url
 

@@ -8,6 +8,23 @@
   results. (`tests/test_remote_data_service.py`)
 - Documented the resilient behaviour in the Remote Data user guide so analysts know curated searches continue even when bundles
   are offline. (`docs/user/remote_data.md`)
+
+## 2025-10-21 (Remote dialog blocks on worker shutdown during app exit) (19:19 EDT / 23:19 UTC)
+
+- Guarded the Remote Data dialog's `closeEvent` so Spectra waits for active
+  search/download worker threads to finish when the application is quitting.
+  Prevents Qt from tearing down running `QThread` instances if the main window
+  closes immediately after dismissing the dialog.
+
+## 2025-10-20 (Remote dialog threads shut down safely on close) (18:42 EDT / 22:42 UTC)
+
+- Ensured the Remote Data dialog waits for active search/download worker threads
+  to finish after requesting cancellation so closing the window no longer risks
+  `QThread: Destroyed while thread is still running` crashes on long-running
+  remote calls.
+- Reused the worker-cleanup path to dispose threads/workers after joining so
+  cancellation behaves consistently whether triggered via Reject or completion
+  signals.
 ## 2025-10-21 (Resource guide adds usage & maintenance notes) (18:42 EDT / 22:42 UTC)
 
 - Expanded the JWST/exoplanet tooling sections in `docs/link_collection.md` with

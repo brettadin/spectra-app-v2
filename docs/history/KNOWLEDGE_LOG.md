@@ -26,7 +26,6 @@ Each entry in this document should follow this structure:
   citation markers like 【875267955107972†L29-L41】 for primary documentation where
   applicable).
 
----
 ## 2025-10-21T18:44:51-04:00 / 2025-10-21T22:44:53+00:00 – Curated search resiliency
 
 **Author**: agent
@@ -38,6 +37,35 @@ allowing available bundles to remain discoverable. Added regression tests that a
 roster to confirm searches continue returning valid targets, and documented the behaviour in the remote data user guide.
 
 **References**: `app/services/remote_data_service.py`, `tests/test_remote_data_service.py`, `docs/user/remote_data.md`.
+
+---
+## 2025-10-21T19:19:45-04:00 / 2025-10-21T23:19:47+00:00 – Remote Data dialog blocks worker teardown on app quit
+
+**Author**: Codex agent
+
+**Context**: Remote catalogue worker lifecycle during full-application shutdown.
+
+**Summary**: Hooked the dialog's `closeEvent` to wait for active search and
+download threads whenever Spectra is closing down. This keeps Qt from
+destroying running `QThread` instances if the user dismisses the dialog and
+immediately quits the app, preserving the responsive reject flow while
+guaranteeing clean shutdown during exit.
+
+**References**: `app/ui/remote_data_dialog.py`, `docs/history/PATCH_NOTES.md`.
+
+---
+## 2025-10-20T18:42:45-04:00 / 2025-10-20T22:42:47+00:00 – Remote Data dialog joins worker threads on close
+
+**Author**: agent
+
+**Context**: Remote catalogue worker lifecycle and dialog shutdown stability.
+
+**Summary**: Updated the Reject handler to cancel in-flight workers, wait for the
+background QThreads to finish, and dispose of the worker/thread pair so closing
+the dialog during long-running remote calls no longer risks `QThread` destruction
+warnings or crashes.
+
+**References**: `app/ui/remote_data_dialog.py`, `docs/history/PATCH_NOTES.md`.
 ## 2025-10-21T18:42:11-04:00 / 2025-10-21T22:42:13+00:00 – JWST/exoplanet resource guidance
 
 **Author**: agent
