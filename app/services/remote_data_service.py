@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
 import csv
-import hashlib
 import json
 import math
 import tempfile
@@ -25,11 +26,6 @@ try:  # Optional dependency – astroquery is heavy and not always bundled
     from astroquery import mast as astroquery_mast
 except Exception:  # pragma: no cover - handled by dependency guards
     astroquery_mast = None  # type: ignore[assignment]
-
-try:  # Optional dependency – Exoplanet Archive helpers live in astroquery
-    from astroquery.ipac.nexsci import NasaExoplanetArchive as astroquery_nexsci
-except Exception:  # pragma: no cover - handled by dependency guards
-    astroquery_nexsci = None  # type: ignore[assignment]
 
 try:  # Optional dependency – astroquery depends on pandas at runtime
     import pandas  # type: ignore  # noqa: F401
@@ -168,8 +164,6 @@ class RemoteDataService:
         if self._has_nist_support():
             providers.append(self.PROVIDER_NIST)
         if self._has_mast_support():
-            if self._has_exosystem_support():
-                providers.append(self.PROVIDER_EXOSYSTEMS)
             providers.append(self.PROVIDER_MAST)
         return providers
 
@@ -185,13 +179,6 @@ class RemoteDataService:
             reasons[self.PROVIDER_MAST] = (
                 "Install the 'astroquery' and 'pandas' packages to enable MAST searches."
             )
-            reasons[self.PROVIDER_EXOSYSTEMS] = (
-                "Install the 'astroquery', 'pandas', and 'requests' packages to enable Exoplanet Archive lookups."
-            )
-        elif not self._has_exosystem_support():
-            reasons[self.PROVIDER_EXOSYSTEMS] = (
-                "Install the 'requests' package to enable Exoplanet Archive and Exo.MAST queries."
-            )
         return reasons
 
     # ------------------------------------------------------------------
@@ -206,8 +193,6 @@ class RemoteDataService:
             return self._search_nist(query)
         if provider == self.PROVIDER_MAST:
             return self._search_mast(query, include_imaging=include_imaging)
-        if provider == self.PROVIDER_EXOSYSTEMS:
-            return self._search_exosystems(query, include_imaging=include_imaging)
         raise ValueError(f"Unsupported provider: {provider}")
 
     # ------------------------------------------------------------------
@@ -311,6 +296,8 @@ class RemoteDataService:
         if not criteria or not any(criteria.values()):
             raise ValueError("MAST searches require a target name or explicit filtering criteria.")
 
+        observations = self._ensure_mast()
+
         # Default to calibrated spectroscopic products so search results focus on
         # slit/grism/cube observations that pair with laboratory references.
         if include_imaging:
@@ -321,44 +308,36 @@ class RemoteDataService:
         if "calib_level" not in criteria:
             criteria["calib_level"] = [2, 3]
 
-        mast = self._ensure_mast()
-        observation_table = mast.Observations.query_criteria(**criteria)
-        return self._records_from_mast_products(
-            observation_table,
-            include_imaging=include_imaging,
-            provider=self.PROVIDER_MAST,
-        )
-
-    def _search_exosystems(
-        self,
-        query: Mapping[str, Any],
-        *,
-        include_imaging: bool = False,
-    ) -> List[RemoteRecord]:
-        text = str(query.get("text") or query.get("target_name") or "").strip()
-        if not text:
-            raise ValueError("MAST ExoSystems searches require a planet, star, or system name.")
-
-        systems = self._resolve_exosystem_targets(text)
-        records: List[RemoteRecord] = []
-        for system in systems:
-            records.extend(self._collect_exosystem_products(system, include_imaging=include_imaging))
-
-        if not records:
-            try:
-                records = self._search_mast({"target_name": text}, include_imaging=include_imaging)
-            except Exception:
-                records = []
-
-        deduped: List[RemoteRecord] = []
-        seen: set[tuple[str, str]] = set()
-        for record in records:
-            key = (record.download_url, record.identifier)
-            if key in seen:
+        table = observations.Observations.query_criteria(**criteria)
+        rows = self._table_to_records(table)
+        systems: List[Dict[str, Any]] = []
+        for row in rows:
+            metadata = dict(row)
+            if include_imaging:
+                if not (self._is_spectroscopic(metadata) or self._is_imaging(metadata)):
+                    continue
+            else:
+                if not self._is_spectroscopic(metadata):
+                    continue
+            identifier = str(metadata.get("obsid") or metadata.get("ObservationID") or metadata.get("id"))
+            if not identifier:
                 continue
-            seen.add(key)
-            deduped.append(record)
-        return deduped
+            title = str(metadata.get("target_name") or metadata.get("target") or identifier)
+            download_uri = metadata.get("dataURI") or metadata.get("ProductURI") or metadata.get("download_uri")
+            if not download_uri:
+                continue
+            units_map = metadata.get("units") if isinstance(metadata.get("units"), Mapping) else None
+            records.append(
+                RemoteRecord(
+                    provider=self.PROVIDER_MAST,
+                    identifier=identifier,
+                    title=title,
+                    download_url=str(download_uri),
+                    metadata=metadata,
+                    units=units_map,
+                )
+                )
+        return records
 
     def _is_spectroscopic(self, metadata: Mapping[str, Any]) -> bool:
         """Return True when the MAST row represents spectroscopic data."""
@@ -391,303 +370,6 @@ class RemoteDataService:
         if "image" in description:
             return True
         return False
-
-    def _records_from_mast_products(
-        self,
-        observation_table: Any,
-        *,
-        include_imaging: bool,
-        provider: str,
-        system_metadata: Mapping[str, Any] | None = None,
-    ) -> List[RemoteRecord]:
-        mast = self._ensure_mast()
-        observation_rows = self._table_to_records(observation_table)
-        if not observation_rows:
-            return []
-
-        observation_index = self._index_observations(observation_rows)
-        product_table = mast.Observations.get_product_list(observation_table)
-        product_rows = self._table_to_records(product_table)
-        if not product_rows:
-            return []
-
-        records: List[RemoteRecord] = []
-        for product in product_rows:
-            metadata = dict(product)
-            obs_id = self._normalise_observation_id(metadata)
-            observation_meta = observation_index.get(obs_id, {})
-            merged: Dict[str, Any] = {**observation_meta, **metadata}
-
-            if include_imaging:
-                if not (self._is_spectroscopic(merged) or self._is_imaging(merged)):
-                    continue
-            elif not self._is_spectroscopic(merged):
-                continue
-
-            data_uri = self._first_text(merged, ["dataURI", "data_uri", "ProductURI"])
-            if not data_uri:
-                continue
-
-            identifier = self._first_text(
-                merged,
-                [
-                    "productFilename",
-                    "productFilenameSource",
-                    "obs_id",
-                    "obsid",
-                    "observationID",
-                    "dataURI",
-                ],
-            )
-            if not identifier:
-                continue
-
-            if system_metadata:
-                merged.setdefault("exosystem", dict(system_metadata))
-                if "citations" in system_metadata and "citations" not in merged:
-                    citations = system_metadata.get("citations")
-                    if isinstance(citations, list):
-                        merged["citations"] = list(citations)
-
-            title = self._build_mast_title(merged)
-            units_map = merged.get("units") if isinstance(merged.get("units"), Mapping) else None
-            merged["observation"] = observation_meta
-
-            records.append(
-                RemoteRecord(
-                    provider=provider,
-                    identifier=str(identifier),
-                    title=title,
-                    download_url=str(data_uri),
-                    metadata=merged,
-                    units=units_map,
-                )
-            )
-
-        return records
-
-    def _collect_exosystem_products(
-        self,
-        system: Mapping[str, Any],
-        *,
-        include_imaging: bool,
-    ) -> List[RemoteRecord]:
-        mast = self._ensure_mast()
-        ra = self._to_float(system.get("ra"))
-        dec = self._to_float(system.get("dec"))
-        coordinates = system.get("coordinates") if isinstance(system.get("coordinates"), Mapping) else {}
-        if ra is None and isinstance(coordinates, Mapping):
-            ra = self._to_float(coordinates.get("ra"))
-        if dec is None and isinstance(coordinates, Mapping):
-            dec = self._to_float(coordinates.get("dec"))
-        radius = system.get("search_radius") or self._DEFAULT_REGION_RADIUS
-        target_name = self._first_text(system, ["object_name", "host_name", "display_name"])
-
-        observation_table = None
-        if ra is not None and dec is not None:
-            coordinate = f"{ra} {dec}"
-            try:
-                observation_table = mast.Observations.query_region(coordinate, radius=radius)
-            except Exception:
-                observation_table = None
-        elif target_name:
-            observation_table = mast.Observations.query_object(target_name, radius=radius)
-        else:
-            return []
-
-        system_metadata = self._build_system_metadata(system)
-        records = self._records_from_mast_products(
-            observation_table,
-            include_imaging=include_imaging,
-            provider=self.PROVIDER_EXOSYSTEMS,
-            system_metadata=system_metadata,
-        )
-        for record in records:
-            if isinstance(record.metadata, Mapping):
-                record.metadata.setdefault("target_display", system_metadata.get("display_name"))
-        return records
-
-    def _resolve_exosystem_targets(self, text: str) -> List[Dict[str, Any]]:
-        matches: List[Dict[str, Any]] = []
-        matches.extend(self._match_curated_targets(text))
-        matches.extend(self._query_exoplanet_archive(text))
-
-        deduped: List[Dict[str, Any]] = []
-        seen: set[tuple[str | None, str | None]] = set()
-        for entry in matches:
-            host = entry.get("host_name") or entry.get("object_name")
-            planet = entry.get("planet_name")
-            key = (str(host).lower() if host else None, str(planet).lower() if planet else None)
-            if key in seen:
-                continue
-            seen.add(key)
-            deduped.append(entry)
-
-        if deduped:
-            return deduped
-
-        return [
-            {
-                "display_name": text,
-                "object_name": text,
-                "aliases": {text.lower()},
-                "citations": [],
-            }
-        ]
-
-    def _match_curated_targets(self, text: str) -> List[Dict[str, Any]]:
-        query = text.strip().lower()
-        matches: List[Dict[str, Any]] = []
-        for entry in self._CURATED_TARGETS:
-            names = entry.get("names", set())
-            if not isinstance(names, set):
-                names = set(names)
-            if query in {name.lower() for name in names} or query == entry.get("display_name", "").lower():
-                metadata = {
-                    "display_name": entry.get("display_name"),
-                    "object_name": entry.get("object_name"),
-                    "host_name": entry.get("object_name"),
-                    "classification": entry.get("classification"),
-                    "citations": entry.get("citations", []),
-                    "aliases": {name.lower() for name in names},
-                    "source": "curated",
-                }
-                matches.append(metadata)
-        return matches
-
-    def _query_exoplanet_archive(self, text: str) -> List[Dict[str, Any]]:
-        if not self._has_exoplanet_archive():
-            return []
-
-        archive = self._ensure_exoplanet_archive()
-        token = text.replace("'", "''")
-        if "%" not in token and "_" not in token:
-            like_token = f"%{token}%"
-        else:
-            like_token = token
-
-        select_fields = (
-            "pl_name,hostname,disc_year,discoverymethod,ra,dec,st_teff,st_logg,st_rad,st_spectype,"
-            "sy_dist,pl_rade,pl_bmasse,pl_orbper"
-        )
-        try:
-            table = archive.query_criteria(
-                table="pscomppars",
-                select=select_fields,
-                where=f"(pl_name like '{like_token}' OR hostname like '{like_token}')",
-            )
-        except Exception:
-            return []
-
-        rows = self._table_to_records(table)
-        systems: List[Dict[str, Any]] = []
-        for row in rows:
-            planet = self._first_text(row, ["pl_name"])
-            host = self._first_text(row, ["hostname"])
-            system = {
-                "display_name": planet or host or text,
-                "planet_name": planet or None,
-                "host_name": host or None,
-                "object_name": host or planet or text,
-                "classification": "Exoplanet host system",
-                "ra": row.get("ra"),
-                "dec": row.get("dec"),
-                "search_radius": self._DEFAULT_REGION_RADIUS,
-                "citations": [
-                    {
-                        "title": "NASA Exoplanet Archive PSCompPars",
-                        "url": "https://exoplanetarchive.ipac.caltech.edu/",
-                        "notes": "Planetary and stellar parameters retrieved via astroquery.",
-                    }
-                ],
-                "parameters": {
-                    "stellar_teff": row.get("st_teff"),
-                    "stellar_logg": row.get("st_logg"),
-                    "stellar_radius": row.get("st_rad"),
-                    "stellar_type": row.get("st_spectype"),
-                    "system_distance_pc": row.get("sy_dist"),
-                    "planet_radius_re": row.get("pl_rade"),
-                    "planet_mass_me": row.get("pl_bmasse"),
-                    "planet_orbital_period_days": row.get("pl_orbper"),
-                    "discovery_method": row.get("discoverymethod"),
-                    "discovery_year": row.get("disc_year"),
-                },
-            }
-
-            exomast_payload = self._fetch_exomast_filelist(planet) if planet else None
-            if exomast_payload:
-                system["exomast"] = exomast_payload
-                citation = exomast_payload.get("citation")
-                if citation:
-                    system.setdefault("citations", []).append({
-                        "title": citation,
-                        "url": "https://exo.mast.stsci.edu/",
-                        "notes": "Curated spectra and file list from Exo.MAST.",
-                    })
-
-            systems.append(system)
-
-        return systems
-
-    def _build_system_metadata(self, system: Mapping[str, Any]) -> Dict[str, Any]:
-        metadata: Dict[str, Any] = {}
-        for key in (
-            "display_name",
-            "object_name",
-            "host_name",
-            "planet_name",
-            "classification",
-            "parameters",
-            "citations",
-            "aliases",
-        ):
-            value = system.get(key)
-            if value is not None:
-                metadata[key] = value
-
-        coordinates: Dict[str, Any] = {}
-        ra = system.get("ra")
-        dec = system.get("dec")
-        if isinstance(ra, (int, float)) and not math.isnan(float(ra)):
-            coordinates["ra"] = float(ra)
-        if isinstance(dec, (int, float)) and not math.isnan(float(dec)):
-            coordinates["dec"] = float(dec)
-        if coordinates:
-            metadata["coordinates"] = coordinates
-
-        if system.get("exomast") is not None:
-            metadata["exomast"] = system.get("exomast")
-
-        return metadata
-
-    @staticmethod
-    def _to_float(value: Any) -> float | None:
-        if value is None:
-            return None
-        try:
-            result = float(value)
-        except (TypeError, ValueError):
-            return None
-        if math.isnan(result):
-            return None
-        return result
-
-    def _fetch_exomast_filelist(self, planet_name: str | None) -> Dict[str, Any] | None:
-        if not planet_name or not self._has_requests():
-            return None
-        session = self._ensure_session()
-        url = "https://exo.mast.stsci.edu/api/v0.1/spectra/{}/filelist".format(
-            quote(str(planet_name).strip(), safe="")
-        )
-        try:
-            response = session.get(url, timeout=30)
-            response.raise_for_status()
-            payload = response.json()
-        except Exception:
-            return None
-        if isinstance(payload, Mapping):
-            return dict(payload)
-        return None
 
     def _fetch_remote(self, record: RemoteRecord) -> tuple[Path, bool]:
         if record.provider == self.PROVIDER_NIST:
@@ -961,24 +643,11 @@ class RemoteDataService:
     def _has_mast_support(self) -> bool:
         return self._has_astroquery()
 
-    def _has_exoplanet_archive(self) -> bool:
-        return astroquery_nexsci is not None and _HAS_PANDAS
-
-    def _has_exosystem_support(self) -> bool:
-        return self._has_mast_support() and self._has_exoplanet_archive() and self._has_requests()
-
     def _has_requests(self) -> bool:
         return requests is not None or self.session is not None
 
     def _has_astroquery(self) -> bool:
         return astroquery_mast is not None and _HAS_PANDAS
-
-    def _ensure_exoplanet_archive(self):
-        if not self._has_exoplanet_archive():
-            raise RuntimeError(
-                "The 'astroquery' and 'pandas' packages are required for Exoplanet Archive queries"
-            )
-        return astroquery_nexsci
 
     def _table_to_records(self, table: Any) -> List[Mapping[str, Any]]:
         if table is None:

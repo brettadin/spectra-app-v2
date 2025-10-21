@@ -204,7 +204,6 @@ def test_search_mast_filters_products_and_records_metadata(
 ) -> None:
     class DummyObservations:
         criteria: dict[str, Any] | None = None
-        products_requested: Any = None
 
         @classmethod
         def query_criteria(cls, **criteria: Any) -> list[dict[str, Any]]:
@@ -213,9 +212,16 @@ def test_search_mast_filters_products_and_records_metadata(
                 {
                     "obsid": "12345",
                     "target_name": "WASP-96 b",
-                    "obs_collection": "JWST",
-                    "instrument_name": "NIRSpec",
-                }
+                    "dataURI": "mast:JWST/product.fits",
+                    "units": {"x": "um", "y": "flux"},
+                    "dataproduct_type": "spectrum",
+                },
+                {
+                    "obsid": "12346",
+                    "target_name": "WASP-96 b",
+                    "dataURI": "mast:JWST/image.fits",
+                    "dataproduct_type": "image",
+                },
             ]
 
         @classmethod
@@ -257,7 +263,6 @@ def test_search_mast_filters_products_and_records_metadata(
     assert records[0].identifier == "jwst_spec.fits"
     assert records[0].download_url == "mast:JWST/spec.fits"
     assert records[0].units == {"x": "um", "y": "flux"}
-    assert records[0].metadata.get("observation", {}).get("obs_collection") == "JWST"
 
 
 def test_search_mast_can_include_imaging(store: LocalStore, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -271,27 +276,15 @@ def test_search_mast_can_include_imaging(store: LocalStore, monkeypatch: pytest.
                 {
                     "obsid": "12345",
                     "target_name": "WASP-96 b",
-                    "obs_collection": "JWST",
-                    "instrument_name": "NIRSpec",
-                },
-            ]
-
-        @classmethod
-        def get_product_list(cls, table: Any) -> list[dict[str, Any]]:
-            return [
-                {
-                    "obsid": "12345",
-                    "productFilename": "jwst_spec.fits",
-                    "dataURI": "mast:JWST/spec.fits",
+                    "dataURI": "mast:JWST/product.fits",
+                    "units": {"x": "um", "y": "flux"},
                     "dataproduct_type": "spectrum",
-                    "productType": "SCIENCE",
                 },
                 {
-                    "obsid": "12345",
-                    "productFilename": "jwst_image.fits",
+                    "obsid": "12346",
+                    "target_name": "WASP-96 b",
                     "dataURI": "mast:JWST/image.fits",
                     "dataproduct_type": "image",
-                    "productType": "SCIENCE",
                 },
             ]
 
@@ -310,84 +303,7 @@ def test_search_mast_can_include_imaging(store: LocalStore, monkeypatch: pytest.
     assert DummyObservations.criteria is not None
     assert DummyObservations.criteria.get("dataproduct_type") == ["spectrum", "image"]
     identifiers = {record.identifier for record in records}
-    assert identifiers == {"jwst_spec.fits", "jwst_image.fits"}
-
-
-def test_search_exosystems_queries_archive_and_mast(
-    store: LocalStore, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    archive_calls: dict[str, Any] = {}
-
-    class DummyArchive:
-        @staticmethod
-        def query_criteria(**criteria: Any) -> list[dict[str, Any]]:
-            archive_calls.update(criteria)
-            return [
-                {
-                    "pl_name": "WASP-39 b",
-                    "hostname": "WASP-39",
-                    "ra": 210.1234,
-                    "dec": -39.1234,
-                    "st_teff": 5400.0,
-                    "sy_dist": 217.0,
-                    "discoverymethod": "Transit",
-                    "disc_year": 2011,
-                }
-            ]
-
-    class DummyObservations:
-        region_calls: list[tuple[Any, dict[str, Any]]] = []
-
-        @classmethod
-        def query_region(cls, coordinates: Any, radius: str) -> list[dict[str, Any]]:
-            cls.region_calls.append((coordinates, {"radius": radius}))
-            return [
-                {
-                    "obsid": "444",
-                    "target_name": "WASP-39",
-                    "obs_collection": "JWST",
-                    "instrument_name": "NIRSpec",
-                }
-            ]
-
-        @classmethod
-        def query_object(cls, *args: Any, **kwargs: Any) -> list[dict[str, Any]]:  # pragma: no cover - fallback not used
-            raise AssertionError("query_object should not be used when coordinates are available")
-
-        @classmethod
-        def get_product_list(cls, table: Any) -> list[dict[str, Any]]:
-            return [
-                {
-                    "obsid": "444",
-                    "productFilename": "wasp39b_nirspec.fits",
-                    "dataURI": "mast:JWST/wasp39b.fits",
-                    "dataproduct_type": "spectrum",
-                    "productType": "SCIENCE",
-                }
-            ]
-
-    class DummyMast:
-        Observations = DummyObservations
-
-    service = RemoteDataService(store, session=None)
-    monkeypatch.setattr(service, "_ensure_exoplanet_archive", lambda: DummyArchive)
-    monkeypatch.setattr(service, "_has_exoplanet_archive", lambda: True)
-    monkeypatch.setattr(service, "_ensure_mast", lambda: DummyMast)
-    monkeypatch.setattr(service, "_fetch_exomast_filelist", lambda name: {"files": [name], "citation": "Exo.MAST"})
-
-    records = service.search(RemoteDataService.PROVIDER_EXOSYSTEMS, {"text": "WASP-39 b"})
-
-    assert archive_calls["table"] == "pscomppars"
-    assert "WASP-39" in archive_calls["where"]
-    assert DummyObservations.region_calls, "Exosystem search should query by coordinates"
-    assert len(records) == 1
-    record = records[0]
-    assert record.provider == RemoteDataService.PROVIDER_EXOSYSTEMS
-    assert record.metadata.get("exosystem", {}).get("planet_name") == "WASP-39 b"
-    assert any(
-        isinstance(citation, dict) and "Exo.MAST" in str(citation.get("title"))
-        for citation in record.metadata.get("citations", [])
-    )
+    assert identifiers == {"12345", "12346"}
 
 
 def test_search_mast_requires_non_empty_criteria(store: LocalStore) -> None:

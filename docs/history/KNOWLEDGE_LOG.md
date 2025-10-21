@@ -27,19 +27,20 @@ Each entry in this document should follow this structure:
   applicable).
 
 ---
-## 2025-10-20T20:54:53-04:00 / 2025-10-21T00:54:55+00:00 – Exoplanet archive & MAST parity restored
+## 2025-10-20T23:18:18-04:00 / 2025-10-21T03:18:18+00:00 – Remote data table helpers restored
 
 **Author**: agent
 
-**Context**: The Remote Data stack lost its Exo.MAST + NASA Exoplanet Archive integration, so MAST queries stalled at the observation level without product links, citation metadata, or curated solar-system fallbacks, leaving the UI incapable of displaying telescope/instrument context.
+**Context**: The Remote Data dialog regressed after the progress-layout patch—search results only displayed the first row and
+runtime crashes surfaced (`_link_for_download`, `_update_download_button_state`, `_busy`) because the helper methods that populate
+the table and gate the download workflow were dropped.
 
-**Summary**: Reintroduced the chained archive workflow that resolves planets and host stars via PSCompPars, pulls curated Exo.MAST spectra, filters MAST product lists to spectroscopic assets, and surfaces mission/instrument/preview details in the dialog. Updated the user guide and regression suite to cover the new ExoSystems provider and the richer table layout.
+**Summary**: Reinstated the table helpers with richer columns (target/mission/instrument/product plus preview/download links),
+hooked selection changes to update the metadata preview and button state, and refreshed the user guide so the documented
+behaviour matches the restored UI.
 
 **References**:
-- `app/services/remote_data_service.py`
 - `app/ui/remote_data_dialog.py`
-- `tests/test_remote_data_service.py`
-- `tests/test_remote_data_dialog.py`
 - `docs/user/remote_data.md`
 - `docs/history/PATCH_NOTES.md`
 

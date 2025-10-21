@@ -140,6 +140,7 @@ class RemoteDataDialog(QtWidgets.QDialog):
         self._search_in_progress = False
         self._download_in_progress = False
         self._download_warnings: list[str] = []
+        self._busy: bool = False
 
         self._build_ui()
 
@@ -187,18 +188,7 @@ class RemoteDataDialog(QtWidgets.QDialog):
         layout.addWidget(splitter, 1)
 
         self.results = QtWidgets.QTableWidget(self)
-        self._results_headers = [
-            "ID",
-            "Title",
-            "Target / Host",
-            "Telescope / Mission",
-            "Instrument / Mode",
-            "Product Type",
-            "Download",
-            "Preview / Citation",
-        ]
-        self.results.setColumnCount(len(self._results_headers))
-        self.results.setHorizontalHeaderLabels(self._results_headers)
+        self.results.setColumnCount(0)
         self.results.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectionBehavior.SelectRows)
         self.results.setSelectionMode(QtWidgets.QAbstractItemView.SelectionMode.ExtendedSelection)
         header = self.results.horizontalHeader()
@@ -206,6 +196,7 @@ class RemoteDataDialog(QtWidgets.QDialog):
         for column in (0, 6, 7):
             header.setSectionResizeMode(column, QtWidgets.QHeaderView.ResizeMode.ResizeToContents)
         self.results.verticalHeader().setVisible(False)
+        self.results.setAlternatingRowColors(True)
         self.results.itemSelectionChanged.connect(self._on_selection_changed)
         splitter.addWidget(self.results)
 
@@ -269,6 +260,7 @@ class RemoteDataDialog(QtWidgets.QDialog):
         self._records = []
         self.results.setRowCount(0)
         self.preview.clear()
+        self._update_download_button_state()
 
         self._search_in_progress = True
         self._update_enabled_state()
@@ -296,10 +288,7 @@ class RemoteDataDialog(QtWidgets.QDialog):
             # the provider string so the argument is intentionally ignored.
             pass
         provider = self.provider_combo.currentText()
-        is_mast = provider in {
-            RemoteDataService.PROVIDER_MAST,
-            RemoteDataService.PROVIDER_EXOSYSTEMS,
-        }
+        is_mast = provider == RemoteDataService.PROVIDER_MAST
         placeholder = self._provider_placeholders.get(provider)
         if placeholder:
             self.search_edit.setPlaceholderText(placeholder)
@@ -332,8 +321,6 @@ class RemoteDataDialog(QtWidgets.QDialog):
         stripped = text.strip()
         if provider == RemoteDataService.PROVIDER_MAST:
             return {"target_name": stripped} if stripped else {}
-        if provider == RemoteDataService.PROVIDER_EXOSYSTEMS:
-            return {"text": stripped} if stripped else {}
         return {"text": stripped} if stripped else {}
 
     def _on_example_selected(self, index: int) -> None:
@@ -343,6 +330,10 @@ class RemoteDataDialog(QtWidgets.QDialog):
         if isinstance(query_text, str):
             self.search_edit.setText(query_text)
             self._on_search()
+
+    def _on_selection_changed(self) -> None:
+        self._update_preview()
+        self._update_download_button_state()
 
     def _update_preview(self) -> None:
         indexes = self.results.selectionModel().selectedRows()
@@ -492,31 +483,18 @@ class RemoteDataDialog(QtWidgets.QDialog):
             self.search_edit.setEnabled(True)
             self.search_button.setEnabled(True)
             self._provider_placeholders = {
-                RemoteDataService.PROVIDER_EXOSYSTEMS: (
-                    "Planet, host star, or solar system target (e.g. WASP-39 b, TRAPPIST-1, Jupiter)…"
-                ),
-                RemoteDataService.PROVIDER_MAST: "MAST target name or observation keyword (e.g. NIRSpec, NGC 7023)…",
+                RemoteDataService.PROVIDER_MAST: "JWST spectroscopic target (e.g. WASP-96 b, NIRSpec)…",
             }
             self._provider_hints = {
-                RemoteDataService.PROVIDER_EXOSYSTEMS: (
-                    "Chains NASA Exoplanet Archive coordinates with MAST product listings and Exo.MAST file lists."
-                    " Returns calibrated spectra for solar-system planets, representative stars, and exoplanet hosts."
-                ),
                 RemoteDataService.PROVIDER_MAST: (
                     "MAST requests favour calibrated spectra (IFS cubes, slits, prisms). Enable "
                     "\"Include imaging\" to broaden results with calibrated image products."
                 ),
             }
             self._provider_examples = {
-                RemoteDataService.PROVIDER_EXOSYSTEMS: [
-                    ("WASP-39 b – JWST/NIRSpec", "WASP-39 b"),
-                    ("TRAPPIST-1 system", "TRAPPIST-1"),
-                    ("Jupiter – solar system", "Jupiter"),
-                    ("Vega – CALSPEC standard", "Vega"),
-                ],
                 RemoteDataService.PROVIDER_MAST: [
-                    ("NGC 7023 – JWST/NIRSpec", "NGC 7023"),
-                    ("SN 1987A – HST/STIS", "SN 1987A"),
+                    ("WASP-96 b – JWST/NIRSpec", "WASP-96 b"),
+                    ("WASP-39 b – JWST/NIRSpec", "WASP-39 b"),
                     ("HD 189733 – JWST/NIRISS", "HD 189733"),
                 ],
             }
@@ -585,14 +563,13 @@ class RemoteDataDialog(QtWidgets.QDialog):
 
     def _handle_search_results(self, records: list[RemoteRecord]) -> None:
         self._records = list(records)
-        self._populate_results_table(records)
-        self.status_label.setText(
-            f"{len(records)} result(s) fetched from {self.provider_combo.currentText()}."
-        )
+        self._populate_results_table(self._records)
+        self.status_label.setText(f"{len(records)} result(s) fetched from {self.provider_combo.currentText()}.")
         if records:
             self.results.selectRow(0)
         else:
             self.preview.clear()
+        self._update_download_button_state()
         self.search_completed.emit(records)
 
     def _handle_search_error(self, message: str) -> None:
@@ -654,7 +631,7 @@ class RemoteDataDialog(QtWidgets.QDialog):
         self.include_imaging_checkbox.setEnabled(
             self.include_imaging_checkbox.isVisible() and not searching
         )
-        self.download_button.setEnabled(bool(self._records) and not downloading and not searching)
+        self._update_download_button_state()
 
     def _on_search_thread_finished(self) -> None:
         self._search_thread = None
@@ -679,6 +656,7 @@ class RemoteDataDialog(QtWidgets.QDialog):
         self._download_worker = None
 
     def _set_busy(self, busy: bool) -> None:
+        self._busy = busy
         if busy:
             self.progress_indicator.setRange(0, 0)
             self.progress_indicator.setVisible(True)
@@ -687,152 +665,127 @@ class RemoteDataDialog(QtWidgets.QDialog):
             self.progress_indicator.setRange(0, 1)
 
     # ------------------------------------------------------------------
-    @staticmethod
-    def _first_text(mapping: Mapping[str, Any] | Any, keys: list[str]) -> str:
-        source = mapping if isinstance(mapping, Mapping) else {}
+    def _populate_results_table(self, records: list[RemoteRecord]) -> None:
+        headers = [
+            "ID",
+            "Target",
+            "Mission",
+            "Instrument",
+            "Product",
+            "Preview",
+            "Download",
+        ]
+        self.results.setColumnCount(len(headers))
+        self.results.setHorizontalHeaderLabels(headers)
+        self.results.setRowCount(len(records))
+
+        for row, record in enumerate(records):
+            metadata = record.metadata if isinstance(record.metadata, dict) else {}
+            target = self._metadata_value(
+                metadata,
+                [
+                    "target_name",
+                    "target",
+                    "Target Name",
+                    "obs_target",
+                ],
+            )
+            mission = self._metadata_value(
+                metadata,
+                [
+                    "obs_collection",
+                    "mission",
+                    "obs_collection_name",
+                    "project",
+                ],
+            )
+            instrument = self._metadata_value(
+                metadata,
+                [
+                    "instrument_name",
+                    "instrument",
+                    "instrument_id",
+                    "instr_band",
+                ],
+            )
+            product = self._metadata_value(
+                metadata,
+                [
+                    "productType",
+                    "dataproduct_type",
+                    "Product Type",
+                ],
+            )
+            preview_url = self._metadata_value(
+                metadata,
+                [
+                    "previewURL",
+                    "preview_uri",
+                    "jpegURL",
+                    "preview_download",
+                ],
+            )
+
+            self._set_table_item(row, 0, record.identifier)
+            self._set_table_item(row, 1, target or record.title)
+            self._set_table_item(row, 2, mission)
+            self._set_table_item(row, 3, instrument)
+            self._set_table_item(row, 4, product)
+            self._set_link_widget(row, 5, preview_url, "Preview")
+            self._set_link_widget(row, 6, record.download_url, "Download")
+
+        self.results.resizeColumnsToContents()
+        self.results.horizontalHeader().setSectionResizeMode(
+            5, QtWidgets.QHeaderView.ResizeMode.ResizeToContents
+        )
+        self.results.horizontalHeader().setSectionResizeMode(
+            6, QtWidgets.QHeaderView.ResizeMode.ResizeToContents
+        )
+
+    def _metadata_value(self, metadata: dict, keys: list[str]) -> str:
         for key in keys:
-            value = source.get(key)
-            if value is None:
-                continue
-            if isinstance(value, (list, tuple)):
-                for item in value:
-                    if item is None:
-                        continue
-                    text = str(item).strip()
-                    if text:
-                        return text
-                continue
-            text = str(value).strip()
-            if text:
-                return text
+            value = metadata.get(key)
+            if value not in (None, ""):
+                return str(value)
         return ""
 
-    def _format_target(self, record: RemoteRecord) -> str:
-        metadata = record.metadata if isinstance(record.metadata, Mapping) else {}
-        exosystem = metadata.get("exosystem") if isinstance(metadata.get("exosystem"), Mapping) else None
-        if exosystem:
-            planet = self._first_text(exosystem, ["planet_name", "display_name"])
-            host = self._first_text(exosystem, ["host_name", "object_name"])
-            if planet and host:
-                return f"{planet} (host: {host})"
-            if planet:
-                return planet
-            if host:
-                return host
-        return self._first_text(metadata, ["target_display", "target_name", "object_name", "obs_id"]) or record.title
+    def _set_table_item(self, row: int, column: int, text: str) -> None:
+        display = text if isinstance(text, str) else str(text)
+        item = QtWidgets.QTableWidgetItem(display)
+        item.setFlags(
+            QtCore.Qt.ItemFlag.ItemIsEnabled
+            | QtCore.Qt.ItemFlag.ItemIsSelectable
+        )
+        item.setToolTip(display)
+        self.results.setItem(row, column, item)
 
-    def _format_mission(self, metadata: Mapping[str, Any] | Any) -> str:
-        mission = self._first_text(metadata, ["obs_collection", "telescope_name", "project"])
-        proposal = self._first_text(metadata, ["proposal_pi", "proposal_id"])
-        if mission and proposal:
-            return f"{mission} (PI: {proposal})"
-        return mission
+    def _set_link_widget(self, row: int, column: int, url: str, label: str) -> None:
+        if not url:
+            self._set_table_item(row, column, "")
+            return
+        link = QtWidgets.QLabel(self.results)
+        link.setTextFormat(QtCore.Qt.TextFormat.RichText)
+        link.setTextInteractionFlags(QtCore.Qt.TextInteractionFlag.TextBrowserInteraction)
+        link.setOpenExternalLinks(True)
+        link.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+        link.setText(self._link_markup(url, label))
+        link.setToolTip(url)
+        self.results.setCellWidget(row, column, link)
 
-    def _format_instrument(self, metadata: Mapping[str, Any] | Any) -> str:
-        instrument = self._first_text(metadata, ["instrument_name", "instrument", "filters"])
-        aperture = self._first_text(metadata, ["aperture", "optical_element"])
-        if instrument and aperture:
-            return f"{instrument} ({aperture})"
-        return instrument
+    def _link_markup(self, url: str, label: str) -> str:
+        resolved = QtCore.QUrl.fromUserInput(url)
+        return f'<a href="{resolved.toString()}">{label}</a>'
 
-    def _format_product(self, metadata: Mapping[str, Any] | Any) -> str:
-        product = self._first_text(metadata, ["productType", "dataproduct_type", "product_type"])
-        calib = metadata.get("calib_level") if isinstance(metadata, Mapping) else None
-        if product and calib is not None:
-            return f"{product} (calib {calib})"
-        return product
-
-    def _format_exoplanet_summary(self, metadata: Mapping[str, Any] | Any) -> str:
-        mapping = metadata if isinstance(metadata, Mapping) else {}
-        exosystem = mapping.get("exosystem") if isinstance(mapping.get("exosystem"), Mapping) else None
-        if not exosystem:
-            return ""
-        parts: list[str] = []
-        planet = self._first_text(exosystem, ["planet_name", "display_name"])
-        host = self._first_text(exosystem, ["host_name", "object_name"])
-        if planet and host:
-            parts.append(f"{planet} orbiting {host}")
-        elif host:
-            parts.append(host)
-        elif planet:
-            parts.append(planet)
-
-        params = exosystem.get("parameters") if isinstance(exosystem.get("parameters"), Mapping) else {}
-        if params:
-            teff = params.get("stellar_teff")
-            if teff is not None:
-                parts.append(f"Tₑₓₜ ≈ {self._format_number(teff, suffix=' K')}")
-            distance = params.get("system_distance_pc")
-            if distance is not None:
-                parts.append(f"Distance ≈ {self._format_number(distance, suffix=' pc')}")
-            method = params.get("discovery_method")
-            year = params.get("discovery_year")
-            year_fragment: str | None = None
-            if isinstance(year, (int, float)):
-                try:
-                    year_value = float(year)
-                except (TypeError, ValueError):
-                    year_value = None
-                if year_value is not None and not math.isnan(year_value):
-                    year_fragment = str(int(year_value))
-            elif isinstance(year, str):
-                year_text = year.strip()
-                if year_text and year_text.lower() != "nan":
-                    year_fragment = year_text
-            if method or year_fragment:
-                discovery = method or "Discovery"
-                if year_fragment:
-                    discovery = f"{discovery} ({year_fragment})"
-                parts.append(discovery)
-
-        return " | ".join(parts)
-
-    def _extract_citation(self, metadata: Mapping[str, Any] | Any) -> str:
-        mapping = metadata if isinstance(metadata, Mapping) else {}
-        citations: list[str] = []
-
-        def _collect(source: Any) -> None:
-            if not isinstance(source, list):
-                return
-            for entry in source:
-                if not isinstance(entry, Mapping):
-                    continue
-                title = entry.get("title") or entry.get("name")
-                note = entry.get("notes")
-                doi = entry.get("doi")
-                url = entry.get("url")
-                fragment = title or url or doi
-                if not fragment:
-                    continue
-                detail_parts = [fragment]
-                if doi:
-                    detail_parts.append(f"DOI: {doi}")
-                if url:
-                    detail_parts.append(url)
-                if note:
-                    detail_parts.append(note)
-                citations.append(" — ".join(detail_parts))
-
-        _collect(mapping.get("citations"))
-        exosystem = mapping.get("exosystem") if isinstance(mapping.get("exosystem"), Mapping) else None
-        if exosystem:
-            _collect(exosystem.get("citations"))
-
-        return "; ".join(dict.fromkeys(citations))
-
-    @staticmethod
-    def _format_number(value: Any, *, suffix: str = "") -> str:
-        try:
-            number = float(value)
-        except (TypeError, ValueError):
-            return str(value)
-        if math.isnan(number):
-            return "?"
-        if abs(number) >= 1000:
-            formatted = f"{number:,.0f}"
-        elif abs(number) >= 1:
-            formatted = f"{number:,.1f}"
-        else:
-            formatted = f"{number:.3g}"
-        return f"{formatted}{suffix}"
+    def _update_download_button_state(self) -> None:
+        has_selection = bool(
+            self.results.selectionModel()
+            and self.results.selectionModel().selectedRows()
+        )
+        enabled = (
+            has_selection
+            and bool(self._records)
+            and not self._search_in_progress
+            and not self._download_in_progress
+        )
+        self.download_button.setEnabled(enabled)
 

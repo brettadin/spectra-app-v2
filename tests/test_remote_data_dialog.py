@@ -25,7 +25,6 @@ class StubRemoteService(RemoteDataService):
         super().__init__(store=LocalStore(base_dir=base))
         self._providers: List[str] = [
             RemoteDataService.PROVIDER_NIST,
-            RemoteDataService.PROVIDER_EXOSYSTEMS,
             RemoteDataService.PROVIDER_MAST,
         ]
 
@@ -83,14 +82,13 @@ def test_dialog_initialises_without_missing_slots(monkeypatch: Any) -> None:
         ingest_service=ingest,
     )
 
-    assert dialog.provider_combo.count() == 2
-    assert dialog.provider_combo.itemText(0) == RemoteDataService.PROVIDER_EXOSYSTEMS
-    assert dialog.provider_combo.itemText(1) == RemoteDataService.PROVIDER_MAST
+    assert dialog.provider_combo.count() == 1
+    assert dialog.provider_combo.itemText(0) == RemoteDataService.PROVIDER_MAST
     assert "Catalogue" in dialog.windowTitle() or dialog.windowTitle() == "Remote Data"
 
     # Trigger provider refresh to ensure the slot updates hints/placeholder.
     dialog._on_provider_changed()
-    assert "Planet" in dialog.search_edit.placeholderText()
+    assert "JWST" in dialog.search_edit.placeholderText()
 
     # Clean up the dialog explicitly for Qt stability in headless tests.
     dialog.deleteLater()

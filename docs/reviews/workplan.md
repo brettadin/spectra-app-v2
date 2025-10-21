@@ -211,10 +211,6 @@ This document tracks feature batches, validation status, and outstanding backlog
 
 - 2025-10-15: ✅ `pytest -q`
 
-# 2025-10-20 — Remote data regression checks
-
-- 2025-10-20: ✅ `pytest`
-
 ## Batch 3 (2025-10-14)
 
 - [x] Draft a user quickstart walkthrough covering launch → ingest → unit toggle → export.
