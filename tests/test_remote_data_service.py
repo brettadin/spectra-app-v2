@@ -62,6 +62,23 @@ def store(tmp_path: Path) -> LocalStore:
     return LocalStore(base_dir=tmp_path)
 
 
+def test_fetch_exomast_filelist_does_not_double_encode_spaces(
+    store: LocalStore, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    service = RemoteDataService(store, session=None)
+
+    session = DummySession()
+    session.queue(DummyResponse(json_payload={"products": []}))
+
+    monkeypatch.setattr(RemoteDataService, "_ensure_session", lambda self: session)
+
+    payload = service._fetch_exomast_filelist("WASP-39 b")
+
+    assert session.calls, "Expected Exo.MAST request to be issued"
+    assert session.calls[0]["url"].endswith("/WASP-39%20b/filelist")
+    assert payload == {"products": []}
+
+
 def test_search_nist_uses_nist_service(store: LocalStore, monkeypatch: pytest.MonkeyPatch) -> None:
     captured: dict[str, Any] = {}
 

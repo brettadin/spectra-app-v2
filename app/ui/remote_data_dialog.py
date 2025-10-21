@@ -15,93 +15,106 @@ from app.services import DataIngestService, RemoteDataService, RemoteRecord
 
 QtCore, QtGui, QtWidgets, _ = get_qt()
 
-if hasattr(QtCore, "Signal"):
-    Signal = QtCore.Signal  # type: ignore[attr-defined]
-elif hasattr(QtCore, "pyqtSignal"):  # pragma: no cover - PyQt fallback for developers
-    Signal = QtCore.pyqtSignal  # type: ignore[attr-defined]
-else:  # pragma: no cover - fail fast with a clearer error
-    raise ImportError("Qt binding does not expose Signal/pyqtSignal")
+Signal = getattr(QtCore, "Signal", getattr(QtCore, "pyqtSignal"))
+Slot = getattr(QtCore, "Slot", getattr(QtCore, "pyqtSlot"))
 
 
 class _SearchWorker(QtCore.QObject):
-    """Background worker that queries a remote catalogue."""
+    """Background worker that streams search results from a remote provider."""
 
-    finished = Signal()
-    results_ready = Signal(list)
-    error = Signal(str)
+    started = Signal()
+    record_found = Signal(object)
+    finished = Signal(list)
+    failed = Signal(str)
+    cancelled = Signal()
 
-    def __init__(
-        self,
-        remote_service: RemoteDataService,
-        provider: str,
-        query: dict[str, str],
-        *,
-        include_imaging: bool,
-    ) -> None:
+    def __init__(self, remote_service: RemoteDataService) -> None:
         super().__init__()
         self._remote_service = remote_service
-        self._provider = provider
-        self._query = query
-        self._include_imaging = include_imaging
+        self._cancel_requested = False
 
-    @QtCore.Slot()
-    def run(self) -> None:
+    @Slot(str, dict, bool)
+    def run(self, provider: str, query: dict[str, str], include_imaging: bool) -> None:
+        self.started.emit()
+        collected: list[RemoteRecord] = []
         try:
             results = self._remote_service.search(
-                self._provider,
-                dict(self._query),
-                include_imaging=self._include_imaging,
+                provider,
+                query,
+                include_imaging=include_imaging,
             )
-        except Exception as exc:  # pragma: no cover - surfaced via error signal
-            self.error.emit(str(exc))
-        else:
-            self.results_ready.emit(results)
-        finally:
-            self.finished.emit()
+            for record in results:
+                if self._cancel_requested:
+                    self.cancelled.emit()
+                    return
+                collected.append(record)
+                self.record_found.emit(record)
+            if self._cancel_requested:
+                self.cancelled.emit()
+                return
+        except Exception as exc:  # pragma: no cover - defensive: surfaced via signal
+            self.failed.emit(str(exc))
+            return
+        self.finished.emit(collected)
+
+    @Slot()
+    def cancel(self) -> None:
+        self._cancel_requested = True
 
 
 class _DownloadWorker(QtCore.QObject):
-    """Background worker that downloads and ingests remote catalogue entries."""
+    """Background worker that downloads and ingests selected remote records."""
 
-    finished = Signal()
-    completed = Signal(list)
-    warning = Signal(str)
-    error = Signal(str)
+    started = Signal(int)
+    record_ingested = Signal(object)
+    record_failed = Signal(object, str)
+    finished = Signal(list)
+    failed = Signal(str)
+    cancelled = Signal()
 
     def __init__(
         self,
         remote_service: RemoteDataService,
         ingest_service: DataIngestService,
-        records: list[RemoteRecord],
     ) -> None:
         super().__init__()
         self._remote_service = remote_service
         self._ingest_service = ingest_service
-        self._records = list(records)
+        self._cancel_requested = False
 
-    @QtCore.Slot()
-    def run(self) -> None:
-        spectra: list[object] = []
+    @Slot(list)
+    def run(self, records: list[RemoteRecord]) -> None:
+        self.started.emit(len(records))
+        ingested: list[object] = []
         try:
-            for record in self._records:
+            for record in records:
+                if self._cancel_requested:
+                    self.cancelled.emit()
+                    return
                 try:
                     download = self._remote_service.download(record)
-                    ingested = self._ingest_service.ingest(
+                    ingested_item = self._ingest_service.ingest(
                         Path(download.cache_entry["stored_path"])
                     )
-                except Exception as exc:  # pragma: no cover - surfaced via warning
-                    self.warning.emit(f"{record.identifier}: {exc}")
+                except Exception as exc:  # pragma: no cover - defensive: surfaced via signal
+                    self.record_failed.emit(record, str(exc))
                     continue
-                if isinstance(ingested, list):
-                    spectra.extend(ingested)
+                if isinstance(ingested_item, list):
+                    ingested.extend(ingested_item)
                 else:
-                    spectra.append(ingested)
-        except Exception as exc:  # pragma: no cover - surfaced via error signal
-            self.error.emit(str(exc))
-        else:
-            self.completed.emit(spectra)
-        finally:
-            self.finished.emit()
+                    ingested.append(ingested_item)
+                self.record_ingested.emit(record)
+            if self._cancel_requested:
+                self.cancelled.emit()
+                return
+        except Exception as exc:  # pragma: no cover - defensive: surfaced via signal
+            self.failed.emit(str(exc))
+            return
+        self.finished.emit(ingested)
+
+    @Slot()
+    def cancel(self) -> None:
+        self._cancel_requested = True
 
 
 class RemoteDataDialog(QtWidgets.QDialog):
@@ -134,8 +147,8 @@ class RemoteDataDialog(QtWidgets.QDialog):
         self._provider_examples: dict[str, list[tuple[str, str]]] = {}
         self._dependency_hint: str = ""
         self._search_thread: QtCore.QThread | None = None
-        self._download_thread: QtCore.QThread | None = None
         self._search_worker: _SearchWorker | None = None
+        self._download_thread: QtCore.QThread | None = None
         self._download_worker: _DownloadWorker | None = None
         self._search_in_progress = False
         self._download_in_progress = False
@@ -229,34 +242,34 @@ class RemoteDataDialog(QtWidgets.QDialog):
         layout.addWidget(self.hint_label)
 
         progress_container = QtWidgets.QHBoxLayout()
-        progress_container.setContentsMargins(0, 0, 0, 0)
-        layout.addLayout(progress_container)
-
-        self.progress_indicator = QtWidgets.QProgressBar(self)
-        self.progress_indicator.setRange(0, 1)
-        self.progress_indicator.setTextVisible(False)
-        self.progress_indicator.setFixedWidth(140)
-        self.progress_indicator.setVisible(False)
-        progress_container.addWidget(self.progress_indicator)
+        self.progress_label = QtWidgets.QLabel(self)
+        self.progress_label.setObjectName("remote-progress")
+        self.progress_label.setVisible(False)
+        self.progress_movie = QtGui.QMovie(
+            ":/qt-project.org/styles/commonstyle/images/working-32.gif"
+        )
+        if self.progress_movie.isValid():
+            self.progress_label.setMovie(self.progress_movie)
+        else:  # pragma: no cover - fallback when Qt resource missing
+            self.progress_label.setText("Working…")
+        progress_container.addWidget(self.progress_label)
 
         self.status_label = QtWidgets.QLabel(self)
         self.status_label.setObjectName("remote-status")
         self.status_label.setWordWrap(True)
         progress_container.addWidget(self.status_label, 1)
+        layout.addLayout(progress_container)
 
         self._refresh_provider_state()
-        self._update_enabled_state()
-        self._set_busy(False)
+        self._update_download_button_state()
 
     # ------------------------------------------------------------------
     def _on_search(self) -> None:
         provider = self.provider_combo.currentText()
         query = self._build_provider_query(provider, self.search_edit.text())
         if not query:
-            QtWidgets.QMessageBox.information(
-                self,
-                "Enter search criteria",
-                "Provide provider-specific search text before querying the remote catalogue.",
+            self.status_label.setText(
+                "Provide provider-specific search text before querying the remote catalogue."
             )
             return
 
@@ -265,27 +278,287 @@ class RemoteDataDialog(QtWidgets.QDialog):
             and self.include_imaging_checkbox.isEnabled()
             and self.include_imaging_checkbox.isChecked()
         )
+        self._start_search(provider, query, include_imaging)
 
+    def _start_search(
+        self, provider: str, query: dict[str, str], include_imaging: bool
+    ) -> None:
+        self._cancel_search_worker()
         self._records = []
-        self.results.setRowCount(0)
+        self._reset_results_table()
         self.preview.clear()
 
-        self._search_in_progress = True
-        self._update_enabled_state()
-        self._set_busy(True)
-        self.status_label.setText(f"Searching {provider}…")
-        self.search_started.emit(provider)
+    def _handle_search_failed(self, message: str) -> None:
+        self._set_busy(False)
+        self.status_label.setText(f"Search failed: {message}")
+        self._records = []
+        self._reset_results_table()
+        self.preview.clear()
 
-        worker = _SearchWorker(
-            self.remote_service,
-            provider,
-            query,
-            include_imaging=include_imaging,
+    def _handle_search_cancelled(self) -> None:
+        self._set_busy(False)
+        self.status_label.setText("Search cancelled.")
+        self._records = []
+        self._reset_results_table()
+        self.preview.clear()
+
+    def _start_download(self, records: list[RemoteRecord]) -> None:
+        self._cancel_download_worker()
+        if not records:
+            return
+        self._download_errors: list[str] = []
+        self._download_total = len(records)
+        self._download_completed = 0
+        message = f"Preparing download of {self._download_total} record(s)…"
+        self._set_busy(True, message=message)
+
+        worker = self._download_worker_factory()
+        thread = QtCore.QThread(self)
+        self._download_worker = worker
+        self._download_thread = thread
+        worker.moveToThread(thread)
+        thread.started.connect(lambda records=records: worker.run(records))
+        worker.started.connect(self._handle_download_started)
+        worker.record_ingested.connect(self._handle_download_progress)
+        worker.record_failed.connect(self._handle_download_failure)
+        worker.finished.connect(self._handle_download_finished)
+        worker.failed.connect(self._handle_download_failed)
+        worker.cancelled.connect(self._handle_download_cancelled)
+        self._connect_worker_cleanup(worker, thread)
+        thread.start()
+
+    def _handle_download_started(self, total: int) -> None:
+        self._download_total = total
+        self._download_completed = 0
+        self._set_busy(True, message=f"Downloading {total} record(s)…")
+
+    def _handle_download_progress(self, record: RemoteRecord) -> None:
+        self._download_completed += 1
+        status = f"Imported {self._download_completed}/{self._download_total} record(s)…"
+        self.status_label.setText(status)
+
+    def _handle_download_failure(self, record: RemoteRecord, message: str) -> None:
+        self._download_errors.append(f"{record.identifier}: {message}")
+        self.status_label.setText(
+            f"{len(self._download_errors)} failure(s) while importing. Continuing…"
         )
-        worker.results_ready.connect(self._handle_search_results)
-        worker.error.connect(self._handle_search_error)
-        worker.finished.connect(self._search_finished)
-        self._start_search_worker(worker)
+
+    def _handle_download_finished(self, ingested: list[object]) -> None:
+        self._set_busy(False)
+        if not ingested:
+            if self._download_errors:
+                self.status_label.setText(
+                    "Downloads completed with errors; no datasets were imported."
+                )
+            else:
+                self.status_label.setText("No datasets were imported.")
+            return
+
+        self._ingested = ingested
+        if self._download_errors:
+            failures = len(self._download_errors)
+            self.status_label.setText(
+                f"Imported {len(ingested)} dataset(s) with {failures} failure(s)."
+            )
+        else:
+            self.status_label.setText(f"Imported {len(ingested)} dataset(s).")
+        self.accept()
+
+    def _handle_download_failed(self, message: str) -> None:
+        self._set_busy(False)
+        self.status_label.setText(f"Download failed: {message}")
+
+    def _handle_download_cancelled(self) -> None:
+        self._set_busy(False)
+        self.status_label.setText("Download cancelled.")
+
+    def _set_busy(self, busy: bool, *, message: str | None = None) -> None:
+        self._busy = busy
+        controls = [
+            self.provider_combo,
+            self.search_edit,
+            self.search_button,
+            self.example_combo,
+            self.include_imaging_checkbox,
+        ]
+        if busy:
+            self._control_enabled_state = {control: control.isEnabled() for control in controls}
+            for control in controls:
+                control.setEnabled(False)
+        else:
+            for control in controls:
+                enabled = self._control_enabled_state.get(control, True)
+                if control is self.include_imaging_checkbox and not control.isVisible():
+                    control.setEnabled(False)
+                else:
+                    control.setEnabled(enabled)
+            self._control_enabled_state = {}
+        if busy:
+            self.download_button.setEnabled(False)
+            if self.progress_movie and self.progress_movie.isValid():
+                self.progress_movie.start()
+            self.progress_label.setVisible(True)
+        else:
+            if self.progress_movie and self.progress_movie.isValid():
+                self.progress_movie.stop()
+            self.progress_label.setVisible(False)
+            self._update_download_button_state()
+        if message is not None:
+            self.status_label.setText(message)
+
+    def _update_download_button_state(self) -> None:
+        if self._busy:
+            self.download_button.setEnabled(False)
+            return
+        enable = bool(self.results.selectionModel().selectedRows())
+        self.download_button.setEnabled(enable)
+
+    def _connect_worker_cleanup(
+        self,
+        worker: QtCore.QObject,
+        thread: QtCore.QThread,
+    ) -> None:
+        def cleanup(*_args: object) -> None:
+            if thread.isRunning():
+                thread.quit()
+                thread.wait()
+            worker.deleteLater()
+            thread.deleteLater()
+            if worker is self._search_worker:
+                self._search_worker = None
+                self._search_thread = None
+            if worker is self._download_worker:
+                self._download_worker = None
+                self._download_thread = None
+
+        worker.finished.connect(cleanup)
+        worker.failed.connect(cleanup)
+        worker.cancelled.connect(cleanup)
+
+    def _cancel_search_worker(self) -> None:
+        if self._search_worker is None:
+            return
+        queued = getattr(QtCore.Qt, "ConnectionType", QtCore.Qt).QueuedConnection
+        QtCore.QMetaObject.invokeMethod(
+            self._search_worker,
+            "cancel",
+            queued,
+        )
+
+    def _cancel_download_worker(self) -> None:
+        if self._download_worker is None:
+            return
+        queued = getattr(QtCore.Qt, "ConnectionType", QtCore.Qt).QueuedConnection
+        QtCore.QMetaObject.invokeMethod(
+            self._download_worker,
+            "cancel",
+            queued,
+        )
+
+    def _await_thread_shutdown(
+        self,
+        *,
+        thread_attr: str,
+        worker_attr: str,
+        timeout_ms: int | None = None,
+    ) -> bool:
+        """Request shutdown and optionally wait for the worker thread.
+
+        Returns ``True`` when the thread has stopped and been cleaned up. When
+        ``timeout_ms`` is ``None`` the call blocks until the thread exits. A
+        finite timeout keeps the UI responsive by allowing the caller to poll
+        for completion using ``QtCore.QTimer``.
+        """
+
+        thread = getattr(self, thread_attr)
+        worker = getattr(self, worker_attr)
+        if thread is None:
+            return True
+        if thread.isRunning():
+            thread.quit()
+            if timeout_ms is not None:
+                if not thread.wait(timeout_ms):
+                    return False
+            else:
+                thread.wait()
+        if worker is not None:
+            worker.deleteLater()
+        thread.deleteLater()
+        setattr(self, worker_attr, None)
+        setattr(self, thread_attr, None)
+        return True
+
+    def _schedule_thread_shutdown(
+        self,
+        pending: list[tuple[str, str]],
+        *,
+        interval_ms: int = 100,
+    ) -> None:
+        """Retry thread shutdown without blocking the UI."""
+
+        # ``QtCore.QTimer.singleShot`` copies basic Python values, so we keep the
+        # payload small and rebuild the remaining list on each poll.
+
+        def _poll() -> None:
+            remaining: list[tuple[str, str]] = []
+            for thread_attr, worker_attr in pending:
+                if not self._await_thread_shutdown(
+                    thread_attr=thread_attr,
+                    worker_attr=worker_attr,
+                    timeout_ms=0,
+                ):
+                    remaining.append((thread_attr, worker_attr))
+            if remaining:
+                next_interval = min(interval_ms * 2, 1000)
+                QtCore.QTimer.singleShot(
+                    next_interval,
+                    lambda rem=remaining, iv=next_interval: self._schedule_thread_shutdown(
+                        rem,
+                        interval_ms=iv,
+                    ),
+                )
+
+        QtCore.QTimer.singleShot(interval_ms, _poll)
+
+    def reject(self) -> None:
+        self._cancel_search_worker()
+        self._cancel_download_worker()
+        pending: list[tuple[str, str]] = []
+        if not self._await_thread_shutdown(
+            thread_attr="_search_thread",
+            worker_attr="_search_worker",
+            timeout_ms=25,
+        ):
+            pending.append(("_search_thread", "_search_worker"))
+        if not self._await_thread_shutdown(
+            thread_attr="_download_thread",
+            worker_attr="_download_worker",
+            timeout_ms=25,
+        ):
+            pending.append(("_download_thread", "_download_worker"))
+        if pending:
+            self._schedule_thread_shutdown(pending)
+        super().reject()
+
+    def closeEvent(self, event: QtGui.QCloseEvent) -> None:  # pragma: no cover - Qt event hook
+        """Ensure worker threads stop when the application is shutting down."""
+
+        if QtCore.QCoreApplication.closingDown():
+            # ``reject`` keeps the dialog responsive by polling the worker threads
+            # with short timeouts. When the whole application is quitting we no
+            # longer have an event loop to service the timers, so block until the
+            # threads have stopped to avoid crashing Qt's parent–child teardown.
+            self._cancel_search_worker()
+            self._cancel_download_worker()
+            self._await_thread_shutdown(
+                thread_attr="_search_thread",
+                worker_attr="_search_worker",
+            )
+            self._await_thread_shutdown(
+                thread_attr="_download_thread",
+                worker_attr="_download_worker",
+            )
+        super().closeEvent(event)
 
     def _on_provider_changed(self, index: int | None = None) -> None:
         # Accept the index argument emitted by Qt while keeping the logic driven
@@ -464,20 +737,7 @@ class RemoteDataDialog(QtWidgets.QDialog):
             return
 
         records = [self._records[index.row()] for index in selected]
-
-        self._download_in_progress = True
-        self._download_warnings = []
-        self._update_enabled_state()
-        self._set_busy(True)
-        self.status_label.setText(f"Downloading {len(records)} selection(s)…")
-        self.download_started.emit(len(records))
-
-        worker = _DownloadWorker(self.remote_service, self.ingest_service, records)
-        worker.completed.connect(self._handle_download_completed)
-        worker.warning.connect(self._handle_download_warning)
-        worker.error.connect(self._handle_download_error)
-        worker.finished.connect(self._download_finished)
-        self._start_download_worker(worker)
+        self._start_download(records)
 
     def _refresh_provider_state(self) -> None:
         providers = [
@@ -840,4 +1100,44 @@ class RemoteDataDialog(QtWidgets.QDialog):
         else:
             formatted = f"{number:.3g}"
         return f"{formatted}{suffix}"
+
+    def _first_number(self, metadata: Mapping[str, Any], keys: Sequence[str]) -> float | None:
+        for key in keys:
+            value = self._lookup_metadata(metadata, key)
+            if value is None:
+                continue
+            try:
+                number = float(value)
+            except (TypeError, ValueError):
+                continue
+            if math.isfinite(number):
+                return number
+        return None
+
+    def _lookup_metadata(self, metadata: Mapping[str, Any], key: str) -> Any:
+        candidates = [metadata]
+        nested_keys = ("exomast", "exo_mast", "exoplanet_archive", "exoplanet", "planet", "host")
+        for nested in nested_keys:
+            value = metadata.get(nested)
+            if isinstance(value, Mapping):
+                candidates.append(value)
+        for candidate in candidates:
+            if not isinstance(candidate, Mapping):
+                continue
+            if key in candidate and candidate[key] not in (None, ""):
+                return candidate[key]
+        return None
+
+    def _format_numeric(self, value: float, suffix: str, *, decimals: int) -> str:
+        if not math.isfinite(value):
+            return ""
+        if abs(value - round(value)) < 10 ** -(decimals + 1):
+            return f"{int(round(value))}{suffix}"
+        return f"{value:.{decimals}f}{suffix}"
+
+    def _link_for_download(self, url: str) -> str:
+        if url.startswith("mast:"):
+            encoded = quote(url, safe="")
+            return f"https://mast.stsci.edu/portal/Download/file?uri={encoded}"
+        return url
 

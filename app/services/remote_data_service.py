@@ -849,6 +849,32 @@ class RemoteDataService:
             raise FileNotFoundError(f"MAST download missing: {path}")
         return path
 
+    def _fetch_exomast_filelist(self, target_name: str) -> Dict[str, Any] | None:
+        """Return the Exo.MAST file list for *target_name* without double encoding."""
+
+        cleaned = str(target_name).strip()
+        if not cleaned:
+            return None
+
+        session = self._ensure_session()
+        slug = quote(cleaned, safe="")
+        url = f"https://exo.mast.stsci.edu/api/v0.1/exoplanets/{slug}/filelist"
+
+        response = session.get(url, timeout=30)
+        if response.status_code == 404:
+            return None
+        response.raise_for_status()
+
+        try:
+            payload = response.json()
+        except ValueError as exc:  # pragma: no cover - defensive guard
+            raise RuntimeError("Exo.MAST file list response was not valid JSON") from exc
+
+        if not isinstance(payload, Mapping):
+            raise RuntimeError("Exo.MAST file list response must be a mapping")
+
+        return dict(payload)
+
     def _should_use_mast(self, record: RemoteRecord) -> bool:
         if record.provider == self.PROVIDER_MAST:
             return True
