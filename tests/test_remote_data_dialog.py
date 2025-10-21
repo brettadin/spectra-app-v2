@@ -201,6 +201,190 @@ def test_include_imaging_toggle_passes_flag(monkeypatch: Any) -> None:
         app.quit()
 
 
+def test_build_provider_query_parses_nist_fields(monkeypatch: Any) -> None:
+    app = _ensure_app()
+    ingest = IngestServiceStub()
+    dialog = RemoteDataDialog(
+        None,
+        remote_service=StubRemoteService(),
+        ingest_service=ingest,
+    )
+
+    query = dialog._build_provider_query(
+        RemoteDataService.PROVIDER_NIST,
+        "element=Fe II; keyword=aurora; ion=III",
+    )
+
+    assert query["element"] == "Fe II"
+    assert query["text"] == "aurora"
+    assert query["ion_stage"] == "III"
+
+    dialog.deleteLater()
+    if QtWidgets.QApplication.instance() is app and not app.topLevelWidgets():
+        app.quit()
+
+
+def test_populate_results_table_builds_links_and_preview(monkeypatch: Any) -> None:
+    app = _ensure_app()
+    ingest = IngestServiceStub()
+    dialog = RemoteDataDialog(
+        None,
+        remote_service=StubRemoteService(),
+        ingest_service=ingest,
+    )
+
+    metadata = {
+        "target_name": "WASP-96 b",
+        "obs_collection": "JWST",
+        "instrument_name": "NIRSpec",
+        "grating": "G395H",
+        "filters": ["F290LP"],
+        "dataproduct_type": "spectrum",
+        "intentType": "SCIENCE",
+        "calib_level": 3,
+        "preview_url": "https://example.invalid/preview.jpg",
+        "citations": [
+            {
+                "title": "JWST early release observations",
+                "doi": "10.1234/example",
+            }
+        ],
+        "exoplanet": {
+            "display_name": "WASP-96 b",
+            "classification": "Hot Jupiter",
+            "host_star": "WASP-96",
+        },
+    }
+
+    record = RemoteRecord(
+        provider=RemoteDataService.PROVIDER_MAST,
+        identifier="obsid-0001",
+        title="WASP-96 b transit",
+        download_url="mast:JWST/product.fits",
+        metadata=metadata,
+        units={"x": "um", "y": "flux"},
+    )
+
+    dialog._handle_search_results([record])
+
+    assert dialog.results.rowCount() == 1
+    assert dialog.results.columnCount() == 8
+    assert dialog.results.horizontalHeaderItem(7).text() == "Preview / Citation"
+
+    target_item = dialog.results.item(0, 2)
+    assert target_item is not None
+    assert target_item.text() == "WASP-96 b"
+
+    product_item = dialog.results.item(0, 5)
+    assert product_item is not None
+    assert "Level 3" in product_item.text()
+
+    download_widget = dialog.results.cellWidget(0, 6)
+    assert isinstance(download_widget, QtWidgets.QLabel)
+    href = "https://mast.stsci.edu/api/v0.1/Download/file?uri=mast:JWST/product.fits"
+    assert href in download_widget.text()
+    assert "Open" in download_widget.text()
+
+    preview_widget = dialog.results.cellWidget(0, 7)
+    assert isinstance(preview_widget, QtWidgets.QLabel)
+    preview_text = preview_widget.text()
+    assert "Preview" in preview_text
+    assert "DOI 10.1234/example" in preview_text
+
+    dialog.results.selectRow(0)
+    dialog._update_preview()
+    assert "Citation: DOI 10.1234/example" in dialog.preview.toPlainText()
+
+    dialog.deleteLater()
+    if QtWidgets.QApplication.instance() is app and not app.topLevelWidgets():
+        app.quit()
+
+
+def test_exoplanet_summary_handles_nan_discovery_year(monkeypatch: Any) -> None:
+    app = _ensure_app()
+    ingest = IngestServiceStub()
+    dialog = RemoteDataDialog(
+        None,
+        remote_service=StubRemoteService(),
+        ingest_service=ingest,
+    )
+
+    metadata = {
+        "exoplanet": {
+            "display_name": "WASP-39 b",
+            "classification": "Hot Jupiter",
+            "host_star": "WASP-39",
+            "discovery_method": "Transit",
+            "discovery_year": float("nan"),
+        }
+    }
+
+    summary = dialog._format_exoplanet_summary(metadata)
+
+    assert "nan" not in summary.lower()
+    assert "Discovery: Transit" in summary
+
+    dialog.deleteLater()
+    if QtWidgets.QApplication.instance() is app and not app.topLevelWidgets():
+        app.quit()
+
+
+def test_download_and_preview_cells_include_tooltips(monkeypatch: Any) -> None:
+    app = _ensure_app()
+    ingest = IngestServiceStub()
+    dialog = RemoteDataDialog(
+        None,
+        remote_service=StubRemoteService(),
+        ingest_service=ingest,
+    )
+
+    mast_metadata = {
+        "target_name": "HD 189733 b",
+        "obs_collection": "JWST",
+        "preview_download": "https://example.invalid/quicklook.png",
+        "citation": "DOI 10.5555/example",
+    }
+    mast_record = RemoteRecord(
+        provider=RemoteDataService.PROVIDER_MAST,
+        identifier="mast-0001",
+        title="HD 189733 b transit",
+        download_url="mast:JWST/product.fits",
+        metadata=mast_metadata,
+        units={"x": "um", "y": "flux"},
+    )
+
+    empty_record = RemoteRecord(
+        provider=RemoteDataService.PROVIDER_MAST,
+        identifier="mast-0002",
+        title="Metadata only",
+        download_url="",
+        metadata={"citation": "Reference only"},
+        units={},
+    )
+
+    dialog._handle_search_results([mast_record, empty_record])
+
+    download_widget = dialog.results.cellWidget(0, 6)
+    assert isinstance(download_widget, QtWidgets.QLabel)
+    assert "https://mast.stsci.edu/api" in download_widget.text()
+    assert download_widget.toolTip() == (
+        "mast:JWST/product.fits\nhttps://mast.stsci.edu/api/v0.1/Download/file?uri=mast:JWST/product.fits"
+    )
+
+    preview_widget = dialog.results.cellWidget(0, 7)
+    assert isinstance(preview_widget, QtWidgets.QLabel)
+    assert "Preview" in preview_widget.text()
+    assert "DOI 10.5555/example" in preview_widget.text()
+    assert preview_widget.toolTip() == "https://example.invalid/quicklook.png"
+
+    assert dialog.results.cellWidget(1, 6) is None
+    assert dialog.results.item(1, 6).text() == ""
+
+    dialog.deleteLater()
+    if QtWidgets.QApplication.instance() is app and not app.topLevelWidgets():
+        app.quit()
+
+
 class IngestServiceStub:
     """Minimal stub mimicking the ingest service used by the dialog."""
 

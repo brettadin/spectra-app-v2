@@ -26,6 +26,38 @@ This document tracks feature batches, validation status, and outstanding backlog
 - [x] Document dependency prerequisites (requests, astroquery, pandas, astropy)
       and add installation verification guidance for Windows 11 users.
 
+### Recently Completed (2025-10-21)
+
+- [x] Fixed Exo.MAST file-list requests so planet names with spaces no longer
+      double-encode, guarded the preview summary against `NaN` discovery years,
+      refreshed the regression tests, and documented the behaviour in the remote
+      data user guide.
+- [x] Renamed the curated remote provider and bundled samples to the Solar
+      System Archive label, refreshed manifest paths plus descriptions, updated
+      Remote Data dialog copy, and aligned regression tests/documentation with
+      the new terminology.
+- [x] Gated the Remote Data dialog to list only MAST and curated ExoSystems catalogues, shifting NIST ASD retrieval to the
+      Reference dock while updating provider tests, UI coverage, and the user guide to reflect the new workflow.
+- [x] Restored the NIST ASD provider in the Remote Data dialog with refreshed
+      hints/placeholders, keyword-aware query parsing, Qt coverage for NIST-only
+      services, and user-guide updates directing persistent overlays back to the
+      Inspector reference tab.
+- [x] Added a curated Solar System Archive provider backed by bundled manifests/sample
+      spectra, refreshed the Remote Data dialog hints/examples, rendered
+      citations in the preview pane, and extended regression coverage for the
+      local search/download path.
+- [x] Extended `docs/link_collection.md` with JWST notebook/toolkit and
+      exoplanet/astrochemistry sections, then cross-linked the resources from the
+      Remote Data user guide and developer notes so ingestion work references the
+      curated pipelines.
+- [x] Documented usage steps and maintenance checks for each JWST/exoplanet tool
+      in the link collection so agents know how to run the pipelines and verify
+      upstream dependencies before relying on them.
+- [x] Consolidated the Remote Data dialog's download/preview cell helpers so tooltip handling stays consistent, guarded empty
+      URIs, extended quicklook key coverage, refreshed the user guide, and added a regression test for the rendered links.
+- [x] Hardened the Solar System Archive search branch so missing curated manifests or assets are skipped instead of aborting the
+      provider, added regression coverage for missing bundles, and documented the resilient behaviour for analysts.
+
 ### Recently Completed (2025-10-19)
 
 - [x] Offloaded Remote Data searches/downloads to background workers, locked the dialog controls while jobs execute, aggregated

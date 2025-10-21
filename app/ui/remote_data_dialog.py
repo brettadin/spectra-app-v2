@@ -5,6 +5,7 @@ from __future__ import annotations
 import html
 import json
 import math
+import re
 from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Any, List
@@ -1004,73 +1005,59 @@ class RemoteDataDialog(QtWidgets.QDialog):
 
     def _format_exoplanet_summary(self, metadata: Mapping[str, Any] | Any) -> str:
         mapping = metadata if isinstance(metadata, Mapping) else {}
-        exosystem = mapping.get("exosystem") if isinstance(mapping.get("exosystem"), Mapping) else None
-        if not exosystem:
-            return ""
-        parts: list[str] = []
-        planet = self._first_text(exosystem, ["planet_name", "display_name"])
-        host = self._first_text(exosystem, ["host_name", "object_name"])
-        if planet and host:
-            parts.append(f"{planet} orbiting {host}")
-        elif host:
-            parts.append(host)
-        elif planet:
-            parts.append(planet)
+        summary = mapping.get("exoplanet_summary")
+        if isinstance(summary, str) and summary.strip():
+            return summary.strip()
 
-        params = exosystem.get("parameters") if isinstance(exosystem.get("parameters"), Mapping) else {}
-        if params:
-            teff = params.get("stellar_teff")
-            if teff is not None:
-                parts.append(f"Tₑₓₜ ≈ {self._format_number(teff, suffix=' K')}")
-            distance = params.get("system_distance_pc")
-            if distance is not None:
-                parts.append(f"Distance ≈ {self._format_number(distance, suffix=' pc')}")
-            method = params.get("discovery_method")
-            year = params.get("discovery_year")
-            if method or year:
-                discovery = method or "Discovery"
-                year_text = ""
-                if year not in (None, ""):
-                    try:
-                        number = float(year)
-                    except (TypeError, ValueError):
-                        year_text = str(year).strip()
-                    else:
-                        if not math.isnan(number):
-                            year_text = str(int(number))
-                if year_text:
-                    discovery = f"{discovery} ({year_text})"
-                parts.append(discovery)
+        def _normalise_year(value: Any) -> str:
+            if value is None:
+                return ""
+            if isinstance(value, int):
+                return str(value)
+            if isinstance(value, float):
+                if math.isnan(value):
+                    return ""
+                return str(int(value))
+            if isinstance(value, str):
+                text = value.strip()
+                if not text or text.lower() == "nan":
+                    return ""
+                try:
+                    numeric = float(text)
+                except ValueError:
+                    return text
+                if math.isnan(numeric):
+                    return ""
+                return str(int(numeric))
+            return ""
 
-        return " | ".join(parts)
+        exoplanet = mapping.get("exoplanet")
+        if isinstance(exoplanet, Mapping):
+            name = self._first_text(exoplanet, ["display_name", "name"])
+            classification = self._first_text(exoplanet, ["classification", "type"])
+            host = self._first_text(exoplanet, ["host_star", "host"])
+            discovery_method = self._first_text(exoplanet, ["discovery_method", "discovered_via"])
+            discovery_facility = self._first_text(exoplanet, ["discovery_facility", "facility"])
+            discovery_year = _normalise_year(exoplanet.get("discovery_year"))
 
-    def _format_discovery_year(self, value: Any) -> str:
-        if value is None:
-            return ""
-        if isinstance(value, (int,)):
-            return str(value)
-        if isinstance(value, float):
-            if math.isnan(value):
-                return ""
-            return str(int(value))
-        if isinstance(value, str):
-            text = value.strip()
-            if not text:
-                return ""
-            try:
-                numeric = float(text)
-            except ValueError:
-                return text
-            if math.isnan(numeric):
-                return ""
-            return str(int(numeric))
-        try:
-            numeric = float(value)
-        except (TypeError, ValueError):
-            return ""
-        if math.isnan(numeric):
-            return ""
-        return str(int(numeric))
+            details: list[str] = []
+            if classification:
+                details.append(classification)
+            if host:
+                details.append(f"Host: {host}")
+
+            discovery_bits = [
+                part
+                for part in (discovery_method, discovery_facility, discovery_year)
+                if part
+            ]
+            if discovery_bits:
+                details.append(f"Discovery: {', '.join(discovery_bits)}")
+
+            if name or details:
+                body = ", ".join(details) if details else ""
+                return " – ".join(filter(None, [name, body]))
+        return ""
 
     def _extract_citation(self, metadata: Mapping[str, Any] | Any) -> str:
         mapping = metadata if isinstance(metadata, Mapping) else {}

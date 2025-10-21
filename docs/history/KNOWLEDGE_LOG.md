@@ -27,6 +27,25 @@ Each entry in this document should follow this structure:
   applicable).
 
 ---
+## 2025-10-21T19:25:02-04:00 / 2025-10-21T23:25:04+00:00 – Exo.MAST encoding & preview guard
+
+**Author**: agent
+
+**Context**: Remote Data service/dialog stability for Exo.MAST enriched records.
+
+**Summary**: Updated the Exo.MAST file-list fetcher to rely on `urllib.parse.quote`
+alone so planet names with spaces (e.g. “WASP-39 b”) no longer double-encode and
+silently drop citation metadata. Tightened the preview summary to ignore `NaN`
+discovery years while still reporting discovery method/facility details so the
+dialog remains responsive even when Astroquery returns incomplete metadata.
+Extended the regression suite to cover both behaviours and documented the user
+impact in the remote data guide.
+
+**References**: `app/services/remote_data_service.py`, `app/ui/remote_data_dialog.py`,
+`tests/test_remote_data_service.py`, `tests/test_remote_data_dialog.py`,
+`docs/user/remote_data.md`.
+---
+## 2025-10-21T18:44:51-04:00 / 2025-10-21T22:44:53+00:00 – Curated search resiliency
 ## 2025-10-20T20:54:53-04:00 / 2025-10-21T00:54:55+00:00 – Exoplanet archive & MAST parity restored
 
 **Author**: agent

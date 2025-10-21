@@ -46,6 +46,21 @@ directly against laboratory references.
 The hint banner beneath the results table updates as you switch providers and
 also surfaces dependency warnings when optional clients are missing.
 
+The results table now surfaces a richer snapshot for each match—identifier,
+target, mission, instrument, product type, plus quick links for preview and
+download. Selecting a row shows the raw metadata payload in the preview panel so
+you can confirm provenance before downloading, with citation metadata rendered as
+bullet points alongside mission/instrument context. The preview/download links
+open in your default browser when you want to inspect the provider portal
+directly or follow the bundled Solar System Archive references.
+
+Planet names that include spaces or punctuation (for example `WASP-39 b`) are
+encoded correctly when the dialog requests the Exo.MAST file list, so the
+associated citation metadata now appears without manual URL tweaks. When the
+Exo.MAST enrichment omits a discovery year—or reports it as `NaN`—the preview
+summary simply drops that field instead of raising an error, keeping the dialog
+stable for incomplete catalog entries.
+
 > **Background execution**
 >
 > Searches and downloads now run on background threads. A compact progress bar
