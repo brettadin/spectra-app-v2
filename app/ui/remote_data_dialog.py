@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import html
 import json
-import math
 import re
 from collections.abc import Mapping, Sequence
 from pathlib import Path
@@ -115,6 +114,17 @@ class RemoteDataDialog(QtWidgets.QDialog):
     download_completed = Signal(list)
     download_failed = Signal(str)
 
+    _RESULT_HEADERS: tuple[str, ...] = (
+        "ID",
+        "Title",
+        "Target",
+        "Mission",
+        "Instrument",
+        "Product",
+        "Download",
+        "Preview / Citation",
+    )
+
     def __init__(
         self,
         parent: QtWidgets.QWidget | None,
@@ -189,7 +199,8 @@ class RemoteDataDialog(QtWidgets.QDialog):
         layout.addWidget(splitter, 1)
 
         self.results = QtWidgets.QTableWidget(self)
-        self.results.setColumnCount(0)
+        self.results.setColumnCount(len(self._RESULT_HEADERS))
+        self.results.setHorizontalHeaderLabels(list(self._RESULT_HEADERS))
         self.results.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectionBehavior.SelectRows)
         self.results.setSelectionMode(QtWidgets.QAbstractItemView.SelectionMode.ExtendedSelection)
         header = self.results.horizontalHeader()
@@ -432,12 +443,10 @@ class RemoteDataDialog(QtWidgets.QDialog):
         narrative_lines.append(json.dumps(metadata, indent=2, ensure_ascii=False))
         self.preview.setPlainText("\n".join(narrative_lines))
 
-    def _on_selection_changed(self) -> None:
-        self._update_preview()
-        self._update_download_button_state()
-
     def _populate_results_table(self, records: Sequence[RemoteRecord]) -> None:
         self._clear_result_widgets()
+        self.results.setColumnCount(len(self._RESULT_HEADERS))
+        self.results.setHorizontalHeaderLabels(list(self._RESULT_HEADERS))
         self.results.setRowCount(len(records))
         for row, record in enumerate(records):
             self._set_table_text(row, 0, record.identifier)
@@ -880,118 +889,6 @@ class RemoteDataDialog(QtWidgets.QDialog):
             self.progress_indicator.setVisible(False)
             self.progress_indicator.setRange(0, 1)
 
-    # ------------------------------------------------------------------
-    def _populate_results_table(self, records: list[RemoteRecord]) -> None:
-        headers = [
-            "ID",
-            "Target",
-            "Mission",
-            "Instrument",
-            "Product",
-            "Preview",
-            "Download",
-        ]
-        self.results.setColumnCount(len(headers))
-        self.results.setHorizontalHeaderLabels(headers)
-        self.results.setRowCount(len(records))
-
-        for row, record in enumerate(records):
-            metadata = record.metadata if isinstance(record.metadata, dict) else {}
-            target = self._metadata_value(
-                metadata,
-                [
-                    "target_name",
-                    "target",
-                    "Target Name",
-                    "obs_target",
-                ],
-            )
-            mission = self._metadata_value(
-                metadata,
-                [
-                    "obs_collection",
-                    "mission",
-                    "obs_collection_name",
-                    "project",
-                ],
-            )
-            instrument = self._metadata_value(
-                metadata,
-                [
-                    "instrument_name",
-                    "instrument",
-                    "instrument_id",
-                    "instr_band",
-                ],
-            )
-            product = self._metadata_value(
-                metadata,
-                [
-                    "productType",
-                    "dataproduct_type",
-                    "Product Type",
-                ],
-            )
-            preview_url = self._metadata_value(
-                metadata,
-                [
-                    "previewURL",
-                    "preview_uri",
-                    "jpegURL",
-                    "preview_download",
-                ],
-            )
-
-            self._set_table_item(row, 0, record.identifier)
-            self._set_table_item(row, 1, target or record.title)
-            self._set_table_item(row, 2, mission)
-            self._set_table_item(row, 3, instrument)
-            self._set_table_item(row, 4, product)
-            self._set_link_widget(row, 5, preview_url, "Preview")
-            self._set_link_widget(row, 6, record.download_url, "Download")
-
-        self.results.resizeColumnsToContents()
-        self.results.horizontalHeader().setSectionResizeMode(
-            5, QtWidgets.QHeaderView.ResizeMode.ResizeToContents
-        )
-        self.results.horizontalHeader().setSectionResizeMode(
-            6, QtWidgets.QHeaderView.ResizeMode.ResizeToContents
-        )
-
-    def _metadata_value(self, metadata: dict, keys: list[str]) -> str:
-        for key in keys:
-            value = metadata.get(key)
-            if value not in (None, ""):
-                return str(value)
-        return ""
-
-    def _set_table_item(self, row: int, column: int, text: str) -> None:
-        display = text if isinstance(text, str) else str(text)
-        item = QtWidgets.QTableWidgetItem(display)
-        item.setFlags(
-            QtCore.Qt.ItemFlag.ItemIsEnabled
-            | QtCore.Qt.ItemFlag.ItemIsSelectable
-        )
-        item.setToolTip(display)
-        self.results.setItem(row, column, item)
-
-    def _set_link_widget(self, row: int, column: int, url: str, label: str) -> None:
-        if not url:
-            self._set_table_item(row, column, "")
-            return
-        link = QtWidgets.QLabel(self.results)
-        link.setTextFormat(QtCore.Qt.TextFormat.RichText)
-        link.setTextInteractionFlags(QtCore.Qt.TextInteractionFlag.TextBrowserInteraction)
-        link.setOpenExternalLinks(True)
-        link.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
-        link.setText(self._link_markup(url, label))
-        link.setToolTip(url)
-        self.results.setCellWidget(row, column, link)
-
-    def _link_markup(self, url: str, label: str) -> str:
-        resolved = QtCore.QUrl.fromUserInput(url)
-        return f'<a href="{resolved.toString()}">{label}</a>'
-
     def _update_download_button_state(self) -> None:
         has_selection = bool(
             self.results.selectionModel()
@@ -1004,4 +901,216 @@ class RemoteDataDialog(QtWidgets.QDialog):
             and not self._download_in_progress
         )
         self.download_button.setEnabled(enabled)
+
+    # ------------------------------------------------------------------
+    def _format_target(self, record: RemoteRecord) -> str:
+        metadata = record.metadata if isinstance(record.metadata, Mapping) else {}
+        target = self._first_text(
+            metadata,
+            [
+                "target_name",
+                "target",
+                "Target Name",
+                "display_name",
+                "obs_target",
+                "intentTargetName",
+            ],
+        )
+        if target:
+            return target
+        return record.title
+
+    def _format_mission(self, metadata: Mapping[str, Any] | Any) -> str:
+        mapping = metadata if isinstance(metadata, Mapping) else {}
+        mission = self._first_text(
+            mapping,
+            [
+                "obs_collection",
+                "mission",
+                "obs_collection_name",
+                "project",
+                "facility_name",
+                "telescope_name",
+            ],
+        )
+        program = self._first_text(mapping, ["program", "program_name", "proposal_pi", "proposal_id"])
+        if mission and program:
+            return f"{mission} ({program})"
+        return mission or program
+
+    def _format_instrument(self, metadata: Mapping[str, Any] | Any) -> str:
+        mapping = metadata if isinstance(metadata, Mapping) else {}
+        instrument = self._first_text(
+            mapping,
+            [
+                "instrument_name",
+                "instrument",
+                "instrument_id",
+                "instr_band",
+                "detector",
+            ],
+        )
+        channel = self._first_text(mapping, ["channel", "camera", "module"])
+        grating = self._first_text(mapping, ["grating", "grating_config", "spectral_element"])
+        filters = self._first_text(mapping, ["filters", "filter"])
+        details = [part for part in (instrument, channel, grating, filters) if part]
+        return " / ".join(dict.fromkeys(details)) if details else ""
+
+    def _format_product(self, metadata: Mapping[str, Any] | Any) -> str:
+        mapping = metadata if isinstance(metadata, Mapping) else {}
+        product = self._first_text(
+            mapping,
+            [
+                "productType",
+                "dataproduct_type",
+                "product_type",
+                "Product Type",
+            ],
+        )
+        intent = self._first_text(mapping, ["intentType", "intent_type"])
+        calibration = mapping.get("calib_level")
+        calibration_text = ""
+        if calibration not in (None, ""):
+            calibration_text = f"Level {calibration}"
+        descriptors = [part for part in (product, intent, calibration_text) if part]
+        return "; ".join(dict.fromkeys(descriptors))
+
+    def _format_exoplanet_summary(self, metadata: Mapping[str, Any] | Any) -> str:
+        mapping = metadata if isinstance(metadata, Mapping) else {}
+        summary = mapping.get("exoplanet_summary")
+        if isinstance(summary, str) and summary.strip():
+            return summary.strip()
+        exoplanet = mapping.get("exoplanet")
+        if isinstance(exoplanet, Mapping):
+            name = self._first_text(exoplanet, ["display_name", "name"])
+            classification = self._first_text(exoplanet, ["classification", "type"])
+            host = self._first_text(exoplanet, ["host_star", "host"])
+            details = [part for part in (classification, host and f"Host: {host}") if part]
+            if name or details:
+                return " – ".join(filter(None, [name, ", ".join(details) if details else ""]))
+        return ""
+
+    def _extract_citation(self, metadata: Mapping[str, Any] | Any) -> str:
+        mapping = metadata if isinstance(metadata, Mapping) else {}
+        citation = self._first_text(
+            mapping,
+            ["citation", "citation_text", "Citation", "reference", "reference_text"],
+        )
+        if citation:
+            return citation
+        doi = self._first_text(mapping, ["doi", "DOI", "citation_doi"])
+        url = self._first_text(
+            mapping,
+            ["citation_url", "bibliographic_url", "referenceURL", "url", "link"],
+        )
+        if doi and url:
+            return f"DOI {doi} – {url}"
+        if doi:
+            return f"DOI {doi}"
+        if url:
+            return url
+        citations = mapping.get("citations")
+        if isinstance(citations, Mapping):
+            return self._extract_citation(citations)
+        if isinstance(citations, Sequence) and not isinstance(citations, (str, bytes)):
+            for entry in citations:
+                if not isinstance(entry, Mapping):
+                    continue
+                title = self._first_text(entry, ["title", "citation", "reference"])
+                entry_doi = self._first_text(entry, ["doi", "DOI"])
+                pieces = [part for part in (title, entry_doi and f"DOI {entry_doi}") if part]
+                if pieces:
+                    return " – ".join(pieces)
+        return ""
+
+    def _set_download_widget(self, row: int, column: int, url: str) -> None:
+        hyperlink = self._link_for_download(url)
+        if not hyperlink:
+            self.results.setCellWidget(row, column, None)
+            self._set_table_text(row, column, "")
+            return
+
+        label = QtWidgets.QLabel(self.results)
+        label.setOpenExternalLinks(True)
+        label.setTextInteractionFlags(QtCore.Qt.TextInteractionFlag.TextBrowserInteraction)
+        label.setAlignment(QtCore.Qt.AlignmentFlag.AlignLeft | QtCore.Qt.AlignmentFlag.AlignVCenter)
+        label.setFocusPolicy(QtCore.Qt.FocusPolicy.NoFocus)
+        escaped = html.escape(hyperlink)
+        label.setText(f'<a href="{escaped}">Open</a>')
+        tooltip = url
+        if hyperlink != url:
+            tooltip = f"{url}\n{hyperlink}"
+        label.setToolTip(tooltip)
+        self.results.setCellWidget(row, column, label)
+
+    def _set_preview_widget(self, row: int, column: int, metadata: Mapping[str, Any] | Any) -> None:
+        mapping = metadata if isinstance(metadata, Mapping) else {}
+        preview_url = self._first_text(
+            mapping,
+            [
+                "preview_url",
+                "previewURL",
+                "preview_uri",
+                "QuicklookURL",
+                "quicklook_url",
+                "productPreviewURL",
+                "thumbnailURL",
+                "thumbnail_uri",
+                "preview_download",
+            ],
+        )
+        citation = self._extract_citation(mapping)
+        if not preview_url and not citation:
+            self.results.setCellWidget(row, column, None)
+            self._set_table_text(row, column, "")
+            return
+
+        label = QtWidgets.QLabel(self.results)
+        label.setOpenExternalLinks(True)
+        label.setTextInteractionFlags(QtCore.Qt.TextInteractionFlag.TextBrowserInteraction)
+        label.setAlignment(QtCore.Qt.AlignmentFlag.AlignLeft | QtCore.Qt.AlignmentFlag.AlignVCenter)
+        label.setWordWrap(True)
+        label.setFocusPolicy(QtCore.Qt.FocusPolicy.NoFocus)
+
+        fragments: list[str] = []
+        if preview_url:
+            escaped_url = html.escape(preview_url)
+            fragments.append(f'<a href="{escaped_url}">Preview</a>')
+            label.setToolTip(preview_url)
+        if citation:
+            fragments.append(html.escape(citation))
+        label.setText("<br/>".join(fragments))
+        self.results.setCellWidget(row, column, label)
+
+    @staticmethod
+    def _link_for_download(url: str) -> str:
+        if not url:
+            return ""
+        if url.startswith("mast:"):
+            encoded = quote(url, safe=":/")
+            return f"https://mast.stsci.edu/api/v0.1/Download/file?uri={encoded}"
+        if url.startswith("nist-asd"):
+            encoded = quote(url, safe=":/?=&,+-_.")
+            return f"https://physics.nist.gov/PhysRefData/ASD/lines_form.html?uri={encoded}"
+        return url
+
+    @staticmethod
+    def _first_text(metadata: Mapping[str, Any] | Any, keys: Sequence[str]) -> str:
+        mapping = metadata if isinstance(metadata, Mapping) else {}
+        for key in keys:
+            value = mapping.get(key)
+            if value is None:
+                continue
+            if isinstance(value, (list, tuple)):
+                for item in value:
+                    if item is None:
+                        continue
+                    text = str(item).strip()
+                    if text:
+                        return text
+                continue
+            text = str(value).strip()
+            if text:
+                return text
+        return ""
 
