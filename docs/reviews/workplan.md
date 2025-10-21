@@ -26,6 +26,10 @@ This document tracks feature batches, validation status, and outstanding backlog
 - [x] Document dependency prerequisites (requests, astroquery, pandas, astropy)
       and add installation verification guidance for Windows 11 users.
 
+### Recently Completed (2025-10-20)
+
+- [x] Guarded the Remote Data dialog shutdown path so active search/download worker threads are cleaned up on accept/reject/close, preventing `QThread` destruction errors when the window is dismissed mid-job.
+
 ### Recently Completed (2025-10-19)
 
 - [x] Offloaded Remote Data searches/downloads to background workers, locked the dialog controls while jobs execute, aggregated
@@ -87,6 +91,7 @@ This document tracks feature batches, validation status, and outstanding backlog
 
 ### Batch 14 QA Log
 
+- 2025-10-20: ✅ `pytest`
 - 2025-10-19: ✅ `pytest`
 - 2025-10-17: ✅ `pytest`
 

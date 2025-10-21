@@ -1,5 +1,11 @@
 # Patch Notes
 
+## 2025-10-20 (Remote data dialog shuts down worker threads) (20:00 EDT / 00:00 UTC)
+
+- Ensured the Remote Data dialog stops active search/download worker threads when the
+  window closes or is rejected so Qt no longer terminates with `QThread: Destroyed while
+  thread is still running` errors during asynchronous catalogue runs.
+
 ## 2025-10-20 (Numpy window widened for Python 3.12+) (15:39 EDT / 19:39 UTC)
 
 - Relaxed the numpy dependency to `>=1.26,<3` so Windows launches on Python 3.12+

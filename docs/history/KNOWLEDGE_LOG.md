@@ -27,6 +27,19 @@ Each entry in this document should follow this structure:
   applicable).
 
 ---
+## 2025-10-20T20:00:20-04:00 / 2025-10-21T00:00:22+00:00 – Remote Data dialog worker shutdown guard
+
+**Author**: Codex agent
+
+**Context**: Remote catalogue dialog background threading lifecycle.
+
+**Summary**: Added `accept`, `reject`, and `closeEvent` overrides that call a shared
+shutdown helper so active search/download threads are joined before the dialog closes,
+preventing `QThread` destruction errors introduced by the asynchronous workflow.
+
+**References**: `app/ui/remote_data_dialog.py`, `docs/history/PATCH_NOTES.md`, `docs/reviews/workplan.md`.
+
+---
 ## 2025-10-20T15:39:03-04:00 / 2025-10-20T19:39:03+00:00 – Dependency window widened for NumPy 2.x wheels
 
 **Author**: agent
