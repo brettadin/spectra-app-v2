@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, Iterable, List, Sequence, cast
+from typing import Any, Dict, Iterable, List, Mapping, Sequence, cast
 
 from .spectrum import Spectrum
 from .units_service import UnitsService
@@ -92,16 +92,24 @@ class DataIngestService:
             metadata=meta,
             source_path=source_path,
         )
+        existing_record: Dict[str, Any] | None = None
+        if self.store is not None and record_store:
+            existing_record = self._find_store_record(source_path)
+
         if self.store is not None and record_store:
             source_summary = {
                 "ingest": dict(meta.get("ingest", {})),
                 "source_units": dict(meta.get("source_units", {})),
             }
+            merged_source = self._merge_source_summary(
+                source_summary,
+                existing_record.get("source") if existing_record else None,
+            )
             record = self.store.record(
                 source_path,
                 x_unit=spectrum.x_unit,
                 y_unit=spectrum.y_unit,
-                source=source_summary,
+                source=merged_source,
                 alias=source_path.name,
             )
             ingest_meta = dict(spectrum.metadata.get("ingest", {}))
@@ -115,6 +123,46 @@ class DataIngestService:
                 cache_record=record,
             )
         return spectrum
+
+    def _find_store_record(self, source_path: Path) -> Dict[str, Any] | None:
+        if self.store is None:
+            return None
+        str_path = str(source_path)
+        for entry in self.store.list_entries().values():
+            if not isinstance(entry, Mapping):
+                continue
+            stored_path = entry.get("stored_path")
+            original_path = entry.get("original_path")
+            if stored_path == str_path or original_path == str_path:
+                return dict(entry)
+        return None
+
+    def _merge_source_summary(
+        self,
+        source_summary: Mapping[str, Any],
+        existing_source: Mapping[str, Any] | None,
+    ) -> Dict[str, Any]:
+        if not isinstance(existing_source, Mapping):
+            return dict(source_summary)
+
+        merged: Dict[str, Any] = {}
+        for key, value in existing_source.items():
+            merged[key] = self._clone_mapping(value) if isinstance(value, Mapping) else value
+
+        for key, value in source_summary.items():
+            if isinstance(value, Mapping) and isinstance(merged.get(key), Mapping):
+                nested = dict(cast(Mapping[str, Any], merged[key]))
+                nested.update(value)
+                merged[key] = nested
+            else:
+                merged[key] = value
+        return merged
+
+    def _clone_mapping(self, value: Mapping[str, Any]) -> Dict[str, Any]:
+        return {
+            key: self._clone_mapping(cast(Mapping[str, Any], item)) if isinstance(item, Mapping) else item
+            for key, item in value.items()
+        }
 
     def _ingest_bundle(
         self,

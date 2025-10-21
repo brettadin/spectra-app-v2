@@ -1,13 +1,13 @@
 from pathlib import Path
 
 import importlib.util
-from pathlib import Path
 
 import numpy as np
 import pytest
 
 from app.services import DataIngestService, UnitsService
 from app.services.importers import FitsImporter
+from app.services.store import LocalStore
 
 
 def build_ingest_service() -> DataIngestService:
@@ -83,3 +83,60 @@ def test_export_bundle_csv_roundtrip(tmp_path: Path):
         assert spectrum.x_unit == "nm"
         assert spectrum.y_unit == "absorbance"
         assert spectrum.metadata.get("ingest", {}).get("bundle_member")
+
+
+def test_ingest_preserves_remote_metadata(tmp_path: Path):
+    class OverwritingStore(LocalStore):
+        def record(self, source_path, *, x_unit, y_unit, source=None, manifest_path=None, alias=None):  # type: ignore[override]
+            entry = super().record(
+                source_path,
+                x_unit=x_unit,
+                y_unit=y_unit,
+                source=source,
+                manifest_path=manifest_path,
+                alias=alias,
+            )
+            if source is None or "remote" in source:
+                return entry
+
+            index = self.load_index()
+            items = index.get("items", {})
+            stored = items.get(entry["sha256"], {})
+            stored_source = stored.get("source")
+            if isinstance(stored_source, dict):
+                stored_source.pop("remote", None)
+                stored["source"] = stored_source
+                items[entry["sha256"]] = stored
+                self.save_index(index)
+                entry["source"] = stored_source
+            return entry
+
+    store = OverwritingStore(base_dir=tmp_path)
+    service = DataIngestService(UnitsService(), store=store)
+
+    remote_meta = {
+        "uri": "https://example.test/catalogue/file", 
+        "provider": "Test Provider",
+        "identifier": "sample-entry",
+    }
+    initial_entry = store.record(
+        Path("samples/sample_spectrum.csv"),
+        x_unit="nm",
+        y_unit="absorbance",
+        source={"remote": remote_meta},
+        alias="remote_sample.csv",
+    )
+
+    spectra = service.ingest(Path(initial_entry["stored_path"]))
+    assert spectra, "Ingest should return at least one spectrum"
+
+    entries = store.list_entries()
+    updated = entries.get(initial_entry["sha256"])
+    assert isinstance(updated, dict)
+    source = updated.get("source", {})
+    remote = source.get("remote")
+    assert isinstance(remote, dict)
+    assert remote.get("uri") == remote_meta["uri"]
+    assert remote.get("provider") == remote_meta["provider"]
+    ingest_meta = source.get("ingest", {})
+    assert ingest_meta.get("importer") == "CsvImporter"
