@@ -25,19 +25,12 @@ class StubRemoteService(RemoteDataService):
         super().__init__(store=LocalStore(base_dir=base))
         self._providers: List[str] = [
             RemoteDataService.PROVIDER_NIST,
+            RemoteDataService.PROVIDER_EXOSYSTEMS,
             RemoteDataService.PROVIDER_MAST,
-            RemoteDataService.PROVIDER_SOLAR_SYSTEM,
         ]
 
-    def providers(self, *, include_reference: bool = True) -> List[str]:
-        providers = list(self._providers)
-        if include_reference:
-            return providers
-        return [
-            provider
-            for provider in providers
-            if provider != RemoteDataService.PROVIDER_NIST
-        ]
+    def providers(self) -> List[str]:
+        return list(self._providers)
 
     def unavailable_providers(self) -> dict[str, str]:
         return {}
@@ -91,43 +84,15 @@ def test_dialog_initialises_without_missing_slots(monkeypatch: Any) -> None:
     )
 
     assert dialog.provider_combo.count() == 2
-    assert dialog.provider_combo.itemText(0) == RemoteDataService.PROVIDER_MAST
-    assert dialog.provider_combo.itemText(1) == RemoteDataService.PROVIDER_SOLAR_SYSTEM
-    assert dialog.provider_combo.findText(RemoteDataService.PROVIDER_NIST) == -1
+    assert dialog.provider_combo.itemText(0) == RemoteDataService.PROVIDER_EXOSYSTEMS
+    assert dialog.provider_combo.itemText(1) == RemoteDataService.PROVIDER_MAST
     assert "Catalogue" in dialog.windowTitle() or dialog.windowTitle() == "Remote Data"
 
     # Trigger provider refresh to ensure the slot updates hints/placeholder.
     dialog._on_provider_changed()
-    placeholder = dialog.search_edit.placeholderText()
-    assert "JWST" in placeholder
-    assert "MAST" in dialog.hint_label.text()
+    assert "Planet" in dialog.search_edit.placeholderText()
 
     # Clean up the dialog explicitly for Qt stability in headless tests.
-    dialog.deleteLater()
-    if QtWidgets.QApplication.instance() is app and not app.topLevelWidgets():
-        app.quit()
-
-
-def test_reference_only_service_disables_combo(monkeypatch: Any) -> None:
-    app = _ensure_app()
-
-    class NistOnlyService(StubRemoteService):
-        def __init__(self) -> None:
-            super().__init__()
-            self._providers = [RemoteDataService.PROVIDER_NIST]
-
-    ingest = IngestServiceStub()
-    dialog = RemoteDataDialog(
-        None,
-        remote_service=NistOnlyService(),
-        ingest_service=ingest,
-    )
-
-    assert dialog.provider_combo.count() == 0
-    assert dialog.provider_combo.isEnabled() is False
-    assert dialog.search_edit.isEnabled() is False
-    assert "Remote catalogues" in dialog.status_label.text()
-
     dialog.deleteLater()
     if QtWidgets.QApplication.instance() is app and not app.topLevelWidgets():
         app.quit()
@@ -230,190 +195,6 @@ def test_include_imaging_toggle_passes_flag(monkeypatch: Any) -> None:
     assert service.calls, "Search should record include_imaging flag"
     _, _, include_imaging = service.calls[-1]
     assert include_imaging is True
-
-    dialog.deleteLater()
-    if QtWidgets.QApplication.instance() is app and not app.topLevelWidgets():
-        app.quit()
-
-
-def test_build_provider_query_parses_nist_fields(monkeypatch: Any) -> None:
-    app = _ensure_app()
-    ingest = IngestServiceStub()
-    dialog = RemoteDataDialog(
-        None,
-        remote_service=StubRemoteService(),
-        ingest_service=ingest,
-    )
-
-    query = dialog._build_provider_query(
-        RemoteDataService.PROVIDER_NIST,
-        "element=Fe II; keyword=aurora; ion=III",
-    )
-
-    assert query["element"] == "Fe II"
-    assert query["text"] == "aurora"
-    assert query["ion_stage"] == "III"
-
-    dialog.deleteLater()
-    if QtWidgets.QApplication.instance() is app and not app.topLevelWidgets():
-        app.quit()
-
-
-def test_populate_results_table_builds_links_and_preview(monkeypatch: Any) -> None:
-    app = _ensure_app()
-    ingest = IngestServiceStub()
-    dialog = RemoteDataDialog(
-        None,
-        remote_service=StubRemoteService(),
-        ingest_service=ingest,
-    )
-
-    metadata = {
-        "target_name": "WASP-96 b",
-        "obs_collection": "JWST",
-        "instrument_name": "NIRSpec",
-        "grating": "G395H",
-        "filters": ["F290LP"],
-        "dataproduct_type": "spectrum",
-        "intentType": "SCIENCE",
-        "calib_level": 3,
-        "preview_url": "https://example.invalid/preview.jpg",
-        "citations": [
-            {
-                "title": "JWST early release observations",
-                "doi": "10.1234/example",
-            }
-        ],
-        "exoplanet": {
-            "display_name": "WASP-96 b",
-            "classification": "Hot Jupiter",
-            "host_star": "WASP-96",
-        },
-    }
-
-    record = RemoteRecord(
-        provider=RemoteDataService.PROVIDER_MAST,
-        identifier="obsid-0001",
-        title="WASP-96 b transit",
-        download_url="mast:JWST/product.fits",
-        metadata=metadata,
-        units={"x": "um", "y": "flux"},
-    )
-
-    dialog._handle_search_results([record])
-
-    assert dialog.results.rowCount() == 1
-    assert dialog.results.columnCount() == 8
-    assert dialog.results.horizontalHeaderItem(7).text() == "Preview / Citation"
-
-    target_item = dialog.results.item(0, 2)
-    assert target_item is not None
-    assert target_item.text() == "WASP-96 b"
-
-    product_item = dialog.results.item(0, 5)
-    assert product_item is not None
-    assert "Level 3" in product_item.text()
-
-    download_widget = dialog.results.cellWidget(0, 6)
-    assert isinstance(download_widget, QtWidgets.QLabel)
-    href = "https://mast.stsci.edu/api/v0.1/Download/file?uri=mast:JWST/product.fits"
-    assert href in download_widget.text()
-    assert "Open" in download_widget.text()
-
-    preview_widget = dialog.results.cellWidget(0, 7)
-    assert isinstance(preview_widget, QtWidgets.QLabel)
-    preview_text = preview_widget.text()
-    assert "Preview" in preview_text
-    assert "DOI 10.1234/example" in preview_text
-
-    dialog.results.selectRow(0)
-    dialog._update_preview()
-    assert "Citation: DOI 10.1234/example" in dialog.preview.toPlainText()
-
-    dialog.deleteLater()
-    if QtWidgets.QApplication.instance() is app and not app.topLevelWidgets():
-        app.quit()
-
-
-def test_exoplanet_summary_handles_nan_discovery_year(monkeypatch: Any) -> None:
-    app = _ensure_app()
-    ingest = IngestServiceStub()
-    dialog = RemoteDataDialog(
-        None,
-        remote_service=StubRemoteService(),
-        ingest_service=ingest,
-    )
-
-    metadata = {
-        "exoplanet": {
-            "display_name": "WASP-39 b",
-            "classification": "Hot Jupiter",
-            "host_star": "WASP-39",
-            "discovery_method": "Transit",
-            "discovery_year": float("nan"),
-        }
-    }
-
-    summary = dialog._format_exoplanet_summary(metadata)
-
-    assert "nan" not in summary.lower()
-    assert "Discovery: Transit" in summary
-
-    dialog.deleteLater()
-    if QtWidgets.QApplication.instance() is app and not app.topLevelWidgets():
-        app.quit()
-
-
-def test_download_and_preview_cells_include_tooltips(monkeypatch: Any) -> None:
-    app = _ensure_app()
-    ingest = IngestServiceStub()
-    dialog = RemoteDataDialog(
-        None,
-        remote_service=StubRemoteService(),
-        ingest_service=ingest,
-    )
-
-    mast_metadata = {
-        "target_name": "HD 189733 b",
-        "obs_collection": "JWST",
-        "preview_download": "https://example.invalid/quicklook.png",
-        "citation": "DOI 10.5555/example",
-    }
-    mast_record = RemoteRecord(
-        provider=RemoteDataService.PROVIDER_MAST,
-        identifier="mast-0001",
-        title="HD 189733 b transit",
-        download_url="mast:JWST/product.fits",
-        metadata=mast_metadata,
-        units={"x": "um", "y": "flux"},
-    )
-
-    empty_record = RemoteRecord(
-        provider=RemoteDataService.PROVIDER_MAST,
-        identifier="mast-0002",
-        title="Metadata only",
-        download_url="",
-        metadata={"citation": "Reference only"},
-        units={},
-    )
-
-    dialog._handle_search_results([mast_record, empty_record])
-
-    download_widget = dialog.results.cellWidget(0, 6)
-    assert isinstance(download_widget, QtWidgets.QLabel)
-    assert "https://mast.stsci.edu/api" in download_widget.text()
-    assert download_widget.toolTip() == (
-        "mast:JWST/product.fits\nhttps://mast.stsci.edu/api/v0.1/Download/file?uri=mast:JWST/product.fits"
-    )
-
-    preview_widget = dialog.results.cellWidget(0, 7)
-    assert isinstance(preview_widget, QtWidgets.QLabel)
-    assert "Preview" in preview_widget.text()
-    assert "DOI 10.5555/example" in preview_widget.text()
-    assert preview_widget.toolTip() == "https://example.invalid/quicklook.png"
-
-    assert dialog.results.cellWidget(1, 6) is None
-    assert dialog.results.item(1, 6).text() == ""
 
     dialog.deleteLater()
     if QtWidgets.QApplication.instance() is app and not app.topLevelWidgets():

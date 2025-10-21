@@ -19,54 +19,12 @@ This document tracks feature batches, validation status, and outstanding backlog
       remains).
 - [ ] Validate remote catalogue UX: expand the provider roster beyond MAST once
       dependency checks stabilise and new spectroscopy sources are vetted.
-      (2025-10-20: Exo.MAST enrichment, host/planet summaries, and citation
-      previews landed; next pass to evaluate additional providers. 2025-10-20:
-      Reject now waits for worker threads so long searches/downloads can be
-      cancelled safely. 2025-10-21: Application shutdown now blocks on worker
-      teardown so dismissing the dialog right before quitting avoids Qt thread
-      destruction warnings.)
-- [x] Validate remote catalogue UX: expand the provider roster beyond MAST once
-      dependency checks stabilise and new spectroscopy sources are vetted.
-      (Solar System Archive manifests now bundle curated spectra and surface
-      citations in the Remote Data dialog.)
 - [x] Refresh START_HERE, MASTER PROMPT, AGENTS, and brains documentation so
       onboarding instructions match the current repository layout (AGENTS and
       START_HERE refreshed 2025-10-19; MASTER PROMPT timestamp guidance synced
       2025-10-20; brains entries continue per docs/brains/README.md cadence).
 - [x] Document dependency prerequisites (requests, astroquery, pandas, astropy)
       and add installation verification guidance for Windows 11 users.
-
-### Recently Completed (2025-10-21)
-
-- [x] Fixed Exo.MAST file-list requests so planet names with spaces no longer
-      double-encode, guarded the preview summary against `NaN` discovery years,
-      refreshed the regression tests, and documented the behaviour in the remote
-      data user guide.
-- [x] Renamed the curated remote provider and bundled samples to the Solar
-      System Archive label, refreshed manifest paths plus descriptions, updated
-      Remote Data dialog copy, and aligned regression tests/documentation with
-      the new terminology.
-- [x] Gated the Remote Data dialog to list only MAST and curated ExoSystems catalogues, shifting NIST ASD retrieval to the
-      Reference dock while updating provider tests, UI coverage, and the user guide to reflect the new workflow.
-- [x] Restored the NIST ASD provider in the Remote Data dialog with refreshed
-      hints/placeholders, keyword-aware query parsing, Qt coverage for NIST-only
-      services, and user-guide updates directing persistent overlays back to the
-      Inspector reference tab.
-- [x] Added a curated Solar System Archive provider backed by bundled manifests/sample
-      spectra, refreshed the Remote Data dialog hints/examples, rendered
-      citations in the preview pane, and extended regression coverage for the
-      local search/download path.
-- [x] Extended `docs/link_collection.md` with JWST notebook/toolkit and
-      exoplanet/astrochemistry sections, then cross-linked the resources from the
-      Remote Data user guide and developer notes so ingestion work references the
-      curated pipelines.
-- [x] Documented usage steps and maintenance checks for each JWST/exoplanet tool
-      in the link collection so agents know how to run the pipelines and verify
-      upstream dependencies before relying on them.
-- [x] Consolidated the Remote Data dialog's download/preview cell helpers so tooltip handling stays consistent, guarded empty
-      URIs, extended quicklook key coverage, refreshed the user guide, and added a regression test for the rendered links.
-- [x] Hardened the Solar System Archive search branch so missing curated manifests or assets are skipped instead of aborting the
-      provider, added regression coverage for missing bundles, and documented the resilient behaviour for analysts.
 
 ### Recently Completed (2025-10-19)
 
@@ -252,6 +210,10 @@ This document tracks feature batches, validation status, and outstanding backlog
 ### Batch 4 QA Log
 
 - 2025-10-15: ✅ `pytest -q`
+
+# 2025-10-20 — Remote data regression checks
+
+- 2025-10-20: ✅ `pytest`
 
 ## Batch 3 (2025-10-14)
 

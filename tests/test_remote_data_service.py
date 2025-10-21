@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 from pathlib import Path
 from typing import Any
 
@@ -222,6 +221,7 @@ def test_search_mast_filters_products_and_records_metadata(
 ) -> None:
     class DummyObservations:
         criteria: dict[str, Any] | None = None
+        products_requested: Any = None
 
         @classmethod
         def query_criteria(cls, **criteria: Any) -> list[dict[str, Any]]:
@@ -230,15 +230,29 @@ def test_search_mast_filters_products_and_records_metadata(
                 {
                     "obsid": "12345",
                     "target_name": "WASP-96 b",
-                    "dataURI": "mast:JWST/product.fits",
-                    "units": {"x": "um", "y": "flux"},
+                    "obs_collection": "JWST",
+                    "instrument_name": "NIRSpec",
+                }
+            ]
+
+        @classmethod
+        def get_product_list(cls, table: Any) -> list[dict[str, Any]]:
+            cls.products_requested = table
+            return [
+                {
+                    "obsid": "12345",
+                    "productFilename": "jwst_spec.fits",
+                    "dataURI": "mast:JWST/spec.fits",
                     "dataproduct_type": "spectrum",
+                    "productType": "SCIENCE",
+                    "units": {"x": "um", "y": "flux"},
                 },
                 {
-                    "obsid": "12346",
-                    "target_name": "WASP-96 b",
+                    "obsid": "12345",
+                    "productFilename": "jwst_image.fits",
                     "dataURI": "mast:JWST/image.fits",
                     "dataproduct_type": "image",
+                    "productType": "SCIENCE",
                 },
             ]
 
@@ -257,9 +271,10 @@ def test_search_mast_filters_products_and_records_metadata(
     assert DummyObservations.criteria.get("calib_level") == [2, 3]
     assert "text" not in DummyObservations.criteria
     assert len(records) == 1
-    assert records[0].identifier == "12345"
-    assert records[0].download_url == "mast:JWST/product.fits"
+    assert records[0].identifier == "jwst_spec.fits"
+    assert records[0].download_url == "mast:JWST/spec.fits"
     assert records[0].units == {"x": "um", "y": "flux"}
+    assert records[0].metadata.get("observation", {}).get("obs_collection") == "JWST"
 
 
 def test_search_mast_can_include_imaging(store: LocalStore, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -273,15 +288,27 @@ def test_search_mast_can_include_imaging(store: LocalStore, monkeypatch: pytest.
                 {
                     "obsid": "12345",
                     "target_name": "WASP-96 b",
-                    "dataURI": "mast:JWST/product.fits",
-                    "units": {"x": "um", "y": "flux"},
+                    "obs_collection": "JWST",
+                    "instrument_name": "NIRSpec",
+                },
+            ]
+
+        @classmethod
+        def get_product_list(cls, table: Any) -> list[dict[str, Any]]:
+            return [
+                {
+                    "obsid": "12345",
+                    "productFilename": "jwst_spec.fits",
+                    "dataURI": "mast:JWST/spec.fits",
                     "dataproduct_type": "spectrum",
+                    "productType": "SCIENCE",
                 },
                 {
-                    "obsid": "12346",
-                    "target_name": "WASP-96 b",
+                    "obsid": "12345",
+                    "productFilename": "jwst_image.fits",
                     "dataURI": "mast:JWST/image.fits",
                     "dataproduct_type": "image",
+                    "productType": "SCIENCE",
                 },
             ]
 
@@ -300,7 +327,84 @@ def test_search_mast_can_include_imaging(store: LocalStore, monkeypatch: pytest.
     assert DummyObservations.criteria is not None
     assert DummyObservations.criteria.get("dataproduct_type") == ["spectrum", "image"]
     identifiers = {record.identifier for record in records}
-    assert identifiers == {"12345", "12346"}
+    assert identifiers == {"jwst_spec.fits", "jwst_image.fits"}
+
+
+def test_search_exosystems_queries_archive_and_mast(
+    store: LocalStore, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    archive_calls: dict[str, Any] = {}
+
+    class DummyArchive:
+        @staticmethod
+        def query_criteria(**criteria: Any) -> list[dict[str, Any]]:
+            archive_calls.update(criteria)
+            return [
+                {
+                    "pl_name": "WASP-39 b",
+                    "hostname": "WASP-39",
+                    "ra": 210.1234,
+                    "dec": -39.1234,
+                    "st_teff": 5400.0,
+                    "sy_dist": 217.0,
+                    "discoverymethod": "Transit",
+                    "disc_year": 2011,
+                }
+            ]
+
+    class DummyObservations:
+        region_calls: list[tuple[Any, dict[str, Any]]] = []
+
+        @classmethod
+        def query_region(cls, coordinates: Any, radius: str) -> list[dict[str, Any]]:
+            cls.region_calls.append((coordinates, {"radius": radius}))
+            return [
+                {
+                    "obsid": "444",
+                    "target_name": "WASP-39",
+                    "obs_collection": "JWST",
+                    "instrument_name": "NIRSpec",
+                }
+            ]
+
+        @classmethod
+        def query_object(cls, *args: Any, **kwargs: Any) -> list[dict[str, Any]]:  # pragma: no cover - fallback not used
+            raise AssertionError("query_object should not be used when coordinates are available")
+
+        @classmethod
+        def get_product_list(cls, table: Any) -> list[dict[str, Any]]:
+            return [
+                {
+                    "obsid": "444",
+                    "productFilename": "wasp39b_nirspec.fits",
+                    "dataURI": "mast:JWST/wasp39b.fits",
+                    "dataproduct_type": "spectrum",
+                    "productType": "SCIENCE",
+                }
+            ]
+
+    class DummyMast:
+        Observations = DummyObservations
+
+    service = RemoteDataService(store, session=None)
+    monkeypatch.setattr(service, "_ensure_exoplanet_archive", lambda: DummyArchive)
+    monkeypatch.setattr(service, "_has_exoplanet_archive", lambda: True)
+    monkeypatch.setattr(service, "_ensure_mast", lambda: DummyMast)
+    monkeypatch.setattr(service, "_fetch_exomast_filelist", lambda name: {"files": [name], "citation": "Exo.MAST"})
+
+    records = service.search(RemoteDataService.PROVIDER_EXOSYSTEMS, {"text": "WASP-39 b"})
+
+    assert archive_calls["table"] == "pscomppars"
+    assert "WASP-39" in archive_calls["where"]
+    assert DummyObservations.region_calls, "Exosystem search should query by coordinates"
+    assert len(records) == 1
+    record = records[0]
+    assert record.provider == RemoteDataService.PROVIDER_EXOSYSTEMS
+    assert record.metadata.get("exosystem", {}).get("planet_name") == "WASP-39 b"
+    assert any(
+        isinstance(citation, dict) and "Exo.MAST" in str(citation.get("title"))
+        for citation in record.metadata.get("citations", [])
+    )
 
 
 def test_search_mast_requires_non_empty_criteria(store: LocalStore) -> None:
@@ -361,153 +465,15 @@ def test_providers_hide_missing_dependencies(monkeypatch: pytest.MonkeyPatch, st
     monkeypatch.setattr(remote_module, "_HAS_PANDAS", False)
     service = RemoteDataService(store, session=None)
 
-    assert service.providers() == [remote_module.RemoteDataService.PROVIDER_SOLAR_SYSTEM]
+    assert service.providers() == []
     unavailable = service.unavailable_providers()
     assert remote_module.RemoteDataService.PROVIDER_NIST in unavailable
     assert remote_module.RemoteDataService.PROVIDER_MAST in unavailable
 
-    # Restoring NIST while keeping MAST dependencies missing yields NIST plus curated samples.
+    # Restoring NIST while keeping MAST dependencies missing yields only NIST.
     monkeypatch.setattr(remote_module.nist_asd_service, "dependencies_available", lambda: True)
     service = RemoteDataService(store, session=None)
 
-    assert service.providers() == [
-        remote_module.RemoteDataService.PROVIDER_NIST,
-        remote_module.RemoteDataService.PROVIDER_SOLAR_SYSTEM,
-    ]
-    assert service.providers(include_reference=False) == [
-        remote_module.RemoteDataService.PROVIDER_SOLAR_SYSTEM,
-    ]
+    assert service.providers() == [remote_module.RemoteDataService.PROVIDER_NIST]
     unavailable = service.unavailable_providers()
     assert remote_module.RemoteDataService.PROVIDER_MAST in unavailable
-
-
-def test_providers_exclude_reference_catalogues_when_requested(
-    monkeypatch: pytest.MonkeyPatch, store: LocalStore
-) -> None:
-    monkeypatch.setattr(remote_module.nist_asd_service, "dependencies_available", lambda: True)
-    monkeypatch.setattr(remote_module, "astroquery_mast", object())
-    monkeypatch.setattr(remote_module, "_HAS_PANDAS", True)
-
-    service = RemoteDataService(store, session=None)
-
-    assert service.providers() == [
-        remote_module.RemoteDataService.PROVIDER_NIST,
-        remote_module.RemoteDataService.PROVIDER_MAST,
-        remote_module.RemoteDataService.PROVIDER_SOLAR_SYSTEM,
-    ]
-    assert service.providers(include_reference=False) == [
-        remote_module.RemoteDataService.PROVIDER_MAST,
-        remote_module.RemoteDataService.PROVIDER_SOLAR_SYSTEM,
-    ]
-
-
-def test_search_curated_returns_manifest_records(store: LocalStore) -> None:
-    service = RemoteDataService(store, session=None)
-
-    records = service.search(RemoteDataService.PROVIDER_SOLAR_SYSTEM, {"text": "Mercury"})
-    assert records, "Expected at least one curated record for Mercury"
-    record = records[0]
-    assert record.provider == RemoteDataService.PROVIDER_SOLAR_SYSTEM
-    assert record.download_url.startswith("curated:")
-    assert record.units and record.units.get("x") == "nm"
-    assert record.units.get("y") in {"reflectance", "relative_flux"}
-    metadata = record.metadata
-    assert metadata.get("citations"), "Curated metadata should include citations"
-    manifest_path = Path(metadata["manifest_path"])
-    assert manifest_path.exists()
-    asset_path = Path(metadata["asset_path"])
-    assert asset_path.exists()
-
-    all_records = service.search(
-        RemoteDataService.PROVIDER_SOLAR_SYSTEM,
-        {"text": "", "include_all": "true"},
-    )
-    assert len(all_records) >= len(service._CURATED_TARGETS)
-
-
-def test_search_curated_skips_missing_manifest(
-    monkeypatch: pytest.MonkeyPatch, store: LocalStore
-) -> None:
-    broken_entry = {
-        "names": {"missing"},
-        "display_name": "Missing Manifest",
-        "manifest": "samples/solar_system/does_not_exist.json",
-    }
-    monkeypatch.setattr(
-        remote_module.RemoteDataService,
-        "_CURATED_TARGETS",
-        remote_module.RemoteDataService._CURATED_TARGETS + (broken_entry,),
-    )
-
-    service = RemoteDataService(store, session=None)
-
-    records = service.search(
-        RemoteDataService.PROVIDER_SOLAR_SYSTEM,
-        {"text": "", "include_all": "true"},
-    )
-    assert records, "Expected curated records even when a manifest is missing"
-    for record in records:
-        manifest_meta = record.metadata.get("manifest_path")
-        if manifest_meta:
-            assert Path(manifest_meta).name != "does_not_exist.json"
-
-
-def test_search_curated_skips_missing_asset(
-    monkeypatch: pytest.MonkeyPatch, store: LocalStore, tmp_path: Path
-) -> None:
-    manifest_path = tmp_path / "broken_manifest.json"
-    manifest_path.write_text(
-        json.dumps(
-            {
-                "id": "broken-target",
-                "title": "Broken Target",
-                "asset": {"path": str(tmp_path / "missing.csv")},
-                "target": {"name": "Broken Target"},
-            }
-        ),
-        encoding="utf-8",
-    )
-    broken_entry = {
-        "names": {"broken"},
-        "display_name": "Broken Asset",
-        "manifest": str(manifest_path),
-    }
-    monkeypatch.setattr(
-        remote_module.RemoteDataService,
-        "_CURATED_TARGETS",
-        remote_module.RemoteDataService._CURATED_TARGETS + (broken_entry,),
-    )
-
-    service = RemoteDataService(store, session=None)
-
-    records = service.search(
-        RemoteDataService.PROVIDER_SOLAR_SYSTEM,
-        {"text": "", "include_all": "true"},
-    )
-    assert records, "Expected curated records even when an asset file is missing"
-    for record in records:
-        manifest_meta = record.metadata.get("manifest_path")
-        if manifest_meta:
-            assert Path(manifest_meta) != manifest_path
-
-
-def test_download_curated_uses_local_manifest(store: LocalStore) -> None:
-    service = RemoteDataService(store, session=None)
-    record = service.search(
-        RemoteDataService.PROVIDER_SOLAR_SYSTEM,
-        {"text": "Mercury"},
-    )[0]
-
-    result = service.download(record, force=True)
-    assert result.cached is False
-    cache_entry = result.cache_entry
-    assert Path(cache_entry["stored_path"]).exists()
-    manifest_path = cache_entry.get("manifest_path")
-    assert manifest_path, "Expected manifest_path recorded for curated download"
-    assert Path(manifest_path).name.endswith(".json")
-    contents = Path(cache_entry["stored_path"]).read_text(encoding="utf-8")
-    assert "wavelength" in contents
-
-    cached = service.download(record)
-    assert cached.cached is True
-    assert cached.cache_entry["stored_path"] == cache_entry["stored_path"]

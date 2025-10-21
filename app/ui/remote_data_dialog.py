@@ -120,6 +120,13 @@ class _DownloadWorker(QtCore.QObject):
 class RemoteDataDialog(QtWidgets.QDialog):
     """Interactive browser for remote catalogue search and download."""
 
+    search_started = Signal(str)
+    search_completed = Signal(list)
+    search_failed = Signal(str)
+    download_started = Signal(int)
+    download_completed = Signal(list)
+    download_failed = Signal(str)
+
     def __init__(
         self,
         parent: QtWidgets.QWidget | None,
@@ -143,16 +150,9 @@ class RemoteDataDialog(QtWidgets.QDialog):
         self._search_worker: _SearchWorker | None = None
         self._download_thread: QtCore.QThread | None = None
         self._download_worker: _DownloadWorker | None = None
-        self._busy = False
-        self._download_total = 0
-        self._download_completed = 0
-        self._download_errors: list[str] = []
-        self._control_enabled_state: dict[QtWidgets.QWidget, bool] = {}
-
-        self._search_worker_factory = lambda: _SearchWorker(self.remote_service)
-        self._download_worker_factory = lambda: _DownloadWorker(
-            self.remote_service, self.ingest_service
-        )
+        self._search_in_progress = False
+        self._download_in_progress = False
+        self._download_warnings: list[str] = []
 
         self._build_ui()
 
@@ -287,61 +287,6 @@ class RemoteDataDialog(QtWidgets.QDialog):
         self._records = []
         self._reset_results_table()
         self.preview.clear()
-        message = f"Searching {provider}…"
-        self._set_busy(True, message=message)
-
-        worker = self._search_worker_factory()
-        thread = QtCore.QThread(self)
-        self._search_worker = worker
-        self._search_thread = thread
-        worker.moveToThread(thread)
-        thread.started.connect(
-            lambda provider=provider, query=query, include_imaging=include_imaging: worker.run(
-                provider, query, include_imaging
-            )
-        )
-        worker.started.connect(lambda: self._set_busy(True, message=message))
-        worker.record_found.connect(self._handle_search_record)
-        worker.finished.connect(self._handle_search_finished)
-        worker.failed.connect(self._handle_search_failed)
-        worker.cancelled.connect(self._handle_search_cancelled)
-        self._connect_worker_cleanup(worker, thread)
-        thread.start()
-
-    def _handle_search_record(self, record: RemoteRecord) -> None:
-        self._records.append(record)
-        row = len(self._records) - 1
-        self.results.insertRow(row)
-        self._set_table_text(row, 0, record.identifier)
-        self._set_table_text(row, 1, record.title)
-        self._set_table_text(row, 2, self._format_target(record))
-        self._set_table_text(row, 3, self._format_mission(record.metadata))
-        self._set_table_text(row, 4, self._format_instrument(record.metadata))
-        self._set_table_text(row, 5, self._format_product(record.metadata))
-        self._set_table_text(row, 6, "")
-        self._set_download_widget(row, 6, record.download_url)
-        self._set_table_text(row, 7, "")
-        self._set_preview_widget(row, 7, record.metadata)
-
-        if row == 0:
-            self.results.selectRow(0)
-        status = f"{len(self._records)} result(s) received from {self.provider_combo.currentText()}…"
-        self.status_label.setText(status)
-
-    def _handle_search_finished(self, records: list[RemoteRecord]) -> None:
-        self._set_busy(False)
-        provider = self.provider_combo.currentText()
-        total = len(records)
-        if not total:
-            self.status_label.setText(f"No results found for {provider}.")
-            self.preview.clear()
-            return
-        summary = self._format_status_summary(records)
-        status = f"{total} result(s) fetched from {provider}."
-        if summary:
-            status = f"{status} {summary}"
-        self.status_label.setText(status)
-        self._update_download_button_state()
 
     def _handle_search_failed(self, message: str) -> None:
         self._set_busy(False)
@@ -624,7 +569,10 @@ class RemoteDataDialog(QtWidgets.QDialog):
             # the provider string so the argument is intentionally ignored.
             pass
         provider = self.provider_combo.currentText()
-        is_mast = provider == RemoteDataService.PROVIDER_MAST
+        is_mast = provider in {
+            RemoteDataService.PROVIDER_MAST,
+            RemoteDataService.PROVIDER_EXOSYSTEMS,
+        }
         placeholder = self._provider_placeholders.get(provider)
         if placeholder:
             self.search_edit.setPlaceholderText(placeholder)
@@ -657,6 +605,8 @@ class RemoteDataDialog(QtWidgets.QDialog):
         stripped = text.strip()
         if provider == RemoteDataService.PROVIDER_MAST:
             return {"target_name": stripped} if stripped else {}
+        if provider == RemoteDataService.PROVIDER_EXOSYSTEMS:
+            return {"text": stripped} if stripped else {}
         return {"text": stripped} if stripped else {}
 
     def _on_example_selected(self, index: int) -> None:
@@ -802,21 +752,32 @@ class RemoteDataDialog(QtWidgets.QDialog):
             self.search_edit.setEnabled(True)
             self.search_button.setEnabled(True)
             self._provider_placeholders = {
-                RemoteDataService.PROVIDER_MAST: (
-                    "Solar system body, host star, or exoplanet target (e.g. Jupiter, TRAPPIST-1, WASP-96 b)…"
+                RemoteDataService.PROVIDER_EXOSYSTEMS: (
+                    "Planet, host star, or solar system target (e.g. WASP-39 b, TRAPPIST-1, Jupiter)…"
                 ),
+                RemoteDataService.PROVIDER_MAST: "MAST target name or observation keyword (e.g. NIRSpec, NGC 7023)…",
             }
             self._provider_hints = {
+                RemoteDataService.PROVIDER_EXOSYSTEMS: (
+                    "Chains NASA Exoplanet Archive coordinates with MAST product listings and Exo.MAST file lists."
+                    " Returns calibrated spectra for solar-system planets, representative stars, and exoplanet hosts."
+                ),
                 RemoteDataService.PROVIDER_MAST: (
-                    "MAST requests favour calibrated spectra (IFS cubes, slits, prisms) and Exo.MAST cross-matching with the "
-                    "NASA Exoplanet Archive. Enable \"Include imaging\" to add calibrated previews alongside spectra."
+                    "MAST requests favour calibrated spectra (IFS cubes, slits, prisms). Enable "
+                    "\"Include imaging\" to broaden results with calibrated image products."
                 ),
             }
             self._provider_examples = {
+                RemoteDataService.PROVIDER_EXOSYSTEMS: [
+                    ("WASP-39 b – JWST/NIRSpec", "WASP-39 b"),
+                    ("TRAPPIST-1 system", "TRAPPIST-1"),
+                    ("Jupiter – solar system", "Jupiter"),
+                    ("Vega – CALSPEC standard", "Vega"),
+                ],
                 RemoteDataService.PROVIDER_MAST: [
-                    ("Jupiter – JWST/NIRCam (solar system)", "Jupiter"),
-                    ("TRAPPIST-1e – JWST/NIRSpec (exoplanet host)", "TRAPPIST-1"),
-                    ("HD 189733 – HST/STIS (stellar benchmark)", "HD 189733"),
+                    ("NGC 7023 – JWST/NIRSpec", "NGC 7023"),
+                    ("SN 1987A – HST/STIS", "SN 1987A"),
+                    ("HD 189733 – JWST/NIRISS", "HD 189733"),
                 ],
             }
         else:
@@ -851,118 +812,294 @@ class RemoteDataDialog(QtWidgets.QDialog):
             self.status_label.clear()
 
         self._on_provider_changed()
-        self._update_download_button_state()
+        self._set_busy(False)
 
     # ------------------------------------------------------------------
-    def _format_status_summary(self, records: Sequence[RemoteRecord]) -> str:
-        if not records:
-            return ""
-        metadata = records[0].metadata if isinstance(records[0].metadata, Mapping) else {}
-        focus = [self._format_exoplanet_summary(metadata)]
-        mission = self._format_mission(metadata)
-        instrument = self._format_instrument(metadata)
-        focus.extend([mission, instrument])
-        cleaned = [part for part in focus if part]
-        return " | ".join(cleaned)
+    def _start_search_worker(self, worker: _SearchWorker) -> None:
+        self._cleanup_search_thread()
+        thread = QtCore.QThread(self)
+        thread.setObjectName("remote-search-worker")
+        self._search_thread = thread
+        self._search_worker = worker
+        worker.moveToThread(thread)
+        thread.started.connect(worker.run)
+        worker.finished.connect(thread.quit)
+        worker.finished.connect(worker.deleteLater)
+        thread.finished.connect(thread.deleteLater)
+        thread.finished.connect(self._on_search_thread_finished)
+        thread.start()
 
-    def _format_target(self, record: RemoteRecord) -> str:
-        metadata = record.metadata if isinstance(record.metadata, Mapping) else {}
-        target = self._first_text(metadata, ["target_name", "target", "title"]) or record.title
-        host = self._first_text(metadata, ["host_name", "hostname", "star_name", "st_name"])
-        planet = self._first_text(metadata, ["planet_name", "pl_name", "exoplanet", "object"])
-        label_parts: list[str] = []
-        if planet and host:
-            label_parts.append(f"{planet} ({host})")
-        elif planet:
-            label_parts.append(str(planet))
-        elif host and target and host != target:
-            label_parts.append(f"{target} ({host})")
-        if target and target not in label_parts:
-            label_parts.append(str(target))
-        return " • ".join(dict.fromkeys([part for part in label_parts if part]))
+    def _start_download_worker(self, worker: _DownloadWorker) -> None:
+        self._cleanup_download_thread()
+        thread = QtCore.QThread(self)
+        thread.setObjectName("remote-download-worker")
+        self._download_thread = thread
+        self._download_worker = worker
+        worker.moveToThread(thread)
+        thread.started.connect(worker.run)
+        worker.finished.connect(thread.quit)
+        worker.finished.connect(worker.deleteLater)
+        thread.finished.connect(thread.deleteLater)
+        thread.finished.connect(self._on_download_thread_finished)
+        thread.start()
 
-    def _format_mission(self, metadata: Mapping[str, Any] | Any) -> str:
-        mapping = metadata if isinstance(metadata, Mapping) else {}
-        mission_candidates = [
-            self._first_text(mapping, ["telescope", "mission", "facility", "obs_collection", "project"]),
-            self._first_text(mapping, ["proposal_id", "proposal_title"]),
-        ]
-        mission_parts = [part for part in mission_candidates if part]
-        return " • ".join(dict.fromkeys(mission_parts))
-
-    def _format_instrument(self, metadata: Mapping[str, Any] | Any) -> str:
-        mapping = metadata if isinstance(metadata, Mapping) else {}
-        instrument = self._first_text(mapping, ["instrument_name", "instrument", "detector", "channel"])
-        mode = self._first_text(mapping, ["observation_mode", "mode", "obsmode", "configuration", "aperture"])
-        parts = [part for part in (instrument, mode) if part]
-        return " • ".join(parts)
-
-    def _format_product(self, metadata: Mapping[str, Any] | Any) -> str:
-        mapping = metadata if isinstance(metadata, Mapping) else {}
-        product = self._first_text(mapping, ["dataproduct_type", "productType", "intentType"])
-        calibration = self._first_text(mapping, ["calib_level", "dataRights"])
-        parts = [part for part in (product, calibration) if part]
-        return " • ".join(parts)
-
-    def _extract_citation(self, metadata: Mapping[str, Any] | Any) -> str:
-        mapping = metadata if isinstance(metadata, Mapping) else {}
-        citation = self._first_text(
-            mapping,
-            [
-                "citation",
-                "short_citation",
-                "reference",
-                "bib_reference",
-                "bibcode",
-                "proposal_pi",
-            ],
+    def _handle_search_results(self, records: list[RemoteRecord]) -> None:
+        self._records = list(records)
+        self._populate_results_table(records)
+        self.status_label.setText(
+            f"{len(records)} result(s) fetched from {self.provider_combo.currentText()}."
         )
-        if citation:
-            return str(citation)
-        pi = self._first_text(mapping, ["proposal_pi"])
-        cycle = self._first_text(mapping, ["proposal_cycle", "cycle"])
-        if pi or cycle:
-            descriptor = ", ".join(part for part in (pi, cycle) if part)
-            return descriptor
-        return ""
+        if records:
+            self.results.selectRow(0)
+        else:
+            self.preview.clear()
+        self.search_completed.emit(records)
 
-    def _format_exoplanet_summary(self, metadata: Mapping[str, Any]) -> str:
-        planet = self._first_text(metadata, ["planet_name", "pl_name", "target_name", "object"])
-        host = self._first_text(metadata, ["host_name", "hostname", "star_name", "st_name"])
-        discovery = self._first_text(metadata, ["discoverymethod", "disc_method", "discovery_method"])
-        period = self._first_number(metadata, ["pl_orbper", "orbital_period", "period_days"])
-        teff = self._first_number(metadata, ["st_teff", "teff", "stellar_temperature"])
-        summary_parts: list[str] = []
-        if planet and host:
-            summary_parts.append(f"{planet} around {host}")
-        elif planet:
-            summary_parts.append(str(planet))
-        elif host:
-            summary_parts.append(str(host))
-        if discovery:
-            summary_parts.append(f"Discovery: {discovery}")
-        if period is not None:
-            formatted_period = self._format_numeric(period, " d", decimals=2)
-            if formatted_period:
-                summary_parts.append(f"Period: {formatted_period}")
-        if teff is not None:
-            formatted_teff = self._format_numeric(teff, " K", decimals=0)
-            if formatted_teff:
-                summary_parts.append(f"T_eff: {formatted_teff}")
-        return " • ".join(summary_parts)
+    def _handle_search_error(self, message: str) -> None:
+        QtWidgets.QMessageBox.critical(self, "Search failed", message)
+        self.status_label.setText(message)
+        self.search_failed.emit(message)
 
-    def _first_text(self, metadata: Mapping[str, Any], keys: Sequence[str]) -> str:
+    def _search_finished(self) -> None:
+        self._search_in_progress = False
+        self._update_enabled_state()
+        self._set_busy(False)
+
+    def _handle_download_completed(self, spectra: list[object]) -> None:
+        self._ingested = list(spectra)
+        if self._download_warnings and spectra:
+            QtWidgets.QMessageBox.warning(
+                self,
+                "Partial download",
+                "\n".join(self._download_warnings),
+            )
+            self._download_warnings.clear()
+        if spectra:
+            self.status_label.setText(f"Imported {len(spectra)} spectrum/s.")
+            self.download_completed.emit(spectra)
+            self.accept()
+        elif self._download_warnings:
+            QtWidgets.QMessageBox.warning(
+                self,
+                "Download failed",
+                "\n".join(self._download_warnings),
+            )
+            self._download_warnings.clear()
+        else:
+            self.status_label.setText("No spectra were imported.")
+
+    def _handle_download_warning(self, message: str) -> None:
+        self._download_warnings.append(message)
+
+    def _handle_download_error(self, message: str) -> None:
+        QtWidgets.QMessageBox.critical(self, "Download failed", message)
+        self.status_label.setText(message)
+        self.download_failed.emit(message)
+
+    def _download_finished(self) -> None:
+        self._download_in_progress = False
+        self._update_enabled_state()
+        self._download_warnings.clear()
+        self._set_busy(False)
+
+    def _update_enabled_state(self) -> None:
+        searching = self._search_in_progress
+        downloading = self._download_in_progress
+        providers_available = self.provider_combo.count() > 0
+
+        self.provider_combo.setEnabled(providers_available and not searching)
+        self.search_edit.setEnabled(not searching)
+        self.search_button.setEnabled(not searching)
+        self.example_combo.setEnabled(not searching and self.example_combo.count() > 1)
+        self.include_imaging_checkbox.setEnabled(
+            self.include_imaging_checkbox.isVisible() and not searching
+        )
+        self.download_button.setEnabled(bool(self._records) and not downloading and not searching)
+
+    def _on_search_thread_finished(self) -> None:
+        self._search_thread = None
+        self._search_worker = None
+
+    def _on_download_thread_finished(self) -> None:
+        self._download_thread = None
+        self._download_worker = None
+
+    def _cleanup_search_thread(self) -> None:
+        if self._search_thread is not None:
+            self._search_thread.quit()
+            self._search_thread.wait()
+            self._search_thread = None
+        self._search_worker = None
+
+    def _cleanup_download_thread(self) -> None:
+        if self._download_thread is not None:
+            self._download_thread.quit()
+            self._download_thread.wait()
+            self._download_thread = None
+        self._download_worker = None
+
+    def _set_busy(self, busy: bool) -> None:
+        if busy:
+            self.progress_indicator.setRange(0, 0)
+            self.progress_indicator.setVisible(True)
+        else:
+            self.progress_indicator.setVisible(False)
+            self.progress_indicator.setRange(0, 1)
+
+    # ------------------------------------------------------------------
+    @staticmethod
+    def _first_text(mapping: Mapping[str, Any] | Any, keys: list[str]) -> str:
+        source = mapping if isinstance(mapping, Mapping) else {}
         for key in keys:
-            value = self._lookup_metadata(metadata, key)
+            value = source.get(key)
             if value is None:
                 continue
-            if isinstance(value, (list, tuple, set)):
-                text = ", ".join(str(part).strip() for part in value if str(part).strip())
-            else:
-                text = str(value).strip()
+            if isinstance(value, (list, tuple)):
+                for item in value:
+                    if item is None:
+                        continue
+                    text = str(item).strip()
+                    if text:
+                        return text
+                continue
+            text = str(value).strip()
             if text:
                 return text
         return ""
+
+    def _format_target(self, record: RemoteRecord) -> str:
+        metadata = record.metadata if isinstance(record.metadata, Mapping) else {}
+        exosystem = metadata.get("exosystem") if isinstance(metadata.get("exosystem"), Mapping) else None
+        if exosystem:
+            planet = self._first_text(exosystem, ["planet_name", "display_name"])
+            host = self._first_text(exosystem, ["host_name", "object_name"])
+            if planet and host:
+                return f"{planet} (host: {host})"
+            if planet:
+                return planet
+            if host:
+                return host
+        return self._first_text(metadata, ["target_display", "target_name", "object_name", "obs_id"]) or record.title
+
+    def _format_mission(self, metadata: Mapping[str, Any] | Any) -> str:
+        mission = self._first_text(metadata, ["obs_collection", "telescope_name", "project"])
+        proposal = self._first_text(metadata, ["proposal_pi", "proposal_id"])
+        if mission and proposal:
+            return f"{mission} (PI: {proposal})"
+        return mission
+
+    def _format_instrument(self, metadata: Mapping[str, Any] | Any) -> str:
+        instrument = self._first_text(metadata, ["instrument_name", "instrument", "filters"])
+        aperture = self._first_text(metadata, ["aperture", "optical_element"])
+        if instrument and aperture:
+            return f"{instrument} ({aperture})"
+        return instrument
+
+    def _format_product(self, metadata: Mapping[str, Any] | Any) -> str:
+        product = self._first_text(metadata, ["productType", "dataproduct_type", "product_type"])
+        calib = metadata.get("calib_level") if isinstance(metadata, Mapping) else None
+        if product and calib is not None:
+            return f"{product} (calib {calib})"
+        return product
+
+    def _format_exoplanet_summary(self, metadata: Mapping[str, Any] | Any) -> str:
+        mapping = metadata if isinstance(metadata, Mapping) else {}
+        exosystem = mapping.get("exosystem") if isinstance(mapping.get("exosystem"), Mapping) else None
+        if not exosystem:
+            return ""
+        parts: list[str] = []
+        planet = self._first_text(exosystem, ["planet_name", "display_name"])
+        host = self._first_text(exosystem, ["host_name", "object_name"])
+        if planet and host:
+            parts.append(f"{planet} orbiting {host}")
+        elif host:
+            parts.append(host)
+        elif planet:
+            parts.append(planet)
+
+        params = exosystem.get("parameters") if isinstance(exosystem.get("parameters"), Mapping) else {}
+        if params:
+            teff = params.get("stellar_teff")
+            if teff is not None:
+                parts.append(f"Tₑₓₜ ≈ {self._format_number(teff, suffix=' K')}")
+            distance = params.get("system_distance_pc")
+            if distance is not None:
+                parts.append(f"Distance ≈ {self._format_number(distance, suffix=' pc')}")
+            method = params.get("discovery_method")
+            year = params.get("discovery_year")
+            if method or year:
+                discovery = method or "Discovery"
+                year_fragment = ""
+                if year not in (None, ""):
+                    if isinstance(year, (int, float)):
+                        try:
+                            year_value = float(year)
+                        except (TypeError, ValueError):
+                            year_fragment = str(year)
+                        else:
+                            if not math.isnan(year_value):
+                                if isinstance(year, int) or year_value.is_integer():
+                                    year_fragment = str(int(year_value))
+                                else:
+                                    year_fragment = self._format_number(year_value)
+                    else:
+                        text = str(year).strip()
+                        if text:
+                            year_fragment = text
+                if year_fragment:
+                    discovery = f"{discovery} ({year_fragment})"
+                parts.append(discovery)
+
+        return " | ".join(parts)
+
+    def _extract_citation(self, metadata: Mapping[str, Any] | Any) -> str:
+        mapping = metadata if isinstance(metadata, Mapping) else {}
+        citations: list[str] = []
+
+        def _collect(source: Any) -> None:
+            if not isinstance(source, list):
+                return
+            for entry in source:
+                if not isinstance(entry, Mapping):
+                    continue
+                title = entry.get("title") or entry.get("name")
+                note = entry.get("notes")
+                doi = entry.get("doi")
+                url = entry.get("url")
+                fragment = title or url or doi
+                if not fragment:
+                    continue
+                detail_parts = [fragment]
+                if doi:
+                    detail_parts.append(f"DOI: {doi}")
+                if url:
+                    detail_parts.append(url)
+                if note:
+                    detail_parts.append(note)
+                citations.append(" — ".join(detail_parts))
+
+        _collect(mapping.get("citations"))
+        exosystem = mapping.get("exosystem") if isinstance(mapping.get("exosystem"), Mapping) else None
+        if exosystem:
+            _collect(exosystem.get("citations"))
+
+        return "; ".join(dict.fromkeys(citations))
+
+    @staticmethod
+    def _format_number(value: Any, *, suffix: str = "") -> str:
+        try:
+            number = float(value)
+        except (TypeError, ValueError):
+            return str(value)
+        if math.isnan(number):
+            return "?"
+        if abs(number) >= 1000:
+            formatted = f"{number:,.0f}"
+        elif abs(number) >= 1:
+            formatted = f"{number:,.1f}"
+        else:
+            formatted = f"{number:.3g}"
+        return f"{formatted}{suffix}"
 
     def _first_number(self, metadata: Mapping[str, Any], keys: Sequence[str]) -> float | None:
         for key in keys:
