@@ -17,8 +17,10 @@ This document tracks feature batches, validation status, and outstanding backlog
       and user ingests are categorised by instrument/type with working search
       (Data dock consolidation + filter landed 2025-10-19; grouping backlog
       remains).
-- [ ] Validate remote catalogue UX: expand the provider roster beyond MAST once
+- [x] Validate remote catalogue UX: expand the provider roster beyond MAST once
       dependency checks stabilise and new spectroscopy sources are vetted.
+      (ExoSystems manifests now bundle curated spectra and surface citations in
+      the Remote Data dialog.)
 - [x] Refresh START_HERE, MASTER PROMPT, AGENTS, and brains documentation so
       onboarding instructions match the current repository layout (AGENTS and
       START_HERE refreshed 2025-10-19; MASTER PROMPT timestamp guidance synced
@@ -32,6 +34,10 @@ This document tracks feature batches, validation status, and outstanding backlog
       hints/placeholders, keyword-aware query parsing, Qt coverage for NIST-only
       services, and user-guide updates directing persistent overlays back to the
       Inspector reference tab.
+- [x] Added a curated ExoSystems provider backed by bundled manifests/sample
+      spectra, refreshed the Remote Data dialog hints/examples, rendered
+      citations in the preview pane, and extended regression coverage for the
+      local search/download path.
 
 ### Recently Completed (2025-10-19)
 

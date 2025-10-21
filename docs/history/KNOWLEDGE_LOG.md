@@ -27,6 +27,21 @@ Each entry in this document should follow this structure:
   applicable).
 
 ---
+## 2025-10-21T17:18:38-04:00 / 2025-10-21T21:18:40+00:00 – Remote data curated provider
+
+**Author**: agent
+
+**Context**: Bundled ExoSystems samples and UI affordances for the curated provider.
+
+**Summary**: Implemented a local search branch for the ExoSystems provider so curated names resolve to JSON manifests and
+synthetic spectra bundled under `samples/exosystems/`. Wired the Remote Data dialog with provider-specific hints/examples, taught
+the preview pane to render citation bullets, and documented the workflow. Added regression coverage to exercise the curated
+search/download paths.
+
+**References**: `app/services/remote_data_service.py`, `samples/exosystems/`, `app/ui/remote_data_dialog.py`,
+`tests/test_remote_data_service.py`, `docs/user/remote_data.md`.
+
+---
 ## 2025-10-21T14:22:18-04:00 / 2025-10-21T18:22:20+00:00 – Remote data UX
 
 **Author**: agent

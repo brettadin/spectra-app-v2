@@ -343,51 +343,63 @@ def test_providers_hide_missing_dependencies(monkeypatch: pytest.MonkeyPatch, st
     monkeypatch.setattr(remote_module, "_HAS_PANDAS", False)
     service = RemoteDataService(store, session=None)
 
-    assert service.providers() == []
+    assert service.providers() == [remote_module.RemoteDataService.PROVIDER_EXOSYSTEMS]
     unavailable = service.unavailable_providers()
     assert remote_module.RemoteDataService.PROVIDER_NIST in unavailable
     assert remote_module.RemoteDataService.PROVIDER_MAST in unavailable
 
-    # Restoring NIST while keeping MAST dependencies missing yields only NIST.
+    # Restoring NIST while keeping MAST dependencies missing yields NIST plus curated samples.
     monkeypatch.setattr(remote_module.nist_asd_service, "dependencies_available", lambda: True)
     service = RemoteDataService(store, session=None)
 
-    assert service.providers() == [remote_module.RemoteDataService.PROVIDER_NIST]
+    assert service.providers() == [
+        remote_module.RemoteDataService.PROVIDER_NIST,
+        remote_module.RemoteDataService.PROVIDER_EXOSYSTEMS,
+    ]
     unavailable = service.unavailable_providers()
     assert remote_module.RemoteDataService.PROVIDER_MAST in unavailable
 
-
-def test_curated_targets_include_all_solar_system_planets(store: LocalStore) -> None:
-    """Verify that all major solar system planets are in the curated targets."""
+def test_search_curated_returns_manifest_records(store: LocalStore) -> None:
     service = RemoteDataService(store, session=None)
-    
-    # Expected planets in solar system order
-    expected_planets = ["mercury", "venus", "earth", "mars", "jupiter", "saturn", "uranus", "neptune"]
-    
-    # Collect all names from curated targets
-    all_names = set()
-    planet_display_names = set()
-    for target in service._CURATED_TARGETS:
-        if target.get("classification") == "Solar System planet":
-            all_names.update(target.get("names", set()))
-            planet_display_names.add(target.get("display_name", ""))
-    
-    # Check that each planet is represented
-    for planet in expected_planets:
-        assert planet in all_names, f"{planet.capitalize()} not found in curated targets"
-    
-    # Verify we have at least 8 solar system planet entries
-    solar_system_count = sum(
-        1 for target in service._CURATED_TARGETS 
-        if target.get("classification") == "Solar System planet"
+
+    records = service.search(RemoteDataService.PROVIDER_EXOSYSTEMS, {"text": "Mercury"})
+    assert records, "Expected at least one curated record for Mercury"
+    record = records[0]
+    assert record.provider == RemoteDataService.PROVIDER_EXOSYSTEMS
+    assert record.download_url.startswith("curated:")
+    assert record.units and record.units.get("x") == "nm"
+    assert record.units.get("y") in {"reflectance", "relative_flux"}
+    metadata = record.metadata
+    assert metadata.get("citations"), "Curated metadata should include citations"
+    manifest_path = Path(metadata["manifest_path"])
+    assert manifest_path.exists()
+    asset_path = Path(metadata["asset_path"])
+    assert asset_path.exists()
+
+    all_records = service.search(
+        RemoteDataService.PROVIDER_EXOSYSTEMS,
+        {"text": "", "include_all": "true"},
     )
-    assert solar_system_count >= 8, f"Expected at least 8 solar system planets, found {solar_system_count}"
-    
-    # Verify each planet entry has required fields
-    for target in service._CURATED_TARGETS:
-        if target.get("classification") == "Solar System planet":
-            assert "names" in target, "Planet target missing 'names' field"
-            assert "display_name" in target, "Planet target missing 'display_name' field"
-            assert "object_name" in target, "Planet target missing 'object_name' field"
-            assert "citations" in target, "Planet target missing 'citations' field"
-            assert len(target["citations"]) > 0, "Planet target has empty citations"
+    assert len(all_records) >= len(service._CURATED_TARGETS)
+
+
+def test_download_curated_uses_local_manifest(store: LocalStore) -> None:
+    service = RemoteDataService(store, session=None)
+    record = service.search(
+        RemoteDataService.PROVIDER_EXOSYSTEMS,
+        {"text": "Mercury"},
+    )[0]
+
+    result = service.download(record, force=True)
+    assert result.cached is False
+    cache_entry = result.cache_entry
+    assert Path(cache_entry["stored_path"]).exists()
+    manifest_path = cache_entry.get("manifest_path")
+    assert manifest_path, "Expected manifest_path recorded for curated download"
+    assert Path(manifest_path).name.endswith(".json")
+    contents = Path(cache_entry["stored_path"]).read_text(encoding="utf-8")
+    assert "wavelength" in contents
+
+    cached = service.download(record)
+    assert cached.cached is True
+    assert cached.cache_entry["stored_path"] == cache_entry["stored_path"]

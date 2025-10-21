@@ -8,8 +8,6 @@ import csv
 import json
 import math
 import tempfile
-from dataclasses import dataclass, field
-from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Mapping, Sequence
 from urllib.parse import quote, urlencode, urlparse
@@ -83,142 +81,67 @@ class RemoteDataService:
         default_factory=lambda: ("obsid", "target_name", "productFilename", "dataURI")
     )
     nist_page_size: int = 100
+    _curated_manifest_cache: Dict[str, Dict[str, Any]] = field(
+        default_factory=dict, init=False, repr=False
+    )
 
     PROVIDER_NIST = "NIST ASD"
     PROVIDER_MAST = "MAST"
     PROVIDER_EXOSYSTEMS = "MAST ExoSystems"
 
     _DEFAULT_REGION_RADIUS = "0.02 deg"
+    _CURATED_BASE_DIR = Path(__file__).resolve().parents[2]
 
     _CURATED_TARGETS: tuple[Dict[str, Any], ...] = (
         {
             "names": {"mercury"},
             "display_name": "Mercury",
-            "object_name": "Mercury",
-            "classification": "Solar System planet",
-            "citations": [
-                {
-                    "title": "MESSENGER orbital spectroscopy",
-                    "doi": "10.1007/s11214-007-9257-3",
-                    "notes": "Mercury surface composition and reflectance spectra from MESSENGER mission.",
-                }
-            ],
+            "manifest": "samples/exosystems/mercury_messenger_mascs.json",
         },
         {
             "names": {"venus"},
             "display_name": "Venus",
-            "object_name": "Venus",
-            "classification": "Solar System planet",
-            "citations": [
-                {
-                    "title": "Venus atmospheric spectroscopy",
-                    "doi": "10.1016/j.icarus.2017.02.009",
-                    "notes": "Venus cloud-top reflectance and atmospheric composition spectra.",
-                }
-            ],
+            "manifest": "samples/exosystems/venus_akatsuki_ir2.json",
         },
         {
             "names": {"earth", "moon"},
             "display_name": "Earth/Moon",
-            "object_name": "Earth",
-            "classification": "Solar System planet",
-            "citations": [
-                {
-                    "title": "Earth as an exoplanet",
-                    "doi": "10.1089/ast.2009.0384",
-                    "notes": "Integrated disk spectra for Earth and lunar reflectance observations.",
-                }
-            ],
+            "manifest": "samples/exosystems/earth_astronomy_earthshine.json",
         },
         {
             "names": {"mars"},
             "display_name": "Mars",
-            "object_name": "Mars",
-            "classification": "Solar System planet",
-            "citations": [
-                {
-                    "title": "JWST/NIRSpec Mars observations",
-                    "doi": "10.3847/1538-4365/abf3cb",
-                    "notes": "Quick-look spectra distributed via Exo.MAST science highlights.",
-                }
-            ],
+            "manifest": "samples/exosystems/mars_jwst_nirspec.json",
         },
         {
             "names": {"jupiter", "io", "europa", "ganymede", "callisto"},
             "display_name": "Jupiter",
-            "object_name": "Jupiter",
-            "classification": "Solar System planet",
-            "citations": [
-                {
-                    "title": "JWST Early Release Observations",
-                    "doi": "10.3847/1538-4365/acbd9a",
-                    "notes": "JWST ERS quick-look spectra curated for Jovian system.",
-                }
-            ],
+            "manifest": "samples/exosystems/jupiter_jwst_ers.json",
         },
         {
             "names": {"saturn", "enceladus", "titan"},
             "display_name": "Saturn",
-            "object_name": "Saturn",
-            "classification": "Solar System planet",
-            "citations": [
-                {
-                    "title": "Cassini / JWST comparative spectra",
-                    "notes": "Curated composite assembled for Spectra examples",
-                }
-            ],
+            "manifest": "samples/exosystems/saturn_cassini_composite.json",
         },
         {
             "names": {"uranus"},
             "display_name": "Uranus",
-            "object_name": "Uranus",
-            "classification": "Solar System planet",
-            "citations": [
-                {
-                    "title": "Uranus atmospheric spectroscopy",
-                    "doi": "10.1016/j.icarus.2011.08.022",
-                    "notes": "Near-IR spectroscopy of Uranus atmosphere and composition.",
-                }
-            ],
+            "manifest": "samples/exosystems/uranus_near_ir.json",
         },
         {
             "names": {"neptune", "triton"},
             "display_name": "Neptune",
-            "object_name": "Neptune",
-            "classification": "Solar System planet",
-            "citations": [
-                {
-                    "title": "Neptune atmospheric observations",
-                    "doi": "10.1016/j.icarus.2011.06.024",
-                    "notes": "Spectroscopic observations of Neptune atmosphere and Triton.",
-                }
-            ],
+            "manifest": "samples/exosystems/neptune_ir.json",
         },
         {
             "names": {"g2v", "solar analog", "sun-like", "hd 10700", "tau cet"},
             "display_name": "Tau Ceti (G8V)",
-            "object_name": "HD 10700",
-            "classification": "Nearby solar-type star",
-            "citations": [
-                {
-                    "title": "Pickles stellar spectral library",
-                    "doi": "10.1086/316293",
-                    "notes": "Representative solar-type spectrum maintained in Spectra samples.",
-                }
-            ],
+            "manifest": "samples/exosystems/tau_ceti_pickles.json",
         },
         {
             "names": {"a0v", "vega"},
             "display_name": "Vega (A0V)",
-            "object_name": "Vega",
-            "classification": "Spectral standard",
-            "citations": [
-                {
-                    "title": "HST CALSPEC standards",
-                    "doi": "10.1086/383228",
-                    "notes": "CALSPEC flux standards distributed via MAST.",
-                }
-            ],
+            "manifest": "samples/exosystems/vega_calspec.json",
         },
     )
 
@@ -230,6 +153,8 @@ class RemoteDataService:
             providers.append(self.PROVIDER_NIST)
         if self._has_mast_support():
             providers.append(self.PROVIDER_MAST)
+        if self._has_curated_support():
+            providers.append(self.PROVIDER_EXOSYSTEMS)
         return providers
 
     def unavailable_providers(self) -> Dict[str, str]:
@@ -243,6 +168,10 @@ class RemoteDataService:
         if not self._has_mast_support():
             reasons[self.PROVIDER_MAST] = (
                 "Install the 'astroquery' and 'pandas' packages to enable MAST searches."
+            )
+        if not self._has_curated_support():
+            reasons[self.PROVIDER_EXOSYSTEMS] = (
+                "Curated ExoSystems manifests are missing from the application bundle."
             )
         return reasons
 
@@ -258,6 +187,8 @@ class RemoteDataService:
             return self._search_nist(query)
         if provider == self.PROVIDER_MAST:
             return self._search_mast(query, include_imaging=include_imaging)
+        if provider == self.PROVIDER_EXOSYSTEMS:
+            return self._search_curated(query)
         raise ValueError(f"Unsupported provider: {provider}")
 
     # ------------------------------------------------------------------
@@ -271,7 +202,7 @@ class RemoteDataService:
                 cached=True,
             )
 
-        fetch_path, cleanup = self._fetch_remote(record)
+        fetch_path, cleanup, manifest_path = self._fetch_remote(record)
 
         x_unit, y_unit = record.resolved_units()
         remote_metadata = {
@@ -287,6 +218,7 @@ class RemoteDataService:
             y_unit=y_unit,
             source={"remote": remote_metadata},
             alias=record.suggested_filename(),
+            manifest_path=manifest_path,
         )
         if cleanup:
             fetch_path.unlink(missing_ok=True)
@@ -404,6 +336,181 @@ class RemoteDataService:
                 )
         return records
 
+    def _search_curated(self, query: Mapping[str, Any]) -> List[RemoteRecord]:
+        text = str(query.get("text") or query.get("target_name") or "").strip().lower()
+        include_all_flag = str(query.get("include_all") or "").strip().lower()
+        include_all = include_all_flag in {"1", "true", "yes"}
+
+        records: List[RemoteRecord] = []
+        for entry in self._CURATED_TARGETS:
+            manifest_ref = entry.get("manifest")
+            if not manifest_ref:
+                continue
+            manifest_path = self._resolve_curated_path(manifest_ref)
+            manifest = self._load_curated_manifest(manifest_path)
+            terms = self._curated_terms(entry, manifest)
+            if text:
+                if not self._curated_term_matches(text, terms):
+                    continue
+            elif not include_all:
+                continue
+            records.append(self._build_curated_record(entry, manifest, manifest_path))
+        return records
+
+    def _curated_terms(self, entry: Mapping[str, Any], manifest: Mapping[str, Any]) -> set[str]:
+        terms: set[str] = set()
+        for name in entry.get("names", set()):
+            if name:
+                terms.add(str(name).lower())
+        display = entry.get("display_name")
+        if display:
+            terms.add(str(display).lower())
+
+        target = manifest.get("target") if isinstance(manifest.get("target"), Mapping) else {}
+        if isinstance(target, Mapping):
+            target_name = target.get("name")
+            if target_name:
+                terms.add(str(target_name).lower())
+            aliases = target.get("aliases")
+            if isinstance(aliases, (list, tuple, set)):
+                for alias in aliases:
+                    if alias:
+                        terms.add(str(alias).lower())
+
+        identifier = manifest.get("id")
+        if identifier:
+            terms.add(str(identifier).lower())
+        summary = manifest.get("summary")
+        if isinstance(summary, str) and summary.strip():
+            terms.add(summary.strip().lower())
+        return terms
+
+    @staticmethod
+    def _curated_term_matches(text: str, terms: set[str]) -> bool:
+        if not text:
+            return True
+        for term in terms:
+            if not term:
+                continue
+            if text in term or term in text:
+                return True
+        return False
+
+    def _build_curated_record(
+        self,
+        entry: Mapping[str, Any],
+        manifest: Mapping[str, Any],
+        manifest_path: Path,
+    ) -> RemoteRecord:
+        asset = manifest.get("asset") if isinstance(manifest.get("asset"), Mapping) else None
+        if not isinstance(asset, Mapping):
+            raise RuntimeError("Curated manifest is missing an 'asset' mapping.")
+
+        asset_path_value = asset.get("path")
+        if not asset_path_value:
+            raise RuntimeError("Curated asset is missing a 'path' entry.")
+        asset_path = self._resolve_curated_path(asset_path_value)
+        if not asset_path.exists():
+            raise FileNotFoundError(f"Curated asset missing: {asset_path}")
+
+        identifier = str(manifest.get("id") or Path(asset_path).stem)
+        title = str(manifest.get("title") or entry.get("display_name") or identifier)
+
+        target = manifest.get("target") if isinstance(manifest.get("target"), Mapping) else {}
+        aliases = []
+        if isinstance(target, Mapping):
+            alias_values = target.get("aliases")
+            if isinstance(alias_values, (list, tuple, set)):
+                aliases = [str(alias) for alias in alias_values if alias]
+
+        units_raw = asset.get("units") if isinstance(asset.get("units"), Mapping) else {}
+        units: Dict[str, str] = {}
+        if isinstance(units_raw, Mapping):
+            for axis in ("x", "y"):
+                value = units_raw.get(axis)
+                if value is not None:
+                    units[axis] = str(value)
+
+        metadata: Dict[str, Any] = {
+            "target_name": (target.get("name") if isinstance(target, Mapping) else None)
+            or entry.get("display_name")
+            or identifier,
+            "target_aliases": aliases,
+            "classification": target.get("classification") if isinstance(target, Mapping) else None,
+            "display_name": entry.get("display_name"),
+            "mission": manifest.get("mission"),
+            "obs_collection": manifest.get("mission"),
+            "instrument_name": manifest.get("instrument"),
+            "productType": manifest.get("product_type"),
+            "dataproduct_type": manifest.get("product_type"),
+            "asset_description": asset.get("description"),
+            "asset_columns": asset.get("columns") if isinstance(asset.get("columns"), list) else None,
+            "asset_path": str(asset_path),
+            "manifest_path": str(manifest_path),
+            "summary": manifest.get("summary"),
+            "citations": manifest.get("citations", []),
+            "units": units,
+            "provider": self.PROVIDER_EXOSYSTEMS,
+        }
+
+        # Remove empty optional fields while keeping explicit falsy values like [] for citations.
+        cleaned_metadata = {
+            key: value
+            for key, value in metadata.items()
+            if value not in (None, "")
+        }
+        if "citations" not in cleaned_metadata:
+            cleaned_metadata["citations"] = []
+        if not cleaned_metadata.get("citations") and manifest.get("citations"):
+            cleaned_metadata["citations"] = manifest.get("citations")
+
+        download_url = f"curated:{asset_path.name}"
+        return RemoteRecord(
+            provider=self.PROVIDER_EXOSYSTEMS,
+            identifier=identifier,
+            title=title,
+            download_url=download_url,
+            metadata=cleaned_metadata,
+            units=units if units else None,
+        )
+
+    def _resolve_curated_path(self, path_value: str | Path) -> Path:
+        candidate = Path(path_value)
+        if candidate.is_absolute():
+            return candidate
+        return (self._CURATED_BASE_DIR / candidate).resolve()
+
+    def _load_curated_manifest(self, manifest_path: Path) -> Dict[str, Any]:
+        key = str(manifest_path)
+        if key in self._curated_manifest_cache:
+            return json.loads(json.dumps(self._curated_manifest_cache[key]))
+        if not manifest_path.exists():
+            raise FileNotFoundError(f"Curated manifest missing: {manifest_path}")
+        with manifest_path.open("r", encoding="utf-8") as handle:
+            manifest = json.load(handle)
+        if not isinstance(manifest, dict):
+            raise RuntimeError("Curated manifest must decode to a mapping.")
+        self._curated_manifest_cache[key] = manifest
+        return json.loads(json.dumps(manifest))
+
+    def _fetch_curated(self, record: RemoteRecord) -> tuple[Path, bool, Path | None]:
+        metadata = record.metadata if isinstance(record.metadata, Mapping) else {}
+        manifest_ref = metadata.get("manifest_path") or metadata.get("manifest")
+        if not manifest_ref:
+            raise RuntimeError("Curated record is missing manifest metadata.")
+        manifest_path = self._resolve_curated_path(manifest_ref)
+        manifest = self._load_curated_manifest(manifest_path)
+        asset = manifest.get("asset") if isinstance(manifest.get("asset"), Mapping) else None
+        if not isinstance(asset, Mapping):
+            raise RuntimeError("Curated manifest is missing an asset definition.")
+        asset_path_value = asset.get("path")
+        if not asset_path_value:
+            raise RuntimeError("Curated asset is missing a 'path' entry.")
+        asset_path = self._resolve_curated_path(asset_path_value)
+        if not asset_path.exists():
+            raise FileNotFoundError(f"Curated asset missing: {asset_path}")
+        return asset_path, False, manifest_path
+
     def _is_spectroscopic(self, metadata: Mapping[str, Any]) -> bool:
         """Return True when the MAST row represents spectroscopic data."""
 
@@ -436,12 +543,14 @@ class RemoteDataService:
             return True
         return False
 
-    def _fetch_remote(self, record: RemoteRecord) -> tuple[Path, bool]:
+    def _fetch_remote(self, record: RemoteRecord) -> tuple[Path, bool, Path | None]:
+        if record.provider == self.PROVIDER_EXOSYSTEMS:
+            return self._fetch_curated(record)
         if record.provider == self.PROVIDER_NIST:
-            return self._generate_nist_csv(record), True
+            return self._generate_nist_csv(record), True, None
         if self._should_use_mast(record):
-            return self._fetch_via_mast(record), True
-        return self._fetch_via_http(record), True
+            return self._fetch_via_mast(record), True, None
+        return self._fetch_via_http(record), True, None
 
     def _generate_nist_csv(self, record: RemoteRecord) -> Path:
         lines = record.metadata.get("lines") if isinstance(record.metadata, Mapping) else None
@@ -713,6 +822,29 @@ class RemoteDataService:
 
     def _has_astroquery(self) -> bool:
         return astroquery_mast is not None and _HAS_PANDAS
+
+    def _has_curated_support(self) -> bool:
+        for entry in self._CURATED_TARGETS:
+            manifest_ref = entry.get("manifest")
+            if not manifest_ref:
+                continue
+            manifest_path = self._resolve_curated_path(manifest_ref)
+            if not manifest_path.exists():
+                continue
+            try:
+                manifest = self._load_curated_manifest(manifest_path)
+            except Exception:  # pragma: no cover - defensive guard
+                continue
+            asset = manifest.get("asset") if isinstance(manifest.get("asset"), Mapping) else None
+            if not isinstance(asset, Mapping):
+                continue
+            asset_path_value = asset.get("path")
+            if not asset_path_value:
+                continue
+            asset_path = self._resolve_curated_path(asset_path_value)
+            if asset_path.exists():
+                return True
+        return False
 
     def _table_to_records(self, table: Any) -> List[Mapping[str, Any]]:
         if table is None:
