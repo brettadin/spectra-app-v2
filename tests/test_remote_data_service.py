@@ -224,27 +224,6 @@ def test_search_mast_filters_products_and_records_metadata(
                 },
             ]
 
-        @classmethod
-        def get_product_list(cls, table: Any) -> list[dict[str, Any]]:
-            cls.products_requested = table
-            return [
-                {
-                    "obsid": "12345",
-                    "productFilename": "jwst_spec.fits",
-                    "dataURI": "mast:JWST/spec.fits",
-                    "dataproduct_type": "spectrum",
-                    "productType": "SCIENCE",
-                    "units": {"x": "um", "y": "flux"},
-                },
-                {
-                    "obsid": "12345",
-                    "productFilename": "jwst_image.fits",
-                    "dataURI": "mast:JWST/image.fits",
-                    "dataproduct_type": "image",
-                    "productType": "SCIENCE",
-                },
-            ]
-
     class DummyMast:
         Observations = DummyObservations
 
@@ -260,8 +239,8 @@ def test_search_mast_filters_products_and_records_metadata(
     assert DummyObservations.criteria.get("calib_level") == [2, 3]
     assert "text" not in DummyObservations.criteria
     assert len(records) == 1
-    assert records[0].identifier == "jwst_spec.fits"
-    assert records[0].download_url == "mast:JWST/spec.fits"
+    assert records[0].identifier == "12345"
+    assert records[0].download_url == "mast:JWST/product.fits"
     assert records[0].units == {"x": "um", "y": "flux"}
 
 
