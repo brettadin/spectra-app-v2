@@ -1,5 +1,9 @@
 # Patch Notes
 
+## 2025-10-21 (Remote Data dialog joins worker threads before closing) (19:17 EDT / 23:17 UTC)
+
+- Ensured the Remote Data dialog calls its worker cleanup helpers during accept, reject, and close events so any in-flight search
+  or download threads are joined before Qt destroys the dialog widget. (`app/ui/remote_data_dialog.py`)
 ## 2025-10-21 (Remote Data cancel waits asynchronously) (19:21 EDT / 23:21 UTC)
 
 - Updated the Remote Data dialog cancel/close path to poll background search/download threads with a Qt timer so the UI stays

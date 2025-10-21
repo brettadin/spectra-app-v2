@@ -920,6 +920,21 @@ class RemoteDataDialog(QtWidgets.QDialog):
         )
         self.download_button.setEnabled(bool(self._records) and not downloading and not searching)
 
+    def accept(self) -> None:  # pragma: no cover - Qt dialog lifecycle glue
+        self._cleanup_search_thread()
+        self._cleanup_download_thread()
+        super().accept()
+
+    def reject(self) -> None:  # pragma: no cover - Qt dialog lifecycle glue
+        self._cleanup_search_thread()
+        self._cleanup_download_thread()
+        super().reject()
+
+    def closeEvent(self, event: QtGui.QCloseEvent) -> None:  # pragma: no cover
+        self._cleanup_search_thread()
+        self._cleanup_download_thread()
+        super().closeEvent(event)
+
     def _on_search_thread_finished(self) -> None:
         self._search_thread = None
         self._search_worker = None

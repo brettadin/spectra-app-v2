@@ -28,6 +28,8 @@ This document tracks feature batches, validation status, and outstanding backlog
 
 ### Recently Completed (2025-10-21)
 
+- [x] Ensured the Remote Data dialog joins active search/download threads when closing so Qt no longer warns about workers being
+      destroyed mid-run and the asynchronous UX stays stable.
 - [x] Taught the Remote Data dialog cancel flow to poll worker shutdown with a Qt timer so the window closes responsively while
       background network calls finish, and surfaced busy/status messaging during the wait.
 - [x] Fixed Exo.MAST file-list requests so planet names with spaces no longer
