@@ -27,6 +27,357 @@ Each entry in this document should follow this structure:
   applicable).
 
 ---
+## 2025-10-20T15:39:03-04:00 / 2025-10-20T19:39:03+00:00 – Dependency window widened for NumPy 2.x wheels
+
+**Author**: agent
+
+**Context**: Windows launcher and onboarding docs still referenced the old
+`numpy>=1.26,<2` range, causing setup failures on Python 3.12 where only 2.x
+wheels are available.
+
+**Summary**: Relaxed the numpy requirement to `<3` so the launcher resolves
+published wheels, updated the recovery instructions in `RunSpectraApp.cmd`,
+`AGENTS.md`, and `START_HERE.md`, and synced the workplan dependency note to
+avoid future confusion.
+
+**References**: `requirements.txt`, `RunSpectraApp.cmd`, `AGENTS.md`,
+`START_HERE.md`, `docs/reviews/workplan.md`, `docs/history/PATCH_NOTES.md`.
+
+---
+## 2025-10-20T15:20:00-04:00 / 2025-10-20T19:20:00+00:00 – Windows pip binary guard reset
+
+**Author**: agent
+
+**Context**: The Windows launcher and manual setup instructions still allowed
+inherited `PIP_NO_BINARY` settings, causing pip to build NumPy from source even
+after adding `--prefer-binary`.
+
+**Summary**: Cleared `PIP_NO_BINARY` and forced `PIP_ONLY_BINARY=numpy` /
+`PIP_PREFER_BINARY=1` in `RunSpectraApp.cmd`, then mirrored the steps in
+`START_HERE.md` and `AGENTS.md` so developers consistently request prebuilt
+NumPy wheels during setup.
+
+**References**:
+- `RunSpectraApp.cmd`
+- `AGENTS.md`
+- `START_HERE.md`
+- `docs/history/PATCH_NOTES.md`
+
+---
+
+## 2025-10-20 14:09 – Library hint stability & prefer-binary installs
+
+**Author**: agent
+
+**Context**: Windows UI ergonomics when reopening cached spectra and repeated
+dependency build failures during launcher setup.
+
+**Summary**: Fixed the Library tab hint label height and reinstated word wrap so
+selecting cached spectra no longer forces the main window to expand or hide the
+log dock on Windows. Updated the launcher script and onboarding docs to install
+requirements with `--prefer-binary`, relaxed the numpy pin to `<2`, and widened
+the requests range so environments without Visual Studio Build Tools can install
+prebuilt wheels without manual edits.
+
+**References**: `app/main.py`, `RunSpectraApp.cmd`, `requirements.txt`,
+`AGENTS.md`, `START_HERE.md`, `docs/history/PATCH_NOTES.md`.
+
+---
+
+## 2025-10-19 19:38 – Data table toggle no longer auto-opens
+
+**Author**: agent
+
+**Context**: Plot data table ergonomics and layout stability on Windows builds.
+
+**Summary**: Stopped the dataset selection handler from forcing the numerical
+table to appear by default. The main window now remembers the last overlay
+payload, repopulates the table only when **View → Show Data Table** is checked,
+and leaves the layout unchanged otherwise.
+
+**References**: `app/main.py`, `docs/user/plot_tools.md`,
+`docs/history/PATCH_NOTES.md`, `docs/reviews/workplan.md`.
+
+---
+
+## 2025-10-19 18:46 – Data dock consolidation
+
+**Author**: agent
+
+**Context**: Workspace layout ergonomics and cache inspection UX.
+
+**Summary**: Merged the Datasets dock and Library dock into a single Data dock
+with tabbed navigation, rebuilt the library tab so it disables cleanly when the
+persistent cache is off, and refreshed the user/developer guides plus workplan
+to document the layout change. Confirmed the Qt regression suite remains green
+after the refactor.
+
+**References**: `app/main.py`, `docs/user/importing.md`, `docs/user/remote_data.md`,
+`docs/user/plot_tools.md`, `docs/link_collection.md`, `docs/developer_notes.md`,
+`docs/reviews/workplan.md`, `docs/history/PATCH_NOTES.md`.
+
+---
+
+## 2025-10-19 17:46 (America/New_York) / 21:46 (UTC) – Dataset dock filtering
+
+**Author**: agent
+
+**Context**: Usability improvements for managing large overlay sessions and
+alignment of onboarding instructions with repository reality.
+
+**Summary**: Added a search box to the Datasets dock so analysts can filter
+aliases without unloading spectra; visibility updates in place and derived
+groups respect the filter. Documented the workflow in the plot tools guide and
+updated AGENTS/START_HERE to provide cross-platform timestamp commands and to
+point contributors to the actual patch-note/knowledge-log locations.
+
+**References**:
+- `app/main.py`
+- `tests/test_dataset_filter.py`
+- `docs/user/plot_tools.md`
+- `AGENTS.md`
+- `START_HERE.md`
+- `docs/history/PATCH_NOTES.md`
+
+---
+
+## 2025-10-19 16:50 – Export bundle variants
+
+**Author**: agent
+
+**Context**: Responding to feedback that combined CSV exports were difficult to
+reuse and that analysts need averaged overlays when comparing multiple lamps.
+
+**Summary**: Added an export options dialog so operators can emit the standard
+manifest bundle, a wide paired-column CSV (`spectra-wide-v1`), and/or a
+composite-mean CSV in one action. ProvenanceService gained helpers for both
+formats, CsvImporter recognises the wide layout comments, and the user guides
+document how each file re-imports. Regression coverage now guards the new
+paths.
+
+**References**:
+- `app/main.py`
+- `app/services/provenance_service.py`
+- `app/services/importers/csv_importer.py`
+- `tests/test_provenance.py`
+- `tests/test_csv_importer.py`
+- `docs/user/plot_tools.md`
+- `docs/user/importing.md`
+- `docs/history/PATCH_NOTES.md`
+
+---
+
+## 2025-10-19 15:14 (America/New_York) / 19:14 (UTC) – Export CSV axis ordering
+
+**Author**: agent
+
+**Context**: Provenance bundle exports should reload cleanly through the CSV importer.
+
+**Summary**: Adjusted the combined export writer to place `wavelength_nm` and `intensity` at the start of each row while keeping spectrum metadata to the right. This prevents the importer from mis-identifying axes when reloading bundled CSVs and mirrors the structure documented in the importing guide.
+
+**References**:
+- `app/services/provenance_service.py`
+
+---
+
+## 2025-10-19 16:23 (America/New_York) / 20:23 (UTC) – Export bundle ingestion
+
+**Author**: agent
+
+**Context**: Importing provenance CSV bundles should restore every spectrum without manual splitting.
+
+**Summary**: Taught `CsvImporter` to detect manifest-style CSV bundles and embed member metadata, then updated `DataIngestService` and the main window to expand those bundles into individual canonical spectra. Remote downloads and smoke tests now expect list-based ingestion, and the importing guide documents that re-importing a bundle restores each trace separately.
+
+**References**:
+- `app/services/importers/csv_importer.py`
+- `app/services/data_ingest_service.py`
+- `app/main.py`
+- `docs/user/importing.md`
+- `tests/test_csv_importer.py`
+- `tests/test_ingest.py`
+- `tests/test_provenance.py`
+- `docs/user/importing.md`
+- `docs/history/PATCH_NOTES.md`
+
+---
+
+## 2025-10-19 14:28 EDT / 18:28 UTC – Export Manifest Visibility Filter
+
+**Author**: agent
+
+**Context**: Provenance export workflow and dataset visibility state.
+
+**Summary**: Ensured manifest bundles only include traces that remain visible in the workspace by filtering `export_manifest` against the dataset visibility map. Updated the user guides to clarify that hidden spectra stay out of the `spectra/` directory and added a Qt regression test (`tests/test_export_visibility.py`) that stubs the file dialog to confirm the filtered list is passed to the provenance service.
+
+**References**: `app/main.py`, `docs/user/plot_tools.md`, `docs/user/importing.md`, `tests/test_export_visibility.py`, `docs/history/PATCH_NOTES.md`.
+
+---
+
+## 2025-10-19 14:09 – NIST overlay multi-pin
+
+**Author**: agent
+
+**Context**: Reference Inspector overlays and spectroscopy workflow clarity.
+
+**Summary**: Reworked the NIST spectral-line pinning flow so every pinned set now projects onto the main workspace when the
+overlay toggle is enabled, preserving per-set colours or collapsing to a uniform hue on demand. Adjusted the Inspector overlay
+bookkeeping to manage multiple traces simultaneously, extended the Qt regression harness to assert the new behaviour, and
+updated the reference data guide to describe the multi-set overlay output.
+
+**NYC time**: 2025-10-19T14:09:10-04:00
+
+**UTC time**: 2025-10-19T18:09:13+00:00
+
+**References**:
+- `app/main.py`
+- `tests/test_reference_ui.py`
+- `docs/user/reference_data.md`
+- `docs/history/PATCH_NOTES.md`
+
+---
+
+## 2025-10-19 13:22 – Reference tab redesign
+
+**Author**: agent
+
+**Context**: Restructured the Inspector’s Reference tab around spectroscopy-first workflows.
+
+**Summary**: Replaced the dataset combo with dedicated Spectral lines, IR groups, and Line-shape panels; wired the
+embedded NIST form to astroquery so spectral lines plot and overlay directly; updated the reference data guide and added
+Qt regression coverage for the new fetch path. UTC 2025-10-19T17:22:06Z.
+
+**References**:
+- `app/main.py`
+- `docs/user/reference_data.md`
+- `docs/history/PATCH_NOTES.md`
+- `tests/test_reference_ui.py`
+
+---
+
+## 2025-10-19 13:42 – NIST pinboard & remote dialog alignment
+
+**Author**: agent
+
+**Context**: Inspector redesign follow-up to keep spectroscopy workflows front-and-centre while reducing redundancy between the
+Reference tab and Remote Data dialog.
+
+**Summary**: Introduced pinned NIST spectral-line sets with palette controls so multiple element/ion queries remain on the
+inspector plot, refreshed the reference-data guide, and extended regression coverage. Removed the NIST provider from the Remote
+Data dialog to avoid duplication, keeping MAST as the remote archive entry point and updating documentation/tests accordingly.
+
+**Timestamps**:
+- America/New_York: 2025-10-19T13:42:36-04:00
+- UTC: 2025-10-19T17:42:45+00:00
+
+**References**:
+- `app/main.py`
+- `app/ui/remote_data_dialog.py`
+- `docs/user/reference_data.md`
+- `docs/user/remote_data.md`
+- `docs/reviews/workplan.md`
+- `tests/test_reference_ui.py`
+- `tests/test_remote_data_dialog.py`
+
+---
+
+## 2025-10-18 20:35 – NIST ASD astroquery line synthesis
+
+**Author**: agent
+
+**Context**: Remote catalogue alignment with the spectroscopy-first charter.
+
+**Summary**: Replaced the ad-hoc NIST JSON search with the upstream astroquery
+line-list helper so Spectra aggregates each element/ion query into a single
+record, previews line counts, and generates provenance-rich CSV files for the
+ingest pipeline. The remote service now detects the synthetic `nist-asd:` scheme
+and regenerates the CSV via `astroquery.nist` before caching the download, while
+tests and user docs cover the new workflow. (UTC 00:35)
+
+**References**:
+- `app/services/nist_asd_service.py`
+- `app/services/remote_data_service.py`
+- `tests/test_remote_data_service.py`
+- `docs/user/remote_data.md`
+- `docs/history/PATCH_NOTES.md`
+
+---
+
+## 2025-10-18 17:17 – Remote Data
+
+**Author**: agent
+
+**Context**: Remote catalogue dependencies, imaging toggle, and regression coverage.
+
+**Summary**: Declared `requests`, `astroquery`, and `pandas` as required extras so
+MAST/NIST catalogues stay enabled by default, exposed an **Include imaging** toggle
+in the Remote Data dialog, and taught the MAST adapter to honour it while still
+preferring calibrated spectra. Added pandas-aware dependency guards, refreshed the
+user guide and agent manual, and extended the service/dialog regression tests to
+cover the new flag and dependency messaging.
+
+**References**: `requirements.txt`, `app/services/remote_data_service.py`,
+`app/ui/remote_data_dialog.py`, `docs/user/remote_data.md`, `AGENTS.md`,
+`tests/test_remote_data_service.py`, `tests/test_remote_data_dialog.py`,
+`docs/history/PATCH_NOTES.md`.
+
+---
+
+## 2025-10-18 00:08 – Remote Data
+
+**Author**: agent
+
+**Context**: Remote catalogue UX hardening and spectroscopy-focused presets.
+
+**Summary**: Added curated example queries to the Remote Data dialog, prevented
+empty submissions from reaching the service, and raised a guard inside the MAST
+adapter so archive calls always include spectroscopy filters. Updated the user
+guide, workplan, and patch notes to reflect the scoped workflow.
+
+**References**: `app/ui/remote_data_dialog.py`,
+`app/services/remote_data_service.py`, `docs/user/remote_data.md`,
+`docs/reviews/workplan.md`, `docs/history/PATCH_NOTES.md`.
+
+---
+
+## 2025-10-17 20:10 – Documentation
+
+**Author**: agent
+
+**Context**: Onboarding manuals, pass-review visibility, and brains directory
+alignment.
+
+**Summary**: Realigned the onboarding trailheads so agents read the decomposed
+brains log, pass-review dossiers, and spectroscopy resources before coding.
+Updated the master prompt, AGENTS manual, START_HERE guide, and workplan to
+stress calibration/identification priorities and real-time timestamp
+discipline. Added brains README plus pass1–pass4 summaries for continuity.
+
+**References**: `docs/history/MASTER PROMPT.md`, `AGENTS.md`, `START_HERE.md`,
+`docs/brains/README.md`, `docs/reviews/pass1.md`–`pass4.md`,
+`docs/reviews/workplan.md`, `docs/history/PATCH_NOTES.md`.
+
+---
+
+## 2025-10-17 14:19 – Library metadata preview
+
+**Author**: agent
+
+**Context**: Cache inspection UX and provenance traceability.
+
+**Summary**: Added a detail pane to the Library dock so selecting a cached
+spectra entry now reveals its provenance, canonical units, and storage path
+inline. Hooked selection changes to the preview, refreshed the empty-state
+messaging, and documented the workflow in the importing guide. A new smoke test
+guards the dock, ensuring metadata appears even in headless CI runs.
+
+**References**:
+- `app/main.py`
+- `tests/test_smoke_workflow.py`
+- `docs/user/importing.md`
+- `docs/history/PATCH_NOTES.md`
+
+---
+
 ```
 
 Entries should be appended chronologically.  Older logs imported from the
@@ -156,6 +507,29 @@ To migrate existing `brains` and `atlas` logs, follow these steps:
 **Summary**: Staged hydrogen line lists, IR functional groups, line-shape placeholders, and digitised JWST spectra in the ReferenceLibrary so offline users can browse curated datasets with provenance metadata intact.【F:app/services/reference_library.py†L11-L126】 Regression coverage now asserts the catalogues include expected IDs, generators, and JWST quick-look metadata, while the reference guide narrates how overlays behave and calls out the planned swap to calibrated JWST pipelines—will backfill the roadmap/workplan link referencing that migration as soon as it lands.【F:tests/test_reference_library.py†L5-L45】【F:docs/user/reference_data.md†L1-L85】【F:docs/reviews/workplan.md†L150-L155】
 
 **References**: `app/services/reference_library.py`, `tests/test_reference_library.py`, `docs/user/reference_data.md`, `docs/reviews/workplan.md`.
+
+---
+
+## 2025-10-17 01:45 – Remote data focus & cache library
+
+**Author**: agent
+
+**Context**: Remote catalogue reliability, cache UX, and documentation hygiene.
+
+**Summary**: Rewired the Remote Data dialog to send provider-specific queries
+(`spectra` vs `target_name`) and patched the download path so `mast:` URIs flow
+through `astroquery.Observations.download_file`. Added regression coverage for
+the translation/downloader. Introduced a Library dock that lists cached
+artefacts via `LocalStore.list_entries()` so we can reload spectra without
+polluting the knowledge log with raw file paths; updated `_ingest_path` and the
+remote import hook to log concise summaries instead. Added a trace-colour mode
+toggle (palette vs uniform) and refreshed user docs plus `docs/link_collection.md`
+to keep the spectroscopy focus explicit.
+
+**References**: `app/ui/remote_data_dialog.py`, `app/services/remote_data_service.py`,
+`app/main.py`, `tests/test_remote_data_service.py`, `docs/user/remote_data.md`,
+`docs/user/importing.md`, `docs/user/plot_tools.md`, `docs/user/reference_data.md`,
+`docs/link_collection.md`, `docs/reviews/workplan.md`.
 
 ---
 
@@ -319,5 +693,155 @@ and patch notes document the automatic caching behaviour and opt-out flow.【F:t
 **Summary**: Added a persisted "LOD point budget" spinner to the Inspector Style tab so analysts can adjust the downsampling envelope between 1k and 1M samples without leaving the session; the control writes through `QSettings` and immediately refreshes visible traces.【F:app/main.py†L76-L116】【F:app/main.py†L214-L275】【F:app/main.py†L410-L520】 Updated `PlotPane` to accept a constructor-provided limit, clamp invalid values, and expose a setter that re-renders existing traces on change.【F:app/ui/plot_pane.py†L35-L304】 Extended the plot performance stub to assert overrides and clamping, keeping the peak-envelope decimator aligned with the configured budget.【F:tests/test_plot_perf_stub.py†L14-L63】 Documented the new preference in the plotting guide and patch notes for operator awareness.【F:docs/user/plot_tools.md†L56-L65】【F:docs/history/PATCH_NOTES.md†L3-L8】
 
 **References**: `app/main.py`, `app/ui/plot_pane.py`, `tests/test_plot_perf_stub.py`, `docs/user/plot_tools.md`, `docs/history/PATCH_NOTES.md`.
+
+---
+
+## 2025-10-17 02:30 – Remote Data & Documentation Map
+
+**Author**: agent
+
+**Context**: Remote catalogue UX hardening and documentation continuity.
+
+**Summary**: Fixed the Remote Data dialog crash triggered by an undefined provider-change slot, enforced spectroscopic defaults for MAST searches (`dataproduct_type="spectrum"`, `intentType="SCIENCE"`, `calib_level=[2, 3]`), and filtered out imaging products via `_is_spectroscopic` so remote results stay aligned with laboratory comparisons.【F:app/ui/remote_data_dialog.py†L30-L219】【F:app/services/remote_data_service.py†L111-L212】 Added a Qt smoke test plus extended regression coverage to assert the injected filters, refreshed the remote-data user guide with the new hints, and published a developer documentation map so future agents can locate the operating manual, link collection, and workplan without guesswork.【F:tests/test_remote_data_dialog.py†L1-L75】【F:tests/test_remote_data_service.py†L1-L125】【F:docs/user/remote_data.md†L1-L99】【F:docs/developer_notes.md†L1-L42】【F:docs/history/PATCH_NOTES.md†L1-L17】
+
+**References**: `app/ui/remote_data_dialog.py`, `app/services/remote_data_service.py`, `tests/test_remote_data_dialog.py`, `tests/test_remote_data_service.py`, `docs/user/remote_data.md`, `docs/developer_notes.md`, `docs/history/PATCH_NOTES.md`.
+
+---
+
+## 2025-10-17 03:45 – Knowledge Log Hygiene
+
+**Author**: agent
+
+**Context**: Import bookkeeping and history retention.
+
+**Summary**: Added a non-persistent mode to `KnowledgeLogService.record_event` so
+routine Import/Remote Import notifications stay in the in-app History dock
+without appending to the canonical log. Updated `SpectraMainWindow` ingest hooks
+to call `persist=False`, refreshed the regression suite to cover the new flag,
+and confirmed the knowledge log contains only curated summaries.
+
+**References**: `app/services/knowledge_log_service.py`, `app/main.py`,
+`tests/test_knowledge_log_service.py`.
+
+---
+
+## 2025-10-17 04:30 – Knowledge Log Runtime Guard
+
+**Author**: agent
+
+**Context**: Knowledge-log policy enforcement and historical cleanup.
+
+**Summary**: Hardened `KnowledgeLogService.record_event` so Import/Remote Import
+components are always treated as runtime-only—even if callers forget to disable
+persistence—by registering a default runtime-only component set. Extended the
+regression suite to verify the guard and to allow opt-in overrides for tests,
+then audited `docs/history/KNOWLEDGE_LOG.md` to ensure no automation-generated
+Import/Remote Import entries remain after the cleanup.
+
+**References**:
+- `app/services/knowledge_log_service.py`
+- `tests/test_knowledge_log_service.py`
+- `docs/history/PATCH_NOTES.md`
+- `docs/reviews/workplan.md`
+
+---
+## 2025-10-19T20:12:10-04:00 / 2025-10-20T00:12:10+00:00 – History dock default hidden
+
+**Author**: agent
+
+**Context**: UI layout polish requested after the History panel continued to force the workspace to shrink when browsing datasets.
+
+**Summary**: Updated `SpectraMainWindow` so the History dock is constructed but hidden on launch, keeping the inspector and plot panes stable until analysts explicitly open the log from the View menu. Documented the new default in the plot tools guide and logged the behaviour change in patch notes.
+
+**References**:
+- `app/main.py`
+- `docs/user/plot_tools.md`
+- `docs/history/PATCH_NOTES.md`
+
+---
+## 2025-10-19T20:27:48-04:00 / 2025-10-20T00:27:48+00:00 – Library dock hint elision & numpy compatibility
+
+**Author**: agent
+
+**Context**: Library selections continued to stretch the Data dock over the log view and CI reported missing numpy wheels on Python 3.10/3.11.
+
+**Summary**: Locked the Library splitter, elided hint paths, and added tooltips so cached entries no longer resize the dock when browsing stored spectra. Relaxed the numpy requirement to `>=1.26,<2` to align with the wheels published for GitHub Actions, keeping the test matrix green. Documented the UI tweak in the importing guide and added corresponding patch notes.
+
+**References**:
+- `app/main.py`
+- `docs/user/importing.md`
+- `requirements.txt`
+- `docs/history/PATCH_NOTES.md`
+
+---
+## 2025-10-19T20:41:06-04:00 / 2025-10-20T00:41:06+00:00 – Library detail panel horizontal layout
+
+**Author**: agent
+
+**Context**: Selecting cached spectra still caused the Data dock to elongate vertically, hiding the bottom log panel despite the earlier splitter guard.
+
+**Summary**: Swapped the Library splitter to a horizontal arrangement, fixed minimum widths for the table and detail pane, and updated the user guides so cached metadata renders beside the table without expanding downward. This keeps the log dock visible while preserving access to provenance details.
+
+**References**:
+- `app/main.py`
+- `docs/user/importing.md`
+- `docs/user/remote_data.md`
+- `docs/history/PATCH_NOTES.md`
+
+---
+## 2025-10-19T22:08:48-04:00 / 2025-10-20T02:08:48+00:00 – Library hint clamp & dependency pin
+
+**Author**: agent
+
+**Context**: Loading cached spectra continued to stretch the application window because the hint label expanded vertically, and Windows installs still reported NumPy build errors when Visual Studio tooling was missing.
+
+**Summary**: Restricted the Library hint label to a fixed-height strip so selections no longer raise the main window minimum size, and pinned NumPy to 1.26.4 while widening the requests cap so pip pulls prebuilt wheels on Windows. This keeps the UI stable and restores the one-command dependency install flow documented for analysts.
+
+**References**:
+- `app/main.py`
+- `requirements.txt`
+- `docs/history/PATCH_NOTES.md`
+
+---
+## 2025-10-20T15:05:18-04:00 / 2025-10-20T19:05:18+00:00 – CI binary wheels & timestamp guidance sync
+
+**Author**: agent
+
+**Context**: GitHub Actions on Windows continued to compile NumPy from source despite local guidance to prefer wheels, and the master prompt still listed Unix-only timestamp commands.
+
+**Summary**: Updated the CI workflow to install dependencies with `--prefer-binary`, ensuring Windows runners reuse prebuilt wheels. Extended the master prompt’s time-discipline section with Windows PowerShell and Python fallback commands so onboarding docs stay consistent with the agent manual.
+
+**References**:
+- `.github/workflows/ci.yml`
+- `docs/history/MASTER PROMPT.md`
+- `docs/history/PATCH_NOTES.md`
+
+---
+## 2025-10-20T19:47:28-04:00 / 2025-10-20T23:47:28+00:00 – Remote data background workers
+
+**Author**: agent
+
+**Context**: Remote catalogue searches and downloads still ran on the UI thread, freezing the Spectra shell during long MAST responses and leaving no documented guidance for the responsive workflow.
+
+**Summary**: Introduced background worker threads that keep the Remote Data dialog responsive while searches/downloads run, gated controls and aggregated warnings to surface once jobs finish, and updated the user guide plus Qt smoke tests to reflect the asynchronous behaviour.
+
+**References**:
+- `app/ui/remote_data_dialog.py`
+- `tests/test_remote_data_dialog.py`
+- `docs/user/remote_data.md`
+- `docs/history/PATCH_NOTES.md`
+
+---
+## 2025-10-20T20:08:57-04:00 / 2025-10-21T00:08:57+00:00 – PySide6 signal guard
+
+**Author**: agent
+
+**Context**: Launching Spectra on Windows with PySide6 still failed because the Remote Data dialog attempted to read `QtCore.pyqtSignal`, which does not exist for PySide bindings.
+
+**Summary**: Added a binding-aware helper that prefers `QtCore.Signal` when present and only falls back to `pyqtSignal` on PyQt, preventing the startup crash while keeping developer fallbacks intact.
+
+**References**:
+- `app/ui/remote_data_dialog.py`
+- `docs/history/PATCH_NOTES.md`
 
 ---
