@@ -30,6 +30,10 @@ This document tracks feature batches, validation status, and outstanding backlog
 
 ### Recently Completed (2025-10-21)
 
+- [x] Fixed Exo.MAST file-list requests so planet names with spaces no longer
+      double-encode, guarded the preview summary against `NaN` discovery years,
+      refreshed the regression tests, and documented the behaviour in the remote
+      data user guide.
 - [x] Renamed the curated remote provider and bundled samples to the Solar
       System Archive label, refreshed manifest paths plus descriptions, updated
       Remote Data dialog copy, and aligned regression tests/documentation with

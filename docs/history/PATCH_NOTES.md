@@ -1,5 +1,16 @@
 # Patch Notes
 
+## 2025-10-21 (Exo.MAST names and preview summary hardening) (19:25 EDT / 23:25 UTC)
+
+- Stopped `_fetch_exomast_filelist` from double-encoding planet names so Exo.MAST
+  lookups succeed for identifiers with spaces and the dialog receives citation
+  metadata consistently. (`app/services/remote_data_service.py`)
+- Guarded the preview summary against `NaN` discovery years and expanded the
+  discovery context without crashing the Remote Data dialog. (`app/ui/remote_data_dialog.py`)
+- Added regression coverage for both fixes and noted the behaviour change in the
+  remote data user guide. (`tests/test_remote_data_service.py`,
+  `tests/test_remote_data_dialog.py`, `docs/user/remote_data.md`)
+
 ## 2025-10-21 (Curated search skips missing bundles) (18:44 EDT / 22:44 UTC)
 
 - Hardened the Solar System Archive search loop so missing or malformed curated manifests/assets are skipped instead of aborting

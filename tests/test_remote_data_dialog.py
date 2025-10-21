@@ -335,6 +335,35 @@ def test_populate_results_table_builds_links_and_preview(monkeypatch: Any) -> No
         app.quit()
 
 
+def test_exoplanet_summary_handles_nan_discovery_year(monkeypatch: Any) -> None:
+    app = _ensure_app()
+    ingest = IngestServiceStub()
+    dialog = RemoteDataDialog(
+        None,
+        remote_service=StubRemoteService(),
+        ingest_service=ingest,
+    )
+
+    metadata = {
+        "exoplanet": {
+            "display_name": "WASP-39 b",
+            "classification": "Hot Jupiter",
+            "host_star": "WASP-39",
+            "discovery_method": "Transit",
+            "discovery_year": float("nan"),
+        }
+    }
+
+    summary = dialog._format_exoplanet_summary(metadata)
+
+    assert "nan" not in summary.lower()
+    assert "Discovery: Transit" in summary
+
+    dialog.deleteLater()
+    if QtWidgets.QApplication.instance() is app and not app.topLevelWidgets():
+        app.quit()
+
+
 def test_download_and_preview_cells_include_tooltips(monkeypatch: Any) -> None:
     app = _ensure_app()
     ingest = IngestServiceStub()
