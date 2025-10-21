@@ -1,0 +1,26 @@
+{
+  "id": "venus_akatsuki_ir2",
+  "title": "Venus cloud-top reflectance (synthetic sample)",
+  "summary": "Representative shortwave infrared reflectance curve inspired by Akatsuki/IR2 retrievals.",
+  "target": {
+    "name": "Venus",
+    "aliases": ["venus"],
+    "classification": "Solar System planet"
+  },
+  "mission": "JAXA Akatsuki",
+  "instrument": "IR2",
+  "product_type": "Reflectance spectrum",
+  "asset": {
+    "path": "samples/exosystems/venus_venera_vnir.csv",
+    "columns": ["wavelength_nm", "reflectance"],
+    "units": {"x": "nm", "y": "reflectance"},
+    "description": "Synthetic Venus cloud-top reflectance profile used for curated ExoSystems demos."
+  },
+  "citations": [
+    {
+      "title": "Venus atmospheric spectroscopy",
+      "doi": "10.1016/j.icarus.2017.02.009",
+      "notes": "Venus cloud-top reflectance and atmospheric composition spectra."
+    }
+  ]
+}

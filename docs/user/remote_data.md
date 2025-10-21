@@ -28,6 +28,7 @@ directly against laboratory references.
 2. Pick a catalogue from the *Catalogue* selector. The current build focuses on:
    - **NIST ASD** (atomic line lists via `astroquery.nist`)
    - **MAST** (MAST data products via `astroquery.mast`)
+   - **MAST ExoSystems** (bundled curated manifests mapped to local sample spectra)
 
    > **Tip**: The Inspector’s **Reference → Spectral lines** tab still exposes the full pinned-workflow for NIST queries. Use the
    > Remote Data dialog when you want a quick CSV download to compare against live spectra, then pin the results from the
@@ -54,6 +55,13 @@ directly against laboratory references.
   trigger a query without retyping common names. Tick
   **Include imaging** to relax the product filter so calibrated imaging results
   appear alongside spectra.
+- **MAST ExoSystems** – Provides a local catalogue of curated manifests and sample
+  spectra that mirror the targets highlighted on Exo.MAST. Leave the search box
+  blank (the dialog automatically supplies `include_all=true`) to list every
+  bundled asset, or type a planet/moon/star name (e.g. `Jupiter`, `Mercury`,
+  `Vega`) to filter the results. Each entry records citations, mission/instrument
+  tags, and file paths to the bundled CSV so the preview pane surfaces the
+  provenance before you ingest the sample.
 
 The hint banner beneath the results table updates as you switch providers and
 also surfaces dependency warnings when optional clients are missing.
@@ -61,11 +69,10 @@ also surfaces dependency warnings when optional clients are missing.
 The results table now surfaces a richer snapshot for each match—identifier,
 target, mission, instrument, product type, plus quick links for preview and
 download. Selecting a row shows the raw metadata payload in the preview panel so
-you can confirm provenance before downloading, and the preview/download links
+you can confirm provenance before downloading, with citation metadata rendered as
+bullet points alongside mission/instrument context. The preview/download links
 open in your default browser when you want to inspect the provider portal
-directly. Citations attached to each record appear alongside the preview link,
-and the download button resolves provider-specific URIs (e.g. `mast:`) to the
-canonical HTTPS endpoint so the browser can open them without extra steps.
+directly or follow the bundled ExoSystems references.
 
 > **Background execution**
 >

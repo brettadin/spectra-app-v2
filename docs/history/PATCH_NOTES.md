@@ -1,16 +1,14 @@
 # Patch Notes
 
-## 2025-10-21 (Remote Data dialog table helpers consolidated) (14:40 EDT / 18:40 UTC)
+## 2025-10-21 (Curated ExoSystems manifests ship with citations) (17:18 EDT / 21:18 UTC)
 
-- Removed the duplicate results-table implementation in `RemoteDataDialog` and
-  wired all columns (target, mission, instrument, product, preview/download)
-  through a single helper path so preview/citation labels, download links, and
-  selection updates stay in sync. (`app/ui/remote_data_dialog.py`)
-- Added a focused Qt test that instantiates the dialog with mock records and
-  inspects the populated widgets to guarantee the preview and download columns
-  render the expected hyperlinks/citations. (`tests/test_remote_data_dialog.py`)
-- Documented that preview cells now surface provider citations and that download
-  links resolve provider URIs to HTTPS endpoints for browser access. (`docs/user/remote_data.md`)
+- Added a lightweight search branch for the ExoSystems provider so curated names map to local manifests and emit `RemoteRecord`
+  entries with mission/instrument metadata and citation lists. (`app/services/remote_data_service.py`, `samples/exosystems/`)
+- Wired the new provider into the Remote Data dialog with dedicated placeholders/examples and taught the preview pane to render
+  citation bullets pulled from manifest metadata. (`app/ui/remote_data_dialog.py`)
+- Bundled synthetic spectra/manifest pairs for each curated target and extended regression coverage to exercise the ExoSystems
+  search and download paths. (`samples/exosystems/*`, `tests/test_remote_data_service.py`)
+- Documented the curated workflow in the remote data user guide and noted the enhanced preview output. (`docs/user/remote_data.md`)
 
 ## 2025-10-21 (Remote Data dialog restores NIST provider) (14:22 EDT / 18:22 UTC)
 

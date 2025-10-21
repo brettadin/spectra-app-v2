@@ -1,0 +1,26 @@
+{
+  "id": "jupiter_jwst_ers",
+  "title": "Jupiter JWST ERS reflectance (synthetic sample)",
+  "summary": "Representative Jovian reflectance curve inspired by JWST ERS quick-look spectra.",
+  "target": {
+    "name": "Jupiter",
+    "aliases": ["jupiter", "io", "europa", "ganymede", "callisto"],
+    "classification": "Solar System planet"
+  },
+  "mission": "JWST",
+  "instrument": "NIRSpec/IFU",
+  "product_type": "Reflectance spectrum",
+  "asset": {
+    "path": "samples/exosystems/jupiter_jwst_ers.csv",
+    "columns": ["wavelength_nm", "reflectance"],
+    "units": {"x": "nm", "y": "reflectance"},
+    "description": "Synthetic Jovian system reflectance assembled for curated examples."
+  },
+  "citations": [
+    {
+      "title": "JWST Early Release Observations",
+      "doi": "10.3847/1538-4365/acbd9a",
+      "notes": "JWST ERS quick-look spectra curated for the Jovian system."
+    }
+  ]
+}

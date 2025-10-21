@@ -335,6 +335,10 @@ class RemoteDataDialog(QtWidgets.QDialog):
             return {"target_name": stripped} if stripped else {}
         if provider == RemoteDataService.PROVIDER_NIST:
             return self._build_nist_query(stripped)
+        if provider == RemoteDataService.PROVIDER_EXOSYSTEMS:
+            if stripped:
+                return {"text": stripped}
+            return {"text": "", "include_all": "true"}
         return {"text": stripped} if stripped else {}
 
     def _build_nist_query(self, stripped: str) -> dict[str, str]:
@@ -429,9 +433,11 @@ class RemoteDataDialog(QtWidgets.QDialog):
         mission_parts = [part for part in (mission, instrument) if part]
         if mission_parts:
             narrative_lines.append(" | ".join(mission_parts))
-        citation = self._extract_citation(record.metadata)
-        if citation:
-            narrative_lines.append(f"Citation: {citation}")
+        citations = self._formatted_citations(record.metadata)
+        if citations:
+            narrative_lines.append("Citations:")
+            for citation in citations:
+                narrative_lines.append(f"  - {citation}")
         if narrative_lines:
             narrative_lines.append("")
         narrative_lines.append(json.dumps(metadata, indent=2, ensure_ascii=False))
@@ -509,6 +515,124 @@ class RemoteDataDialog(QtWidgets.QDialog):
         label.setText("<br/>".join(fragments))
         self.results.setCellWidget(row, column, label)
 
+    def _formatted_citations(self, metadata: Mapping[str, Any] | Any) -> list[str]:
+        formatted: list[str] = []
+        for entry in self._citation_entries(metadata):
+            text = self._format_citation_entry(entry)
+            if text:
+                formatted.append(text)
+        return formatted
+
+    def _citation_entries(self, metadata: Mapping[str, Any] | Any) -> list[Mapping[str, Any]]:
+        mapping = metadata if isinstance(metadata, Mapping) else {}
+        entries: list[Mapping[str, Any]] = []
+        raw = mapping.get("citations")
+        if isinstance(raw, Sequence):
+            for item in raw:
+                if isinstance(item, Mapping):
+                    entries.append(item)
+                elif isinstance(item, str) and item.strip():
+                    entries.append({"title": item.strip()})
+        single = mapping.get("citation")
+        if isinstance(single, str) and single.strip():
+            entries.append({"title": single.strip()})
+        return entries
+
+    def _format_citation_entry(self, entry: Mapping[str, Any]) -> str:
+        title = str(entry.get("title") or entry.get("label") or "").strip()
+        doi = str(entry.get("doi") or "").strip()
+        url = str(entry.get("url") or entry.get("link") or "").strip()
+        notes = str(entry.get("notes") or "").strip()
+
+        parts: list[str] = []
+        if title:
+            parts.append(title)
+
+        detail_parts: list[str] = []
+        if doi:
+            detail_parts.append(f"DOI {doi}")
+        if url:
+            detail_parts.append(url)
+        if detail_parts:
+            parts.append(", ".join(detail_parts))
+
+        if notes:
+            parts.append(notes)
+
+        return " — ".join(parts) if parts else ""
+
+    def _extract_citation(self, metadata: Mapping[str, Any] | Any) -> str:
+        citations = self._formatted_citations(metadata)
+        if citations:
+            return citations[0]
+        mapping = metadata if isinstance(metadata, Mapping) else {}
+        value = mapping.get("citation")
+        if isinstance(value, str):
+            return value.strip()
+        return ""
+
+    def _format_exoplanet_summary(self, metadata: Mapping[str, Any] | Any) -> str:
+        mapping = metadata if isinstance(metadata, Mapping) else {}
+        summary = mapping.get("summary")
+        if isinstance(summary, str) and summary.strip():
+            return summary.strip()
+        description = mapping.get("description")
+        if isinstance(description, str) and description.strip():
+            return description.strip()
+        return ""
+
+    def _format_target(self, record: RemoteRecord) -> str:
+        metadata = record.metadata if isinstance(record.metadata, Mapping) else {}
+        return self._first_text(
+            metadata,
+            ["target_name", "display_name", "target", "object_name", "title"],
+        ) or record.title
+
+    def _format_mission(self, metadata: Mapping[str, Any] | Any) -> str:
+        mapping = metadata if isinstance(metadata, Mapping) else {}
+        return self._first_text(
+            mapping,
+            ["obs_collection", "mission", "project", "obs_collection_name"],
+        )
+
+    def _format_instrument(self, metadata: Mapping[str, Any] | Any) -> str:
+        mapping = metadata if isinstance(metadata, Mapping) else {}
+        return self._first_text(
+            mapping,
+            ["instrument_name", "instrument", "instrument_id", "instr_band"],
+        )
+
+    def _format_product(self, metadata: Mapping[str, Any] | Any) -> str:
+        mapping = metadata if isinstance(metadata, Mapping) else {}
+        return self._first_text(
+            mapping,
+            ["productType", "dataproduct_type", "Product Type"],
+        )
+
+    def _link_for_download(self, url: str) -> str:
+        if url.startswith("mast:"):
+            encoded = quote(url, safe="")
+            return f"https://mast.stsci.edu/api/v0.1/Download/file?uri={encoded}"
+        return url
+
+    def _first_text(self, mapping: Mapping[str, Any], keys: Sequence[str]) -> str:
+        for key in keys:
+            value = mapping.get(key)
+            if value is None:
+                continue
+            if isinstance(value, (list, tuple, set)):
+                for item in value:
+                    if item is None:
+                        continue
+                    text = str(item).strip()
+                    if text:
+                        return text
+                continue
+            text = str(value).strip()
+            if text:
+                return text
+        return ""
+
     def _clear_result_widgets(self) -> None:
         for row in range(self.results.rowCount()):
             for column in range(self.results.columnCount()):
@@ -582,6 +706,19 @@ class RemoteDataDialog(QtWidgets.QDialog):
                     ("WASP-96 b – JWST/NIRSpec", "WASP-96 b"),
                     ("WASP-39 b – JWST/NIRSpec", "WASP-39 b"),
                     ("HD 189733 – JWST/NIRISS", "HD 189733"),
+                ]
+            if RemoteDataService.PROVIDER_EXOSYSTEMS in providers:
+                placeholders[RemoteDataService.PROVIDER_EXOSYSTEMS] = (
+                    "Curated solar system or stellar target (e.g. Jupiter, Vega)…"
+                )
+                hints[RemoteDataService.PROVIDER_EXOSYSTEMS] = (
+                    "ExoSystems samples are bundled manifests mapped to local spectra. Leave the field blank "
+                    "to list every curated target, or search by planet/moon/star name to filter the table."
+                )
+                examples[RemoteDataService.PROVIDER_EXOSYSTEMS] = [
+                    ("Mercury – MESSENGER MASCS", "Mercury"),
+                    ("Jupiter – JWST ERS composite", "Jupiter"),
+                    ("Vega – HST CALSPEC standard", "Vega"),
                 ]
             self._provider_placeholders = placeholders
             self._provider_hints = hints

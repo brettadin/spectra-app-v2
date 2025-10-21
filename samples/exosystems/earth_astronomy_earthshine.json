@@ -1,0 +1,26 @@
+{
+  "id": "earth_astronomy_earthshine",
+  "title": "Earth disk-integrated reflectance (synthetic sample)",
+  "summary": "Simplified Earth/Moon reflectance curve assembled for Exo.MAST style comparisons.",
+  "target": {
+    "name": "Earth",
+    "aliases": ["earth", "moon"],
+    "classification": "Solar System planet"
+  },
+  "mission": "EPOXI",
+  "instrument": "HRI",
+  "product_type": "Reflectance spectrum",
+  "asset": {
+    "path": "samples/exosystems/earth_disk_albedo.csv",
+    "columns": ["wavelength_nm", "reflectance"],
+    "units": {"x": "nm", "y": "reflectance"},
+    "description": "Synthetic Earth-as-an-exoplanet reflectance profile including lunar contribution."
+  },
+  "citations": [
+    {
+      "title": "Earth as an exoplanet",
+      "doi": "10.1089/ast.2009.0384",
+      "notes": "Integrated disk spectra for Earth and lunar reflectance observations."
+    }
+  ]
+}
