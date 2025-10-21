@@ -356,8 +356,32 @@ def test_providers_hide_missing_dependencies(monkeypatch: pytest.MonkeyPatch, st
         remote_module.RemoteDataService.PROVIDER_NIST,
         remote_module.RemoteDataService.PROVIDER_EXOSYSTEMS,
     ]
+    assert service.providers(include_reference=False) == [
+        remote_module.RemoteDataService.PROVIDER_EXOSYSTEMS,
+    ]
     unavailable = service.unavailable_providers()
     assert remote_module.RemoteDataService.PROVIDER_MAST in unavailable
+
+
+def test_providers_exclude_reference_catalogues_when_requested(
+    monkeypatch: pytest.MonkeyPatch, store: LocalStore
+) -> None:
+    monkeypatch.setattr(remote_module.nist_asd_service, "dependencies_available", lambda: True)
+    monkeypatch.setattr(remote_module, "astroquery_mast", object())
+    monkeypatch.setattr(remote_module, "_HAS_PANDAS", True)
+
+    service = RemoteDataService(store, session=None)
+
+    assert service.providers() == [
+        remote_module.RemoteDataService.PROVIDER_NIST,
+        remote_module.RemoteDataService.PROVIDER_MAST,
+        remote_module.RemoteDataService.PROVIDER_EXOSYSTEMS,
+    ]
+    assert service.providers(include_reference=False) == [
+        remote_module.RemoteDataService.PROVIDER_MAST,
+        remote_module.RemoteDataService.PROVIDER_EXOSYSTEMS,
+    ]
+
 
 def test_search_curated_returns_manifest_records(store: LocalStore) -> None:
     service = RemoteDataService(store, session=None)

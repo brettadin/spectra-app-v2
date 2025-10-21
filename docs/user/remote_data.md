@@ -26,13 +26,12 @@ directly against laboratory references.
 
 1. Choose **File → Fetch Remote Data…** (or press `Ctrl+Shift+R`).
 2. Pick a catalogue from the *Catalogue* selector. The current build focuses on:
-   - **NIST ASD** (atomic line lists via `astroquery.nist`)
    - **MAST** (MAST data products via `astroquery.mast`)
    - **MAST ExoSystems** (bundled curated manifests mapped to local sample spectra)
 
-   > **Tip**: The Inspector’s **Reference → Spectral lines** tab still exposes the full pinned-workflow for NIST queries. Use the
-   > Remote Data dialog when you want a quick CSV download to compare against live spectra, then pin the results from the
-   > inspector if you need persistent overlays and palette controls.
+   > **NIST ASD access**: The Inspector’s **Reference → Spectral lines** tab now handles NIST queries exclusively. Run ASD
+   > searches from that dock when you need atomic line lists, pin the overlays, or export CSV results. The Remote Data dialog
+   > concentrates on MAST catalogues and curated solar-system samples so the Reference dock owns all NIST provenance.
 3. Enter a keyword, element symbol, or target name in the search field (or pick
    one of the curated **Examples…** entries) and click **Search**. The dialog
    blocks empty submissions so you always send provider-specific filters rather
@@ -40,10 +39,6 @@ directly against laboratory references.
 
 ### Provider-specific search tips
 
-- **NIST ASD** – Provide an element/ion identifier (e.g. `Fe II`, `O III`). Optional clauses such as `keyword=nebula` or
-  `keyword=aurora` refine the transition list without widening the wavelength bounds. The dialog automatically forwards the
-  element/keyword pair and ion-stage tokens (e.g. `ion=III`) to the remote service so cached CSV exports record the full query
-  context.
 - **MAST** – Free-text input is rewritten to `target_name` before invoking
   `astroquery.mast.Observations.query_criteria`, and the adapter injects
   `dataproduct_type="spectrum"`, `intentType="SCIENCE"`, and
@@ -68,6 +63,10 @@ directly against laboratory references.
   Pair these assets with the [exoplanet retrieval & astrochemistry packages](../link_collection.md#exoplanet-retrieval--astrochemistry-packages)
   when you want simulated spectra or retrieval posteriors to compare against the
   imported observations.
+
+> **Need NIST lines?** Use the Reference dock’s **Spectral lines** panel. It wraps the same `RemoteDataService` NIST adapter,
+> keeps pinned overlays in sync with the inspector plot, and exposes CSV export actions so ASD line lists remain available even
+> though the Remote Data dialog now focuses on MAST catalogues.
 
 The hint banner beneath the results table updates as you switch providers and
 also surfaces dependency warnings when optional clients are missing.
@@ -137,10 +136,10 @@ Every download is associated with its remote URI. If you request the same file
 again the dialog reuses the cached copy instead of issuing another network
 request. This makes it safe to build collections during limited connectivity:
 the cache stores the raw download alongside canonical units so future sessions
-can ingest the files instantly. NIST line lists now embed the full query
-parameters (element, ion stage, wavelength bounds, Ritz preference) in their
-pseudo URI, so distinct searches produce unique cache entries instead of
-colliding on a shared label.
+can ingest the files instantly. When you export line lists from the Reference
+dock’s NIST panel the cached pseudo URI embeds the full query parameters
+(element, ion stage, wavelength bounds, Ritz preference), so distinct searches
+produce unique cache entries instead of colliding on a shared label.
 
 If persistent caching is disabled in **File → Enable Persistent Cache**, remote
 fetches are stored in a temporary data directory for the current session. The

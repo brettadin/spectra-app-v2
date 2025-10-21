@@ -1,5 +1,13 @@
 # Patch Notes
 
+## 2025-10-21 (Remote Data dialog defers NIST to Reference dock) (18:13 EDT / 22:13 UTC)
+
+- Added an `include_reference` flag to `RemoteDataService.providers()` and taught the Remote Data dialog to pass it so only
+  MAST and curated ExoSystems catalogues surface in the combo box while the Reference dock retains NIST access.
+- Removed the NIST placeholder/hint/example branch from the dialog UI and refreshed the Qt smoke tests to assert the combo
+  excludes NIST, handles reference-only services gracefully, and still wires the **Include imaging** toggle for MAST.
+- Documented the workflow change in the Remote Data user guide, steering ASD line-list retrieval through the Reference dock and
+  clarifying how cached exports capture query parameters.
 ## 2025-10-21 (Remote data dialog consolidates link widgets) (18:13 EDT / 22:13 UTC)
 
 - Consolidated the duplicate preview/download widget helpers in the Remote Data dialog so a single implementation now guards
