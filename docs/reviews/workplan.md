@@ -30,6 +30,8 @@ This document tracks feature batches, validation status, and outstanding backlog
 
 ### Recently Completed (2025-10-21)
 
+- [x] Ensured the Remote Data dialog joins active search/download threads when closing so Qt no longer warns about workers being
+      destroyed mid-run and the asynchronous UX stays stable.
 - [x] Renamed the curated remote provider and bundled samples to the Solar
       System Archive label, refreshed manifest paths plus descriptions, updated
       Remote Data dialog copy, and aligned regression tests/documentation with

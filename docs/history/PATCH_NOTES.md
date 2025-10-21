@@ -1,5 +1,10 @@
 # Patch Notes
 
+## 2025-10-21 (Remote Data dialog joins worker threads before closing) (19:17 EDT / 23:17 UTC)
+
+- Ensured the Remote Data dialog calls its worker cleanup helpers during accept, reject, and close events so any in-flight search
+  or download threads are joined before Qt destroys the dialog widget. (`app/ui/remote_data_dialog.py`)
+
 ## 2025-10-21 (Curated search skips missing bundles) (18:44 EDT / 22:44 UTC)
 
 - Hardened the Solar System Archive search loop so missing or malformed curated manifests/assets are skipped instead of aborting

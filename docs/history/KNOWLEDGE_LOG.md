@@ -27,6 +27,18 @@ Each entry in this document should follow this structure:
   applicable).
 
 ---
+## 2025-10-21T19:17:36-04:00 / 2025-10-21T23:17:36+00:00 – Remote Data dialog thread cleanup
+
+**Author**: agent
+
+**Context**: Remote Data dialog worker lifecycle management.
+
+**Summary**: Hooked the dialog's accept, reject, and close handlers so they invoke the worker cleanup helpers, joining any
+background search or download threads before the widget is destroyed. This prevents Qt from terminating with
+`QThread: Destroyed while thread is still running` when operators close the dialog mid-operation.
+
+**References**: `app/ui/remote_data_dialog.py`.
+---
 ## 2025-10-21T18:44:51-04:00 / 2025-10-21T22:44:53+00:00 – Curated search resiliency
 
 **Author**: agent
