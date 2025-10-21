@@ -310,7 +310,7 @@ class RemoteDataService:
 
         table = observations.Observations.query_criteria(**criteria)
         rows = self._table_to_records(table)
-        systems: List[Dict[str, Any]] = []
+        records: List[RemoteRecord] = []
         for row in rows:
             metadata = dict(row)
             if include_imaging:
