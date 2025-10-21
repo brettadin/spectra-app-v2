@@ -59,7 +59,9 @@ directly against laboratory references.
   bundled asset, or type a planet/moon/star name (e.g. `Jupiter`, `Mercury`,
   `Vega`) to filter the results. Each entry records citations, mission/instrument
   tags, and file paths to the bundled CSV so the preview pane surfaces the
-  provenance before you ingest the sample.
+  provenance before you ingest the sample. Missing or corrupted manifests are
+  skipped automatically so the rest of the curated catalogue remains usable even
+  if a single bundle goes offline.
   Pair these assets with the [exoplanet retrieval & astrochemistry packages](../link_collection.md#exoplanet-retrieval--astrochemistry-packages)
   when you want simulated spectra or retrieval posteriors to compare against the
   imported observations.

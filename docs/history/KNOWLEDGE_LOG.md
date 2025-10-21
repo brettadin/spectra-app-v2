@@ -27,6 +27,17 @@ Each entry in this document should follow this structure:
   applicable).
 
 ---
+## 2025-10-21T18:44:51-04:00 / 2025-10-21T22:44:53+00:00 – Curated search resiliency
+
+**Author**: agent
+
+**Context**: Solar System Archive provider resilience when bundled manifests/assets are missing.
+
+**Summary**: Wrapped curated manifest and asset loading in guards so missing files no longer abort Solar System Archive searches,
+allowing available bundles to remain discoverable. Added regression tests that append broken manifests/assets to the curated
+roster to confirm searches continue returning valid targets, and documented the behaviour in the remote data user guide.
+
+**References**: `app/services/remote_data_service.py`, `tests/test_remote_data_service.py`, `docs/user/remote_data.md`.
 ## 2025-10-21T18:42:11-04:00 / 2025-10-21T22:42:13+00:00 – JWST/exoplanet resource guidance
 
 **Author**: agent

@@ -6,6 +6,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 import csv
 import json
+import logging
 import math
 import tempfile
 from pathlib import Path
@@ -31,6 +32,9 @@ except Exception:  # pragma: no cover - handled by dependency guards
     _HAS_PANDAS = False
 else:  # pragma: no branch - simple flag wiring
     _HAS_PANDAS = True
+
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -347,14 +351,27 @@ class RemoteDataService:
             if not manifest_ref:
                 continue
             manifest_path = self._resolve_curated_path(manifest_ref)
-            manifest = self._load_curated_manifest(manifest_path)
+            try:
+                manifest = self._load_curated_manifest(manifest_path)
+            except (FileNotFoundError, RuntimeError, json.JSONDecodeError) as exc:
+                logger.warning(
+                    "Skipping curated target due to manifest issue: %s", manifest_path, exc_info=exc
+                )
+                continue
             terms = self._curated_terms(entry, manifest)
             if text:
                 if not self._curated_term_matches(text, terms):
                     continue
             elif not include_all:
                 continue
-            records.append(self._build_curated_record(entry, manifest, manifest_path))
+            try:
+                record = self._build_curated_record(entry, manifest, manifest_path)
+            except (FileNotFoundError, RuntimeError) as exc:
+                logger.warning(
+                    "Skipping curated target due to asset issue: %s", manifest_path, exc_info=exc
+                )
+                continue
+            records.append(record)
         return records
 
     def _curated_terms(self, entry: Mapping[str, Any], manifest: Mapping[str, Any]) -> set[str]:

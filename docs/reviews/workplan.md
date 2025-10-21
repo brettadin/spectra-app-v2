@@ -53,6 +53,8 @@ This document tracks feature batches, validation status, and outstanding backlog
       upstream dependencies before relying on them.
 - [x] Consolidated the Remote Data dialog's download/preview cell helpers so tooltip handling stays consistent, guarded empty
       URIs, extended quicklook key coverage, refreshed the user guide, and added a regression test for the rendered links.
+- [x] Hardened the Solar System Archive search branch so missing curated manifests or assets are skipped instead of aborting the
+      provider, added regression coverage for missing bundles, and documented the resilient behaviour for analysts.
 
 ### Recently Completed (2025-10-19)
 
