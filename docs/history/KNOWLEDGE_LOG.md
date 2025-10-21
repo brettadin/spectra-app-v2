@@ -90,126 +90,38 @@ data user guide to direct ASD line-list retrieval through the Reference dock wit
 **References**: `app/services/remote_data_service.py`, `app/ui/remote_data_dialog.py`, `tests/test_remote_data_dialog.py`,
 `tests/test_remote_data_service.py`, `docs/user/remote_data.md`.
 ## 2025-10-21T18:13:39-04:00 / 2025-10-21T22:13:41+00:00 – Remote data link tooltips
+## 2025-10-21T19:25:02-04:00 / 2025-10-21T23:25:04+00:00 – Exo.MAST encoding & preview guard
 
 **Author**: agent
 
-**Context**: Remote Data dialog table rendering and regression coverage.
+**Context**: Remote Data service/dialog stability for Exo.MAST enriched records.
 
-**Summary**: Consolidated the duplicate preview/download widget helpers so tooltip handling is consistent, empty URIs are
-guarded, and additional preview metadata keys (`preview_download`) surface quicklook links. Added a regression test to assert
-the rendered labels/tooltips and documented the behaviour in the user guide for provenance tracking.
+**Summary**: Updated the Exo.MAST file-list fetcher to rely on `urllib.parse.quote`
+alone so planet names with spaces (e.g. “WASP-39 b”) no longer double-encode and
+silently drop citation metadata. Tightened the preview summary to ignore `NaN`
+discovery years while still reporting discovery method/facility details so the
+dialog remains responsive even when Astroquery returns incomplete metadata.
+Extended the regression suite to cover both behaviours and documented the user
+impact in the remote data guide.
 
-**References**: `app/ui/remote_data_dialog.py`, `tests/test_remote_data_dialog.py`, `docs/user/remote_data.md`.
-
+**References**: `app/services/remote_data_service.py`, `app/ui/remote_data_dialog.py`,
+`tests/test_remote_data_service.py`, `tests/test_remote_data_dialog.py`,
+`docs/user/remote_data.md`.
 ---
-## 2025-10-21T18:03:23-04:00 / 2025-10-21T22:03:23+00:00 – Documentation cross-links for JWST & exoplanet tooling
+## 2025-10-21T18:44:51-04:00 / 2025-10-21T22:44:53+00:00 – Curated search resiliency
+## 2025-10-20T20:54:53-04:00 / 2025-10-21T00:54:55+00:00 – Exoplanet archive & MAST parity restored
 
 **Author**: agent
 
-**Context**: Expanded resource curation for JWST reduction workflows and exoplanet/astrochemistry integrations.
+**Context**: The Remote Data stack lost its Exo.MAST + NASA Exoplanet Archive integration, so MAST queries stalled at the observation level without product links, citation metadata, or curated solar-system fallbacks, leaving the UI incapable of displaying telescope/instrument context.
 
-**Summary**: Added dedicated sections to `docs/link_collection.md` covering JWST analysis notebooks/pipelines and exoplanet plus
-astrochemistry packages, noting how each feeds Spectra’s ingest and overlay workflows. Cross-referenced the new material from
-the Remote Data user guide so operators know when to run external reductions or retrievals, and from developer notes so future
-ingestion or dependency work can align with the curated tooling.
-
-**References**: `docs/link_collection.md`, `docs/user/remote_data.md`, `docs/developer_notes.md`.
-
----
-## 2025-10-21T17:18:38-04:00 / 2025-10-21T21:18:40+00:00 – Remote data curated provider
-
-**Author**: agent
-
-**Context**: Bundled Solar System Archive samples (formerly ExoSystems) and UI affordances for the curated provider.
-
-**Summary**: Implemented a local search branch for the Solar System Archive provider so curated names resolve to JSON manifests and
-synthetic spectra bundled under `samples/solar_system/`. Wired the Remote Data dialog with provider-specific hints/examples, taught
-the preview pane to render citation bullets, and documented the workflow. Added regression coverage to exercise the curated
-search/download paths.
-
-**References**: `app/services/remote_data_service.py`, `samples/solar_system/`, `app/ui/remote_data_dialog.py`,
-`tests/test_remote_data_service.py`, `docs/user/remote_data.md`.
-
----
-## 2025-10-21T14:22:18-04:00 / 2025-10-21T18:22:20+00:00 – Remote data UX
-
-**Author**: agent
-
-**Context**: Remote Data dialog provider availability and NIST query translation.
-
-**Summary**: Restored the NIST ASD provider in the Remote Data dialog, reinstating provider-specific hints/examples and teaching
-the query builder to pass `element=`, `ion=`, and `keyword=` clauses so cached downloads retain their provenance. Added Qt
-regressions for NIST-only services and updated the remote data guide to document the reinstated workflow and inspector hand-off.
-
-**References**: `app/ui/remote_data_dialog.py`, `tests/test_remote_data_dialog.py`, `docs/user/remote_data.md`.
-
----
-## 2025-10-21T10:04:38-04:00 / 2025-10-21T14:04:38+00:00 – Code quality improvements
-
-**Author**: agent
-
-**Context**: Test suite showed deprecation warnings from NumPy 2.x regarding `trapz` function and pytest warnings about unregistered custom markers.
-
-**Summary**: Fixed two code quality issues to improve test output cleanliness:
-1. Replaced deprecated `np.trapz` with `np.trapezoid` in both `app/services/overlay_service.py` (line 106) and `tests/test_overlay_service.py` (line 35). Updated the normalization metadata basis field from "abs-trapz" to "abs-trapezoid" for consistency.
-2. Registered custom pytest markers in root `pyproject.toml` by adding `[tool.pytest.ini_options]` section with markers for "roundtrip" and "ui_contract" tests.
-These changes eliminate all warnings from the test suite (previously 4 warnings, now 0). All 68 tests continue to pass.
+**Summary**: Reintroduced the chained archive workflow that resolves planets and host stars via PSCompPars, pulls curated Exo.MAST spectra, filters MAST product lists to spectroscopic assets, and surfaces mission/instrument/preview details in the dialog. Updated the user guide and regression suite to cover the new ExoSystems provider and the richer table layout.
 
 **References**:
-- `app/services/overlay_service.py` (line 106)
-- `tests/test_overlay_service.py` (line 35)
-- `pyproject.toml` (new [tool.pytest.ini_options] section)
-- NumPy 2.0 migration guide: https://numpy.org/devdocs/numpy_2_0_migration_guide.html
-
----
-## 2025-10-21T09:57:10-04:00 / 2025-10-21T13:57:10+00:00 – Complete solar system planetary spectra coverage
-
-**Author**: agent
-
-**Context**: The `RemoteDataService` curated targets previously included only Jupiter, Mars, and Saturn. To fulfill the requirement of supporting spectra data for all planets in the solar system, the remaining planets needed to be added to enable MAST catalog searches.
-
-**Summary**: Extended `_CURATED_TARGETS` tuple in `app/services/remote_data_service.py` to include Mercury, Venus, Earth/Moon, Uranus, and Neptune with proper scientific citations and DOIs. Planets are now ordered from innermost to outermost (Mercury through Neptune) following solar system structure. Each entry includes classification as "Solar System planet", MAST-compatible object names, and authoritative citations from planetary science literature (MESSENGER for Mercury, atmospheric spectroscopy studies for Venus/Uranus/Neptune, and Earth-as-exoplanet observations). Added comprehensive test `test_curated_targets_include_all_solar_system_planets` validating all 8 major planets are present with required metadata fields (names, display_name, object_name, classification, citations). All 68 tests pass.
-
-**References**:
-- `app/services/remote_data_service.py` (lines 93-166)
-- `tests/test_remote_data_service.py` (new test at end)
-- `docs/history/PATCH_NOTES.md`
-- Scientific citations:
-  - Mercury: Messenger orbital spectroscopy (doi: 10.1007/s11214-007-9257-3)
-  - Venus: Atmospheric spectroscopy (doi: 10.1016/j.icarus.2017.02.009)
-  - Earth/Moon: Earth as exoplanet (doi: 10.1089/ast.2009.0384)
-  - Uranus: Atmospheric spectroscopy (doi: 10.1016/j.icarus.2011.08.022)
-  - Neptune: Atmospheric observations (doi: 10.1016/j.icarus.2011.06.024)
-
----
-## 2025-10-21T00:30:03-04:00 / 2025-10-21T04:30:03+00:00 – MAST search bug fix
-
-**Author**: agent
-
-**Context**: The `RemoteDataService._search_mast` method had a critical bug where the `records` variable was referenced but never initialized, causing `NameError` in test cases.
-
-**Summary**: Fixed the bug by initializing `records: List[RemoteRecord] = []` instead of the incorrectly named `systems: List[Dict[str, Any]] = []`. The variable name mismatch was introduced in a previous commit. Updated the test `test_search_mast_filters_products_and_records_metadata` to match current implementation behavior (using `obsid` as identifier from observations rather than `productFilename` from products). Removed unused mock method `get_product_list` from test to avoid confusion about expected behavior. All 67 tests now pass.
-
-**References**:
-- `app/services/remote_data_service.py` (line 313)
-- `tests/test_remote_data_service.py`
-- `docs/history/PATCH_NOTES.md`
-
----
-## 2025-10-20T23:18:18-04:00 / 2025-10-21T03:18:18+00:00 – Remote data table helpers restored
-
-**Author**: agent
-
-**Context**: The Remote Data dialog regressed after the progress-layout patch—search results only displayed the first row and
-runtime crashes surfaced (`_link_for_download`, `_update_download_button_state`, `_busy`) because the helper methods that populate
-the table and gate the download workflow were dropped.
-
-**Summary**: Reinstated the table helpers with richer columns (target/mission/instrument/product plus preview/download links),
-hooked selection changes to update the metadata preview and button state, and refreshed the user guide so the documented
-behaviour matches the restored UI.
-
-**References**:
+- `app/services/remote_data_service.py`
 - `app/ui/remote_data_dialog.py`
+- `tests/test_remote_data_service.py`
+- `tests/test_remote_data_dialog.py`
 - `docs/user/remote_data.md`
 - `docs/history/PATCH_NOTES.md`
 
@@ -1046,3 +958,18 @@ Import/Remote Import entries remain after the cleanup.
 - `docs/history/PATCH_NOTES.md`
 
 ---
+---
+## 2025-10-21T19:20:08-04:00 / 2025-10-21T23:20:10+00:00 – ExoSystems preview hardening
+
+**Author**: agent
+
+**Context**: Selecting planets with missing discovery years raised `ValueError` in the Remote Data dialog, and Exo.MAST file-list calls double-encoded planet names containing spaces, preventing metadata from resolving.
+
+**Summary**: Added NaN-aware coercion before formatting discovery years and removed the redundant `%20` replacement ahead of URL quoting so Exo.MAST lookups succeed for common targets like WASP-39 b while the preview stays stable on incomplete records.
+
+**References**:
+- `app/ui/remote_data_dialog.py`
+- `app/services/remote_data_service.py`
+- `docs/user/remote_data.md`
+- `docs/history/PATCH_NOTES.md`
+

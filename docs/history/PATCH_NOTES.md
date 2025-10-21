@@ -5,6 +5,16 @@
 - Updated the Remote Data dialog cancel/close path to poll background search/download threads with a Qt timer so the UI stays
   responsive while we wait for synchronous network calls to finish. (`app/ui/remote_data_dialog.py`)
 - Surfaced a busy indicator and status copy that explains the dialog is waiting on outstanding background tasks during shutdown.
+## 2025-10-21 (Exo.MAST names and preview summary hardening) (19:25 EDT / 23:25 UTC)
+
+- Stopped `_fetch_exomast_filelist` from double-encoding planet names so Exo.MAST
+  lookups succeed for identifiers with spaces and the dialog receives citation
+  metadata consistently. (`app/services/remote_data_service.py`)
+- Guarded the preview summary against `NaN` discovery years and expanded the
+  discovery context without crashing the Remote Data dialog. (`app/ui/remote_data_dialog.py`)
+- Added regression coverage for both fixes and noted the behaviour change in the
+  remote data user guide. (`tests/test_remote_data_service.py`,
+  `tests/test_remote_data_dialog.py`, `docs/user/remote_data.md`)
 
 ## 2025-10-21 (Curated search skips missing bundles) (18:44 EDT / 22:44 UTC)
 
@@ -577,9 +587,15 @@
 - Wrapped the Remote Data status banner in a dedicated layout with a busy progress bar so the dialog no longer references an undefined `progress_container` during initialisation.
 - Search and download workflows now toggle the indicator while work is running, keeping the asynchronous UX aligned with the documentation.
 
-## 2025-10-20T23:18:18-04:00 — Remote data results table stabilised
+## 2025-10-20T20:54:53-04:00 — Exoplanet archive pipeline restored
 
-- Restored the Remote Data table helpers so search results populate all rows, selection changes refresh the metadata preview, and the download button only activates when rows are highlighted.
-- Added mission/instrument/product columns plus preview/download hyperlinks, and updated the user guide to describe the richer snapshot exposed for each catalogue match.
+- Rebuilt the remote fetching stack so Exo.MAST, NASA’s Exoplanet Archive, and MAST product listings are chained together, yielding telescope, instrument, and citation metadata for solar-system targets, stellar standards, and transiting exoplanets.
+- Expanded the Remote Data dialog with mission/instrument columns, preview links, and enriched previews while documenting the new ExoSystems provider in the user guide.
+- Added regression coverage for the product-level MAST flow and the exoplanet resolution path, keeping the pipeline stable when dependencies are mocked in tests.
 
-# #? maybe? ensure inserted at top after header?? need to check file start.
+## 2025-10-21T19:20:08-04:00 — Exo.MAST metadata resilience
+
+- Guarded the ExoSystems preview against `NaN` discovery years so selecting planets with incomplete archive records no longer raises errors.
+- Removed manual `%20` replacements when building Exo.MAST file-list requests so planets with spaces in their names (e.g. WASP-39 b) resolve citations again.
+- Documented the behaviour changes in the remote data guide and recorded the regression run in the workplan.
+

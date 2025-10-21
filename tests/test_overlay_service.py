@@ -32,11 +32,11 @@ def test_overlay_area_normalization_targets_unit_area() -> None:
     overlay.add(spectrum)
 
     view = overlay.overlay([spectrum.id], "nm", "absorbance", normalization="Area")[0]
-    area = np.trapezoid(np.abs(view["y_canonical"]), view["x_canonical"])
+    area = np.trapz(np.abs(view["y_canonical"]), view["x_canonical"])
 
     assert np.isclose(area, 1.0)
     norm_meta = view["metadata"]["normalization"]
     assert norm_meta["mode"] == "area"
     assert norm_meta["applied"] is True
     assert norm_meta["scale"] > 0
-    assert norm_meta["basis"] == "abs-trapezoid"
+    assert norm_meta["basis"] == "abs-trapz"
