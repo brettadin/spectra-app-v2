@@ -42,8 +42,10 @@ directly against laboratory references.
   `dataproduct_type="spectrum"`, `intentType="SCIENCE"`, and
   `calib_level=[2, 3]` filters automatically. Supply JWST target names or
   instrument identifiers (e.g. `WASP-96 b`, `NIRSpec grism`). The examples menu
-  preloads spectroscopy-friendly targets such as WASP‑96 b, WASP‑39 b, and
-  HD 189733 so you can trigger a query without retyping common names. Tick
+  preloads spectroscopy-friendly targets including all major solar system planets
+  (Mercury, Venus, Earth/Moon, Mars, Jupiter, Saturn, Uranus, Neptune), exoplanets
+  such as WASP‑96 b and WASP‑39 b, and stellar standards like Vega, so you can
+  trigger a query without retyping common names. Tick
   **Include imaging** to relax the product filter so calibrated imaging results
   appear alongside spectra.
 

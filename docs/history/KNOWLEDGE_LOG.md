@@ -27,6 +27,26 @@ Each entry in this document should follow this structure:
   applicable).
 
 ---
+## 2025-10-21T09:57:10-04:00 / 2025-10-21T13:57:10+00:00 – Complete solar system planetary spectra coverage
+
+**Author**: agent
+
+**Context**: The `RemoteDataService` curated targets previously included only Jupiter, Mars, and Saturn. To fulfill the requirement of supporting spectra data for all planets in the solar system, the remaining planets needed to be added to enable MAST catalog searches.
+
+**Summary**: Extended `_CURATED_TARGETS` tuple in `app/services/remote_data_service.py` to include Mercury, Venus, Earth/Moon, Uranus, and Neptune with proper scientific citations and DOIs. Planets are now ordered from innermost to outermost (Mercury through Neptune) following solar system structure. Each entry includes classification as "Solar System planet", MAST-compatible object names, and authoritative citations from planetary science literature (MESSENGER for Mercury, atmospheric spectroscopy studies for Venus/Uranus/Neptune, and Earth-as-exoplanet observations). Added comprehensive test `test_curated_targets_include_all_solar_system_planets` validating all 8 major planets are present with required metadata fields (names, display_name, object_name, classification, citations). All 68 tests pass.
+
+**References**:
+- `app/services/remote_data_service.py` (lines 93-166)
+- `tests/test_remote_data_service.py` (new test at end)
+- `docs/history/PATCH_NOTES.md`
+- Scientific citations:
+  - Mercury: Messenger orbital spectroscopy (doi: 10.1007/s11214-007-9257-3)
+  - Venus: Atmospheric spectroscopy (doi: 10.1016/j.icarus.2017.02.009)
+  - Earth/Moon: Earth as exoplanet (doi: 10.1089/ast.2009.0384)
+  - Uranus: Atmospheric spectroscopy (doi: 10.1016/j.icarus.2011.08.022)
+  - Neptune: Atmospheric observations (doi: 10.1016/j.icarus.2011.06.024)
+
+---
 ## 2025-10-21T00:30:03-04:00 / 2025-10-21T04:30:03+00:00 – MAST search bug fix
 
 **Author**: agent

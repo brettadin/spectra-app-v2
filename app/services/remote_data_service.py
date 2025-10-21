@@ -92,15 +92,41 @@ class RemoteDataService:
 
     _CURATED_TARGETS: tuple[Dict[str, Any], ...] = (
         {
-            "names": {"jupiter", "io", "europa", "ganymede", "callisto"},
-            "display_name": "Jupiter",
-            "object_name": "Jupiter",
+            "names": {"mercury"},
+            "display_name": "Mercury",
+            "object_name": "Mercury",
             "classification": "Solar System planet",
             "citations": [
                 {
-                    "title": "JWST Early Release Observations",
-                    "doi": "10.3847/1538-4365/acbd9a",
-                    "notes": "JWST ERS quick-look spectra curated for Jovian system.",
+                    "title": "MESSENGER orbital spectroscopy",
+                    "doi": "10.1007/s11214-007-9257-3",
+                    "notes": "Mercury surface composition and reflectance spectra from MESSENGER mission.",
+                }
+            ],
+        },
+        {
+            "names": {"venus"},
+            "display_name": "Venus",
+            "object_name": "Venus",
+            "classification": "Solar System planet",
+            "citations": [
+                {
+                    "title": "Venus atmospheric spectroscopy",
+                    "doi": "10.1016/j.icarus.2017.02.009",
+                    "notes": "Venus cloud-top reflectance and atmospheric composition spectra.",
+                }
+            ],
+        },
+        {
+            "names": {"earth", "moon"},
+            "display_name": "Earth/Moon",
+            "object_name": "Earth",
+            "classification": "Solar System planet",
+            "citations": [
+                {
+                    "title": "Earth as an exoplanet",
+                    "doi": "10.1089/ast.2009.0384",
+                    "notes": "Integrated disk spectra for Earth and lunar reflectance observations.",
                 }
             ],
         },
@@ -118,6 +144,19 @@ class RemoteDataService:
             ],
         },
         {
+            "names": {"jupiter", "io", "europa", "ganymede", "callisto"},
+            "display_name": "Jupiter",
+            "object_name": "Jupiter",
+            "classification": "Solar System planet",
+            "citations": [
+                {
+                    "title": "JWST Early Release Observations",
+                    "doi": "10.3847/1538-4365/acbd9a",
+                    "notes": "JWST ERS quick-look spectra curated for Jovian system.",
+                }
+            ],
+        },
+        {
             "names": {"saturn", "enceladus", "titan"},
             "display_name": "Saturn",
             "object_name": "Saturn",
@@ -126,6 +165,32 @@ class RemoteDataService:
                 {
                     "title": "Cassini / JWST comparative spectra",
                     "notes": "Curated composite assembled for Spectra examples",
+                }
+            ],
+        },
+        {
+            "names": {"uranus"},
+            "display_name": "Uranus",
+            "object_name": "Uranus",
+            "classification": "Solar System planet",
+            "citations": [
+                {
+                    "title": "Uranus atmospheric spectroscopy",
+                    "doi": "10.1016/j.icarus.2011.08.022",
+                    "notes": "Near-IR spectroscopy of Uranus atmosphere and composition.",
+                }
+            ],
+        },
+        {
+            "names": {"neptune", "triton"},
+            "display_name": "Neptune",
+            "object_name": "Neptune",
+            "classification": "Solar System planet",
+            "citations": [
+                {
+                    "title": "Neptune atmospheric observations",
+                    "doi": "10.1016/j.icarus.2011.06.024",
+                    "notes": "Spectroscopic observations of Neptune atmosphere and Triton.",
                 }
             ],
         },

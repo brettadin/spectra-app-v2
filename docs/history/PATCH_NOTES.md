@@ -1,5 +1,13 @@
 # Patch Notes
 
+## 2025-10-21 (Added all solar system planets to curated targets) (09:57 EDT / 13:57 UTC)
+
+- Extended `RemoteDataService._CURATED_TARGETS` to include all major solar system planets (Mercury, Venus, Earth/Moon, Uranus, Neptune) in addition to existing Mars, Jupiter, Saturn.
+- Planets are now ordered from innermost to outermost following solar system structure.
+- Each new planet entry includes proper classification, display names, MAST object names, and scientific citations with DOIs.
+- Added comprehensive test `test_curated_targets_include_all_solar_system_planets` to validate all 8 planets are present with required metadata fields.
+- All 68 tests pass (20 skipped) with new planetary data accessible via MAST remote data dialog.
+
 ## 2025-10-21 (Fixed missing records variable in MAST search) (00:30 EDT / 04:30 UTC)
 
 - Fixed `NameError` in `RemoteDataService._search_mast` where `records` variable was not initialized (was incorrectly named `systems`).
