@@ -357,7 +357,7 @@ def test_providers_hide_missing_dependencies(monkeypatch: pytest.MonkeyPatch, st
         remote_module.RemoteDataService.PROVIDER_SOLAR_SYSTEM,
     ]
     assert service.providers(include_reference=False) == [
-        remote_module.RemoteDataService.PROVIDER_EXOSYSTEMS,
+        remote_module.RemoteDataService.PROVIDER_SOLAR_SYSTEM,
     ]
     unavailable = service.unavailable_providers()
     assert remote_module.RemoteDataService.PROVIDER_MAST in unavailable
@@ -375,11 +375,11 @@ def test_providers_exclude_reference_catalogues_when_requested(
     assert service.providers() == [
         remote_module.RemoteDataService.PROVIDER_NIST,
         remote_module.RemoteDataService.PROVIDER_MAST,
-        remote_module.RemoteDataService.PROVIDER_EXOSYSTEMS,
+        remote_module.RemoteDataService.PROVIDER_SOLAR_SYSTEM,
     ]
     assert service.providers(include_reference=False) == [
         remote_module.RemoteDataService.PROVIDER_MAST,
-        remote_module.RemoteDataService.PROVIDER_EXOSYSTEMS,
+        remote_module.RemoteDataService.PROVIDER_SOLAR_SYSTEM,
     ]
 
 

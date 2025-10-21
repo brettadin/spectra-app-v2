@@ -48,6 +48,9 @@ This document tracks feature batches, validation status, and outstanding backlog
       exoplanet/astrochemistry sections, then cross-linked the resources from the
       Remote Data user guide and developer notes so ingestion work references the
       curated pipelines.
+- [x] Documented usage steps and maintenance checks for each JWST/exoplanet tool
+      in the link collection so agents know how to run the pipelines and verify
+      upstream dependencies before relying on them.
 - [x] Consolidated the Remote Data dialog's download/preview cell helpers so tooltip handling stays consistent, guarded empty
       URIs, extended quicklook key coverage, refreshed the user guide, and added a regression test for the rendered links.
 

@@ -26,7 +26,7 @@ class StubRemoteService(RemoteDataService):
         self._providers: List[str] = [
             RemoteDataService.PROVIDER_NIST,
             RemoteDataService.PROVIDER_MAST,
-            RemoteDataService.PROVIDER_EXOSYSTEMS,
+            RemoteDataService.PROVIDER_SOLAR_SYSTEM,
         ]
 
     def providers(self, *, include_reference: bool = True) -> List[str]:
@@ -92,7 +92,7 @@ def test_dialog_initialises_without_missing_slots(monkeypatch: Any) -> None:
 
     assert dialog.provider_combo.count() == 2
     assert dialog.provider_combo.itemText(0) == RemoteDataService.PROVIDER_MAST
-    assert dialog.provider_combo.itemText(1) == RemoteDataService.PROVIDER_EXOSYSTEMS
+    assert dialog.provider_combo.itemText(1) == RemoteDataService.PROVIDER_SOLAR_SYSTEM
     assert dialog.provider_combo.findText(RemoteDataService.PROVIDER_NIST) == -1
     assert "Catalogue" in dialog.windowTitle() or dialog.windowTitle() == "Remote Data"
 

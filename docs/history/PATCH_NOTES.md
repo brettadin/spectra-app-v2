@@ -1,5 +1,13 @@
 # Patch Notes
 
+## 2025-10-21 (Resource guide adds usage & maintenance notes) (18:42 EDT / 22:42 UTC)
+
+- Expanded the JWST/exoplanet tooling sections in `docs/link_collection.md` with
+  per-repository usage steps and maintenance tips so agents know how to run each
+  pipeline and verify whether upstream dependencies are still current.
+- Highlighted CRDS alignment checks for JWST notebooks/pipelines and reminded
+  analysts to pin commit hashes when relying on research-grade retrieval codes.
+
 ## 2025-10-21 (Solar System Archive rename and curated bundle refresh) (18:13 EDT / 22:13 UTC)
 
 - Renamed the curated remote provider to **Solar System Archive**, updating constants, provider lists, and cache metadata. (`app/services/remote_data_service.py`)
