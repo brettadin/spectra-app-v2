@@ -38,6 +38,19 @@ allowing available bundles to remain discoverable. Added regression tests that a
 roster to confirm searches continue returning valid targets, and documented the behaviour in the remote data user guide.
 
 **References**: `app/services/remote_data_service.py`, `tests/test_remote_data_service.py`, `docs/user/remote_data.md`.
+## 2025-10-21T18:42:11-04:00 / 2025-10-21T22:42:13+00:00 – JWST/exoplanet resource guidance
+
+**Author**: agent
+
+**Context**: Expanded the spectroscopy link collection with actionable steps and maintenance checks for the newly curated JWST
+and exoplanet tooling repositories.
+
+**Summary**: Augmented the JWST analysis and exoplanet retrieval sections in `docs/link_collection.md` with detailed usage
+instructions (installation hints, workflow entry points) and maintenance tips (CRDS alignment, dependency/version pinning) so
+future agents can adopt the resources without guessing their operational state. Emphasised verifying upstream release notes and
+pinning commit hashes when relying on research-grade prototypes.
+
+**References**: `docs/link_collection.md`, `docs/history/PATCH_NOTES.md`.
 
 ---
 ## 2025-10-21T18:13:33-04:00 / 2025-10-21T22:13:36+00:00 – Solar System Archive rename
