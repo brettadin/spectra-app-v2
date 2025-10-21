@@ -1,0 +1,26 @@
+{
+  "id": "uranus_near_ir",
+  "title": "Uranus near-IR reflectance (synthetic sample)",
+  "summary": "Synthetic near-infrared Uranus spectrum based on ground-based retrievals.",
+  "target": {
+    "name": "Uranus",
+    "aliases": ["uranus"],
+    "classification": "Solar System planet"
+  },
+  "mission": "IRTF",
+  "instrument": "SpeX",
+  "product_type": "Reflectance spectrum",
+  "asset": {
+    "path": "samples/exosystems/uranus_near_ir.csv",
+    "columns": ["wavelength_nm", "reflectance"],
+    "units": {"x": "nm", "y": "reflectance"},
+    "description": "Synthetic Uranus near-IR reflectance sequence referencing long-slit observations."
+  },
+  "citations": [
+    {
+      "title": "Uranus atmospheric spectroscopy",
+      "doi": "10.1016/j.icarus.2011.08.022",
+      "notes": "Near-IR spectroscopy of Uranus atmosphere and composition."
+    }
+  ]
+}
