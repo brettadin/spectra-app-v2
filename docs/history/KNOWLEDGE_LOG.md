@@ -27,6 +27,21 @@ Each entry in this document should follow this structure:
   applicable).
 
 ---
+## 2025-10-21T14:40:32-04:00 / 2025-10-21T18:40:35+00:00 – Remote data UX
+
+**Author**: agent
+
+**Context**: Remote Data dialog table helpers and regression coverage.
+
+**Summary**: Consolidated the duplicate results-table code path in the Remote Data dialog so preview/citation labels and
+download links derive from a single helper set. Added formatting utilities for mission/instrument/product cells, normalised
+MAST `mast:` URIs to HTTPS for browser links, and expanded the preview text to surface provider citations. Backed the refactor
+with a Qt test that instantiates the dialog, inspects the populated widgets, and confirms the preview/download columns render as
+expected, plus refreshed the remote data guide to note the citation and link behaviour.
+
+**References**: `app/ui/remote_data_dialog.py`, `tests/test_remote_data_dialog.py`, `docs/user/remote_data.md`.
+
+---
 ## 2025-10-21T14:22:18-04:00 / 2025-10-21T18:22:20+00:00 – Remote data UX
 
 **Author**: agent

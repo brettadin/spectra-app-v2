@@ -32,6 +32,10 @@ This document tracks feature batches, validation status, and outstanding backlog
       hints/placeholders, keyword-aware query parsing, Qt coverage for NIST-only
       services, and user-guide updates directing persistent overlays back to the
       Inspector reference tab.
+- [x] Consolidated the Remote Data table helpers so preview/download columns share
+      a single code path, normalised MAST links for browser access, refreshed the
+      remote data guide, and added a focused Qt regression that inspects the
+      populated widgets.
 
 ### Recently Completed (2025-10-19)
 
