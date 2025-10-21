@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import html
 import json
+import math
 import re
 from collections.abc import Mapping, Sequence
 from pathlib import Path
@@ -845,14 +846,55 @@ class RemoteDataDialog(QtWidgets.QDialog):
         summary = mapping.get("exoplanet_summary")
         if isinstance(summary, str) and summary.strip():
             return summary.strip()
+
+        def _normalise_year(value: Any) -> str:
+            if value is None:
+                return ""
+            if isinstance(value, int):
+                return str(value)
+            if isinstance(value, float):
+                if math.isnan(value):
+                    return ""
+                return str(int(value))
+            if isinstance(value, str):
+                text = value.strip()
+                if not text or text.lower() == "nan":
+                    return ""
+                try:
+                    numeric = float(text)
+                except ValueError:
+                    return text
+                if math.isnan(numeric):
+                    return ""
+                return str(int(numeric))
+            return ""
+
         exoplanet = mapping.get("exoplanet")
         if isinstance(exoplanet, Mapping):
             name = self._first_text(exoplanet, ["display_name", "name"])
             classification = self._first_text(exoplanet, ["classification", "type"])
             host = self._first_text(exoplanet, ["host_star", "host"])
-            details = [part for part in (classification, host and f"Host: {host}") if part]
+            discovery_method = self._first_text(exoplanet, ["discovery_method", "discovered_via"])
+            discovery_facility = self._first_text(exoplanet, ["discovery_facility", "facility"])
+            discovery_year = _normalise_year(exoplanet.get("discovery_year"))
+
+            details: list[str] = []
+            if classification:
+                details.append(classification)
+            if host:
+                details.append(f"Host: {host}")
+
+            discovery_bits = [
+                part
+                for part in (discovery_method, discovery_facility, discovery_year)
+                if part
+            ]
+            if discovery_bits:
+                details.append(f"Discovery: {', '.join(discovery_bits)}")
+
             if name or details:
-                return " – ".join(filter(None, [name, ", ".join(details) if details else ""]))
+                body = ", ".join(details) if details else ""
+                return " – ".join(filter(None, [name, body]))
         return ""
 
     def _extract_citation(self, metadata: Mapping[str, Any] | Any) -> str:
