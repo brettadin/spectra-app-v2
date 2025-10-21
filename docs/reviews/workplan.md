@@ -17,6 +17,14 @@ This document tracks feature batches, validation status, and outstanding backlog
       and user ingests are categorised by instrument/type with working search
       (Data dock consolidation + filter landed 2025-10-19; grouping backlog
       remains).
+- [ ] Validate remote catalogue UX: expand the provider roster beyond MAST once
+      dependency checks stabilise and new spectroscopy sources are vetted.
+      (2025-10-20: Exo.MAST enrichment, host/planet summaries, and citation
+      previews landed; next pass to evaluate additional providers. 2025-10-20:
+      Reject now waits for worker threads so long searches/downloads can be
+      cancelled safely. 2025-10-21: Application shutdown now blocks on worker
+      teardown so dismissing the dialog right before quitting avoids Qt thread
+      destruction warnings.)
 - [x] Validate remote catalogue UX: expand the provider roster beyond MAST once
       dependency checks stabilise and new spectroscopy sources are vetted.
       (Solar System Archive manifests now bundle curated spectra and surface
