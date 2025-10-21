@@ -465,56 +465,6 @@ class RemoteDataDialog(QtWidgets.QDialog):
         item.setFlags(item.flags() & ~QtCore.Qt.ItemFlag.ItemIsEditable)
         self.results.setItem(row, column, item)
 
-    def _set_download_widget(self, row: int, column: int, url: str) -> None:
-        label = QtWidgets.QLabel(self.results)
-        hyperlink = self._link_for_download(url)
-        escaped = html.escape(hyperlink)
-        label.setText(f'<a href="{escaped}">Open</a>')
-        label.setOpenExternalLinks(True)
-        label.setTextInteractionFlags(QtCore.Qt.TextInteractionFlag.TextBrowserInteraction)
-        label.setAlignment(QtCore.Qt.AlignmentFlag.AlignLeft | QtCore.Qt.AlignmentFlag.AlignVCenter)
-        tooltip = url
-        if hyperlink != url:
-            tooltip = f"{url}\n{hyperlink}"
-        label.setToolTip(tooltip)
-        label.setFocusPolicy(QtCore.Qt.FocusPolicy.NoFocus)
-        self.results.setCellWidget(row, column, label)
-
-    def _set_preview_widget(self, row: int, column: int, metadata: Mapping[str, Any] | Any) -> None:
-        mapping = metadata if isinstance(metadata, Mapping) else {}
-        preview_url = self._first_text(mapping, [
-            "preview_url",
-            "previewURL",
-            "preview_uri",
-            "QuicklookURL",
-            "quicklook_url",
-            "productPreviewURL",
-            "thumbnailURL",
-            "thumbnail_uri",
-        ])
-        citation = self._extract_citation(mapping)
-        if not preview_url and not citation:
-            self.results.setCellWidget(row, column, None)
-            self._set_table_text(row, column, "")
-            return
-
-        label = QtWidgets.QLabel(self.results)
-        label.setOpenExternalLinks(True)
-        label.setTextInteractionFlags(QtCore.Qt.TextInteractionFlag.TextBrowserInteraction)
-        label.setAlignment(QtCore.Qt.AlignmentFlag.AlignLeft | QtCore.Qt.AlignmentFlag.AlignVCenter)
-        label.setWordWrap(True)
-        label.setFocusPolicy(QtCore.Qt.FocusPolicy.NoFocus)
-
-        fragments: list[str] = []
-        if preview_url:
-            escaped_url = html.escape(preview_url)
-            fragments.append(f'<a href="{escaped_url}">Preview</a>')
-            label.setToolTip(preview_url)
-        if citation:
-            fragments.append(html.escape(citation))
-        label.setText("<br/>".join(fragments))
-        self.results.setCellWidget(row, column, label)
-
     def _formatted_citations(self, metadata: Mapping[str, Any] | Any) -> list[str]:
         formatted: list[str] = []
         for entry in self._citation_entries(metadata):
@@ -560,78 +510,6 @@ class RemoteDataDialog(QtWidgets.QDialog):
             parts.append(notes)
 
         return " — ".join(parts) if parts else ""
-
-    def _extract_citation(self, metadata: Mapping[str, Any] | Any) -> str:
-        citations = self._formatted_citations(metadata)
-        if citations:
-            return citations[0]
-        mapping = metadata if isinstance(metadata, Mapping) else {}
-        value = mapping.get("citation")
-        if isinstance(value, str):
-            return value.strip()
-        return ""
-
-    def _format_exoplanet_summary(self, metadata: Mapping[str, Any] | Any) -> str:
-        mapping = metadata if isinstance(metadata, Mapping) else {}
-        summary = mapping.get("summary")
-        if isinstance(summary, str) and summary.strip():
-            return summary.strip()
-        description = mapping.get("description")
-        if isinstance(description, str) and description.strip():
-            return description.strip()
-        return ""
-
-    def _format_target(self, record: RemoteRecord) -> str:
-        metadata = record.metadata if isinstance(record.metadata, Mapping) else {}
-        return self._first_text(
-            metadata,
-            ["target_name", "display_name", "target", "object_name", "title"],
-        ) or record.title
-
-    def _format_mission(self, metadata: Mapping[str, Any] | Any) -> str:
-        mapping = metadata if isinstance(metadata, Mapping) else {}
-        return self._first_text(
-            mapping,
-            ["obs_collection", "mission", "project", "obs_collection_name"],
-        )
-
-    def _format_instrument(self, metadata: Mapping[str, Any] | Any) -> str:
-        mapping = metadata if isinstance(metadata, Mapping) else {}
-        return self._first_text(
-            mapping,
-            ["instrument_name", "instrument", "instrument_id", "instr_band"],
-        )
-
-    def _format_product(self, metadata: Mapping[str, Any] | Any) -> str:
-        mapping = metadata if isinstance(metadata, Mapping) else {}
-        return self._first_text(
-            mapping,
-            ["productType", "dataproduct_type", "Product Type"],
-        )
-
-    def _link_for_download(self, url: str) -> str:
-        if url.startswith("mast:"):
-            encoded = quote(url, safe="")
-            return f"https://mast.stsci.edu/api/v0.1/Download/file?uri={encoded}"
-        return url
-
-    def _first_text(self, mapping: Mapping[str, Any], keys: Sequence[str]) -> str:
-        for key in keys:
-            value = mapping.get(key)
-            if value is None:
-                continue
-            if isinstance(value, (list, tuple, set)):
-                for item in value:
-                    if item is None:
-                        continue
-                    text = str(item).strip()
-                    if text:
-                        return text
-                continue
-            text = str(value).strip()
-            if text:
-                return text
-        return ""
 
     def _clear_result_widgets(self) -> None:
         for row in range(self.results.rowCount()):
