@@ -27,6 +27,19 @@ Each entry in this document should follow this structure:
   applicable).
 
 ---
+## 2025-10-21T18:13:39-04:00 / 2025-10-21T22:13:41+00:00 – Remote data link tooltips
+
+**Author**: agent
+
+**Context**: Remote Data dialog table rendering and regression coverage.
+
+**Summary**: Consolidated the duplicate preview/download widget helpers so tooltip handling is consistent, empty URIs are
+guarded, and additional preview metadata keys (`preview_download`) surface quicklook links. Added a regression test to assert
+the rendered labels/tooltips and documented the behaviour in the user guide for provenance tracking.
+
+**References**: `app/ui/remote_data_dialog.py`, `tests/test_remote_data_dialog.py`, `docs/user/remote_data.md`.
+
+---
 ## 2025-10-21T18:03:23-04:00 / 2025-10-21T22:03:23+00:00 – Documentation cross-links for JWST & exoplanet tooling
 
 **Author**: agent
