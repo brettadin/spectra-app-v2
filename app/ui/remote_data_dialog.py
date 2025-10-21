@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import html
 import json
+import math
 import re
 from collections.abc import Mapping, Sequence
 from pathlib import Path
@@ -850,10 +851,50 @@ class RemoteDataDialog(QtWidgets.QDialog):
             name = self._first_text(exoplanet, ["display_name", "name"])
             classification = self._first_text(exoplanet, ["classification", "type"])
             host = self._first_text(exoplanet, ["host_star", "host"])
-            details = [part for part in (classification, host and f"Host: {host}") if part]
+
+            discovery_year_raw = exoplanet.get("discovery_year")
+            discovery_year = self._format_discovery_year(discovery_year_raw)
+
+            details = [
+                part
+                for part in (
+                    classification,
+                    host and f"Host: {host}",
+                    discovery_year and f"Discovered {discovery_year}",
+                )
+                if part
+            ]
             if name or details:
                 return " – ".join(filter(None, [name, ", ".join(details) if details else ""]))
         return ""
+
+    def _format_discovery_year(self, value: Any) -> str:
+        if value is None:
+            return ""
+        if isinstance(value, (int,)):
+            return str(value)
+        if isinstance(value, float):
+            if math.isnan(value):
+                return ""
+            return str(int(value))
+        if isinstance(value, str):
+            text = value.strip()
+            if not text:
+                return ""
+            try:
+                numeric = float(text)
+            except ValueError:
+                return text
+            if math.isnan(numeric):
+                return ""
+            return str(int(numeric))
+        try:
+            numeric = float(value)
+        except (TypeError, ValueError):
+            return ""
+        if math.isnan(numeric):
+            return ""
+        return str(int(numeric))
 
     def _extract_citation(self, metadata: Mapping[str, Any] | Any) -> str:
         mapping = metadata if isinstance(metadata, Mapping) else {}

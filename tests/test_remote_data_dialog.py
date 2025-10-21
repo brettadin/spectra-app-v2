@@ -391,6 +391,34 @@ def test_download_and_preview_cells_include_tooltips(monkeypatch: Any) -> None:
         app.quit()
 
 
+def test_exoplanet_summary_handles_nan_discovery_year(monkeypatch: Any) -> None:
+    app = _ensure_app()
+    ingest = IngestServiceStub()
+    dialog = RemoteDataDialog(
+        None,
+        remote_service=StubRemoteService(),
+        ingest_service=ingest,
+    )
+
+    metadata = {
+        "exoplanet": {
+            "display_name": "WASP-39 b",
+            "classification": "Hot Jupiter",
+            "host_star": "WASP-39",
+            "discovery_year": float("nan"),
+        }
+    }
+
+    summary = dialog._format_exoplanet_summary(metadata)
+
+    assert "Discovered" not in summary
+    assert "nan" not in summary.lower()
+
+    dialog.deleteLater()
+    if QtWidgets.QApplication.instance() is app and not app.topLevelWidgets():
+        app.quit()
+
+
 class IngestServiceStub:
     """Minimal stub mimicking the ingest service used by the dialog."""
 
