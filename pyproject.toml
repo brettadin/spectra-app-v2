@@ -21,8 +21,3 @@ remote = [
     "astroquery==0.4.7",
 ]
 
-[tool.pytest.ini_options]
-markers = [
-    "roundtrip: marks tests as roundtrip validation tests (deselect with '-m \"not roundtrip\"')",
-    "ui_contract: marks tests as UI contract validation tests (deselect with '-m \"not ui_contract\"')",
-]
