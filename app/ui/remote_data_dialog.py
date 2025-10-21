@@ -767,10 +767,22 @@ class RemoteDataDialog(QtWidgets.QDialog):
                 parts.append(f"Distance ≈ {self._format_number(distance, suffix=' pc')}")
             method = params.get("discovery_method")
             year = params.get("discovery_year")
-            if method or year:
+            year_fragment: str | None = None
+            if isinstance(year, (int, float)):
+                try:
+                    year_value = float(year)
+                except (TypeError, ValueError):
+                    year_value = None
+                if year_value is not None and not math.isnan(year_value):
+                    year_fragment = str(int(year_value))
+            elif isinstance(year, str):
+                year_text = year.strip()
+                if year_text and year_text.lower() != "nan":
+                    year_fragment = year_text
+            if method or year_fragment:
                 discovery = method or "Discovery"
-                if year:
-                    discovery = f"{discovery} ({int(year)})" if isinstance(year, (int, float)) else f"{discovery} ({year})"
+                if year_fragment:
+                    discovery = f"{discovery} ({year_fragment})"
                 parts.append(discovery)
 
         return " | ".join(parts)

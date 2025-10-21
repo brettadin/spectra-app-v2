@@ -677,7 +677,7 @@ class RemoteDataService:
             return None
         session = self._ensure_session()
         url = "https://exo.mast.stsci.edu/api/v0.1/spectra/{}/filelist".format(
-            quote(str(planet_name).strip().replace(" ", "%20"), safe="")
+            quote(str(planet_name).strip(), safe="")
         )
         try:
             response = session.get(url, timeout=30)
