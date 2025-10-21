@@ -38,6 +38,10 @@ This document tracks feature batches, validation status, and outstanding backlog
       spectra, refreshed the Remote Data dialog hints/examples, rendered
       citations in the preview pane, and extended regression coverage for the
       local search/download path.
+- [x] Extended `docs/link_collection.md` with JWST notebook/toolkit and
+      exoplanet/astrochemistry sections, then cross-linked the resources from the
+      Remote Data user guide and developer notes so ingestion work references the
+      curated pipelines.
 
 ### Recently Completed (2025-10-19)
 

@@ -55,6 +55,9 @@ directly against laboratory references.
   trigger a query without retyping common names. Tick
   **Include imaging** to relax the product filter so calibrated imaging results
   appear alongside spectra.
+  See the [JWST analysis notebooks & toolkits](../link_collection.md#jwst-analysis-notebooks--toolkits)
+  section for end-to-end reduction pipelines you can run before importing the
+  calibrated spectra.
 - **MAST ExoSystems** – Provides a local catalogue of curated manifests and sample
   spectra that mirror the targets highlighted on Exo.MAST. Leave the search box
   blank (the dialog automatically supplies `include_all=true`) to list every
@@ -62,6 +65,9 @@ directly against laboratory references.
   `Vega`) to filter the results. Each entry records citations, mission/instrument
   tags, and file paths to the bundled CSV so the preview pane surfaces the
   provenance before you ingest the sample.
+  Pair these assets with the [exoplanet retrieval & astrochemistry packages](../link_collection.md#exoplanet-retrieval--astrochemistry-packages)
+  when you want simulated spectra or retrieval posteriors to compare against the
+  imported observations.
 
 The hint banner beneath the results table updates as you switch providers and
 also surfaces dependency warnings when optional clients are missing.
