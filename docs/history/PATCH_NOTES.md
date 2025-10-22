@@ -1,5 +1,18 @@
 # Patch Notes
 
+## 2025-10-21 (Create comprehensive real spectral data access guide) (20:17 EDT / 00:17 UTC)
+
+- Created `docs/user/real_spectral_data_guide.md` as a comprehensive reference for accessing legitimate spectral data from credible astronomical archives.
+- Documented three main categories with specific examples:
+  - Solar system objects: Jupiter, Mars, Saturn and moons (JWST/HST observations, UV to mid-IR)
+  - Stellar spectra: Vega (A0V standard), Tau Ceti (G8V solar analog), CALSPEC standards
+  - Exoplanet spectra: WASP-39 b, TRAPPIST-1, hot Jupiters (JWST transmission/emission spectra)
+- Included wavelength coverage table showing UV/visible/near-IR/mid-IR availability for each source.
+- Added data quality section explaining calibration levels, provenance tracking, and proper citations.
+- Clearly marked bundled JWST targets as deprecated example-only data with explicit warnings.
+- Provided troubleshooting guidance and references to related documentation.
+- This comprehensive guide makes it easy for users to understand what real data is available and how to access it, addressing the requirement for "real, spectral data, from a wide range of wavelengths" from "credible sources."
+
 ## 2025-10-21 (Enhance quickstart guide with remote data workflow) (20:15 EDT / 00:15 UTC)
 
 - Updated `docs/user/quickstart.md` to include a new section on fetching real spectral data from MAST archives.

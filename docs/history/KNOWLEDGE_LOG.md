@@ -27,6 +27,25 @@ Each entry in this document should follow this structure:
   applicable).
 
 ---
+## 2025-10-21T20:17:41-04:00 / 2025-10-22T00:17:41+00:00 – Comprehensive real spectral data documentation
+
+**Author**: agent
+
+**Context**: User documentation for accessing legitimate spectral data from astronomical archives.
+
+**Summary**: Created `docs/user/real_spectral_data_guide.md` as a comprehensive reference documenting how to access real, calibrated spectral observations from credible sources. The guide covers three main data categories with specific target examples and wavelength coverage:
+
+1. **Solar system objects** (Jupiter, Mars, Saturn, moons) - JWST/HST observations spanning UV to mid-IR (0.1–30 µm)
+2. **Stellar spectra** (Vega A0V standard, Tau Ceti G8V solar analog) - HST CALSPEC standards and Pickles library
+3. **Exoplanet spectra** (WASP-39 b, TRAPPIST-1 system, hot Jupiters) - JWST transmission and emission spectra
+
+Included comprehensive wavelength coverage table, data quality information (calibration levels 2 and 3), provenance tracking details, and proper citation guidance for MAST, JWST, NASA Exoplanet Archive, and NIST ASD. Explicitly documented that bundled JWST targets JSON contains deprecated example-only data and directed users to always fetch real calibrated data from MAST for scientific analysis.
+
+Added troubleshooting section for common provider availability and download issues, plus cross-references to related documentation. This comprehensive guide directly addresses the requirement for "real, spectral data, from a wide range of wavelengths, all displayed correctly and accurately reflects the source data" from "credible sources" without synthesized or placeholder data.
+
+**References**: `docs/user/real_spectral_data_guide.md`, `docs/user/remote_data.md`, `docs/link_collection.md`.
+
+---
 ## 2025-10-21T20:15:49-04:00 / 2025-10-22T00:15:49+00:00 – User workflow documentation improvements
 
 **Author**: agent
