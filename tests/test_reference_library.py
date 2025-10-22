@@ -38,7 +38,7 @@ def test_reference_library_jwst_target_metadata() -> None:
     assert wasp96["spectral_range_um"][0] < wasp96["spectral_range_um"][1]
     assert len(wasp96["data"]) >= 3
     assert wasp96["data"][0]["value"] > 0
-    assert wasp96.get("provenance", {}).get("curation_status") == "digitized_release_graphic"
+    assert wasp96.get("provenance", {}).get("curation_status") == "digitized_release_graphic_example_only"
 
     bibliography = library.bibliography()
     citations = {entry["citation"] for entry in bibliography}

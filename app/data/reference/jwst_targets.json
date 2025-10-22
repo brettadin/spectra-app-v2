@@ -1,15 +1,16 @@
 {
   "metadata": {
-    "compiled_utc": "2025-10-15T04:10:00Z",
-    "notes": "Quick-look spectra retained for UI demos until resampled MAST products replace digitised release graphics.",
+    "compiled_utc": "2025-10-22T00:10:00Z",
+    "status": "DEPRECATED - Example data only",
+    "notes": "These digitized quick-look spectra are provided as structural examples only. For real spectroscopic analysis, use the Remote Data dialog (File → Fetch Remote Data or Ctrl+Shift+R) to fetch calibrated JWST spectra directly from MAST.",
     "primary_source": {
       "citation": "Space Telescope Science Institute (2024). JWST Public Release Datasets.",
       "url": "https://github.com/spacetelescope"
     },
     "provenance": {
       "generator": "tools/reference_build/build_jwst_quicklook.py",
-      "curation_status": "digitized_placeholder",
-      "replacement_plan": "Regenerate from calibrated MAST products once astroquery pipeline is wired."
+      "curation_status": "digitized_placeholder_deprecated",
+      "replacement_workflow": "Use Remote Data dialog with MAST or MAST ExoSystems provider to download real calibrated spectra. Examples: Jupiter, Mars, WASP-39 b, Vega, Tau Ceti."
     }
   },
   "targets": [
@@ -23,9 +24,8 @@
       "spectral_resolution": 100,
       "data_units": "transit depth (ppm)",
       "provenance": {
-        "curation_status": "digitized_release_graphic",
-        "planned_regeneration_uri": "mast:JWST/product/jw01324-o001_s00002_nirspec_prism_clear_prism_x1d.fits",
-        "notes": "Replace with resampled astroquery output using build_jwst_quicklook.py once pipeline dependencies ship."
+        "curation_status": "digitized_release_graphic_example_only",
+        "notes": "Example data digitized from release graphic. For real analysis, fetch calibrated JWST spectra from MAST using the Remote Data dialog (File → Fetch Remote Data). Search for 'WASP-96 b' or 'WASP96' in MAST ExoSystems provider."
       },
       "data": [
         {"wavelength_um": 0.60, "value": 6120, "uncertainty_ppm": 80},
@@ -57,9 +57,8 @@
       "spectral_resolution": 1500,
       "data_units": "radiance (MJy sr⁻¹)",
       "provenance": {
-        "curation_status": "digitized_release_graphic",
-        "planned_regeneration_uri": "mast:JWST/product/jw01373-o002_t001_miri_ch1-shortmediumlong_s3d.fits",
-        "notes": "Placeholder values from media release; regenerate with calibrated MIRI MRS cube."
+        "curation_status": "digitized_release_graphic_example_only",
+        "notes": "Example data from media release. For real analysis, fetch calibrated JWST/MIRI spectra from MAST using the Remote Data dialog. Search for 'Jupiter' in MAST ExoSystems provider to get real observations."
       },
       "data": [
         {"wavelength_um": 7.6, "value": 1.25, "uncertainty_mjy_sr": 0.08},
@@ -85,9 +84,8 @@
       "spectral_resolution": 270,
       "data_units": "I/F reflectance",
       "provenance": {
-        "curation_status": "digitized_release_graphic",
-        "planned_regeneration_uri": "mast:JWST/product/jw02759-o001_t001_nirspec_prism_s1600a3_x1d.fits",
-        "notes": "Replace with calibrated reflectance extracted from MAST Level 2 spectrum."
+        "curation_status": "digitized_release_graphic_example_only",
+        "notes": "Example data from release graphic. For real analysis, fetch calibrated JWST/NIRSpec spectra from MAST using the Remote Data dialog. Search for 'Mars' in MAST ExoSystems provider."
       },
       "data": [
         {"wavelength_um": 0.77, "value": 0.36, "uncertainty": 0.02},
@@ -113,9 +111,8 @@
       "spectral_resolution": 5,
       "data_units": "radiance (MJy sr⁻¹)",
       "provenance": {
-        "curation_status": "digitized_release_graphic",
-        "planned_regeneration_uri": "mast:JWST/product/jw02282-o001_t001_nircam_f444w_i2d.fits",
-        "notes": "Pending translation to spectrum via aperture photometry; current values approximate release figures."
+        "curation_status": "digitized_release_graphic_example_only",
+        "notes": "Example brightness data estimated from release imagery. For real analysis, fetch calibrated JWST/NIRCam observations from MAST."
       },
       "data": [
         {"wavelength_um": 1.60, "value": 0.42, "uncertainty_mjy_sr": 0.03},
@@ -141,9 +138,8 @@
       "spectral_resolution": 5,
       "data_units": "flux density (Jy)",
       "provenance": {
-        "curation_status": "digitized_release_graphic",
-        "planned_regeneration_uri": "mast:JWST/product/jw01107-o001_t001_nircam_f200w_calints.fits",
-        "notes": "Commissioning photometry summary to be replaced with calibrated aperture photometry extraction."
+        "curation_status": "digitized_release_graphic_example_only",
+        "notes": "Example calibration photometry from commissioning documentation. For real analysis, fetch calibrated JWST observations from MAST."
       },
       "data": [
         {"wavelength_um": 0.90, "value": 15.2, "uncertainty_jy": 0.4},

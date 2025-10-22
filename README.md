@@ -22,9 +22,20 @@ This repository represents the complete rewrite of the Spectra-App into a modern
 
 ## ✨ Key Features
 
+### Accessing Real Spectral Data
+- **Remote Data Dialog**: Fetch calibrated spectra directly from NASA MAST archives
+  - **Solar System**: Jupiter, Mars, Saturn, Venus, and their moons (JWST, HST observations)
+  - **Stars**: Vega (A0V standard), Tau Ceti (solar analog), stellar libraries (CALSPEC, Pickles)
+  - **Exoplanets**: WASP-39 b, TRAPPIST-1 system, hot Jupiters (JWST transmission/emission spectra)
+  - Access via **File → Fetch Remote Data** (Ctrl+Shift+R)
+  - All data from credible sources: MAST, Exo.MAST, NASA Exoplanet Archive
+  - Wavelength coverage: UV, visible, near-IR, mid-IR (0.1–30 µm depending on instrument)
+
+> **Note**: Bundled reference data (JWST targets JSON) contains example-only digitized values for demonstration purposes. For scientific analysis, always use the Remote Data dialog to fetch real calibrated observations from MAST.
+
 ### Data Ingestion & Management
 - **Multi-format Support**: CSV/TXT, FITS 1D, JCAMP-DX with intelligent header detection
-- **Remote Data Integration**: NASA/MAST API for JWST spectra, NIST Atomic Spectra Database
+- **Remote Data Integration**: NASA/MAST API for JWST spectra, NIST Atomic Spectra Database, NASA Exoplanet Archive
 - **Offline-First Cache**: All data persists locally with SHA256 deduplication
 - **Provenance Tracking**: Complete audit trail for all data operations
 

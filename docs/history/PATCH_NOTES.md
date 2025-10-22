@@ -1,5 +1,34 @@
 # Patch Notes
 
+## 2025-10-21 (Create comprehensive real spectral data access guide) (20:17 EDT / 00:17 UTC)
+
+- Created `docs/user/real_spectral_data_guide.md` as a comprehensive reference for accessing legitimate spectral data from credible astronomical archives.
+- Documented three main categories with specific examples:
+  - Solar system objects: Jupiter, Mars, Saturn and moons (JWST/HST observations, UV to mid-IR)
+  - Stellar spectra: Vega (A0V standard), Tau Ceti (G8V solar analog), CALSPEC standards
+  - Exoplanet spectra: WASP-39 b, TRAPPIST-1, hot Jupiters (JWST transmission/emission spectra)
+- Included wavelength coverage table showing UV/visible/near-IR/mid-IR availability for each source.
+- Added data quality section explaining calibration levels, provenance tracking, and proper citations.
+- Clearly marked bundled JWST targets as deprecated example-only data with explicit warnings.
+- Provided troubleshooting guidance and references to related documentation.
+- This comprehensive guide makes it easy for users to understand what real data is available and how to access it, addressing the requirement for "real, spectral data, from a wide range of wavelengths" from "credible sources."
+
+## 2025-10-21 (Enhance quickstart guide with remote data workflow) (20:15 EDT / 00:15 UTC)
+
+- Updated `docs/user/quickstart.md` to include a new section on fetching real spectral data from MAST archives.
+- Added step-by-step instructions for using the Remote Data dialog (File → Fetch Remote Data, Ctrl+Shift+R) with specific examples for solar system objects (Jupiter, Mars), stars (Vega, Tau Ceti), and exoplanets (WASP-39 b, TRAPPIST-1).
+- Clarified that real data comes from credible sources (NASA MAST archives) and spans UV to mid-IR wavelengths (0.1–30 µm).
+- This improves the logical workflow by making the Remote Data feature more discoverable in the user onboarding documentation.
+
+## 2025-10-21 (Fix NasaExoplanetArchive import and clarify placeholder data status) (20:12 EDT / 00:12 UTC)
+
+- Fixed `NasaExoplanetArchive` import path in `app/services/remote_data_service.py` from incorrect `from astroquery.ipac.nexsci import NasaExoplanetArchive` to correct `from astroquery.ipac.nexsci.nasa_exoplanet_archive import NasaExoplanetArchive`. This enables the MAST ExoSystems provider to work properly for fetching exoplanet and solar system spectral data.
+- Updated `app/data/reference/jwst_targets.json` metadata to clearly mark the bundled JWST targets as "DEPRECATED - Example data only" with status "digitized_placeholder_deprecated" and added prominent notes directing users to fetch real calibrated spectra from MAST using the Remote Data dialog (File → Fetch Remote Data or Ctrl+Shift+R).
+- Updated each JWST target's provenance from "digitized_release_graphic" to "digitized_release_graphic_example_only" with instructions on how to fetch real data (e.g., search for "Jupiter" or "WASP-96 b" in MAST ExoSystems provider).
+- Updated README.md with prominent "Accessing Real Spectral Data" section highlighting solar system objects (Jupiter, Mars, Saturn), stars (Vega, Tau Ceti), and exoplanets (WASP-39 b, TRAPPIST-1) available from MAST with wavelength coverage information (UV to mid-IR, 0.1–30 µm).
+- Updated test expectation in `tests/test_reference_library.py` to reflect new curation status.
+- All changes align with requirement to provide real, legitimate spectral data from credible sources and avoid placeholder/synthesized data.
+
 ## 2025-10-21 (Remote Data dialog joins worker threads before closing) (19:17 EDT / 23:17 UTC)
 
 - Ensured the Remote Data dialog calls its worker cleanup helpers during accept, reject, and close events so any in-flight search

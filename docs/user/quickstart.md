@@ -44,7 +44,24 @@ Once the ingest completes, the spectrum appears in the plot pane and in the spec
 
 This mirrors the automated smoke workflow in `tests/test_smoke_workflow.py`. Run that test any time you need to verify the ingest → unit toggle → export pipeline.
 
-## 6. Next steps
+## 6. Fetch real spectral data from MAST
+
+The bundled samples are excellent for testing, but for scientific analysis you'll want real calibrated observations from space telescopes.
+
+1. Choose **File → Fetch Remote Data…** (or press `Ctrl+Shift+R`).
+2. Select **MAST ExoSystems** from the Catalogue dropdown.
+3. Try searching for real targets:
+   - **Solar system**: Type "Jupiter" or "Mars" to find JWST observations
+   - **Stars**: Type "Vega" or "Tau Ceti" for stellar spectra
+   - **Exoplanets**: Type "WASP-39 b" or "TRAPPIST-1" for exoplanet transmission/emission spectra
+4. Select one or more results from the table and click **Download & Import**.
+5. The spectra will be cached locally and appear in your dataset list.
+
+> **Note**: This requires an internet connection and may take a minute for large JWST observations. All data comes from credible sources (NASA MAST archives) and spans UV to mid-IR wavelengths (0.1–30 µm depending on the instrument).
+
+For more details on remote data, see [docs/user/remote_data.md](remote_data.md).
+
+## 7. Next steps
 
 - Continue exploring the `samples/` directory for additional datasets.
 - Review [docs/user/importing.md](importing.md) for deeper coverage of supported formats.
