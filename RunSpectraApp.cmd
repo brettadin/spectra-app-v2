@@ -21,7 +21,13 @@ echo Using interpreter "%PY_EXE%".
 REM ---- Upgrade pip (optional) ----
 "%PY_EXE%" -m pip install --upgrade pip
 
-REM ---- Install deps ----
+REM ---- Install numpy first (prefer prebuilt wheel) ----
+echo Installing numpy (prefer binary wheel)...
+"%PY_EXE%" -m pip install --prefer-binary "numpy>=1.26,<3" || (
+  echo Warning: installing numpy wheel failed; will attempt full requirements install next.
+)
+
+REM ---- Install deps from requirements.txt ----
 echo Installing dependencies from requirements.txt...
 set "PIP_NO_BINARY="
 set "PIP_ONLY_BINARY=numpy"
@@ -33,6 +39,9 @@ set "PIP_PREFER_BINARY=1"
   pause
   exit /b 1
 )
+
+REM ---- (Optional) force Qt offscreen for headless runs (uncomment if needed) ----
+REM set QT_QPA_PLATFORM=offscreen
 
 REM ---- Launch app ----
 echo Launching Spectra application...
