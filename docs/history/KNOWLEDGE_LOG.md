@@ -1131,3 +1131,43 @@ Import/Remote Import entries remain after the cleanup.
 - {'source_type': 'reference', 'archive': 'NIST ASD', 'label': 'H I (NIST ASD)', 'element_symbol': 'H', 'element_name': 'Hydrogen', 'atomic_number': 1, 'ion_stage': 'I', 'ion_stage_number': 1, 'query': {'linename': 'H I', 'identifier': 'H', 'lower_wavelength': 380.0, 'upper_wavelength': 750.0, 'wavelength_unit': 'nm', 'wavelength_type': 'vacuum', 'use_ritz': True}, 'fetched_at_utc': '2025-10-22T20:59:51.569571+00:00', 'citation': 'Kramida, A. et al. (NIST ASD), https://physics.nist.gov/asd', 'retrieved_via': 'astroquery.nist'}
 
 ---
+## 2025-10-22 17:33 – Overlay
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Enabled reference overlay(s).
+
+**References**:
+- reference::nist::h
+- {'source_type': 'reference', 'archive': 'NIST ASD', 'label': 'H I (NIST ASD)', 'element_symbol': 'H', 'element_name': 'Hydrogen', 'atomic_number': 1, 'ion_stage': 'I', 'ion_stage_number': 1, 'query': {'linename': 'H I', 'identifier': 'H', 'lower_wavelength': 380.0, 'upper_wavelength': 750.0, 'wavelength_unit': 'nm', 'wavelength_type': 'vacuum', 'use_ritz': True}, 'fetched_at_utc': '2025-10-22T21:33:00.753620+00:00', 'citation': 'Kramida, A. et al. (NIST ASD), https://physics.nist.gov/asd', 'retrieved_via': 'astroquery.nist'}
+
+---
+## 2025-10-22 17:33 – Overlay
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Enabled reference overlay(s).
+
+**References**:
+- reference::nist::h
+- reference::nist::he
+- {'source_type': 'reference', 'archive': 'NIST ASD', 'label': 'H I (NIST ASD)', 'element_symbol': 'H', 'element_name': 'Hydrogen', 'atomic_number': 1, 'ion_stage': 'I', 'ion_stage_number': 1, 'query': {'linename': 'H I', 'identifier': 'H', 'lower_wavelength': 380.0, 'upper_wavelength': 750.0, 'wavelength_unit': 'nm', 'wavelength_type': 'vacuum', 'use_ritz': True}, 'fetched_at_utc': '2025-10-22T21:33:00.753620+00:00', 'citation': 'Kramida, A. et al. (NIST ASD), https://physics.nist.gov/asd', 'retrieved_via': 'astroquery.nist'}
+- {'source_type': 'reference', 'archive': 'NIST ASD', 'label': 'He I (NIST ASD)', 'element_symbol': 'He', 'element_name': 'Helium', 'atomic_number': 2, 'ion_stage': 'I', 'ion_stage_number': 1, 'query': {'linename': 'He I', 'identifier': 'He', 'lower_wavelength': 380.0, 'upper_wavelength': 750.0, 'wavelength_unit': 'nm', 'wavelength_type': 'vacuum', 'use_ritz': True}, 'fetched_at_utc': '2025-10-22T21:33:09.964788+00:00', 'citation': 'Kramida, A. et al. (NIST ASD), https://physics.nist.gov/asd', 'retrieved_via': 'astroquery.nist'}
+
+---
+## 2025-10-22 17:34 – Overlay
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Enabled reference overlay(s).
+
+**References**:
+- reference::ir_groups
+
+---

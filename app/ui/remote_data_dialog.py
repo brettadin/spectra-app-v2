@@ -158,6 +158,9 @@ class RemoteDataDialog(QtWidgets.QDialog):  # type: ignore[name-defined]
         self._download_in_progress = False
         self._download_warnings: list[str] = []
         self._busy: bool = False
+        # Tracks enabled state of controls while in busy mode; must exist before
+        # any calls to _set_busy(False) during initial UI refresh.
+        self._control_enabled_state: dict[object, bool] = {}
         self._shutdown_timer: QtCore.QTimer | None = None
         self._shutdown_requested = False
         self._quick_pick_targets: list[Mapping[str, Any]] = []
@@ -1036,13 +1039,46 @@ class RemoteDataDialog(QtWidgets.QDialog):  # type: ignore[name-defined]
             self._download_thread = None
         self._download_worker = None
 
-    def _set_busy(self, busy: bool) -> None:
+    def _set_busy(self, busy: bool, *, message: str | None = None) -> None:
+        """Toggle busy state using the animated progress label.
+
+        This mirrors the earlier implementation defined for search/download
+        flows and avoids referencing a non-existent ``progress_indicator``.
+        """
+        self._busy = busy
+        controls = [
+            self.provider_combo,
+            self.search_edit,
+            self.search_button,
+            self.example_combo,
+            self.include_imaging_checkbox,
+        ]
         if busy:
-            self.progress_indicator.setRange(0, 0)
-            self.progress_indicator.setVisible(True)
+            self._control_enabled_state = {control: control.isEnabled() for control in controls}
+            for control in controls:
+                control.setEnabled(False)
         else:
-            self.progress_indicator.setVisible(False)
-            self.progress_indicator.setRange(0, 1)
+            for control in controls:
+                enabled = self._control_enabled_state.get(control, True)
+                if control is self.include_imaging_checkbox and not control.isVisible():
+                    control.setEnabled(False)
+                else:
+                    control.setEnabled(enabled)
+            self._control_enabled_state = {}
+
+        if busy:
+            self.download_button.setEnabled(False)
+            if getattr(self, "progress_movie", None) and self.progress_movie.isValid():
+                self.progress_movie.start()
+            self.progress_label.setVisible(True)
+        else:
+            if getattr(self, "progress_movie", None) and self.progress_movie.isValid():
+                self.progress_movie.stop()
+            self.progress_label.setVisible(False)
+            self._update_download_button_state()
+
+        if message is not None:
+            self.status_label.setText(message)
 
     # ------------------------------------------------------------------
     def reject(self) -> None:  # type: ignore[override]
@@ -1060,8 +1096,6 @@ class RemoteDataDialog(QtWidgets.QDialog):  # type: ignore[name-defined]
 
         self._shutdown_requested = True
         self._set_busy(True)
-        self.progress_indicator.setRange(0, 0)
-        self.progress_indicator.setVisible(True)
         self.status_label.setText(
             "Closing Remote Data… waiting for background tasks to finish."
         )
