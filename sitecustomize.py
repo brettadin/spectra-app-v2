@@ -41,7 +41,9 @@ def _install_numpy(spec: str = NUMPY_SPEC) -> None:
         "--prefer-binary",
         spec,
     )
-    subprocess.run(cmd, check=True)
+    env = os.environ.copy()
+    env.setdefault("SPECTRA_SKIP_AUTO_NUMPY", "1")
+    subprocess.run(cmd, check=True, env=env)
 
 
 def ensure_numpy() -> None:
