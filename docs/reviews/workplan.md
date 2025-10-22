@@ -29,6 +29,7 @@ This document tracks feature batches, validation status, and outstanding backlog
 ### Recently Completed (2025-10-21)
 
 - [x] Guarded the Remote Data dialog's Signal/Slot attribute detection so PySide6 launches stop requesting `pyqtSignal` / `pyqtSlot`, restoring startup and documenting the regression fix across patch notes and the knowledge log.
+- [x] Mirrored the runtime numpy bootstrap in `tests/conftest.py` so the round-trip CI job installs `numpy>=1.26,<3` before test collection, exporting the shared installer helpers from `sitecustomize.py` to avoid duplication.
 - [x] Bootstrapped CI numpy availability with `sitecustomize.py` so missing wheels no longer break test collection, and registered pytest `roundtrip`/`ui_contract` markers to eliminate unknown mark warnings.
 - [x] Ensured the Remote Data dialog joins active search/download threads when closing so Qt no longer warns about workers being
       destroyed mid-run and the asynchronous UX stays stable.

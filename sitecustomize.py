@@ -15,7 +15,11 @@ import sys
 from typing import Sequence
 
 
-def _install_numpy() -> None:
+NUMPY_SPEC = "numpy>=1.26,<3"
+"""Pinned numpy spec shared with the test bootstrap."""
+
+
+def _install_numpy(spec: str = NUMPY_SPEC) -> None:
     """Install numpy if it is missing.
 
     We intentionally keep the dependency pin aligned with ``requirements.txt``
@@ -35,12 +39,14 @@ def _install_numpy() -> None:
         "pip",
         "install",
         "--prefer-binary",
-        "numpy>=1.26,<3",
+        spec,
     )
     subprocess.run(cmd, check=True)
 
 
-def _ensure_numpy() -> None:
+def ensure_numpy() -> None:
+    """Guarantee ``numpy`` is importable for Spectra runtime/tests."""
+
     try:
         importlib.import_module("numpy")
     except ModuleNotFoundError:
@@ -49,5 +55,8 @@ def _ensure_numpy() -> None:
         importlib.import_module("numpy")
 
 
-_ensure_numpy()
+_ensure_numpy = ensure_numpy  # Backwards compatibility for older imports.
+
+
+ensure_numpy()
 

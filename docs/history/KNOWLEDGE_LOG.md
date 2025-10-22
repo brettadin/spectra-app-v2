@@ -28,6 +28,25 @@ Each entry in this document should follow this structure:
 
 ---
 
+## 2025-10-21T20:53:07-04:00 / 2025-10-22T00:53:07+00:00 – CI round-trip numpy bootstrap
+
+**Author**: agent
+
+**Context**: CI round-trip pytest job pulling in Spectra services.
+
+**Summary**: Added a pytest `conftest.py` bootstrap that mirrors the runtime
+`sitecustomize` installer so the GitHub Actions round-trip workflow installs
+`numpy>=1.26,<3` before importing service modules while retaining the FITS
+ingestion fixture used by smoke tests. Exported `ensure_numpy()` and the shared
+`NUMPY_SPEC` constant from `sitecustomize.py` to avoid duplicating the
+dependency specification and allow future tooling to reuse the installer.
+Failures now surface as a `pytest.UsageError` instructing operators to install
+numpy manually when the automation is disabled.
+
+**References**: `tests/conftest.py`, `sitecustomize.py`, `docs/history/PATCH_NOTES.md`
+
+---
+
 ## 2025-10-21T20:44:44-04:00 / 2025-10-22T00:44:41+00:00 – Remote Data dialog Qt signal fallback
 
 **Author**: agent
