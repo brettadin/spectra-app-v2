@@ -31,6 +31,7 @@ class FitsImporter:
         "counts",
         "signal",
         "y",
+        "data",  # Sometimes FITS uses generic "DATA" column
     )
 
     def _require_fits(self):
@@ -52,8 +53,9 @@ class FitsImporter:
             wave_col = self._find_column(hdu, self._WAVELENGTH_COLUMNS)
             flux_col = self._find_column(hdu, self._FLUX_COLUMNS)
 
-            x = np.asarray(data[wave_col], dtype=np.float64)
-            y = np.asarray(data[flux_col], dtype=np.float64)
+            x = np.asarray(data[wave_col], dtype=np.float64).flatten()
+            # Use squeeze() to convert (N, 1) arrays to 1D, but preserve higher dimensions for multi-order/cube data
+            y = np.asarray(data[flux_col], dtype=np.float64).squeeze()
 
             x_unit = self._column_unit(hdu, wave_col) or "nm"
             flux_unit = self._column_unit(hdu, flux_col) or hdu.header.get("BUNIT", "")

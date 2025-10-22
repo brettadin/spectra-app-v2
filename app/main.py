@@ -2646,18 +2646,27 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             self._log("Reference", f"NIST ASD → {label}")
             self._refresh_reference_view()
         finally:
-            # Cleanup and restore UI
+            # Cleanup and restore UI - schedule thread cleanup to avoid "wait on itself"
             if self._nist_thread is not None:
-                self._nist_thread.quit()
-                self._nist_thread.wait()
+                thread = self._nist_thread
                 self._nist_thread = None
                 self._nist_worker = None
+                # Don't wait on the thread that's calling this slot
+                QtCore.QTimer.singleShot(0, lambda: self._cleanup_nist_thread(thread))
             try:
                 QtWidgets.QApplication.restoreOverrideCursor()
             except Exception:
                 pass
             if hasattr(self, "nist_fetch_button"):
                 self.nist_fetch_button.setEnabled(True)
+    
+    def _cleanup_nist_thread(self, thread: QtCore.QThread) -> None:
+        """Clean up NIST worker thread on the main thread."""
+        if thread.isRunning():
+            thread.quit()
+            # Non-blocking: let Qt event loop finish thread shutdown
+            # Calling wait() causes "QThread::wait: Thread tried to wait on itself"
+        thread.deleteLater()
 
     def _filter_reference_entries(
         self, entries: List[Mapping[str, Any]], query: str

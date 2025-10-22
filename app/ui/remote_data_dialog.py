@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import html
+import math
 import json
 from collections.abc import Mapping, Sequence
 from pathlib import Path
@@ -145,6 +146,7 @@ class RemoteDataDialog(QtWidgets.QDialog):  # type: ignore[name-defined]
         self.remote_service = remote_service
         self.ingest_service = ingest_service
         self._records: List[RemoteRecord] = []
+        self._filtered_records: List[RemoteRecord] = []  # Store filtered records for table mapping
         self._ingested: List[object] = []
         self._provider_hints: dict[str, str] = {}
         self._provider_placeholders: dict[str, str] = {}
@@ -161,10 +163,10 @@ class RemoteDataDialog(QtWidgets.QDialog):  # type: ignore[name-defined]
         # Tracks enabled state of controls while in busy mode; must exist before
         # any calls to _set_busy(False) during initial UI refresh.
         self._control_enabled_state: dict[object, bool] = {}
-        self._shutdown_timer: QtCore.QTimer | None = None
-        self._shutdown_requested = False
         self._quick_pick_targets: list[Mapping[str, Any]] = []
+        self._current_filter: str = "all"  # all, spectra, images, other
 
+        self._build_ui()
         self._build_ui()
 
     # ------------------------------------------------------------------
@@ -222,6 +224,30 @@ class RemoteDataDialog(QtWidgets.QDialog):  # type: ignore[name-defined]
         controls.addWidget(self.include_imaging_checkbox)
 
         layout.addLayout(controls)
+
+        # Data type filter buttons
+        filter_layout = QtWidgets.QHBoxLayout()
+        filter_layout.addWidget(QtWidgets.QLabel("Show:"))
+        
+        self.filter_all_radio = QtWidgets.QRadioButton("All")
+        self.filter_all_radio.setChecked(True)
+        self.filter_all_radio.toggled.connect(self._on_filter_changed)
+        filter_layout.addWidget(self.filter_all_radio)
+        
+        self.filter_spectra_radio = QtWidgets.QRadioButton("Spectra")
+        self.filter_spectra_radio.toggled.connect(self._on_filter_changed)
+        filter_layout.addWidget(self.filter_spectra_radio)
+        
+        self.filter_images_radio = QtWidgets.QRadioButton("Images")
+        self.filter_images_radio.toggled.connect(self._on_filter_changed)
+        filter_layout.addWidget(self.filter_images_radio)
+        
+        self.filter_other_radio = QtWidgets.QRadioButton("Other")
+        self.filter_other_radio.toggled.connect(self._on_filter_changed)
+        filter_layout.addWidget(self.filter_other_radio)
+        
+        filter_layout.addStretch()
+        layout.addLayout(filter_layout)
 
         splitter = QtWidgets.QSplitter(QtCore.Qt.Orientation.Horizontal, self)
         layout.addWidget(splitter, 1)
@@ -291,6 +317,36 @@ class RemoteDataDialog(QtWidgets.QDialog):  # type: ignore[name-defined]
         self._update_download_button_state()
 
     # ------------------------------------------------------------------
+    def _on_filter_changed(self) -> None:
+        """Update visible records based on selected filter."""
+        if self.filter_all_radio.isChecked():
+            self._current_filter = "all"
+        elif self.filter_spectra_radio.isChecked():
+            self._current_filter = "spectra"
+        elif self.filter_images_radio.isChecked():
+            self._current_filter = "images"
+        else:
+            self._current_filter = "other"
+        
+        # Re-populate table with filtered records
+        if self._records:
+            self._populate_results_table(self._records)
+    
+    def _should_show_record(self, record: RemoteRecord) -> bool:
+        """Check if record matches current filter."""
+        if self._current_filter == "all":
+            return True
+        
+        metadata = record.metadata if isinstance(record.metadata, Mapping) else {}
+        product_type = str(metadata.get("dataproduct_type") or metadata.get("productType") or "").lower()
+        
+        if self._current_filter == "spectra":
+            return "spectrum" in product_type or "spectral" in product_type
+        elif self._current_filter == "images":
+            return "image" in product_type or "imaging" in product_type
+        else:  # other
+            return "spectrum" not in product_type and "image" not in product_type
+
     def _on_search(self) -> None:
         provider = self.provider_combo.currentText()
         query = self._build_provider_query(provider, self.search_edit.text())
@@ -465,30 +521,47 @@ class RemoteDataDialog(QtWidgets.QDialog):  # type: ignore[name-defined]
         if self._busy:
             self.download_button.setEnabled(False)
             return
-        enable = bool(self.results.selectionModel().selectedRows())
+        selected = self.results.selectionModel().selectedRows()
+        enable = bool(selected)
         self.download_button.setEnabled(enable)
+        if enable:
+            count = len(selected)
+            if count == 1:
+                self.download_button.setText("Download & Import")
+            else:
+                self.download_button.setText(f"Download & Import ({count} selected)")
+        else:
+            self.download_button.setText("Download & Import")
 
     def _connect_worker_cleanup(
         self,
         worker: QtCore.QObject,
         thread: QtCore.QThread,
-    ) -> None:
-        def cleanup(*_args: object) -> None:
-            if thread.isRunning():
-                thread.quit()
-                thread.wait()
+        def _do_cleanup() -> None:
+            thread_: QtCore.QThread = thread  # type: ignore
+            if thread_.isRunning():
+                thread_.quit()
+                # Schedule cleanup asynchronously to avoid blocking the event loop during thread shutdown
+                # Calling wait() here causes "QThread::wait: Thread tried to wait on itself"
             worker.deleteLater()
-            thread.deleteLater()
+            thread_.deleteLater()
             if worker is self._search_worker:
                 self._search_worker = None
                 self._search_thread = None
             if worker is self._download_worker:
                 self._download_worker = None
                 self._download_thread = None
+                self._download_thread = None
 
-        worker.finished.connect(cleanup)
-        worker.failed.connect(cleanup)
-        worker.cancelled.connect(cleanup)
+        def _schedule_cleanup(*_args: object) -> None:
+            # Ensure cleanup runs on the dialog's (GUI) thread to avoid
+            # waiting on the current worker thread and triggering
+            # "QThread::wait: Thread tried to wait on itself".
+            QtCore.QTimer.singleShot(0, _do_cleanup)
+
+        worker.finished.connect(_schedule_cleanup)
+        worker.failed.connect(_schedule_cleanup)
+        worker.cancelled.connect(_schedule_cleanup)
 
     def _cancel_search_worker(self) -> None:
         if self._search_worker is None:
@@ -517,25 +590,34 @@ class RemoteDataDialog(QtWidgets.QDialog):  # type: ignore[name-defined]
         worker_attr: str,
         timeout_ms: int | None = None,
     ) -> bool:
-        """Request shutdown and optionally wait for the worker thread.
+        """Request shutdown and check if the worker thread has stopped.
 
-        Returns ``True`` when the thread has stopped and been cleaned up. When
-        ``timeout_ms`` is ``None`` the call blocks until the thread exits. A
-        finite timeout keeps the UI responsive by allowing the caller to poll
-        for completion using ``QtCore.QTimer``.
+        Returns ``True`` when the thread has stopped. When ``timeout_ms`` is
+        ``None``, waits indefinitely (only used during app shutdown). A finite
+        timeout checks without blocking, allowing the caller to poll using
+        ``QtCore.QTimer``.
         """
 
         thread = getattr(self, thread_attr)
         worker = getattr(self, worker_attr)
         if thread is None:
             return True
+        
+        # Only quit if still running
         if thread.isRunning():
             thread.quit()
-            if timeout_ms is not None:
-                if not thread.wait(timeout_ms):
-                    return False
-            else:
+        
+        # Check if finished without blocking (except during app shutdown)
+        if timeout_ms is not None:
+            # Non-blocking check: don't wait, just see if it's done
+            if thread.isRunning():
+                return False
+        else:
+            # App is shutting down, event loop gone, must block
+            if thread.isRunning():
                 thread.wait()
+        
+        # Clean up
         if worker is not None:
             worker.deleteLater()
         thread.deleteLater()
@@ -658,6 +740,29 @@ class RemoteDataDialog(QtWidgets.QDialog):  # type: ignore[name-defined]
 
     def _build_provider_query(self, provider: str, text: str) -> dict[str, str]:
         stripped = text.strip()
+        if provider == RemoteDataService.PROVIDER_NIST:
+            if not stripped:
+                return {}
+            # Support simple "key=value; key2=value2" parsing for convenience
+            query: dict[str, str] = {}
+            parts = [part.strip() for part in stripped.split(";") if part.strip()]
+            for part in parts:
+                if "=" not in part:
+                    continue
+                key, value = part.split("=", 1)
+                key = key.strip().lower()
+                value = value.strip()
+                if not value:
+                    continue
+                if key in {"element", "spectrum", "linename"}:
+                    query["element"] = value
+                elif key in {"ion", "ion_stage"}:
+                    query["ion_stage"] = value
+                elif key in {"keyword", "text"}:
+                    query["text"] = value
+            if not query:
+                query = {"text": stripped}
+            return query
         if provider == RemoteDataService.PROVIDER_MAST:
             return {"target_name": stripped} if stripped else {}
         if provider == RemoteDataService.PROVIDER_EXOSYSTEMS:
@@ -686,13 +791,13 @@ class RemoteDataDialog(QtWidgets.QDialog):  # type: ignore[name-defined]
         if isinstance(query_text, str):
             self.search_edit.setText(query_text)
             self._on_search()
-
     def _update_preview(self) -> None:
         indexes = self.results.selectionModel().selectedRows()
         if not indexes:
             self.preview.clear()
             return
-        record = self._records[indexes[0].row()]
+        # Use filtered records for correct mapping
+        record = self._filtered_records[indexes[0].row()]
         metadata = record.metadata if isinstance(record.metadata, Mapping) else {}
         narrative_lines: list[str] = []
         summary = self._format_exoplanet_summary(metadata)
@@ -710,15 +815,20 @@ class RemoteDataDialog(QtWidgets.QDialog):  # type: ignore[name-defined]
             narrative_lines.append("")
         narrative_lines.append(json.dumps(metadata, indent=2, ensure_ascii=False))
         self.preview.setPlainText("\n".join(narrative_lines))
+        narrative_lines.append(json.dumps(metadata, indent=2, ensure_ascii=False))
+        self.preview.setPlainText("\n".join(narrative_lines))
 
     def _on_selection_changed(self) -> None:
         self._update_preview()
-        self._update_download_button_state()
-
     def _populate_results_table(self, records: Sequence[RemoteRecord]) -> None:
         self._clear_result_widgets()
-        self.results.setRowCount(len(records))
-        for row, record in enumerate(records):
+        
+        # Filter records based on current filter
+        filtered = [r for r in records if self._should_show_record(r)]
+        self._filtered_records = filtered  # Store filtered records for row mapping
+        
+        self.results.setRowCount(len(filtered))
+        for row, record in enumerate(filtered):
             self._set_table_text(row, 0, record.identifier)
             self._set_table_text(row, 1, record.title)
             self._set_table_text(row, 2, self._format_target(record))
@@ -729,26 +839,59 @@ class RemoteDataDialog(QtWidgets.QDialog):  # type: ignore[name-defined]
             self._set_download_widget(row, 6, record.download_url)
             self._set_table_text(row, 7, "")
             self._set_preview_widget(row, 7, record.metadata)
+            self._set_table_text(row, 7, "")
+            self._set_preview_widget(row, 7, record.metadata)
 
     def _set_table_text(self, row: int, column: int, value: str | None) -> None:
         item = QtWidgets.QTableWidgetItem(value or "")
         item.setFlags(item.flags() & ~QtCore.Qt.ItemFlag.ItemIsEditable)
         self.results.setItem(row, column, item)
-
     def _set_download_widget(self, row: int, column: int, url: str) -> None:
         label = QtWidgets.QLabel(self.results)
-        hyperlink = self._link_for_download(url)
-        escaped = html.escape(hyperlink)
-        label.setText(f'<a href="{escaped}">Open</a>')
-        label.setOpenExternalLinks(True)
-        label.setTextInteractionFlags(QtCore.Qt.TextInteractionFlag.TextBrowserInteraction)
         label.setAlignment(QtCore.Qt.AlignmentFlag.AlignLeft | QtCore.Qt.AlignmentFlag.AlignVCenter)
-        tooltip = url
-        if hyperlink != url:
-            tooltip = f"{url}\n{hyperlink}"
-        label.setToolTip(tooltip)
         label.setFocusPolicy(QtCore.Qt.FocusPolicy.NoFocus)
+        if not url:
+            label.setText("N/A")
+            label.setEnabled(False)
+            label.setToolTip("No download available")
+            label.setOpenExternalLinks(False)
+            label.setTextInteractionFlags(QtCore.Qt.TextInteractionFlag.NoTextInteraction)
+        else:
+            hyperlink = self._link_for_download(url)
+            escaped = html.escape(hyperlink)
+            label.setText(f'<a href="{escaped}">Open</a>')
+            label.setOpenExternalLinks(True)
+            label.setTextInteractionFlags(QtCore.Qt.TextInteractionFlag.TextBrowserInteraction)
+            tooltip = url
+            if hyperlink != url:
+                tooltip = f"{url}\n{hyperlink}"
+            label.setToolTip(tooltip)
         self.results.setCellWidget(row, column, label)
+        self.results.setCellWidget(row, column, label)
+
+    def _link_for_download(self, url: str) -> str:
+        """Return a user-friendly hyperlink for a given download URL.
+
+        - For MAST dataURIs (mast:...), use the MAST Download API endpoint so a browser
+          can open the file directly.
+        - For NIST pseudo-URIs, link to the NIST ASD site since the CSV is generated locally.
+        - For regular http(s) links, return as-is.
+        - Otherwise, fall back to the original string.
+        """
+        try:
+            from urllib.parse import quote
+        except Exception:  # pragma: no cover - extremely defensive
+            quote = None  # type: ignore[assignment]
+
+        if isinstance(url, str) and url.startswith("mast:"):
+            if quote is not None:
+                return f"https://mast.stsci.edu/api/v0.1/Download/file?uri={quote(url, safe='')}"
+            return f"https://mast.stsci.edu/api/v0.1/Download/file?uri={url}"
+        if isinstance(url, str) and (url.startswith("http://") or url.startswith("https://")):
+            return url
+        if isinstance(url, str) and (url.startswith("nist-asd:") or url.startswith("nist-asd://")):
+            return "https://physics.nist.gov/PhysRefData/ASD/lines_form.html"
+        return url
 
     def _set_preview_widget(self, row: int, column: int, metadata: Mapping[str, Any] | Any) -> None:
         mapping = metadata if isinstance(metadata, Mapping) else {}
@@ -796,8 +939,6 @@ class RemoteDataDialog(QtWidgets.QDialog):  # type: ignore[name-defined]
         self.results.setRowCount(0)
 
     def _reset_results_table(self) -> None:
-        self._clear_result_widgets()
-
     def _on_queue_downloads(self) -> None:
         if self._busy:
             return
@@ -806,7 +947,11 @@ class RemoteDataDialog(QtWidgets.QDialog):  # type: ignore[name-defined]
             self.status_label.setText("Select at least one record to import.")
             return
 
-        records = [self._records[index.row()] for index in selected]
+        # Use filtered records for correct mapping
+        records = [self._filtered_records[index.row()] for index in selected]
+        self._start_download(records)
+        # Use filtered records for download selection
+        records = [self._filtered_records[index.row()] for index in selected]
         self._start_download(records)
 
     def _refresh_provider_state(self) -> None:
@@ -928,42 +1073,28 @@ class RemoteDataDialog(QtWidgets.QDialog):  # type: ignore[name-defined]
             )
             self._quick_pick_targets.append(target)
 
-    # ------------------------------------------------------------------
-    def _start_search_worker(self, worker: _SearchWorker) -> None:
-        self._cleanup_search_thread()
-        thread = QtCore.QThread(self)
-        thread.setObjectName("remote-search-worker")
-        self._search_thread = thread
-        self._search_worker = worker
-        worker.moveToThread(thread)
-        thread.started.connect(worker.run)
-        worker.finished.connect(thread.quit)
-        worker.finished.connect(worker.deleteLater)
-        thread.finished.connect(thread.deleteLater)
-        thread.finished.connect(self._on_search_thread_finished)
-        thread.start()
-
-    def _start_download_worker(self, worker: _DownloadWorker) -> None:
-        self._cleanup_download_thread()
-        thread = QtCore.QThread(self)
-        thread.setObjectName("remote-download-worker")
-        self._download_thread = thread
-        self._download_worker = worker
-        worker.moveToThread(thread)
-        thread.started.connect(worker.run)
-        worker.finished.connect(thread.quit)
-        worker.finished.connect(worker.deleteLater)
-        thread.finished.connect(thread.deleteLater)
-        thread.finished.connect(self._on_download_thread_finished)
-        thread.start()
+    # (removed unused worker bootstrap helpers; we wire workers inline where started)
 
     def _handle_search_results(self, records: list[RemoteRecord]) -> None:
         self._records = list(records)
         self._populate_results_table(records)
-        self.status_label.setText(
-            f"{len(records)} result(s) fetched from {self.provider_combo.currentText()}."
-        )
-        if records:
+        
+        # Count how many match the current filter
+        filtered = [r for r in records if self._should_show_record(r)]
+        total_count = len(records)
+        visible_count = len(filtered)
+        
+        provider_name = self.provider_combo.currentText()
+        if visible_count == total_count:
+            self.status_label.setText(
+                f"{total_count} result(s) fetched from {provider_name}."
+            )
+        else:
+            self.status_label.setText(
+                f"Showing {visible_count} of {total_count} result(s) from {provider_name}."
+            )
+        
+        if filtered:
             self.results.selectRow(0)
         else:
             self.preview.clear()
@@ -979,42 +1110,7 @@ class RemoteDataDialog(QtWidgets.QDialog):  # type: ignore[name-defined]
         self._update_enabled_state()
         self._set_busy(False)
 
-    def _handle_download_completed(self, spectra: list[object]) -> None:
-        self._ingested = list(spectra)
-        if self._download_warnings and spectra:
-            QtWidgets.QMessageBox.warning(
-                self,
-                "Partial download",
-                "\n".join(self._download_warnings),
-            )
-            self._download_warnings.clear()
-        if spectra:
-            self.status_label.setText(f"Imported {len(spectra)} spectrum/s.")
-            self.download_completed.emit(spectra)
-            self.accept()
-        elif self._download_warnings:
-            QtWidgets.QMessageBox.warning(
-                self,
-                "Download failed",
-                "\n".join(self._download_warnings),
-            )
-            self._download_warnings.clear()
-        else:
-            self.status_label.setText("No spectra were imported.")
-
-    def _handle_download_warning(self, message: str) -> None:
-        self._download_warnings.append(message)
-
-    def _handle_download_error(self, message: str) -> None:
-        QtWidgets.QMessageBox.critical(self, "Download failed", message)
-        self.status_label.setText(message)
-        self.download_failed.emit(message)
-
-    def _download_finished(self) -> None:
-        self._download_in_progress = False
-        self._update_enabled_state()
-        self._download_warnings.clear()
-        self._set_busy(False)
+    # (removed duplicate download handlers; earlier ones handle progress/finish/failure)
 
     def _update_enabled_state(self) -> None:
         searching = self._search_in_progress
@@ -1030,145 +1126,7 @@ class RemoteDataDialog(QtWidgets.QDialog):  # type: ignore[name-defined]
         )
         self.download_button.setEnabled(bool(self._records) and not downloading and not searching)
 
-    def accept(self) -> None:  # pragma: no cover - Qt dialog lifecycle glue
-        self._cleanup_search_thread()
-        self._cleanup_download_thread()
-        super().accept()
-
-    def reject(self) -> None:  # pragma: no cover - Qt dialog lifecycle glue
-        self._cleanup_search_thread()
-        self._cleanup_download_thread()
-        super().reject()
-
-    def closeEvent(self, event: QtGui.QCloseEvent) -> None:  # pragma: no cover
-        self._cleanup_search_thread()
-        self._cleanup_download_thread()
-        super().closeEvent(event)
-
-    def _on_search_thread_finished(self) -> None:
-        self._search_thread = None
-        self._search_worker = None
-
-    def _on_download_thread_finished(self) -> None:
-        self._download_thread = None
-        self._download_worker = None
-
-    def _cleanup_search_thread(self) -> None:
-        if self._search_thread is not None:
-            self._search_thread.quit()
-            self._search_thread.wait()
-            self._search_thread = None
-        self._search_worker = None
-
-    def _cleanup_download_thread(self) -> None:
-        if self._download_thread is not None:
-            self._download_thread.quit()
-            self._download_thread.wait()
-            self._download_thread = None
-        self._download_worker = None
-
-    def _set_busy(self, busy: bool, *, message: str | None = None) -> None:
-        """Toggle busy state using the animated progress label.
-
-        This mirrors the earlier implementation defined for search/download
-        flows and avoids referencing a non-existent ``progress_indicator``.
-        """
-        self._busy = busy
-        controls = [
-            self.provider_combo,
-            self.search_edit,
-            self.search_button,
-            self.example_combo,
-            self.include_imaging_checkbox,
-        ]
-        if busy:
-            self._control_enabled_state = {control: control.isEnabled() for control in controls}
-            for control in controls:
-                control.setEnabled(False)
-        else:
-            for control in controls:
-                enabled = self._control_enabled_state.get(control, True)
-                if control is self.include_imaging_checkbox and not control.isVisible():
-                    control.setEnabled(False)
-                else:
-                    control.setEnabled(enabled)
-            self._control_enabled_state = {}
-
-        if busy:
-            self.download_button.setEnabled(False)
-            if getattr(self, "progress_movie", None) and self.progress_movie.isValid():
-                self.progress_movie.start()
-            self.progress_label.setVisible(True)
-        else:
-            if getattr(self, "progress_movie", None) and self.progress_movie.isValid():
-                self.progress_movie.stop()
-            self.progress_label.setVisible(False)
-            self._update_download_button_state()
-
-        if message is not None:
-            self.status_label.setText(message)
-
-    # ------------------------------------------------------------------
-    def reject(self) -> None:  # type: ignore[override]
-        if self._shutdown_requested:
-            return
-
-        threads = [
-            thread
-            for thread in (self._search_thread, self._download_thread)
-            if thread is not None and thread.isRunning()
-        ]
-        if not threads:
-            self._finish_reject()
-            return
-
-        self._shutdown_requested = True
-        self._set_busy(True)
-        self.status_label.setText(
-            "Closing Remote Data… waiting for background tasks to finish."
-        )
-        timer = self._ensure_shutdown_timer()
-        self._poll_shutdown_threads()
-        if self._shutdown_requested:
-            timer.start()
-
-    def _ensure_shutdown_timer(self) -> QtCore.QTimer:
-        if self._shutdown_timer is None:
-            timer = QtCore.QTimer(self)
-            timer.setInterval(150)
-            timer.setSingleShot(False)
-            timer.timeout.connect(self._poll_shutdown_threads)
-            self._shutdown_timer = timer
-        return self._shutdown_timer
-
-    def _poll_shutdown_threads(self) -> None:
-        if not self._shutdown_requested:
-            return
-
-        active = False
-        for thread in (self._search_thread, self._download_thread):
-            if thread is None:
-                continue
-            if thread.isRunning():
-                if not thread.wait(0):
-                    active = True
-                    continue
-            thread.wait(0)
-
-        if active:
-            return
-
-        self._finish_reject()
-
-    def _finish_reject(self) -> None:
-        timer = self._shutdown_timer
-        if timer is not None:
-            timer.stop()
-            timer.deleteLater()
-            self._shutdown_timer = None
-        self._shutdown_requested = False
-        self._set_busy(False)
-        super().reject()
+    # (removed duplicate lifecycle/shutdown helpers; a single reject/closeEvent earlier handles cleanup safely)
 
     # ------------------------------------------------------------------
     def _format_target(self, record: RemoteRecord) -> str:

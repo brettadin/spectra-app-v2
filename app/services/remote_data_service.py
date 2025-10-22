@@ -719,7 +719,10 @@ class RemoteDataService:
             except Exception:
                 observation_table = None
         elif target_name:
-            observation_table = mast.Observations.query_object(target_name, radius=radius)
+            try:
+                observation_table = mast.Observations.query_object(target_name, radius=radius)
+            except Exception:
+                observation_table = None
         else:
             return []
 
@@ -1089,13 +1092,31 @@ class RemoteDataService:
 
     def _fetch_via_mast(self, record: RemoteRecord) -> Path:
         mast = self._ensure_mast()
-        result = mast.Observations.download_file(record.download_url, cache=False)
-        if not result:
-            raise RuntimeError("MAST download did not return a file path")
-        path = Path(result)
-        if not path.exists():
-            raise FileNotFoundError(f"MAST download missing: {path}")
-        return path
+        
+        # Download to a temp directory instead of current working directory
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_path = Path(temp_dir)
+            result = mast.Observations.download_file(
+                record.download_url, 
+                cache=False,
+                local_path=str(temp_path)
+            )
+            if not result:
+                raise RuntimeError("MAST download did not return a file path")
+            
+            # Copy to a persistent temp file since temp_dir will be deleted
+            downloaded = Path(result)
+            if not downloaded.exists():
+                raise FileNotFoundError(f"MAST download missing: {downloaded}")
+            
+            # Create a temp file in the system temp directory with the same suffix
+            suffix = downloaded.suffix or '.fits'
+            import shutil
+            temp_handle = tempfile.NamedTemporaryFile(mode='wb', delete=False, suffix=suffix)
+            temp_handle.close()
+            shutil.copyfile(downloaded, temp_handle.name)
+            
+            return Path(temp_handle.name)
 
     def _fetch_exomast_filelist(self, target_name: str) -> Dict[str, Any] | None:
         """Return the Exo.MAST file list for *target_name* without double encoding."""
