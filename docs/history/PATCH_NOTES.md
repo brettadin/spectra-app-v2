@@ -1,6 +1,12 @@
 # Patch Notes
 
 
+## 2025-10-21 (Remote Data dialog Signal fallback works on PySide6) (20:44 EDT / 00:44 UTC)
+
+- Guarded the Remote Data dialog's Qt Signal/Slot imports so PySide6 launches no longer attempt to access `pyqtSignal` and
+  `pyqtSlot`. The dialog now resolves the native attribute first and only falls back to the PyQt names when present, restoring
+  compatibility with the packaged PySide6 runtime.
+
 ## 2025-10-21 (Bootstrap numpy availability for tests) (20:38 EDT / 00:38 UTC)
 
 - Added `sitecustomize.py` to auto-install `numpy>=1.26,<3` with `--prefer-binary` when the module is missing, aligning with the
