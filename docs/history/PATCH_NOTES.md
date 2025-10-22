@@ -667,3 +667,9 @@
 - Removed manual `%20` replacements when building Exo.MAST file-list requests so planets with spaces in their names (e.g. WASP-39 b) resolve citations again.
 - Documented the behaviour changes in the remote data guide and recorded the regression run in the workplan.
 
+
+## 2025-10-22T13:35:22-04:00 — Solar system quick-picks & science-ready filters
+
+- Added a Solar System quick-pick menu to the Remote Data dialog covering Mercury through Pluto, expanded curated targets to include HD 189733 (host + planet), and wired the button to fire short ExoSystems queries automatically.
+- Refactored `RemoteDataService` with `curated_targets()` helpers, category metadata, and tightened science-ready filtering (`dataproduct_type="spectrum"`, `calib_level=[2,3]`, `intentType="SCIENCE"`) for MAST/ExoSystems results.
+- Updated README, remote data guides, developer notes, and workplan entries alongside new unit/integration tests exercising the quick-pick UI and calibrated product gating.

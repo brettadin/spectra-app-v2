@@ -96,15 +96,44 @@ class RemoteDataService:
 
     _CURATED_TARGETS: tuple[Dict[str, Any], ...] = (
         {
-            "names": {"jupiter", "io", "europa", "ganymede", "callisto"},
-            "display_name": "Jupiter",
-            "object_name": "Jupiter",
+            "names": {"mercury"},
+            "display_name": "Mercury",
+            "object_name": "Mercury",
             "classification": "Solar System planet",
+            "category": "solar_system",
             "citations": [
                 {
-                    "title": "JWST Early Release Observations",
-                    "doi": "10.3847/1538-4365/acbd9a",
-                    "notes": "JWST ERS quick-look spectra curated for Jovian system.",
+                    "title": "MESSENGER MASCS reflectance spectra",
+                    "url": "https://pds.nasa.gov/ds-view/pds/viewDataset.jsp?dsid=MESS-H-MASCS-3-RDR-V1.0",
+                    "notes": "Planetary Data System calibrated spectra for Mercury's dayside.",
+                }
+            ],
+        },
+        {
+            "names": {"venus"},
+            "display_name": "Venus",
+            "object_name": "Venus",
+            "classification": "Solar System planet",
+            "category": "solar_system",
+            "citations": [
+                {
+                    "title": "Venus Express VIRTIS spectral survey",
+                    "url": "https://archives.esac.esa.int/psa/ftp/VENUS-EXPRESS/VIRTIS/",
+                    "notes": "VIRTIS calibrated cubes spanning UV through thermal infrared.",
+                }
+            ],
+        },
+        {
+            "names": {"earth", "earth-moon", "terra"},
+            "display_name": "Earth",
+            "object_name": "Earth",
+            "classification": "Solar System planet",
+            "category": "solar_system",
+            "citations": [
+                {
+                    "title": "EPOXI Earth Observations",
+                    "url": "https://pds.nasa.gov/ds-view/pds/viewDataset.jsp?dsid=EPOXI-C/EARTH-MRI/HRII-5-EPOXI-EARTH-V1.0",
+                    "notes": "Disc-integrated Earth spectra captured during the EPOXI flyby.",
                 }
             ],
         },
@@ -113,6 +142,7 @@ class RemoteDataService:
             "display_name": "Mars",
             "object_name": "Mars",
             "classification": "Solar System planet",
+            "category": "solar_system",
             "citations": [
                 {
                     "title": "JWST/NIRSpec Mars observations",
@@ -122,22 +152,81 @@ class RemoteDataService:
             ],
         },
         {
-            "names": {"saturn", "enceladus", "titan"},
-            "display_name": "Saturn",
-            "object_name": "Saturn",
+            "names": {"jupiter", "io", "europa", "ganymede", "callisto"},
+            "display_name": "Jupiter",
+            "object_name": "Jupiter",
             "classification": "Solar System planet",
+            "category": "solar_system",
             "citations": [
                 {
-                    "title": "Cassini / JWST comparative spectra",
-                    "notes": "Curated composite assembled for Spectra examples",
+                    "title": "JWST Early Release Observations",
+                    "doi": "10.3847/1538-4365/acbd9a",
+                    "notes": "JWST ERS quick-look spectra curated for Jovian system.",
                 }
             ],
         },
         {
-            "names": {"g2v", "solar analog", "sun-like", "hd 10700", "tau cet"},
+            "names": {"saturn", "enceladus", "titan"},
+            "display_name": "Saturn",
+            "object_name": "Saturn",
+            "classification": "Solar System planet",
+            "category": "solar_system",
+            "citations": [
+                {
+                    "title": "Cassini & JWST comparative spectra",
+                    "url": "https://pds-rings.seti.org/",
+                    "notes": "Composite set used in Spectra examples for Saturnian system.",
+                }
+            ],
+        },
+        {
+            "names": {"uranus"},
+            "display_name": "Uranus",
+            "object_name": "Uranus",
+            "classification": "Solar System planet",
+            "category": "solar_system",
+            "citations": [
+                {
+                    "title": "HST/STIS Uranus atlas",
+                    "url": "https://archive.stsci.edu/hst/",
+                    "notes": "Calibrated ultraviolet-through-infrared spectra from STIS and NICMOS.",
+                }
+            ],
+        },
+        {
+            "names": {"neptune"},
+            "display_name": "Neptune",
+            "object_name": "Neptune",
+            "classification": "Solar System planet",
+            "category": "solar_system",
+            "citations": [
+                {
+                    "title": "HST/NICMOS Neptune program",
+                    "url": "https://archive.stsci.edu/missions-and-data/hst",
+                    "notes": "NICMOS calibrations spanning methane absorption bands.",
+                }
+            ],
+        },
+        {
+            "names": {"pluto", "pluto-charon"},
+            "display_name": "Pluto",
+            "object_name": "Pluto",
+            "classification": "Solar System planet",
+            "category": "solar_system",
+            "citations": [
+                {
+                    "title": "New Horizons LEISA spectral maps",
+                    "url": "https://pds.nasa.gov/ds-view/pds/viewDataset.jsp?dsid=NH-P-LEISA-3-PLUTO-V3.0",
+                    "notes": "LEISA calibrated cubes covering methane and nitrogen bands.",
+                }
+            ],
+        },
+        {
+            "names": {"g2v", "solar analog", "sun-like", "hd 10700", "tau ceti"},
             "display_name": "Tau Ceti (G8V)",
             "object_name": "HD 10700",
             "classification": "Nearby solar-type star",
+            "category": "stellar_standard",
             "citations": [
                 {
                     "title": "Pickles stellar spectral library",
@@ -151,6 +240,7 @@ class RemoteDataService:
             "display_name": "Vega (A0V)",
             "object_name": "Vega",
             "classification": "Spectral standard",
+            "category": "stellar_standard",
             "citations": [
                 {
                     "title": "HST CALSPEC standards",
@@ -159,7 +249,100 @@ class RemoteDataService:
                 }
             ],
         },
+        {
+            "names": {"hd 189733"},
+            "display_name": "HD 189733",
+            "object_name": "HD 189733",
+            "classification": "Active K dwarf host star",
+            "category": "host_star",
+            "citations": [
+                {
+                    "title": "HD 189733 stellar monitoring",
+                    "url": "https://archive.stsci.edu/hlsp/hd189733/",
+                    "notes": "HST and JWST monitoring programs capturing the host star spectrum.",
+                }
+            ],
+        },
+        {
+            "names": {"hd 189733 b"},
+            "display_name": "HD 189733 b",
+            "object_name": "HD 189733 b",
+            "planet_name": "HD 189733 b",
+            "host_name": "HD 189733",
+            "classification": "Transiting exoplanet",
+            "category": "exoplanet",
+            "ra": 300.1821,
+            "dec": 22.7099,
+            "search_radius": "0.05 deg",
+            "citations": [
+                {
+                    "title": "JWST Early Release Science: HD 189733 b",
+                    "url": "https://jwst-docs.stsci.edu/",
+                    "notes": "Transit spectroscopy spanning 0.8–5 μm.",
+                }
+            ],
+        },
+        {
+            "names": {"wasp-39", "wasp-39 b"},
+            "display_name": "WASP-39 b",
+            "object_name": "WASP-39",
+            "planet_name": "WASP-39 b",
+            "host_name": "WASP-39",
+            "classification": "Transiting exoplanet",
+            "category": "exoplanet",
+            "ra": 210.1234,
+            "dec": -39.1234,
+            "search_radius": "0.05 deg",
+            "citations": [
+                {
+                    "title": "JWST ERS Transmission Spectra",
+                    "doi": "10.1038/s41586-022-05439-6",
+                    "notes": "WASP-39 b transmission spectra released through Exo.MAST.",
+                }
+            ],
+        },
+        {
+            "names": {"trappist-1", "trappist-1e", "trappist-1 system"},
+            "display_name": "TRAPPIST-1 system",
+            "object_name": "TRAPPIST-1",
+            "classification": "Ultracool dwarf planetary system",
+            "category": "exoplanet_system",
+            "citations": [
+                {
+                    "title": "Spitzer and JWST phase curve campaigns",
+                    "url": "https://exo.mast.stsci.edu/exomast_planet.html?planet=TRAPPIST-1%20e",
+                    "notes": "Combined photometry and spectroscopic programs for TRAPPIST-1 planets.",
+                }
+            ],
+        },
     )
+
+    def curated_targets(
+        self,
+        *,
+        category: str | None = None,
+        classification: str | None = None,
+    ) -> List[Dict[str, Any]]:
+        """Return curated targets filtered by category or classification."""
+
+        targets: List[Dict[str, Any]] = []
+        for entry in self._CURATED_TARGETS:
+            if category and entry.get("category") != category:
+                continue
+            if classification and entry.get("classification") != classification:
+                continue
+
+            names = entry.get("names", set())
+            if not isinstance(names, set):
+                names = set(names)
+            canonical_names = {str(name).strip() for name in names if str(name).strip()}
+            canonical_names.add(str(entry.get("display_name", "")).lower())
+            canonical_names.add(str(entry.get("object_name", "")).lower())
+
+            payload = dict(entry)
+            payload["names"] = sorted(canonical_names)
+            targets.append(payload)
+        return targets
 
     def providers(self) -> List[str]:
         """Return the list of remote providers whose dependencies are satisfied."""
@@ -380,6 +563,46 @@ class RemoteDataService:
 
         return False
 
+    def _normalise_calib_levels(self, value: Any) -> list[int]:
+        if value is None:
+            return []
+        if isinstance(value, (list, tuple, set)):
+            values = value
+        else:
+            values = [value]
+
+        normalised: list[int] = []
+        for item in values:
+            try:
+                if isinstance(item, str) and not item.strip():
+                    continue
+                normalised.append(int(float(item)))
+            except (TypeError, ValueError):
+                continue
+        return normalised
+
+    def _is_science_ready(self, metadata: Mapping[str, Any]) -> bool:
+        calib_candidates = metadata.get("calib_level")
+        if calib_candidates is None:
+            calib_candidates = metadata.get("calibLevel")
+        levels = self._normalise_calib_levels(calib_candidates)
+        if levels and not any(level in {2, 3} for level in levels):
+            return False
+
+        intent = metadata.get("intentType") or metadata.get("intent_type")
+        if intent:
+            if str(intent).strip().upper() != "SCIENCE":
+                return False
+
+        dataproduct = str(metadata.get("dataproduct_type") or "").lower()
+        if dataproduct and dataproduct not in {"spectrum", "spectral_energy_distribution"}:
+            # Allow imaging products only when the caller explicitly widens the
+            # search. The imaging flag is handled separately in
+            # ``_records_from_mast_products``.
+            return False
+
+        return True
+
     def _is_imaging(self, metadata: Mapping[str, Any]) -> bool:
         product = str(metadata.get("dataproduct_type") or "").lower()
         if product in {"image", "image_cube", "preview"}:
@@ -422,6 +645,11 @@ class RemoteDataService:
                 if not (self._is_spectroscopic(merged) or self._is_imaging(merged)):
                     continue
             elif not self._is_spectroscopic(merged):
+                continue
+
+            if not self._is_science_ready(merged) and not (
+                include_imaging and self._is_imaging(merged)
+            ):
                 continue
 
             data_uri = self._first_text(merged, ["dataURI", "data_uri", "ProductURI"])
@@ -495,7 +723,25 @@ class RemoteDataService:
         else:
             return []
 
-        system_metadata = self._build_system_metadata(system)
+        enriched_system = dict(system)
+        planet_name = self._first_text(enriched_system, ["planet_name"])
+        if planet_name and "exomast" not in enriched_system:
+            payload = self._fetch_exomast_filelist(planet_name)
+            if payload:
+                enriched_system["exomast"] = payload
+                citation = payload.get("citation")
+                if citation:
+                    citations = list(enriched_system.get("citations") or [])
+                    citations.append(
+                        {
+                            "title": str(citation),
+                            "url": "https://exo.mast.stsci.edu/",
+                            "notes": "Curated spectra and file list from Exo.MAST.",
+                        }
+                    )
+                    enriched_system["citations"] = citations
+
+        system_metadata = self._build_system_metadata(enriched_system)
         records = self._records_from_mast_products(
             observation_table,
             include_imaging=include_imaging,
@@ -546,12 +792,17 @@ class RemoteDataService:
                 metadata = {
                     "display_name": entry.get("display_name"),
                     "object_name": entry.get("object_name"),
-                    "host_name": entry.get("object_name"),
+                    "host_name": entry.get("host_name") or entry.get("object_name"),
+                    "planet_name": entry.get("planet_name"),
                     "classification": entry.get("classification"),
                     "citations": entry.get("citations", []),
                     "aliases": {name.lower() for name in names},
                     "source": "curated",
                 }
+                for key in ("category", "ra", "dec", "search_radius"):
+                    value = entry.get(key)
+                    if value is not None:
+                        metadata[key] = value
                 matches.append(metadata)
         return matches
 

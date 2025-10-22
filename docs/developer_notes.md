@@ -46,6 +46,19 @@
   focused on slit/grism/IFS products that align with laboratory references. Only
   override these defaults when a workflow explicitly requires imaging products
   and document the change in the workplan/user guide.
+- Curated targets for quick-picks and host-star scaffolding live in
+  `RemoteDataService._CURATED_TARGETS`. Each entry now carries a `category`
+  (`"solar_system"`, `"host_star"`, `"exoplanet"`, etc.), canonical `names`, and
+  citation metadata. Use `RemoteDataService.curated_targets()` to retrieve
+  filtered copies in the UI. When adding moons or additional systems, extend the
+  curated list, keep queries short (canonical name only), and update the quick
+  pick tests in `tests/test_remote_data_dialog.py` plus the integration suite
+  under `tests/integration/`.
+- The Solar System quick-pick button in `RemoteDataDialog` reads from the
+  curated targets. When extending the list, surface the new labels in the user
+  guide and ensure `RemoteDataDialog._refresh_quick_pick_state` remains
+  dependency-aware so the menu disables cleanly when ExoSystems support is
+  absent.
 - Trace colouring can be toggled between the high-contrast palette and a uniform
   colour via the Style tab combo box; respect the `_use_uniform_palette`
   attribute when adding new plot interactions.

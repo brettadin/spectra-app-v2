@@ -14,16 +14,20 @@ The **Remote Data** dialog is your primary interface for fetching real spectral 
 
 ### 1. Solar System Objects
 
-Fetch calibrated spectral observations of planets, moons, and other solar system bodies from space-based telescopes.
+Fetch calibrated spectral observations of major planets from space-based telescopes.
 
-**Access Method**: Search in **MAST ExoSystems** provider
+**Access Method**: Use the **Solar System** quick-pick menu in the **MAST ExoSystems** provider.
 
 **Available Targets**:
-- **Jupiter** - JWST/MIRI mid-IR spectra, HST observations
-- **Mars** - JWST/NIRSpec reflectance spectra
-- **Saturn** - JWST observations, including ring and moon spectra
-- **Venus**, **Neptune**, **Uranus** - various mission data when available
-- **Moons**: Io, Europa, Ganymede, Callisto, Titan, Enceladus
+- **Mercury** – MESSENGER MASCS calibrated reflectance spectra
+- **Venus** – Venus Express VIRTIS cubes spanning UV–thermal IR
+- **Earth** – Disc-integrated EPOXI Earth observations
+- **Mars** – JWST/NIRSpec reflectance spectra
+- **Jupiter** – JWST/MIRI & NIRSpec, plus HST heritage data
+- **Saturn** – Cassini/JWST composites focused on ring and atmospheric features
+- **Uranus** – HST/STIS ultraviolet through near-IR atlas data
+- **Neptune** – HST/NICMOS methane-band coverage
+- **Pluto** – New Horizons LEISA methane/nitrogen spectral maps
 
 **Wavelength Coverage**: UV to mid-IR (0.1–30 µm depending on instrument)
 
@@ -32,7 +36,9 @@ Fetch calibrated spectral observations of planets, moons, and other solar system
 - HST (STIS, COS, WFC3)
 - Other archived observations
 
-**Example Search**: Type "Jupiter" in the MAST ExoSystems search box
+**Example Search**: Select **Solar System → Earth** to automatically query the ExoSystems catalogue
+
+> _Future extension_: Moons (Io, Europa, Titan, Enceladus, etc.) will reuse the same quick-pick framework once curated coverage is finalised.
 
 ### 2. Stellar Spectra
 
@@ -43,6 +49,7 @@ Access calibrated spectra of stars across different spectral types, useful for c
 **Curated Stars**:
 - **Vega (A0V)** - Primary flux calibration standard from HST CALSPEC
 - **Tau Ceti (HD 10700, G8V)** - Solar analog from Pickles stellar library
+- **HD 189733 (K1.5V)** - Active host star with JWST and HST monitoring programs
 - Additional stars available through direct MAST searches
 
 **Wavelength Coverage**: UV to near-IR (typically 0.1–2.5 µm)
@@ -56,6 +63,7 @@ Access calibrated spectra of stars across different spectral types, useful for c
 **Example Searches**:
 - Type "Vega" for the A0V standard star
 - Type "Tau Ceti" or "HD 10700" for a solar-type star
+- Type "HD 189733" to fetch host-star monitoring spectra
 - Type stellar identifiers like "HD 12345" in MAST provider
 
 ### 3. Exoplanet Spectra
@@ -65,9 +73,10 @@ Retrieve transmission, emission, and phase curve spectra of exoplanets, primaril
 **Access Method**: Search in **MAST ExoSystems** provider
 
 **Available Exoplanets**:
+- **HD 189733 b** - Active hot Jupiter with JWST ERS transmission spectroscopy
 - **WASP-39 b** - Hot Jupiter with JWST transmission spectra (multiple instruments)
 - **TRAPPIST-1** system - Seven temperate terrestrial planets with JWST observations
-- **Hot Jupiters** - HD 189733 b, HD 209458 b, WASP-96 b, and others
+- **Hot Jupiters** - HD 209458 b, WASP-96 b, and others
 - **Mini-Neptunes** - K2-18 b, GJ 1214 b with atmospheric features
 - Many others available through NASA Exoplanet Archive integration
 

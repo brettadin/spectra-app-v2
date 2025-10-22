@@ -1101,3 +1101,20 @@ Import/Remote Import entries remain after the cleanup.
 - `docs/user/remote_data.md`
 - `docs/history/PATCH_NOTES.md`
 
+---
+## 2025-10-22T13:35:22-04:00 / 2025-10-22T17:35:52+00:00 – Solar system quick-picks & provider scaffolding
+
+**Author**: agent
+
+**Context**: The Remote Data dialog needed one-click access to calibrated spectra for every major planet and clearer scaffolding for expanding host stars and exoplanets while keeping queries short and science-ready.
+
+**Summary**: Added a Solar System quick-pick menu wired to curated targets (Mercury–Pluto) so ExoSystems searches fire canonical names automatically, enriched the curated catalogue with HD 189733 host/planet metadata, tightened MAST filtering to `dataproduct_type="spectrum"`, `calib_level=[2,3]`, `intentType="SCIENCE"`, and refreshed user/developer docs alongside new unit + integration coverage for the quick-pick flow.
+
+**References**:
+- `app/services/remote_data_service.py`
+- `app/ui/remote_data_dialog.py`
+- `docs/user/remote_data.md`
+- `docs/user/real_spectral_data_guide.md`
+- `docs/developer_notes.md`
+- `tests/test_remote_data_dialog.py`
+- `tests/integration/test_remote_search_targets.py`

@@ -88,9 +88,25 @@ def test_dialog_initialises_without_missing_slots(monkeypatch: Any) -> None:
     assert dialog.provider_combo.itemText(1) == RemoteDataService.PROVIDER_MAST
     assert "Catalogue" in dialog.windowTitle() or dialog.windowTitle() == "Remote Data"
 
+    assert dialog.quick_pick_button.isEnabled()
+    menu = dialog.quick_pick_button.menu()
+    assert menu is not None
+    planet_actions = [action.text() for action in menu.actions()]
+    assert planet_actions[:9] == [
+        "Mercury",
+        "Venus",
+        "Earth",
+        "Mars",
+        "Jupiter",
+        "Saturn",
+        "Uranus",
+        "Neptune",
+        "Pluto",
+    ]
+
     # Trigger provider refresh to ensure the slot updates hints/placeholder.
     dialog._on_provider_changed()
-    assert "Planet" in dialog.search_edit.placeholderText()
+    assert "Mercury" in dialog.search_edit.placeholderText()
 
     # Clean up the dialog explicitly for Qt stability in headless tests.
     dialog.deleteLater()
@@ -163,6 +179,38 @@ def test_example_selection_runs_search(monkeypatch: Any) -> None:
     assert query.get("target_name")
     assert dialog.search_edit.text() == query["target_name"]
     assert include_imaging is False
+
+    dialog.deleteLater()
+    if QtWidgets.QApplication.instance() is app and not app.topLevelWidgets():
+        app.quit()
+
+
+def test_quick_pick_triggers_solar_system_search(monkeypatch: Any) -> None:
+    app = _ensure_app()
+    service = TrackingRemoteService()
+    ingest = IngestServiceStub()
+
+    dialog = RemoteDataDialog(
+        None,
+        remote_service=service,
+        ingest_service=ingest,
+    )
+
+    menu = dialog.quick_pick_button.menu()
+    assert menu is not None
+    action = next((a for a in menu.actions() if a.text() == "Earth"), None)
+    assert action is not None
+
+    action.trigger()
+
+    _spin_until(lambda: bool(service.calls), app)
+    _spin_until(lambda: dialog._search_thread is None, app)
+
+    provider, query, include_imaging = service.calls[0]
+    assert provider == RemoteDataService.PROVIDER_EXOSYSTEMS
+    assert query == {"text": "Earth"}
+    assert include_imaging is False
+    assert dialog.search_edit.text() == "Earth"
 
     dialog.deleteLater()
     if QtWidgets.QApplication.instance() is app and not app.topLevelWidgets():

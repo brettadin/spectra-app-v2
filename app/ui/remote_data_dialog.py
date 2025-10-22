@@ -162,6 +162,7 @@ class RemoteDataDialog(QtWidgets.QDialog):
         self._busy: bool = False
         self._shutdown_timer: QtCore.QTimer | None = None
         self._shutdown_requested = False
+        self._quick_pick_targets: list[Mapping[str, Any]] = []
 
         self._build_ui()
 
@@ -191,6 +192,22 @@ class RemoteDataDialog(QtWidgets.QDialog):
         self.example_combo.setEnabled(False)
         self.example_combo.activated.connect(self._on_example_selected)
         controls.addWidget(self.example_combo)
+
+        self.quick_pick_button = QtWidgets.QToolButton(self)
+        self.quick_pick_button.setText("Solar System")
+        self.quick_pick_button.setPopupMode(
+            QtWidgets.QToolButton.ToolButtonPopupMode.InstantPopup
+        )
+        self.quick_pick_button.setToolButtonStyle(
+            QtCore.Qt.ToolButtonStyle.ToolButtonTextOnly
+        )
+        self.quick_pick_button.setEnabled(False)
+        self.quick_pick_button.setToolTip(
+            "Quick-pick Mercury, Venus, Earth, Mars, Jupiter, Saturn, Uranus, Neptune, Pluto."
+        )
+        self.quick_pick_menu = QtWidgets.QMenu(self.quick_pick_button)
+        self.quick_pick_button.setMenu(self.quick_pick_menu)
+        controls.addWidget(self.quick_pick_button)
 
         self.search_button = QtWidgets.QPushButton("Search", self)
         self.search_button.clicked.connect(self._on_search)
@@ -618,6 +635,21 @@ class RemoteDataDialog(QtWidgets.QDialog):
             return {"text": stripped} if stripped else {}
         return {"text": stripped} if stripped else {}
 
+    def _on_quick_pick_selected(self, target: Mapping[str, Any]) -> None:
+        canonical = str(
+            target.get("object_name")
+            or target.get("display_name")
+            or (target.get("names") or [""])[0]
+        ).strip()
+        if not canonical:
+            return
+
+        provider_index = self.provider_combo.findText(RemoteDataService.PROVIDER_EXOSYSTEMS)
+        if provider_index >= 0:
+            self.provider_combo.setCurrentIndex(provider_index)
+        self.search_edit.setText(canonical)
+        self._on_search()
+
     def _on_example_selected(self, index: int) -> None:
         if index <= 0:
             return
@@ -762,14 +794,15 @@ class RemoteDataDialog(QtWidgets.QDialog):
             self.search_button.setEnabled(True)
             self._provider_placeholders = {
                 RemoteDataService.PROVIDER_EXOSYSTEMS: (
-                    "Planet, host star, or solar system target (e.g. WASP-39 b, TRAPPIST-1, Jupiter)…"
+                    "Planet, host star, or solar system target (e.g. Mercury, HD 189733 b, Tau Ceti)…"
                 ),
                 RemoteDataService.PROVIDER_MAST: "MAST target name or observation keyword (e.g. NIRSpec, NGC 7023)…",
             }
             self._provider_hints = {
                 RemoteDataService.PROVIDER_EXOSYSTEMS: (
                     "Chains NASA Exoplanet Archive coordinates with MAST product listings and Exo.MAST file lists."
-                    " Returns calibrated spectra for solar-system planets, representative stars, and exoplanet hosts."
+                    " Quick-picks cover Mercury, Venus, Earth, Mars, Jupiter, Saturn, Uranus, Neptune, and Pluto while"
+                    " examples highlight host stars (Vega, Tau Ceti, HD 189733) and transiting exoplanets."
                 ),
                 RemoteDataService.PROVIDER_MAST: (
                     "MAST requests favour calibrated spectra (IFS cubes, slits, prisms). Enable "
@@ -778,10 +811,11 @@ class RemoteDataDialog(QtWidgets.QDialog):
             }
             self._provider_examples = {
                 RemoteDataService.PROVIDER_EXOSYSTEMS: [
-                    ("WASP-39 b – JWST/NIRSpec", "WASP-39 b"),
+                    ("HD 189733 b – JWST/NIRISS", "HD 189733 b"),
+                    ("HD 189733 – host star", "HD 189733"),
                     ("TRAPPIST-1 system", "TRAPPIST-1"),
-                    ("Jupiter – solar system", "Jupiter"),
                     ("Vega – CALSPEC standard", "Vega"),
+                    ("Tau Ceti – nearby solar analog", "Tau Ceti"),
                 ],
                 RemoteDataService.PROVIDER_MAST: [
                     ("NGC 7023 – JWST/NIRSpec", "NGC 7023"),
@@ -800,6 +834,8 @@ class RemoteDataDialog(QtWidgets.QDialog):
             self._provider_placeholders = {}
             self._provider_hints = {}
             self._provider_examples = {}
+
+        self._refresh_quick_pick_state(providers)
 
         unavailable = self.remote_service.unavailable_providers()
         if unavailable:
@@ -822,6 +858,46 @@ class RemoteDataDialog(QtWidgets.QDialog):
 
         self._on_provider_changed()
         self._set_busy(False)
+
+    def _refresh_quick_pick_state(self, providers: Sequence[str]) -> None:
+        menu = getattr(self, "quick_pick_menu", None)
+        if menu is None:
+            return
+
+        menu.clear()
+        self._quick_pick_targets = []
+
+        available = RemoteDataService.PROVIDER_EXOSYSTEMS in providers
+        self.quick_pick_button.setEnabled(available)
+
+        if not available:
+            self.quick_pick_button.setToolTip(
+                "Solar System quick picks require the MAST ExoSystems provider."
+            )
+            return
+
+        targets = self.remote_service.curated_targets(category="solar_system")
+        if not targets:
+            self.quick_pick_button.setToolTip(
+                "Solar System quick picks become available once curated targets are configured."
+            )
+            return
+
+        tooltip = (
+            "Quick-pick Mercury, Venus, Earth, Mars, Jupiter, Saturn, Uranus, Neptune, Pluto."
+        )
+        self.quick_pick_button.setToolTip(tooltip)
+        for target in targets:
+            label = str(target.get("display_name") or target.get("object_name") or "").strip()
+            canonical = str(target.get("object_name") or label).strip()
+            if not label or not canonical:
+                continue
+            action = menu.addAction(label)
+            action.setData(canonical)
+            action.triggered.connect(
+                lambda _checked=False, entry=target: self._on_quick_pick_selected(entry)
+            )
+            self._quick_pick_targets.append(target)
 
     # ------------------------------------------------------------------
     def _start_search_worker(self, worker: _SearchWorker) -> None:
