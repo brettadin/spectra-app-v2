@@ -27,7 +27,7 @@ except Exception:  # pragma: no cover - handled by dependency guards
     astroquery_mast = None  # type: ignore[assignment]
 
 try:  # Optional dependency – Exoplanet Archive helpers live in astroquery
-    from astroquery.ipac.nexsci import NasaExoplanetArchive as astroquery_nexsci
+    from astroquery.ipac.nexsci.nasa_exoplanet_archive import NasaExoplanetArchive as astroquery_nexsci
 except Exception:  # pragma: no cover - handled by dependency guards
     astroquery_nexsci = None  # type: ignore[assignment]
 
