@@ -16,8 +16,13 @@ from app.services import DataIngestService, RemoteDataService, RemoteRecord
 
 QtCore, QtGui, QtWidgets, _ = get_qt()
 
-Signal = getattr(QtCore, "Signal", getattr(QtCore, "pyqtSignal"))
-Slot = getattr(QtCore, "Slot", getattr(QtCore, "pyqtSlot"))
+Signal = getattr(QtCore, "Signal", None)
+if Signal is None:
+    Signal = getattr(QtCore, "pyqtSignal")
+
+Slot = getattr(QtCore, "Slot", None)
+if Slot is None:
+    Slot = getattr(QtCore, "pyqtSlot")
 
 
 class _SearchWorker(QtCore.QObject):

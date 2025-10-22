@@ -28,6 +28,41 @@ Each entry in this document should follow this structure:
 
 ---
 
+## 2025-10-21T20:53:07-04:00 / 2025-10-22T00:53:07+00:00 – CI round-trip numpy bootstrap
+
+**Author**: agent
+
+**Context**: CI round-trip pytest job pulling in Spectra services.
+
+**Summary**: Added a pytest `conftest.py` bootstrap that mirrors the runtime
+`sitecustomize` installer so the GitHub Actions round-trip workflow installs
+`numpy>=1.26,<3` before importing service modules while retaining the FITS
+ingestion fixture used by smoke tests. Exported `ensure_numpy()` and the shared
+`NUMPY_SPEC` constant from `sitecustomize.py` to avoid duplicating the
+dependency specification and allow future tooling to reuse the installer.
+Failures now surface as a `pytest.UsageError` instructing operators to install
+numpy manually when the automation is disabled.
+
+**References**: `tests/conftest.py`, `sitecustomize.py`, `docs/history/PATCH_NOTES.md`
+
+---
+
+## 2025-10-21T20:44:44-04:00 / 2025-10-22T00:44:41+00:00 – Remote Data dialog Qt signal fallback
+
+**Author**: agent
+
+**Context**: Remote Data dialog compatibility with PySide6 runtime.
+
+**Summary**: Adjusted the Qt signal/slot alias detection in `remote_data_dialog.py` so PySide6 builds resolve `QtCore.Signal`
+  and `QtCore.Slot` without trying to access PyQt-specific names. The dialog now tests for the native attributes before
+  requesting `pyqtSignal`/`pyqtSlot`, eliminating the `AttributeError` that prevented the application from starting on the
+  packaged PySide6 environment. Documented the fix in the patch notes and workplan so future agents know the regression cause
+  and mitigation.
+
+**References**: `app/ui/remote_data_dialog.py`, `docs/history/PATCH_NOTES.md`, `docs/reviews/workplan.md`.
+
+---
+
 ## 2025-10-21T20:38:53-04:00 / 2025-10-22T00:38:56+00:00 – CI numpy bootstrap and pytest marker registration
 
 **Author**: agent

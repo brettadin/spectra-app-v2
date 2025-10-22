@@ -1,6 +1,26 @@
 # Patch Notes
 
 
+## 2025-10-21 (Round-trip pytest job bootstraps numpy) (20:53 EDT / 00:53 UTC)
+
+- Added a `tests/conftest.py` bootstrap that mirrors the runtime `sitecustomize`
+  installer so GitHub Actions can pull in `numpy>=1.26,<3` before test collection
+  when the wheel is missing while keeping the FITS ingestion fixture intact. The
+  hook raises a descriptive usage error if the automation is disabled via
+  `SPECTRA_SKIP_AUTO_NUMPY`.
+- Exported `ensure_numpy()` and the shared `NUMPY_SPEC` constant from
+  `sitecustomize.py` so the pytest bootstrap and future tooling reuse the
+  installation logic without copying the spec.
+- This keeps the `pytest -k roundtrip` CI run aligned with local expectations
+  and prevents service imports from failing with `ModuleNotFoundError` when
+  numpy is absent.
+
+## 2025-10-21 (Remote Data dialog Signal fallback works on PySide6) (20:44 EDT / 00:44 UTC)
+
+- Guarded the Remote Data dialog's Qt Signal/Slot imports so PySide6 launches no longer attempt to access `pyqtSignal` and
+  `pyqtSlot`. The dialog now resolves the native attribute first and only falls back to the PyQt names when present, restoring
+  compatibility with the packaged PySide6 runtime.
+
 ## 2025-10-21 (Bootstrap numpy availability for tests) (20:38 EDT / 00:38 UTC)
 
 - Added `sitecustomize.py` to auto-install `numpy>=1.26,<3` with `--prefer-binary` when the module is missing, aligning with the
