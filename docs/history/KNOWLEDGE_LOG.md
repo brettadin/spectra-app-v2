@@ -27,6 +27,23 @@ Each entry in this document should follow this structure:
   applicable).
 
 ---
+## 2025-10-21T20:12:22-04:00 / 2025-10-22T00:12:22+00:00 – Real spectral data access and placeholder deprecation
+
+**Author**: agent
+
+**Context**: Remote data service exoplanet archive integration and JWST reference data curation status.
+
+**Summary**: Fixed the `NasaExoplanetArchive` import path in `RemoteDataService` from the incorrect `from astroquery.ipac.nexsci import NasaExoplanetArchive` to the correct `from astroquery.ipac.nexsci.nasa_exoplanet_archive import NasaExoplanetArchive`. This resolves the missing MAST ExoSystems provider, enabling users to fetch real calibrated spectral data for solar system objects (Jupiter, Mars, Saturn), stars (Vega, Tau Ceti, solar analogs), and exoplanets (WASP-39 b, TRAPPIST-1 system) directly from NASA MAST archives.
+
+Updated `app/data/reference/jwst_targets.json` to prominently mark all bundled JWST targets as "DEPRECATED - Example data only" with curation status "digitized_placeholder_deprecated". Each target's provenance now explicitly directs users to fetch real calibrated data via the Remote Data dialog (File → Fetch Remote Data, Ctrl+Shift+R) by searching for the target name in the MAST ExoSystems provider. This aligns with the requirement to provide real, legitimate spectral data from credible sources and avoid synthesized or placeholder data.
+
+Enhanced README.md with a dedicated "Accessing Real Spectral Data" section highlighting the Remote Data dialog workflow, available targets (solar system, stars, exoplanets), wavelength coverage (UV to mid-IR, 0.1–30 µm), and credible data sources (MAST, Exo.MAST, NASA Exoplanet Archive). The note clarifies that bundled reference data is for demonstration only and scientific analysis should always use the Remote Data dialog to fetch real observations.
+
+All tests pass with updated expectations for the new curation status. The MAST ExoSystems provider is now functional and ready to deliver real spectral data across multiple wavelength ranges from legitimate astronomical archives.
+
+**References**: `app/services/remote_data_service.py`, `app/data/reference/jwst_targets.json`, `README.md`, `tests/test_reference_library.py`, `docs/user/remote_data.md`.
+
+---
 ## 2025-10-21T19:17:36-04:00 / 2025-10-21T23:17:36+00:00 – Remote Data dialog thread cleanup
 
 **Author**: agent
