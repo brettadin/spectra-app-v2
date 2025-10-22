@@ -1,4 +1,4 @@
-# Chapter 32 — Sources (Compiled from Every Canvas)
+# Chapter 99 — Sources (Compiled from Every Canvas)
 
 * note: this document should be updated to correctly display sources used in each atlas document, including both documents before and after this chapter. once we finish our project and totally compile all credible sources, we will then rename/relabel the `chapter_32_sources.md` to `chapter_99_sources.md` *
 

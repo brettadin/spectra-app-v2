@@ -4,44 +4,42 @@ from __future__ import annotations
 
 import html
 import json
-import math
-import re
 from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Any, List
-from urllib.parse import quote
 
 from app.qt_compat import get_qt
 from app.services import DataIngestService, RemoteDataService, RemoteRecord
 
-QtCore, QtGui, QtWidgets, _ = get_qt()
+QtCore, QtGui, QtWidgets, _ = get_qt()  # type: ignore[misc]
 
-Signal = getattr(QtCore, "Signal", None)
+# Dynamic Signal/Slot resolution for PySide6/PyQt6 compatibility
+Signal = getattr(QtCore, "Signal", None)  # type: ignore[attr-defined]
 if Signal is None:
-    Signal = getattr(QtCore, "pyqtSignal")
+    Signal = getattr(QtCore, "pyqtSignal")  # type: ignore[attr-defined]
 
-Slot = getattr(QtCore, "Slot", None)
+Slot = getattr(QtCore, "Slot", None)  # type: ignore[attr-defined]
 if Slot is None:
-    Slot = getattr(QtCore, "pyqtSlot")
+    Slot = getattr(QtCore, "pyqtSlot")  # type: ignore[attr-defined]
 
 
-class _SearchWorker(QtCore.QObject):
+class _SearchWorker(QtCore.QObject):  # type: ignore[name-defined]
     """Background worker that streams search results from a remote provider."""
 
-    started = Signal()
-    record_found = Signal(object)
-    finished = Signal(list)
-    failed = Signal(str)
-    cancelled = Signal()
+    started = Signal()  # type: ignore[misc]
+    record_found = Signal(object)  # type: ignore[misc]
+    finished = Signal(list)  # type: ignore[misc]
+    failed = Signal(str)  # type: ignore[misc]
+    cancelled = Signal()  # type: ignore[misc]
 
     def __init__(self, remote_service: RemoteDataService) -> None:
         super().__init__()
         self._remote_service = remote_service
         self._cancel_requested = False
 
-    @Slot(str, dict, bool)
+    @Slot(str, dict, bool)  # type: ignore[misc]
     def run(self, provider: str, query: dict[str, str], include_imaging: bool) -> None:
-        self.started.emit()
+        self.started.emit()  # type: ignore[attr-defined]
         collected: list[RemoteRecord] = []
         try:
             results = self._remote_service.search(
@@ -51,32 +49,32 @@ class _SearchWorker(QtCore.QObject):
             )
             for record in results:
                 if self._cancel_requested:
-                    self.cancelled.emit()
+                    self.cancelled.emit()  # type: ignore[attr-defined]
                     return
                 collected.append(record)
-                self.record_found.emit(record)
+                self.record_found.emit(record)  # type: ignore[attr-defined]
             if self._cancel_requested:
-                self.cancelled.emit()
+                self.cancelled.emit()  # type: ignore[attr-defined]
                 return
         except Exception as exc:  # pragma: no cover - defensive: surfaced via signal
-            self.failed.emit(str(exc))
+            self.failed.emit(str(exc))  # type: ignore[attr-defined]
             return
-        self.finished.emit(collected)
+        self.finished.emit(collected)  # type: ignore[attr-defined]
 
-    @Slot()
+    @Slot()  # type: ignore[misc]
     def cancel(self) -> None:
         self._cancel_requested = True
 
 
-class _DownloadWorker(QtCore.QObject):
+class _DownloadWorker(QtCore.QObject):  # type: ignore[name-defined]
     """Background worker that downloads and ingests selected remote records."""
 
-    started = Signal(int)
-    record_ingested = Signal(object)
-    record_failed = Signal(object, str)
-    finished = Signal(list)
-    failed = Signal(str)
-    cancelled = Signal()
+    started = Signal(int)  # type: ignore[misc]
+    record_ingested = Signal(object)  # type: ignore[misc]
+    record_failed = Signal(object, str)  # type: ignore[misc]
+    finished = Signal(list)  # type: ignore[misc]
+    failed = Signal(str)  # type: ignore[misc]
+    cancelled = Signal()  # type: ignore[misc]
 
     def __init__(
         self,
@@ -88,14 +86,14 @@ class _DownloadWorker(QtCore.QObject):
         self._ingest_service = ingest_service
         self._cancel_requested = False
 
-    @Slot(list)
+    @Slot(list)  # type: ignore[misc]
     def run(self, records: list[RemoteRecord]) -> None:
-        self.started.emit(len(records))
+        self.started.emit(len(records))  # type: ignore[attr-defined]
         ingested: list[object] = []
         try:
             for record in records:
                 if self._cancel_requested:
-                    self.cancelled.emit()
+                    self.cancelled.emit()  # type: ignore[attr-defined]
                     return
                 try:
                     download = self._remote_service.download(record)
@@ -103,35 +101,35 @@ class _DownloadWorker(QtCore.QObject):
                         Path(download.cache_entry["stored_path"])
                     )
                 except Exception as exc:  # pragma: no cover - defensive: surfaced via signal
-                    self.record_failed.emit(record, str(exc))
+                    self.record_failed.emit(record, str(exc))  # type: ignore[attr-defined]
                     continue
                 if isinstance(ingested_item, list):
                     ingested.extend(ingested_item)
                 else:
                     ingested.append(ingested_item)
-                self.record_ingested.emit(record)
+                self.record_ingested.emit(record)  # type: ignore[attr-defined]
             if self._cancel_requested:
-                self.cancelled.emit()
+                self.cancelled.emit()  # type: ignore[attr-defined]
                 return
         except Exception as exc:  # pragma: no cover - defensive: surfaced via signal
-            self.failed.emit(str(exc))
+            self.failed.emit(str(exc))  # type: ignore[attr-defined]
             return
-        self.finished.emit(ingested)
+        self.finished.emit(ingested)  # type: ignore[attr-defined]
 
-    @Slot()
+    @Slot()  # type: ignore[misc]
     def cancel(self) -> None:
         self._cancel_requested = True
 
 
-class RemoteDataDialog(QtWidgets.QDialog):
+class RemoteDataDialog(QtWidgets.QDialog):  # type: ignore[name-defined]
     """Interactive browser for remote catalogue search and download."""
 
-    search_started = Signal(str)
-    search_completed = Signal(list)
-    search_failed = Signal(str)
-    download_started = Signal(int)
-    download_completed = Signal(list)
-    download_failed = Signal(str)
+    search_started = Signal(str)  # type: ignore[misc]
+    search_completed = Signal(list)  # type: ignore[misc]
+    search_failed = Signal(str)  # type: ignore[misc]
+    download_started = Signal(int)  # type: ignore[misc]
+    download_completed = Signal(list)  # type: ignore[misc]
+    download_failed = Signal(str)  # type: ignore[misc]
 
     def __init__(
         self,
