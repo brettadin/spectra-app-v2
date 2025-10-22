@@ -245,6 +245,8 @@ def test_search_mast_filters_products_and_records_metadata(
                     "dataURI": "mast:JWST/spec.fits",
                     "dataproduct_type": "spectrum",
                     "productType": "SCIENCE",
+                    "intentType": "SCIENCE",
+                    "calib_level": 3,
                     "units": {"x": "um", "y": "flux"},
                 },
                 {
@@ -253,6 +255,8 @@ def test_search_mast_filters_products_and_records_metadata(
                     "dataURI": "mast:JWST/image.fits",
                     "dataproduct_type": "image",
                     "productType": "SCIENCE",
+                    "intentType": "SCIENCE",
+                    "calib_level": 3,
                 },
             ]
 
@@ -302,6 +306,8 @@ def test_search_mast_can_include_imaging(store: LocalStore, monkeypatch: pytest.
                     "dataURI": "mast:JWST/spec.fits",
                     "dataproduct_type": "spectrum",
                     "productType": "SCIENCE",
+                    "intentType": "SCIENCE",
+                    "calib_level": 3,
                 },
                 {
                     "obsid": "12345",
@@ -309,6 +315,8 @@ def test_search_mast_can_include_imaging(store: LocalStore, monkeypatch: pytest.
                     "dataURI": "mast:JWST/image.fits",
                     "dataproduct_type": "image",
                     "productType": "SCIENCE",
+                    "intentType": "SCIENCE",
+                    "calib_level": 3,
                 },
             ]
 
@@ -328,6 +336,67 @@ def test_search_mast_can_include_imaging(store: LocalStore, monkeypatch: pytest.
     assert DummyObservations.criteria.get("dataproduct_type") == ["spectrum", "image"]
     identifiers = {record.identifier for record in records}
     assert identifiers == {"jwst_spec.fits", "jwst_image.fits"}
+
+
+def test_search_mast_filters_non_science_products(
+    store: LocalStore, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    class DummyObservations:
+        @staticmethod
+        def query_criteria(**criteria: Any) -> list[dict[str, Any]]:
+            return [
+                {
+                    "obsid": "999",
+                    "target_name": "HD 189733",
+                    "obs_collection": "JWST",
+                    "instrument_name": "NIRISS",
+                }
+            ]
+
+        @staticmethod
+        def get_product_list(table: Any) -> list[dict[str, Any]]:
+            return [
+                {
+                    "obsid": "999",
+                    "productFilename": "hd189733_science.fits",
+                    "dataURI": "mast:JWST/hd189733_science.fits",
+                    "dataproduct_type": "spectrum",
+                    "productType": "SCIENCE",
+                    "intentType": "SCIENCE",
+                    "calib_level": 3,
+                },
+                {
+                    "obsid": "999",
+                    "productFilename": "hd189733_calibration.fits",
+                    "dataURI": "mast:JWST/hd189733_calibration.fits",
+                    "dataproduct_type": "spectrum",
+                    "productType": "SCIENCE",
+                    "intentType": "CALIBRATION",
+                    "calib_level": 3,
+                },
+                {
+                    "obsid": "999",
+                    "productFilename": "hd189733_uncal.fits",
+                    "dataURI": "mast:JWST/hd189733_uncal.fits",
+                    "dataproduct_type": "spectrum",
+                    "productType": "SCIENCE",
+                    "intentType": "SCIENCE",
+                    "calib_level": 1,
+                },
+            ]
+
+    class DummyMast:
+        Observations = DummyObservations
+
+    service = RemoteDataService(store, session=None)
+    monkeypatch.setattr(service, "_ensure_mast", lambda: DummyMast)
+
+    records = service.search(
+        RemoteDataService.PROVIDER_MAST,
+        {"target_name": "HD 189733"},
+    )
+
+    assert [record.identifier for record in records] == ["hd189733_science.fits"]
 
 
 def test_search_exosystems_queries_archive_and_mast(
@@ -354,6 +423,7 @@ def test_search_exosystems_queries_archive_and_mast(
 
     class DummyObservations:
         region_calls: list[tuple[Any, dict[str, Any]]] = []
+        object_calls: list[tuple[Any, dict[str, Any]]] = []
 
         @classmethod
         def query_region(cls, coordinates: Any, radius: str) -> list[dict[str, Any]]:
@@ -368,8 +438,16 @@ def test_search_exosystems_queries_archive_and_mast(
             ]
 
         @classmethod
-        def query_object(cls, *args: Any, **kwargs: Any) -> list[dict[str, Any]]:  # pragma: no cover - fallback not used
-            raise AssertionError("query_object should not be used when coordinates are available")
+        def query_object(cls, target_name: str, radius: str) -> list[dict[str, Any]]:
+            cls.object_calls.append((target_name, {"radius": radius}))
+            return [
+                {
+                    "obsid": "444",
+                    "target_name": target_name,
+                    "obs_collection": "JWST",
+                    "instrument_name": "NIRSpec",
+                }
+            ]
 
         @classmethod
         def get_product_list(cls, table: Any) -> list[dict[str, Any]]:
@@ -380,6 +458,8 @@ def test_search_exosystems_queries_archive_and_mast(
                     "dataURI": "mast:JWST/wasp39b.fits",
                     "dataproduct_type": "spectrum",
                     "productType": "SCIENCE",
+                    "intentType": "SCIENCE",
+                    "calib_level": 3,
                 }
             ]
 
@@ -397,6 +477,7 @@ def test_search_exosystems_queries_archive_and_mast(
     assert archive_calls["table"] == "pscomppars"
     assert "WASP-39" in archive_calls["where"]
     assert DummyObservations.region_calls, "Exosystem search should query by coordinates"
+    assert not DummyObservations.object_calls, "Coordinate-based search should not fall back to query_object"
     assert len(records) == 1
     record = records[0]
     assert record.provider == RemoteDataService.PROVIDER_EXOSYSTEMS

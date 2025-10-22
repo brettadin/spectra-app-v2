@@ -30,6 +30,7 @@ This document tracks feature batches, validation status, and outstanding backlog
 
 - [x] Patched the numpy bootstrap to export `SPECTRA_SKIP_AUTO_NUMPY=1` into the child `python -m pip` call so missing wheels no
       longer trigger an infinite recursion of interpreter launches and pip can install the dependency normally.
+- [x] Added Solar System quick-picks (Mercury through Pluto) and host-star scaffolding to the Remote Data dialog, refactored the provider filters for calibrated spectra, expanded regression coverage (unit + integration tests), and updated user/developer documentation with extension guidance.
 
 ### Recently Completed (2025-10-21)
 
