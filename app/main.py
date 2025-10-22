@@ -141,7 +141,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self._setup_ui()
         self._setup_menu()
         self._wire_shortcuts()
-        self._load_default_samples()
+        # self._load_default_samples()  # Disabled: users prefer empty workspace on launch
 
     # ------------------------------------------------------------------
     def _setup_menu(self) -> None:
@@ -157,9 +157,10 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         sample_action.triggered.connect(self.load_sample_via_menu)
         file_menu.addAction(sample_action)
 
-        remote_action = QtGui.QAction("Fetch &Remote Data…", self)
+        # Remote Data action now opens Remote Data tab in inspector
+        remote_action = QtGui.QAction("Show &Remote Data Tab…", self)
         remote_action.setShortcut("Ctrl+Shift+R")
-        remote_action.triggered.connect(self.open_remote_data_dialog)
+        remote_action.triggered.connect(self.show_remote_data_tab)
         file_menu.addAction(remote_action)
 
         self.persistence_action = QtGui.QAction("Enable Persistent Cache", self, checkable=True)
@@ -285,6 +286,21 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.dataset_filter.setPlaceholderText("Filter datasets…")
         self.dataset_filter.textChanged.connect(self._on_dataset_filter_changed)
         dataset_layout.addWidget(self.dataset_filter)
+
+        # Dataset management buttons
+        dataset_buttons = QtWidgets.QHBoxLayout()
+        self.remove_dataset_button = QtWidgets.QPushButton("Remove Selected")
+        self.remove_dataset_button.setToolTip("Remove selected datasets (Del)")
+        self.remove_dataset_button.clicked.connect(self.remove_selected_datasets)
+        self.remove_dataset_button.setEnabled(False)
+        dataset_buttons.addWidget(self.remove_dataset_button)
+        
+        self.clear_all_button = QtWidgets.QPushButton("Clear All")
+        self.clear_all_button.setToolTip("Remove all datasets from workspace")
+        self.clear_all_button.clicked.connect(self.clear_all_datasets)
+        dataset_buttons.addWidget(self.clear_all_button)
+        dataset_buttons.addStretch()
+        dataset_layout.addLayout(dataset_buttons)
 
         self.dataset_tree = QtWidgets.QTreeView()
         self.dataset_tree.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
@@ -838,6 +854,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
 
         self._build_reference_tab()
         self._build_documentation_tab()
+        self._build_remote_data_tab()
 
         for name, tab in [
             ("Info", self.tab_info),
@@ -845,6 +862,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             ("Style", self.tab_style),
             ("Provenance", self.tab_prov),
             ("Reference", self.tab_reference),
+            ("Remote Data", self.tab_remote),
             ("Docs", self.tab_docs),
         ]:
             self.inspector_tabs.addTab(tab, name)
@@ -970,6 +988,8 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
     def _wire_shortcuts(self) -> None:
         QtGui.QShortcut(QtGui.QKeySequence("Ctrl+O"), self, activated=self.open_file)
         QtGui.QShortcut(QtGui.QKeySequence("U"), self, activated=self._cycle_units)
+        QtGui.QShortcut(QtGui.QKeySequence("Del"), self, activated=self.remove_selected_datasets)
+        QtGui.QShortcut(QtGui.QKeySequence("Ctrl+Shift+C"), self, activated=self.clear_all_datasets)
 
     def _cycle_units(self) -> None:
         if self.unit_combo is None or self.unit_combo.count() == 0:
@@ -1006,6 +1026,18 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                 self._ingest_path(Path(raw))
         finally:
             self.plot.end_bulk_update()
+
+    def show_remote_data_tab(self) -> None:
+        """Show Remote Data tab in inspector and open the dialog."""
+        # Find the Remote Data tab index
+        for i in range(self.inspector_tabs.count()):
+            if self.inspector_tabs.tabText(i) == "Remote Data":
+                self.inspector_tabs.setCurrentIndex(i)
+                self.inspector_dock.show()
+                self.inspector_dock.raise_()
+                break
+        # Also open the dialog for immediate action
+        self.open_remote_data_dialog()
 
     def open_remote_data_dialog(self) -> None:
         dialog = RemoteDataDialog(
@@ -1686,6 +1718,112 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             self.data_table.clearContents()
             self.data_table.setRowCount(0)
 
+    def remove_selected_datasets(self) -> None:
+        """Remove selected datasets from the overlay and UI."""
+        selection_model = self.dataset_tree.selectionModel()
+        if not selection_model:
+            return
+        
+        indexes = selection_model.selectedIndexes()
+        if not indexes:
+            return
+        
+        # Get unique spectrum IDs from selected rows
+        spectrum_ids = set()
+        for index in indexes:
+            item = self.dataset_model.itemFromIndex(index)
+            if item:
+                spectrum_id = item.data(QtCore.Qt.ItemDataRole.UserRole)
+                if spectrum_id:
+                    spectrum_ids.add(spectrum_id)
+        
+        if not spectrum_ids:
+            return
+        
+        # Confirm if removing multiple datasets
+        if len(spectrum_ids) > 1:
+            reply = QtWidgets.QMessageBox.question(
+                self,
+                "Remove Multiple Datasets",
+                f"Remove {len(spectrum_ids)} selected dataset(s)?",
+                QtWidgets.QMessageBox.StandardButton.Yes | QtWidgets.QMessageBox.StandardButton.No,
+                QtWidgets.QMessageBox.StandardButton.No
+            )
+            if reply != QtWidgets.QMessageBox.StandardButton.Yes:
+                return
+        
+        # Remove from overlay service and UI
+        for spectrum_id in spectrum_ids:
+            self.overlay_service.remove(spectrum_id)
+            self._remove_dataset_from_ui(spectrum_id)
+        
+        # Update UI state
+        self.refresh_overlay()
+        self._update_math_selectors()
+        self.status_bar.showMessage(
+            f"Removed {len(spectrum_ids)} dataset(s)", 3000
+        )
+        self._log("Dataset", f"Removed {len(spectrum_ids)} dataset(s)")
+    
+    def clear_all_datasets(self) -> None:
+        """Clear all datasets from the workspace with confirmation."""
+        if not self.overlay_service.list():
+            self.status_bar.showMessage("No datasets to clear", 2000)
+            return
+        
+        count = len(self.overlay_service.list())
+        reply = QtWidgets.QMessageBox.question(
+            self,
+            "Clear All Datasets",
+            f"Remove all {count} dataset(s) from workspace?\n\nThis action cannot be undone.",
+            QtWidgets.QMessageBox.StandardButton.Yes | QtWidgets.QMessageBox.StandardButton.No,
+            QtWidgets.QMessageBox.StandardButton.No
+        )
+        
+        if reply != QtWidgets.QMessageBox.StandardButton.Yes:
+            return
+        
+        # Clear all data
+        self.overlay_service.clear()
+        self._dataset_items.clear()
+        self._dataset_color_items.clear()
+        self._visibility.clear()
+        self._display_y_units.clear()
+        
+        # Reset UI elements
+        self._originals_item.removeRows(0, self._originals_item.rowCount())
+        self._derived_item.removeRows(0, self._derived_item.rowCount())
+        self.plot.clear_traces()
+        
+        # Clear inspector panels
+        self._show_metadata(None)
+        self._show_provenance(None)
+        
+        # Update state
+        self.refresh_overlay()
+        self._update_math_selectors()
+        self.status_bar.showMessage(f"Cleared {count} dataset(s)", 3000)
+        self._log("Dataset", f"Cleared all {count} dataset(s) from workspace")
+    
+    def _remove_dataset_from_ui(self, spectrum_id: str) -> None:
+        """Remove a single dataset from the UI tree."""
+        if spectrum_id not in self._dataset_items:
+            return
+        
+        item = self._dataset_items[spectrum_id]
+        parent = item.parent()
+        if parent:
+            parent.removeRow(item.row())
+        
+        # Clean up internal state
+        self._dataset_items.pop(spectrum_id, None)
+        self._dataset_color_items.pop(spectrum_id, None)
+        self._visibility.pop(spectrum_id, None)
+        self._display_y_units.pop(spectrum_id, None)
+        
+        # Remove from plot
+        self.plot.remove_trace(spectrum_id)
+
     def _update_math_selectors(self) -> None:
         spectra = self.overlay_service.list()
         self.math_a.clear()
@@ -1810,6 +1948,8 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         spectrum = self.overlay_service.get(ids[-1]) if ids else None
         self._show_metadata(spectrum)
         self._show_provenance(spectrum)
+        # Enable/disable Remove button based on selection
+        self.remove_dataset_button.setEnabled(len(ids) > 0)
         self.refresh_overlay()
 
     def _on_dataset_data_changed(
@@ -3385,6 +3525,92 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                 QtCore.Qt.AlignmentFlag.AlignRight | QtCore.Qt.AlignmentFlag.AlignVCenter
             )
         self.reference_table.setItem(row, column, item)
+
+    # Remote Data ------------------------------------------------------
+    def _build_remote_data_tab(self) -> None:
+        """Build tab with quick access to remote spectral data catalogs."""
+        self.tab_remote = QtWidgets.QWidget()
+        layout = QtWidgets.QVBoxLayout(self.tab_remote)
+        layout.setContentsMargins(12, 12, 12, 12)
+        layout.setSpacing(12)
+
+        # Title and description
+        title = QtWidgets.QLabel("Remote Spectral Data")
+        title.setStyleSheet("font-size: 16px; font-weight: bold;")
+        layout.addWidget(title)
+
+        description = QtWidgets.QLabel(
+            "Search and download spectra from MAST (JWST, HST, Spitzer), "
+            "NASA Exoplanet Archive, and NIST Atomic Spectra Database."
+        )
+        description.setWordWrap(True)
+        description.setStyleSheet("color: #555; margin-bottom: 8px;")
+        layout.addWidget(description)
+
+        # Main button to open dialog
+        button_container = QtWidgets.QWidget()
+        button_layout = QtWidgets.QHBoxLayout(button_container)
+        button_layout.setContentsMargins(0, 8, 0, 8)
+        
+        open_remote_button = QtWidgets.QPushButton("Open Remote Data Browser")
+        open_remote_button.setMinimumHeight(40)
+        open_remote_button.setStyleSheet("""
+            QPushButton {
+                background-color: #0066cc;
+                color: white;
+                border: none;
+                border-radius: 4px;
+                padding: 8px 16px;
+                font-size: 14px;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background-color: #0052a3;
+            }
+            QPushButton:pressed {
+                background-color: #003d7a;
+            }
+        """)
+        open_remote_button.clicked.connect(self.open_remote_data_dialog)
+        button_layout.addWidget(open_remote_button)
+        layout.addWidget(button_container)
+
+        # Quick info panel
+        info_box = QtWidgets.QGroupBox("Available Catalogs")
+        info_layout = QtWidgets.QVBoxLayout(info_box)
+        
+        catalogs = [
+            ("MAST (Mikulski Archive)", "JWST, HST, Spitzer, Kepler, TESS spectroscopy"),
+            ("Exoplanet Systems", "Planets, host stars, solar system targets via MAST"),
+            ("NIST ASD", "Atomic spectral line databases (requires dependencies)"),
+        ]
+        
+        for catalog, description_text in catalogs:
+            item_widget = QtWidgets.QWidget()
+            item_layout = QtWidgets.QVBoxLayout(item_widget)
+            item_layout.setContentsMargins(0, 4, 0, 4)
+            item_layout.setSpacing(2)
+            
+            catalog_label = QtWidgets.QLabel(f"• {catalog}")
+            catalog_label.setStyleSheet("font-weight: bold;")
+            item_layout.addWidget(catalog_label)
+            
+            desc_label = QtWidgets.QLabel(description_text)
+            desc_label.setStyleSheet("color: #666; margin-left: 16px;")
+            desc_label.setWordWrap(True)
+            item_layout.addWidget(desc_label)
+            
+            info_layout.addWidget(item_widget)
+        
+        layout.addWidget(info_box)
+
+        # Keyboard shortcut hint
+        shortcut_hint = QtWidgets.QLabel("Keyboard shortcut: Ctrl+Shift+R")
+        shortcut_hint.setStyleSheet("color: #888; font-style: italic; margin-top: 8px;")
+        shortcut_hint.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(shortcut_hint)
+
+        layout.addStretch(1)
 
     # Documentation -----------------------------------------------------
     def _build_documentation_tab(self) -> None:
