@@ -21,3 +21,9 @@ remote = [
     "astroquery==0.4.7",
 ]
 
+[tool.pytest.ini_options]
+markers = [
+    "roundtrip: Validate round-trip ingest/export workflows.",
+    "ui_contract: UI contract tests that require a Qt display.",
+]
+

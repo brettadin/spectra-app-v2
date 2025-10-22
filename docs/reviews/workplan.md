@@ -28,6 +28,7 @@ This document tracks feature batches, validation status, and outstanding backlog
 
 ### Recently Completed (2025-10-21)
 
+- [x] Bootstrapped CI numpy availability with `sitecustomize.py` so missing wheels no longer break test collection, and registered pytest `roundtrip`/`ui_contract` markers to eliminate unknown mark warnings.
 - [x] Ensured the Remote Data dialog joins active search/download threads when closing so Qt no longer warns about workers being
       destroyed mid-run and the asynchronous UX stays stable.
 - [x] Taught the Remote Data dialog cancel flow to poll worker shutdown with a Qt timer so the window closes responsively while
@@ -127,6 +128,7 @@ This document tracks feature batches, validation status, and outstanding backlog
 
 ### Batch 14 QA Log
 
+- 2025-10-21: ✅ `pytest -q`
 - 2025-10-19: ✅ `pytest`
 - 2025-10-17: ✅ `pytest`
 
