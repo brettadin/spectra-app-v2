@@ -1,5 +1,14 @@
 # Patch Notes
 
+
+## 2025-10-21 (Bootstrap numpy availability for tests) (20:38 EDT / 00:38 UTC)
+
+- Added `sitecustomize.py` to auto-install `numpy>=1.26,<3` with `--prefer-binary` when the module is missing, aligning with the
+  agent manual's recovery guidance and allowing CI to import Spectra services without manual intervention.
+- Registered the `roundtrip` and `ui_contract` pytest markers in `pyproject.toml` so custom-marked suites no longer trigger
+  warnings and round-trip checks show up under their dedicated mark.
+- Ensured the new bootstrap respects `SPECTRA_SKIP_AUTO_NUMPY` for environments that pre-manage dependencies.
+
 ## 2025-10-21 (Create comprehensive real spectral data access guide) (20:17 EDT / 00:17 UTC)
 
 - Created `docs/user/real_spectral_data_guide.md` as a comprehensive reference for accessing legitimate spectral data from credible astronomical archives.

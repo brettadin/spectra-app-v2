@@ -27,6 +27,22 @@ Each entry in this document should follow this structure:
   applicable).
 
 ---
+
+## 2025-10-21T20:38:53-04:00 / 2025-10-22T00:38:56+00:00 – CI numpy bootstrap and pytest marker registration
+
+**Author**: agent
+
+**Context**: Test infrastructure reliability and pytest configuration.
+
+**Summary**: Added a `sitecustomize.py` bootstrap that installs `numpy>=1.26,<3` with `--prefer-binary` when the interpreter
+  starts without NumPy, mirroring the recovery steps documented in `AGENTS.md`. This prevents CI runs from failing during
+  collection when environments miss the dependency while still allowing developers to opt out via
+  `SPECTRA_SKIP_AUTO_NUMPY`. Registered the custom `roundtrip` and `ui_contract` pytest markers inside `pyproject.toml` so the
+  round-trip suite is recognised explicitly and pytest no longer warns about unknown marks.
+
+**References**: `sitecustomize.py`, `pyproject.toml`, `docs/history/PATCH_NOTES.md`.
+
+---
 ## 2025-10-21T20:17:41-04:00 / 2025-10-22T00:17:41+00:00 – Comprehensive real spectral data documentation
 
 **Author**: agent
@@ -44,6 +60,8 @@ Included comprehensive wavelength coverage table, data quality information (cali
 Added troubleshooting section for common provider availability and download issues, plus cross-references to related documentation. This comprehensive guide directly addresses the requirement for "real, spectral data, from a wide range of wavelengths, all displayed correctly and accurately reflects the source data" from "credible sources" without synthesized or placeholder data.
 
 **References**: `docs/user/real_spectral_data_guide.md`, `docs/user/remote_data.md`, `docs/link_collection.md`.
+
+
 
 ---
 ## 2025-10-21T20:15:49-04:00 / 2025-10-22T00:15:49+00:00 – User workflow documentation improvements
