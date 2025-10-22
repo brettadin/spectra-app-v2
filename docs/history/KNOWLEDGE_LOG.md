@@ -27,6 +27,19 @@ Each entry in this document should follow this structure:
   applicable).
 
 ---
+## 2025-10-21T20:15:49-04:00 / 2025-10-22T00:15:49+00:00 – User workflow documentation improvements
+
+**Author**: agent
+
+**Context**: Quickstart guide and remote data feature discoverability.
+
+**Summary**: Enhanced `docs/user/quickstart.md` with a dedicated section on fetching real spectral data from MAST archives. Added step-by-step instructions for using the Remote Data dialog (File → Fetch Remote Data, Ctrl+Shift+R) with specific target examples across three categories: solar system objects (Jupiter, Mars), stars (Vega, Tau Ceti solar analog), and exoplanets (WASP-39 b, TRAPPIST-1 system). Clarified that all data comes from credible NASA MAST archives with wavelength coverage from UV to mid-IR (0.1–30 µm depending on instrument).
+
+This addresses the requirement to improve the logical workflow of the application by making key features (remote data access) more discoverable and less "buried" in menus. The Remote Data feature is now prominently featured in the user onboarding guide, alongside the existing File menu location (Ctrl+Shift+R shortcut) and the comprehensive remote_data.md documentation.
+
+**References**: `docs/user/quickstart.md`.
+
+---
 ## 2025-10-21T20:12:22-04:00 / 2025-10-22T00:12:22+00:00 – Real spectral data access and placeholder deprecation
 
 **Author**: agent

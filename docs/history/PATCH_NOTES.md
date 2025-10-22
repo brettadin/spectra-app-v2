@@ -1,5 +1,12 @@
 # Patch Notes
 
+## 2025-10-21 (Enhance quickstart guide with remote data workflow) (20:15 EDT / 00:15 UTC)
+
+- Updated `docs/user/quickstart.md` to include a new section on fetching real spectral data from MAST archives.
+- Added step-by-step instructions for using the Remote Data dialog (File → Fetch Remote Data, Ctrl+Shift+R) with specific examples for solar system objects (Jupiter, Mars), stars (Vega, Tau Ceti), and exoplanets (WASP-39 b, TRAPPIST-1).
+- Clarified that real data comes from credible sources (NASA MAST archives) and spans UV to mid-IR wavelengths (0.1–30 µm).
+- This improves the logical workflow by making the Remote Data feature more discoverable in the user onboarding documentation.
+
 ## 2025-10-21 (Fix NasaExoplanetArchive import and clarify placeholder data status) (20:12 EDT / 00:12 UTC)
 
 - Fixed `NasaExoplanetArchive` import path in `app/services/remote_data_service.py` from incorrect `from astroquery.ipac.nexsci import NasaExoplanetArchive` to correct `from astroquery.ipac.nexsci.nasa_exoplanet_archive import NasaExoplanetArchive`. This enables the MAST ExoSystems provider to work properly for fetching exoplanet and solar system spectral data.
