@@ -1171,3 +1171,39 @@ Import/Remote Import entries remain after the cleanup.
 - reference::ir_groups
 
 ---
+## 2025-10-22 18:11 – Overlay
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Enabled reference overlay(s).
+
+**References**:
+- reference::ir_groups
+
+---
+## 2025-10-22 18:29 – Overlay
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Enabled reference overlay(s).
+
+**References**:
+- reference::ir_groups
+
+---
+## 2025-10-22 18:29 – Overlay
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Reference overlay cleared.
+
+**References**:
+- reference::ir_groups
+
+---

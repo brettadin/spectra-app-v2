@@ -137,6 +137,9 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self._uniform_color = QtGui.QColor("#4F6D7A")
         self._last_display_views: List[Dict[str, object]] = []
         self._data_table_attached = False
+        # Async NIST fetch state
+        self._nist_thread: Optional[QtCore.QThread] = None
+        self._nist_worker: Optional[QtCore.QObject] = None
 
         self._setup_ui()
         self._setup_menu()
@@ -2577,35 +2580,84 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         use_ritz = self.nist_use_ritz_checkbox.isChecked()
         wavelength_type = str(self.nist_medium_combo.currentData() or "vacuum")
 
+        # Launch NIST query on a worker thread to keep the UI responsive
+        self.reference_status_label.setText("Fetching NIST ASD spectral lines…")
+        self.nist_fetch_button.setEnabled(False)
         try:
-            payload = nist_asd_service.fetch_lines(
-                element,
-                element=element,
-                ion_stage=ion_stage,
-                lower_wavelength=lower_nm,
-                upper_wavelength=upper_nm,
-                wavelength_unit="nm",
-                use_ritz=use_ritz,
-                wavelength_type=wavelength_type,
-            )
-        except nist_asd_service.NistUnavailableError as exc:
-            QtWidgets.QMessageBox.critical(self, "NIST unavailable", str(exc))
-            return
-        except nist_asd_service.NistQueryError as exc:
-            QtWidgets.QMessageBox.critical(self, "Query failed", str(exc))
-            return
+            QtWidgets.QApplication.setOverrideCursor(QtCore.Qt.CursorShape.WaitCursor)
+        except Exception:
+            pass
 
-        self._register_nist_payload(payload)
-        self.reference_overlay_checkbox.blockSignals(True)
-        self.reference_overlay_checkbox.setChecked(False)
-        self.reference_overlay_checkbox.blockSignals(False)
-        meta = payload.get("meta", {})
-        line_count = meta.get("line_count") or len(payload.get("lines", []))
-        self.reference_status_label.setText(
-            f"Fetched {line_count} spectral line(s) from NIST ASD."
-        )
-        self._log("Reference", f"NIST ASD → {meta.get('label', element)}")
-        self._refresh_reference_view()
+        # Worker object using Qt signals for safe cross-thread communication
+        Signal = getattr(QtCore, "Signal", None) or getattr(QtCore, "pyqtSignal")  # type: ignore[attr-defined]
+        Slot = getattr(QtCore, "Slot", None) or getattr(QtCore, "pyqtSlot")  # type: ignore[attr-defined]
+
+        class _NistFetchWorker(QtCore.QObject):
+            finished = Signal(dict)  # type: ignore[misc]
+            failed = Signal(str)  # type: ignore[misc]
+
+            @Slot()  # type: ignore[misc]
+            def run(self) -> None:
+                try:
+                    payload = nist_asd_service.fetch_lines(
+                        element,
+                        element=element,
+                        ion_stage=ion_stage,
+                        lower_wavelength=lower_nm,
+                        upper_wavelength=upper_nm,
+                        wavelength_unit="nm",
+                        use_ritz=use_ritz,
+                        wavelength_type=wavelength_type,
+                    )
+                except (nist_asd_service.NistUnavailableError, nist_asd_service.NistQueryError) as exc:
+                    self.failed.emit(str(exc))  # type: ignore[attr-defined]
+                    return
+                self.finished.emit(payload)  # type: ignore[attr-defined]
+
+        worker = _NistFetchWorker()
+        thread = QtCore.QThread(self)
+        self._nist_thread = thread
+        self._nist_worker = worker
+        worker.moveToThread(thread)
+        thread.started.connect(worker.run)
+        worker.finished.connect(lambda p: self._finish_nist_fetch(p))
+        worker.failed.connect(lambda msg: self._finish_nist_fetch(None, error=msg))
+        worker.finished.connect(thread.quit)
+        worker.failed.connect(thread.quit)
+        thread.finished.connect(worker.deleteLater)
+        thread.finished.connect(thread.deleteLater)
+        thread.start()
+
+    def _finish_nist_fetch(self, payload: Optional[Dict[str, Any]], *, error: str | None = None) -> None:
+        try:
+            if error is not None or not payload:
+                self.reference_status_label.setText(error or "NIST query failed.")
+                return
+            self._register_nist_payload(payload)
+            self.reference_overlay_checkbox.blockSignals(True)
+            self.reference_overlay_checkbox.setChecked(False)
+            self.reference_overlay_checkbox.blockSignals(False)
+            meta = payload.get("meta", {})
+            line_count = meta.get("line_count") or len(payload.get("lines", []))
+            self.reference_status_label.setText(
+                f"Fetched {line_count} spectral line(s) from NIST ASD."
+            )
+            label = meta.get("label") or meta.get("element_symbol") or "NIST ASD"
+            self._log("Reference", f"NIST ASD → {label}")
+            self._refresh_reference_view()
+        finally:
+            # Cleanup and restore UI
+            if self._nist_thread is not None:
+                self._nist_thread.quit()
+                self._nist_thread.wait()
+                self._nist_thread = None
+                self._nist_worker = None
+            try:
+                QtWidgets.QApplication.restoreOverrideCursor()
+            except Exception:
+                pass
+            if hasattr(self, "nist_fetch_button"):
+                self.nist_fetch_button.setEnabled(True)
 
     def _filter_reference_entries(
         self, entries: List[Mapping[str, Any]], query: str

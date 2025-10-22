@@ -1,4 +1,4 @@
-## user docs ##
+## user docs
 This directory is for items which are displayed in the user documentation portion of the UI.
 This should host a suite of individual documents for the user to access and reference inside the program.
 The information should be relevent to all subjects and fields explored within the program and categorized by topic, subtopic, etc.

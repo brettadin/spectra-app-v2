@@ -310,10 +310,34 @@ class RemoteDataDialog(QtWidgets.QDialog):  # type: ignore[name-defined]
     def _start_search(
         self, provider: str, query: dict[str, str], include_imaging: bool
     ) -> None:
+        # Prepare UI
         self._cancel_search_worker()
         self._records = []
         self._reset_results_table()
         self.preview.clear()
+        self._search_in_progress = True
+        self._update_enabled_state()
+        self._set_busy(True, message=f"Searching {provider}…")
+
+        # Create worker and thread, wire signals, and start
+        worker = _SearchWorker(self.remote_service)
+        thread = QtCore.QThread(self)
+        self._search_worker = worker
+        self._search_thread = thread
+        worker.moveToThread(thread)
+        thread.started.connect(lambda p=provider, q=query, inc=include_imaging: worker.run(p, q, inc))
+        worker.started.connect(lambda: self.search_started.emit(provider))  # type: ignore[misc]
+        # Streamed results are optional; we primarily update on completion
+        worker.record_found.connect(lambda _rec: None)  # no-op incremental hook
+        worker.finished.connect(self._handle_search_results)
+        worker.failed.connect(self._handle_search_error)
+        worker.cancelled.connect(self._handle_search_cancelled)
+        # Ensure proper cleanup and UI reset
+        worker.finished.connect(self._search_finished)
+        worker.failed.connect(lambda _msg: self._search_finished())
+        worker.cancelled.connect(self._search_finished)
+        self._connect_worker_cleanup(worker, thread)
+        thread.start()
 
     def _handle_search_failed(self, message: str) -> None:
         self._set_busy(False)
@@ -353,6 +377,10 @@ class RemoteDataDialog(QtWidgets.QDialog):  # type: ignore[name-defined]
         worker.cancelled.connect(self._handle_download_cancelled)
         self._connect_worker_cleanup(worker, thread)
         thread.start()
+
+    def _download_worker_factory(self) -> _DownloadWorker:
+        """Construct a download worker bound to this dialog's services."""
+        return _DownloadWorker(self.remote_service, self.ingest_service)
 
     def _handle_download_started(self, total: int) -> None:
         self._download_total = total
@@ -1156,6 +1184,29 @@ class RemoteDataDialog(QtWidgets.QDialog):  # type: ignore[name-defined]
             if host:
                 return host
         return self._first_text(metadata, ["target_display", "target_name", "object_name", "obs_id"]) or record.title
+
+    # Small utility used by formatting helpers to fetch the first non-empty text value
+    def _first_text(self, mapping: Mapping[str, Any] | Any, keys: list[str]) -> str:
+        source = mapping if isinstance(mapping, Mapping) else {}
+        for key in keys:
+            if key not in source:
+                continue
+            value = source.get(key)
+            if value is None:
+                continue
+            if isinstance(value, str):
+                text = value.strip()
+                if text:
+                    return text
+            else:
+                # Gracefully coerce non-string simple values
+                try:
+                    text = str(value).strip()
+                except Exception:
+                    text = ""
+                if text and text.lower() != "nan":
+                    return text
+        return ""
 
     def _format_mission(self, metadata: Mapping[str, Any] | Any) -> str:
         mission = self._first_text(metadata, ["obs_collection", "telescope_name", "project"])
