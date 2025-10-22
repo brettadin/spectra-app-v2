@@ -1,6 +1,12 @@
 # Patch Notes
 
 
+## 2025-10-22 (Bootstrap numpy installer avoids recursive pip launches) (00:34 EDT / 04:34 UTC)
+
+- Updated `sitecustomize.py` to propagate `SPECTRA_SKIP_AUTO_NUMPY=1` into the child environment when invoking `python -m pip`
+  so the bootstrap only runs once per interpreter. This prevents recursive subprocess spawning when numpy is missing, allowing
+  pip to install the dependency instead of repeatedly launching new Python interpreters.
+
 ## 2025-10-21 (Round-trip pytest job bootstraps numpy) (20:53 EDT / 00:53 UTC)
 
 - Added a `tests/conftest.py` bootstrap that mirrors the runtime `sitecustomize`

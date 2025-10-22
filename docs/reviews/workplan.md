@@ -26,6 +26,11 @@ This document tracks feature batches, validation status, and outstanding backlog
 - [x] Document dependency prerequisites (requests, astroquery, pandas, astropy)
       and add installation verification guidance for Windows 11 users.
 
+### Recently Completed (2025-10-22)
+
+- [x] Patched the numpy bootstrap to export `SPECTRA_SKIP_AUTO_NUMPY=1` into the child `python -m pip` call so missing wheels no
+      longer trigger an infinite recursion of interpreter launches and pip can install the dependency normally.
+
 ### Recently Completed (2025-10-21)
 
 - [x] Guarded the Remote Data dialog's Signal/Slot attribute detection so PySide6 launches stop requesting `pyqtSignal` / `pyqtSlot`, restoring startup and documenting the regression fix across patch notes and the knowledge log.

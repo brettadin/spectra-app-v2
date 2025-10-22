@@ -28,6 +28,21 @@ Each entry in this document should follow this structure:
 
 ---
 
+## 2025-10-22T00:34:36-04:00 / 2025-10-22T04:34:39+00:00 – Numpy bootstrap recursion guard
+
+**Author**: agent
+
+**Context**: CI/runtime bootstrap for ensuring numpy availability.
+
+**Summary**: Adjusted the `sitecustomize.py` installer to clone the current environment and inject `SPECTRA_SKIP_AUTO_NUMPY=1`
+into the child `python -m pip` invocation. This ensures the bootstrap only executes in the parent interpreter, preventing the
+recursive Python→pip spawn loop that occurred when numpy was missing. Pip can now proceed with installation instead of repeatedly
+restarting the interpreter.
+
+**References**: `sitecustomize.py`, `docs/history/PATCH_NOTES.md`.
+
+---
+
 ## 2025-10-21T20:53:07-04:00 / 2025-10-22T00:53:07+00:00 – CI round-trip numpy bootstrap
 
 **Author**: agent
