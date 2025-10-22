@@ -183,6 +183,102 @@ Cache is SHA256-deduplicated; see `app/services/store.py`.
 - Default 100K points/trace; test UI responsiveness with 1M+ point datasets
 - Knowledge log writes are append-only; avoid logging per-spectrum in batch imports
 
+## 📝 Documentation Workflows for AI Agents
+
+### When to Create a Brains Entry (`docs/brains/`)
+Create timestamped brains entry for **architectural decisions**:
+```bash
+# Filename format: YYYY-MM-DDTHHMM-short-description.md
+docs/brains/2025-10-22T1430-planetary-data-requirements.md
+```
+
+**What belongs in brains**:
+- Decisions about data sources/formats (e.g., "Why we use MAST for planetary spectra")
+- Service architecture changes (e.g., "Why remote data moved to inspector tab")
+- UI/UX paradigm shifts (e.g., "Progressive disclosure for complex features")
+- Integration patterns (e.g., "How JWST/HST/ground-based data coexist")
+- **Not**: Individual bug fixes, routine feature additions, or implementation details
+
+**Template structure**:
+```markdown
+# [Decision Title]
+
+**Date**: YYYY-MM-DDTHH:MM:SS-04:00 (EDT) / YYYY-MM-DDTHH:MM:SSZ (UTC)
+**Status**: Proposed | Accepted | Superseded  
+**Context**: What problem are we solving?
+**Decision**: What did we decide?
+**Rationale**: Why this approach over alternatives?
+**Consequences**: Impact on codebase, workflows, users
+**References**: Link to relevant code, docs, external sources
+```
+
+See `docs/brains/README.md` for full guidance and `docs/brains/2025-10-18T0924-remote-data-ux.md` for example.
+
+### When to Update Atlas (`docs/atlas/`)
+The Atlas contains **domain knowledge** and **workflow guidance**. Update when:
+- Adding new spectroscopy modalities (UV/VIS, FTIR, Raman, AES, mass-spec)
+- Documenting data sources (MAST, NIST, lab instruments)
+- Explaining calibration/analysis workflows
+- Adding educational content (e.g., planetary composition analysis for classroom labs)
+
+**Key chapters to extend**:
+- `chapter_1_modalities_instruments_and_what_they_tell_you.md` — New instrument types
+- `chapter_4_data_sources_to_ingest_and_align.md` — New remote catalogs or file formats
+- `chapter_5_unifying_axes_and_units_in_the_app.md` — Unit conversion additions
+- `chapter_6_calibration_and_alignment_pipeline.md` — Calibration procedures
+- `chapter_7_identification_and_prediction_logic.md` — Analysis techniques
+
+**Create new chapters** for substantial new domains (e.g., "Planetary Spectroscopy Data Sources").
+
+### Spectroscopy Domain Context
+
+**This application targets multi-modal spectroscopy for educational and research use**:
+
+**Supported Modalities** (current + planned):
+- **UV-VIS** (200-800 nm): Electronic transitions, atomic emission
+- **NIR** (800-2500 nm): Overtones, molecular vibrations
+- **FTIR** (2.5-25 µm / 4000-400 cm⁻¹): Molecular vibrations, functional groups
+- **Raman**: Complementary to IR; different selection rules
+- **Atomic Emission Spectroscopy (AES)**: Elemental identification via emission lines
+- **Mass Spectrometry**: Molecular mass determination (future integration)
+
+**Key Use Case: Educational Planetary Composition Lab**
+Students compare:
+1. **Lab spectra**: Recorded locally (various modalities)
+2. **Planetary spectra**: JWST/HST observations (UV-NIR-MIR, 0.1-30 µm)
+3. **Stellar spectra**: Solar/stellar standards for reference
+4. **Exoplanet transmission spectra**: Atmospheric composition analysis
+
+**Workflow**: Overlay solar spectrum + exoplanet transit spectrum → Ratio/subtract → Identify atmospheric features (H₂O, CH₄, CO₂ bands) → Compare with lab IR/Raman of candidate molecules.
+
+**Data Requirements**:
+- **Real spectroscopic data only** (no synthetic/simulated data)
+- **Wavelength coverage**: 0-2000 nm minimum (UV-VIS-NIR); extend to MIR where available
+- **Calibration level**: Prefer Level 2+ (calibrated, flux units)
+- **Provenance**: Full citation chain (mission → instrument → processing level → DOI)
+
+### Accessing Real Planetary/Stellar Spectra
+
+**Primary source**: NASA MAST archive via `astroquery`
+```python
+from astroquery.mast import Observations
+
+# Planetary spectra from JWST/HST
+results = Observations.query_criteria(
+    target_name="Jupiter",
+    dataproduct_type="spectrum",
+    calib_level=[2, 3],  # Calibrated data only
+    intentType="science"
+)
+```
+
+**Quick-pick targets** (curated in `RemoteDataService._CURATED_TARGETS`):
+- **Solar System**: Mercury, Venus, Earth, Mars, Jupiter, Saturn, Uranus, Neptune, Pluto + major moons
+- **Stars**: Vega (A0V standard), Tau Ceti (solar analog), HD 189733 (exoplanet host)
+- **Exoplanets**: WASP-39 b, TRAPPIST-1 system, HD 189733 b (transmission/emission spectra)
+
+See `docs/user/real_spectral_data_guide.md` for comprehensive mission/wavelength coverage table.
+
 ---
 
 **Quick checklist before committing**:
@@ -190,5 +286,7 @@ Cache is SHA256-deduplicated; see `app/services/store.py`.
 - [ ] Docs updated (user guide + dev notes)
 - [ ] Patch notes entry with timestamp
 - [ ] Knowledge log entry (if architectural change)
+- [ ] Brains entry (if architectural decision)
+- [ ] Atlas update (if new domain knowledge)
 - [ ] No mutations of canonical nm storage
 - [ ] Provenance recorded for new transforms
