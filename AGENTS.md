@@ -24,9 +24,11 @@ below—future agents rely on these conventions to maintain continuity.
   and the pass-review dossiers under `docs/reviews/`. They capture backlog
   priorities (calibration manager, identification stack, provenance parity,
   UI accessibility) and acceptance criteria drawn from the Atlas.
-- Logging & planning: `docs/reviews/workplan.md`,
-  `docs/history/PATCH_NOTES.md`, and `docs/history/KNOWLEDGE_LOG.md`.
-  Update all three with real timestamps (see §2) whenever you land work.
+- Logging & planning:
+  - **Tactical tracking**: `docs/reviews/workplan.md` (batch tasks/features) and `workplan_backlog.md` (future epics)
+  - **Daily narrative**: `docs/dev/worklog/YYYY-MM-DD.md` (what/why/how for each session)
+  - **Historical record**: `docs/history/PATCH_NOTES.md` and `docs/history/KNOWLEDGE_LOG.md`
+  - Update all with real timestamps (see §2) whenever you land work.
 
 ## 1. Implementation guidelines
 
@@ -100,9 +102,13 @@ below—future agents rely on these conventions to maintain continuity.
 
 - When adding resources, cross-link them in `docs/link_collection.md` and note
   provenance (DOIs/URLs) so future agents can revalidate the source.
-- Keep the workplan and backlog honest. Close completed checkboxes, record QA
+- Keep the **workplan** and backlog honest. Close completed checkboxes in `docs/reviews/workplan.md`, record QA
   runs (ruff/mypy/pytest) with timestamps, and surface new ideas in the
   brainstorming queue before promoting them to committed work.
+- After any code or doc change, write a neuron to `docs/brains/` and a daily entry under `docs/dev/worklog/`. Cross-link relevant neurons and atlas pages. (See `docs/brains/README.md`.)
+  - **Neurons** (`docs/brains/*.md`): atomic concepts, cross-linked, 1 file per idea
+  - **Worklogs** (`docs/dev/worklog/YYYY-MM-DD.md`): daily narrative (what/why/how), validation steps, known issues, next actions
+  - **Workplan** (`docs/reviews/workplan.md`): tactical batch tracker for features and tasks
 
 ## 3. Testing expectations
 

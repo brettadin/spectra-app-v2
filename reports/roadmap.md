@@ -16,20 +16,16 @@ iterations.
 
 ## Near-Term Priorities (Next 1–2 Sprints)
 
-1. **Importer expansion**
-   - Implement FITS and JCAMP parsers with unit preservation and provenance capture, guided by the historic
-     launch-debugging checklist.
-   - Extend the layout cache validation and heuristics to reuse IR functional-group knowledge for axis scoring.
-2. **Remote archive integration**
-   - Stand up a "Remote Data" dialog that fronts NIST, ESO, SDSS, and planned JWST/MIRI fetchers with dependency
-     guards and local caching.
-   - Record provenance for remote downloads (checksums, timestamps, source URLs) alongside imported spectra.
-3. **Inspector enrichment**
-   - Populate metadata/provenance tabs with transformation logs, add math operations (difference/ratio) with
-     shared-grid resampling, and expose style controls for smoothing and normalization.
+1. **Remote Data reliability + Quick Plot**
+   - Keep astroquery MAST path, but add fallback via MAST Download API when needed (done). Wire a "Quick Plot" button using new in-memory ingest.
+   - Expand curated ExoSystems targets and grouping by mission/instrument/target; visualize wavelength coverage.
+2. **Importer breadth (FITS/JCAMP)**
+   - Multi-extension FITS selection; broaden column aliases (STIS/IUE/NICMOS/JWST); WCS spectral axis detection where available.
+   - Improve error messages with available column lists (done) and unit preservation.
+3. **Provenance and citations**
+   - Auto-extract citations from remote metadata into manifests; surface inline in preview and provenance UI.
 4. **Documentation sweep**
-   - Refresh screenshots and guidance for the anchored IR overlays, importer safeguards, and remote-download
-     workflows as they land.
+   - Keep `docs/dev/worklog` (daily narratives) and `docs/reviews/workplan.md` (batch tracker) up to date; maintain neurons in `docs/brains`; extend `docs/atlas/*` where new flows are added.
 
 ## Documentation & Knowledge Sharing
 

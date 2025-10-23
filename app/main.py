@@ -1016,7 +1016,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             self,
             "Open Spectra",
             str(Path.home()),
-            "Spectra (*.csv *.txt)",
+            "All Spectra (*.csv *.txt *.fits *.fit *.fts *.dx *.jdx *.jcamp);;CSV Files (*.csv);;FITS Files (*.fits *.fit *.fts);;JCAMP-DX Files (*.dx *.jdx *.jcamp);;Text Files (*.txt);;All Files (*)",
         )
         if not paths:
             return
@@ -2620,13 +2620,22 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self._nist_worker = worker
         worker.moveToThread(thread)
         thread.started.connect(worker.run)
-        worker.finished.connect(lambda p: self._finish_nist_fetch(p))
-        worker.failed.connect(lambda msg: self._finish_nist_fetch(None, error=msg))
+        # Connect directly to methods - Qt auto-detects cross-thread and queues on main thread
+        worker.finished.connect(self._on_nist_fetch_success)
+        worker.failed.connect(self._on_nist_fetch_error)
         worker.finished.connect(thread.quit)
         worker.failed.connect(thread.quit)
         thread.finished.connect(worker.deleteLater)
         thread.finished.connect(thread.deleteLater)
         thread.start()
+
+    def _on_nist_fetch_success(self, payload: Dict[str, Any]) -> None:
+        """Handle successful NIST fetch - runs on main thread via Qt signal."""
+        self._finish_nist_fetch(payload, error=None)
+    
+    def _on_nist_fetch_error(self, error_msg: str) -> None:
+        """Handle failed NIST fetch - runs on main thread via Qt signal."""
+        self._finish_nist_fetch(None, error=error_msg)
 
     def _finish_nist_fetch(self, payload: Optional[Dict[str, Any]], *, error: str | None = None) -> None:
         try:

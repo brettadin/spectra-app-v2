@@ -10,7 +10,8 @@
   bundled reference assets.
 - `docs/history/PATCH_NOTES.md` & `docs/history/KNOWLEDGE_LOG.md` – Chronological
   change log and distilled insights; update alongside code.
-- `docs/reviews/workplan.md` – Batch tracker/backlog. Mark progress here.
+- `docs/reviews/workplan.md` + `workplan_backlog.md` – Tactical batch tracker for features/tasks. Mark progress here.
+- `docs/dev/worklog/YYYY-MM-DD.md` – Daily narrative logs (what/why/how for each session). See `docs/dev/worklog/README.md`.
 
 ## Importers
 - Implement `SupportsImport` protocol (`app/services/importers/base.py`) and register via `DataIngestService.register_importer`. Each importer should return `ImporterResult` with raw arrays, units, metadata, and optional `source_path`.
@@ -62,6 +63,15 @@
 - Trace colouring can be toggled between the high-contrast palette and a uniform
   colour via the Style tab combo box; respect the `_use_uniform_palette`
   attribute when adding new plot interactions.
+
+## 2025-10-22 — Remote Data stability and streaming ingest
+- Filters in Remote Data (All/Spectra/Images/Other), selection guards, and non-blocking worker cleanup
+- Non-spectral skip during bulk ingest
+- MAST: isolated temp-dir + persistent temp copy; fallback to direct HTTP (MAST Download API) on empty astroquery result
+- NIST: registration fix; UI slots on main thread; CSV generation and ingest
+- In-memory ingest: `DataIngestService.ingest_bytes` to support streaming/quick-plot flows
+
+See also: `docs/atlas/remote_data_flow.md` and `docs/brains/*` neurons.
 
 ## Packaging
 - Update `packaging/spectra_app.spec` when adding new data assets. Keep `requirements.txt` aligned with runtime dependencies to ensure PyInstaller bundles the correct versions.

@@ -1,6 +1,16 @@
 # Patch Notes
 
 
+## 2025-10-22 (Remote Data stability, MAST fallback, and streaming ingest)
+
+- Remote Data dialog: filters, selection guards, non-blocking thread cleanup, improved status text
+- Skip non-spectral file types during bulk ingest
+- MAST download stability: temp-dir isolation, persistent temp copy, direct HTTP fallback for `mast:` URIs
+- NIST line search: registration fix, main-thread UI updates, local CSV generation
+- In-memory ingest: `DataIngestService.ingest_bytes`
+
+See: `docs/dev/worklog/2025-10-22.md` and neurons in `docs/brains/*`.
+
 ## 2025-10-22 (Bootstrap numpy installer avoids recursive pip launches) (00:34 EDT / 04:34 UTC)
 
 - Updated `sitecustomize.py` to propagate `SPECTRA_SKIP_AUTO_NUMPY=1` into the child environment when invoking `python -m pip`

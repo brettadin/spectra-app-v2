@@ -1091,32 +1091,85 @@ class RemoteDataService:
             return Path(handle.name)
 
     def _fetch_via_mast(self, record: RemoteRecord) -> Path:
+        import tempfile
+        import shutil
+
         mast = self._ensure_mast()
-        
-        # Download to a temp directory instead of current working directory
-        with tempfile.TemporaryDirectory() as temp_dir:
-            temp_path = Path(temp_dir)
+
+        # Create a temporary directory for MAST download
+        temp_dir = tempfile.mkdtemp()
+        try:
             result = mast.Observations.download_file(
-                record.download_url, 
+                record.download_url,
                 cache=False,
-                local_path=str(temp_path)
+                local_path=temp_dir,
             )
             if not result:
                 raise RuntimeError("MAST download did not return a file path")
-            
-            # Copy to a persistent temp file since temp_dir will be deleted
+
             downloaded = Path(result)
             if not downloaded.exists():
                 raise FileNotFoundError(f"MAST download missing: {downloaded}")
-            
-            # Create a temp file in the system temp directory with the same suffix
-            suffix = downloaded.suffix or '.fits'
-            import shutil
-            temp_handle = tempfile.NamedTemporaryFile(mode='wb', delete=False, suffix=suffix)
+
+            # Copy to persistent temp file with appropriate suffix
+            suffix = downloaded.suffix or ".fits"
+            temp_handle = tempfile.NamedTemporaryFile(mode="wb", delete=False, suffix=suffix)
             temp_handle.close()
             shutil.copyfile(downloaded, temp_handle.name)
-            
-            return Path(temp_handle.name)
+
+            temp_path = Path(temp_handle.name)
+            # If file appears empty or tiny, fall back to direct HTTP fetch
+            try:
+                if temp_path.stat().st_size <= 0:
+                    raise RuntimeError("Downloaded file is empty; falling back to direct fetch")
+            except Exception:
+                # Defensive: try fallback path
+                pass
+            if temp_path.stat().st_size <= 0:
+                try:
+                    temp_path.unlink(missing_ok=True)
+                except Exception:
+                    pass
+                return self._fetch_via_mast_direct(record.download_url)
+
+            return temp_path
+        finally:
+            # Clean up temporary download directory
+            try:
+                shutil.rmtree(temp_dir, ignore_errors=True)
+            except Exception:
+                pass
+
+    def _fetch_via_mast_direct(self, mast_uri: str) -> Path:
+        """Fallback path: fetch a MAST 'mast:' URI via the public Download API.
+
+        Example: https://mast.stsci.edu/api/v0.1/Download/file?uri=mast:...
+        """
+        import tempfile
+
+        session = self._ensure_session()
+        from urllib.parse import quote
+        url = f"https://mast.stsci.edu/api/v0.1/Download/file?uri={quote(mast_uri, safe='')}"
+
+        response = session.get(url, timeout=90, stream=True)
+        response.raise_for_status()
+        # Try to infer a suffix from headers or URI
+        suffix = ".fits"
+        cdisp = response.headers.get("Content-Disposition", "")
+        if ".csv" in cdisp.lower() or url.lower().endswith(".csv"):
+            suffix = ".csv"
+        elif ".jdx" in cdisp.lower() or url.lower().endswith(".jdx") or url.lower().endswith(".dx"):
+            suffix = ".jdx"
+
+        handle = tempfile.NamedTemporaryFile(mode="wb", delete=False, suffix=suffix)
+        try:
+            for chunk in response.iter_content(chunk_size=8192):
+                if not chunk:
+                    continue
+                handle.write(chunk)
+        finally:
+            handle.close()
+        return Path(handle.name)
 
     def _fetch_exomast_filelist(self, target_name: str) -> Dict[str, Any] | None:
         """Return the Exo.MAST file list for *target_name* without double encoding."""

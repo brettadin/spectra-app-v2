@@ -95,7 +95,14 @@ class FitsImporter:
         for candidate in candidates:
             if candidate.lower() in names:
                 return names[candidate.lower()]
-        raise ValueError(f"Required column not found; expected one of {candidates}")
+        
+        # Build helpful error message with available columns
+        available = ", ".join(hdu.columns.names) if hdu.columns.names else "(none)"
+        candidates_list = ", ".join(f"'{c}'" for c in candidates)
+        raise ValueError(
+            f"Required column not found; expected one of [{candidates_list}]. "
+            f"Available columns: {available}"
+        )
 
     def _column_unit(self, hdu: "fits.BinTableHDU", column: str) -> str | None:
         try:

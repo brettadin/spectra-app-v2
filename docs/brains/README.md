@@ -1,3 +1,27 @@
+# Brains (Agent Memory Neurons)
+
+This folder contains small, focused “neurons” — one file per idea — that agents can cross-link and update as we evolve Spectra. Keep each neuron:
+
+- Atomic: a single concept or mechanism
+- Portable: link to source files, PRs/commits, and other neurons
+- Actionable: include “How to extend/test” snippets
+
+Conventions
+- Filename: short-kebab or snake_case, e.g., `remote_data_pipeline.md`
+- Top heading: the neuron’s name and one-sentence purpose
+- See also: links to sibling neurons for lateral recall
+- Source pointers: function/file references in backticks
+- Change log: a tiny bullet list as updates land
+
+When to write/update a neuron
+- You change a behavior or interface
+- You add a workaround or fallback
+- You discover constraints, edge cases, or gotchas
+
+Also update
+- `docs/dev/worklog/YYYY-MM-DD.md` with a daily narrative
+- `docs/reviews/workplan.md` for batch/task tracking
+- Any relevant docs in `docs/atlas` and `docs/dev/path_notes.md`
 # Brains Log Index
 
 The `docs/brains/` directory replaces the old single `atlas/brains.md` file. Each

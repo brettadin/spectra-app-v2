@@ -51,6 +51,61 @@ class DataIngestService:
         spectrum = self._build_spectrum(raw.name, raw.x, raw.y, raw.x_unit, raw.y_unit, raw.metadata, importer, raw.source_path or path)
         return [spectrum]
 
+    def ingest_bytes(
+        self,
+        content: bytes,
+        *,
+        suggested_name: str | None = None,
+        extension: str | None = None,
+    ) -> List[Spectrum]:
+        """Ingest spectra from an in-memory byte buffer.
+
+        Uses the file-based importer pipeline by writing the bytes to a
+        temporary file with an appropriate suffix inferred from
+        ``suggested_name`` or ``extension``. The temporary file is then
+        parsed via :meth:`ingest` and, when a :class:`LocalStore` is
+        configured, recorded into the persistent cache.
+
+        Parameters
+        - content: Raw file bytes
+        - suggested_name: Optional filename hint (e.g. "spectrum.fits").
+        - extension: Optional override like ".fits", ".csv", or ".jdx".
+
+        Returns
+        - List[Spectrum]: One or more canonical spectra
+        """
+        import tempfile
+
+        # Resolve a usable extension for importer lookup
+        ext = None
+        if extension and extension.strip():
+            ext = extension.strip()
+        elif suggested_name:
+            ext = Path(suggested_name).suffix
+        if not ext:
+            raise ValueError("Unable to determine file type: provide 'suggested_name' or 'extension'.")
+
+        if not ext.startswith("."):
+            ext = f".{ext}"
+
+        if ext.lower() not in self._registry:
+            raise ValueError(f"No importer registered for extension {ext!r}")
+
+        # Persist bytes to a temporary file and delegate to the file pipeline
+        with tempfile.NamedTemporaryFile(delete=False, suffix=ext) as handle:
+            handle.write(content)
+            temp_path = Path(handle.name)
+
+        try:
+            return self.ingest(temp_path)
+        finally:
+            try:
+                temp_path.unlink(missing_ok=True)
+            except Exception:
+                # Best-effort cleanup; the LocalStore may have already copied
+                # the file into the persistent cache.
+                pass
+
     def supported_extensions(self) -> Dict[str, str]:
         """Return mapping of extension → importer class name."""
         return {ext: imp.__class__.__name__ for ext, imp in self._registry.items()}

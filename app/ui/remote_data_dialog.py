@@ -98,9 +98,22 @@ class _DownloadWorker(QtCore.QObject):  # type: ignore[name-defined]
                     return
                 try:
                     download = self._remote_service.download(record)
-                    ingested_item = self._ingest_service.ingest(
-                        Path(download.cache_entry["stored_path"])
-                    )
+                    file_path = Path(download.cache_entry["stored_path"])
+                    
+                    # Skip non-spectral file types (images, logs, etc.)
+                    non_spectral_extensions = {
+                        '.gif', '.png', '.jpg', '.jpeg', '.bmp', '.tif', '.tiff', '.svg',
+                        '.txt', '.log', '.xml', '.html', '.htm', '.json', '.md'
+                    }
+                    if file_path.suffix.lower() in non_spectral_extensions:
+                        # Emit as failed with a clear message
+                        self.record_failed.emit(
+                            record,
+                            f"Skipped non-spectral file type: {file_path.suffix}"
+                        )  # type: ignore[attr-defined]
+                        continue
+                    
+                    ingested_item = self._ingest_service.ingest(file_path)
                 except Exception as exc:  # pragma: no cover - defensive: surfaced via signal
                     self.record_failed.emit(record, str(exc))  # type: ignore[attr-defined]
                     continue
@@ -166,7 +179,7 @@ class RemoteDataDialog(QtWidgets.QDialog):  # type: ignore[name-defined]
         self._quick_pick_targets: list[Mapping[str, Any]] = []
         self._current_filter: str = "all"  # all, spectra, images, other
 
-        self._build_ui()
+        # Build the UI once
         self._build_ui()
 
     # ------------------------------------------------------------------
@@ -537,20 +550,19 @@ class RemoteDataDialog(QtWidgets.QDialog):  # type: ignore[name-defined]
         self,
         worker: QtCore.QObject,
         thread: QtCore.QThread,
+    ) -> None:
         def _do_cleanup() -> None:
-            thread_: QtCore.QThread = thread  # type: ignore
-            if thread_.isRunning():
-                thread_.quit()
-                # Schedule cleanup asynchronously to avoid blocking the event loop during thread shutdown
+            if thread.isRunning():
+                thread.quit()
+                # Non-blocking: let event loop finish thread shutdown
                 # Calling wait() here causes "QThread::wait: Thread tried to wait on itself"
             worker.deleteLater()
-            thread_.deleteLater()
+            thread.deleteLater()
             if worker is self._search_worker:
                 self._search_worker = None
                 self._search_thread = None
             if worker is self._download_worker:
                 self._download_worker = None
-                self._download_thread = None
                 self._download_thread = None
 
         def _schedule_cleanup(*_args: object) -> None:
@@ -797,7 +809,11 @@ class RemoteDataDialog(QtWidgets.QDialog):  # type: ignore[name-defined]
             self.preview.clear()
             return
         # Use filtered records for correct mapping
-        record = self._filtered_records[indexes[0].row()]
+        row_index = indexes[0].row()
+        if row_index < 0 or row_index >= len(self._filtered_records):
+            self.preview.clear()
+            return
+        record = self._filtered_records[row_index]
         metadata = record.metadata if isinstance(record.metadata, Mapping) else {}
         narrative_lines: list[str] = []
         summary = self._format_exoplanet_summary(metadata)
@@ -813,8 +829,6 @@ class RemoteDataDialog(QtWidgets.QDialog):  # type: ignore[name-defined]
             narrative_lines.append(f"Citation: {citation}")
         if narrative_lines:
             narrative_lines.append("")
-        narrative_lines.append(json.dumps(metadata, indent=2, ensure_ascii=False))
-        self.preview.setPlainText("\n".join(narrative_lines))
         narrative_lines.append(json.dumps(metadata, indent=2, ensure_ascii=False))
         self.preview.setPlainText("\n".join(narrative_lines))
 
@@ -839,13 +853,12 @@ class RemoteDataDialog(QtWidgets.QDialog):  # type: ignore[name-defined]
             self._set_download_widget(row, 6, record.download_url)
             self._set_table_text(row, 7, "")
             self._set_preview_widget(row, 7, record.metadata)
-            self._set_table_text(row, 7, "")
-            self._set_preview_widget(row, 7, record.metadata)
 
     def _set_table_text(self, row: int, column: int, value: str | None) -> None:
         item = QtWidgets.QTableWidgetItem(value or "")
         item.setFlags(item.flags() & ~QtCore.Qt.ItemFlag.ItemIsEditable)
         self.results.setItem(row, column, item)
+        
     def _set_download_widget(self, row: int, column: int, url: str) -> None:
         label = QtWidgets.QLabel(self.results)
         label.setAlignment(QtCore.Qt.AlignmentFlag.AlignLeft | QtCore.Qt.AlignmentFlag.AlignVCenter)
@@ -866,7 +879,6 @@ class RemoteDataDialog(QtWidgets.QDialog):  # type: ignore[name-defined]
             if hyperlink != url:
                 tooltip = f"{url}\n{hyperlink}"
             label.setToolTip(tooltip)
-        self.results.setCellWidget(row, column, label)
         self.results.setCellWidget(row, column, label)
 
     def _link_for_download(self, url: str) -> str:
@@ -939,6 +951,11 @@ class RemoteDataDialog(QtWidgets.QDialog):  # type: ignore[name-defined]
         self.results.setRowCount(0)
 
     def _reset_results_table(self) -> None:
+        self._clear_result_widgets()
+        self._all_records = []
+        self._filtered_records = []
+        self.status_label.setText("")
+
     def _on_queue_downloads(self) -> None:
         if self._busy:
             return
@@ -948,9 +965,6 @@ class RemoteDataDialog(QtWidgets.QDialog):  # type: ignore[name-defined]
             return
 
         # Use filtered records for correct mapping
-        records = [self._filtered_records[index.row()] for index in selected]
-        self._start_download(records)
-        # Use filtered records for download selection
         records = [self._filtered_records[index.row()] for index in selected]
         self._start_download(records)
 

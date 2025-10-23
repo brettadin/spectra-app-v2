@@ -1207,3 +1207,16 @@ Import/Remote Import entries remain after the cleanup.
 - reference::ir_groups
 
 ---
+## 2025-10-22 20:44 – Overlay
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Enabled reference overlay(s).
+
+**References**:
+- reference::nist::h
+- {'archive': 'NIST ASD', 'atomic_number': 1, 'citation': 'Kramida, A. et al. (NIST ASD), https://physics.nist.gov/asd', 'element_name': 'Hydrogen', 'element_symbol': 'H', 'fetched_at_utc': '2025-10-23T00:44:27.115929+00:00', 'ion_stage': 'I', 'ion_stage_number': 1, 'label': 'H I (NIST ASD)', 'query': {'identifier': 'H', 'linename': 'H I', 'lower_wavelength': 380.0, 'upper_wavelength': 750.0, 'use_ritz': True, 'wavelength_type': 'vacuum', 'wavelength_unit': 'nm'}, 'retrieved_via': 'astroquery.nist', 'source_type': 'reference'}
+
+---
