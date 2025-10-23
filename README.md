@@ -86,6 +86,25 @@ spectra-app-beta/
 └── packaging/            # Distribution & deployment
 ```
 
+## 📚 New User? Start Here!
+
+**Brand new to Spectra App?** Check out these guides:
+
+1. **[Getting Started with Real Data](docs/user/GETTING_STARTED_WITH_REAL_DATA.md)** 🌟
+   - How to fetch authentic spectra from NASA MAST archives
+   - Step-by-step walkthrough with examples
+   - No manual downloads required!
+
+2. **[Enhancement Plan Status](docs/ENHANCEMENT_PLAN_STATUS.md)**
+   - Current feature implementation status
+   - What's working, what's planned
+   - Known issues and workarounds
+
+3. **[Quickstart Guide](docs/user/quickstart.md)**
+   - Basic workflows: import → analyze → export
+   - Essential UI navigation
+   - Common tasks
+
 ## 🚀 Quick Start
 
 ### Windows Quick Launch (Recommended)
