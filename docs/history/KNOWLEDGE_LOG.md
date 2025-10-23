@@ -28,6 +28,18 @@ Each entry in this document should follow this structure:
 
 ---
 
+## 2025-10-23T00:49:35-04:00 / 2025-10-23T04:49:35+00:00 – Test suite maintenance and numpy deprecation cleanup
+
+**Author**: agent (GitHub Copilot)
+
+**Context**: Test suite integrity and numpy API modernization.
+
+**Summary**: Fixed failing test `test_download_mast_uses_astroquery` by updating the mock `DummyObservations.download_file()` to accept the `local_path` parameter that was added to the real astroquery.mast API. This parameter is used by `RemoteDataService._fetch_via_mast()` to specify a temporary download directory. Also replaced all instances of deprecated `np.trapz()` with `np.trapezoid()` in `app/services/overlay_service.py` and `tests/test_overlay_service.py` to eliminate deprecation warnings from numpy 2.x. These changes ensure the test suite remains clean and aligned with current dependencies.
+
+**References**: `tests/test_remote_data_service.py`, `app/services/overlay_service.py`, `tests/test_overlay_service.py`, `docs/history/PATCH_NOTES.md`.
+
+---
+
 ## 2025-10-22T00:34:36-04:00 / 2025-10-22T04:34:39+00:00 – Numpy bootstrap recursion guard
 
 **Author**: agent

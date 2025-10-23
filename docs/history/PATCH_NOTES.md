@@ -1,6 +1,12 @@
 # Patch Notes
 
 
+## 2025-10-23 (Test fixes and numpy deprecation cleanup) (00:49 EDT / 04:49 UTC)
+
+- Fixed `test_download_mast_uses_astroquery` to accept `local_path` parameter in mock, matching real astroquery.mast API signature.
+- Replaced deprecated `np.trapz()` with `np.trapezoid()` in `app/services/overlay_service.py` and corresponding test to eliminate deprecation warnings.
+- All tests now pass cleanly (73 passed, 20 skipped, 0 warnings).
+
 ## 2025-10-22 (Remote Data stability, MAST fallback, and streaming ingest)
 
 - Remote Data dialog: filters, selection guards, non-blocking thread cleanup, improved status text
