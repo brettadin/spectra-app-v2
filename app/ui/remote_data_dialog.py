@@ -40,27 +40,126 @@ class _SearchWorker(QtCore.QObject):  # type: ignore[name-defined]
 
     @Slot(str, dict, bool)  # type: ignore[misc]
     def run(self, provider: str, query: dict[str, str], include_imaging: bool) -> None:
+        """Execute a progressive/batched search and stream results.
+
+        For MAST-based providers we split the search into smaller segments to
+        reduce time-to-first-result and avoid issuing a single heavyweight
+        query that returns everything at once. Segments are grouped by mission
+        and product type (spectra first, then imaging if requested).
+        """
         self.started.emit()  # type: ignore[attr-defined]
         collected: list[RemoteRecord] = []
+
         try:
-            results = self._remote_service.search(
-                provider,
-                query,
-                include_imaging=include_imaging,
-            )
-            for record in results:
-                if self._cancel_requested:
-                    self.cancelled.emit()  # type: ignore[attr-defined]
-                    return
-                collected.append(record)
-                self.record_found.emit(record)  # type: ignore[attr-defined]
-            if self._cancel_requested:
-                self.cancelled.emit()  # type: ignore[attr-defined]
+            # Fast path for NIST or providers without a batching strategy
+            if provider == RemoteDataService.PROVIDER_NIST:
+                results = self._remote_service.search(provider, query, include_imaging=include_imaging)
+                for record in results:
+                    if self._cancel_requested:
+                        self.cancelled.emit()  # type: ignore[attr-defined]
+                        return
+                    collected.append(record)
+                    self.record_found.emit(record)  # type: ignore[attr-defined]
+                self.finished.emit(collected)  # type: ignore[attr-defined]
                 return
+
+            # Progressive strategy for MAST and ExoSystems
+            seen: set[tuple[str, str]] = set()
+
+            def _emit_batch(batch: list[RemoteRecord]) -> None:
+                for rec in batch:
+                    if self._cancel_requested:
+                        self.cancelled.emit()  # type: ignore[attr-defined]
+                        return
+                    key = (rec.download_url, rec.identifier)
+                    if key in seen:
+                        continue
+                    seen.add(key)
+                    collected.append(rec)
+                    self.record_found.emit(rec)  # type: ignore[attr-defined]
+
+            if provider == RemoteDataService.PROVIDER_MAST:
+                # Prioritise calibrated spectra from common missions first.
+                base = dict(query)
+                # Always search spectra first (fast, most relevant)
+                mission_batches: list[list[str]] = [
+                    ["JWST"],
+                    ["HST"],
+                    ["IUE", "FUSE", "GALEX"],
+                    ["Kepler", "K2", "TESS"],
+                ]
+
+                # Spectra (calib 2/3), by mission group
+                for missions in mission_batches:
+                    for mission in missions:
+                        if self._cancel_requested:
+                            self.cancelled.emit()  # type: ignore[attr-defined]
+                            return
+                        criteria = {**base, "obs_collection": mission, "dataproduct_type": "spectrum", "calib_level": [2, 3], "intentType": "SCIENCE"}
+                        try:
+                            batch = self._remote_service.search(
+                                RemoteDataService.PROVIDER_MAST, criteria, include_imaging=False
+                            )
+                        except Exception:
+                            batch = []
+                        _emit_batch(batch)
+
+                # Imaging next (optional)
+                if include_imaging:
+                    for missions in mission_batches:
+                        for mission in missions:
+                            if self._cancel_requested:
+                                self.cancelled.emit()  # type: ignore[attr-defined]
+                                return
+                            criteria = {**base, "obs_collection": mission, "dataproduct_type": "image", "intentType": "SCIENCE"}
+                            try:
+                                batch = self._remote_service.search(
+                                    RemoteDataService.PROVIDER_MAST, criteria, include_imaging=True
+                                )
+                            except Exception:
+                                batch = []
+                            _emit_batch(batch)
+
+                self.finished.emit(collected)  # type: ignore[attr-defined]
+                return
+
+            if provider == RemoteDataService.PROVIDER_EXOSYSTEMS:
+                # Fetch spectra first to get relevant results quickly
+                try:
+                    spectral = self._remote_service.search(
+                        RemoteDataService.PROVIDER_EXOSYSTEMS, query, include_imaging=False
+                    )
+                except Exception:
+                    spectral = []
+                _emit_batch(spectral)
+
+                if include_imaging:
+                    try:
+                        mixed = self._remote_service.search(
+                            RemoteDataService.PROVIDER_EXOSYSTEMS, query, include_imaging=True
+                        )
+                    except Exception:
+                        mixed = []
+                    # From the mixed set, emit only imaging records to avoid duplicates
+                    imaging_only: list[RemoteRecord] = []
+                    for rec in mixed:
+                        meta = rec.metadata if isinstance(rec.metadata, dict) else {}
+                        dtype = str(meta.get("dataproduct_type") or meta.get("productType") or "").lower()
+                        desc = str(meta.get("description") or meta.get("display_name") or "").lower()
+                        if ("image" in dtype) or ("image" in desc):
+                            imaging_only.append(rec)
+                    _emit_batch(imaging_only)
+
+                self.finished.emit(collected)  # type: ignore[attr-defined]
+                return
+
+            # Fallback: non-batched search
+            results = self._remote_service.search(provider, query, include_imaging=include_imaging)
+            _emit_batch(results)
+            self.finished.emit(collected)  # type: ignore[attr-defined]
         except Exception as exc:  # pragma: no cover - defensive: surfaced via signal
             self.failed.emit(str(exc))  # type: ignore[attr-defined]
             return
-        self.finished.emit(collected)  # type: ignore[attr-defined]
 
     @Slot()  # type: ignore[misc]
     def cancel(self) -> None:
@@ -397,7 +496,7 @@ class RemoteDataDialog(QtWidgets.QDialog):  # type: ignore[name-defined]
         thread.started.connect(lambda p=provider, q=query, inc=include_imaging: worker.run(p, q, inc))
         worker.started.connect(lambda: self.search_started.emit(provider))  # type: ignore[misc]
         # Streamed results are optional; we primarily update on completion
-        worker.record_found.connect(lambda _rec: None)  # no-op incremental hook
+        worker.record_found.connect(self._handle_record_found)
         worker.finished.connect(self._handle_search_results)
         worker.failed.connect(self._handle_search_error)
         worker.cancelled.connect(self._handle_search_cancelled)
@@ -1090,8 +1189,9 @@ class RemoteDataDialog(QtWidgets.QDialog):  # type: ignore[name-defined]
     # (removed unused worker bootstrap helpers; we wire workers inline where started)
 
     def _handle_search_results(self, records: list[RemoteRecord]) -> None:
+        # Finalise with the complete set (deduped) from the worker
         self._records = list(records)
-        self._populate_results_table(records)
+        self._populate_results_table(self._records)
         
         # Count how many match the current filter
         filtered = [r for r in records if self._should_show_record(r)]
@@ -1113,6 +1213,39 @@ class RemoteDataDialog(QtWidgets.QDialog):  # type: ignore[name-defined]
         else:
             self.preview.clear()
         self.search_completed.emit(records)
+
+    def _handle_record_found(self, record: RemoteRecord) -> None:
+        """Incrementally add a found record to the table to reduce TTFB."""
+        # Track full set regardless of visibility
+        self._records.append(record)
+        # Respect current filter when adding to the table
+        if not self._should_show_record(record):
+            # Still update the count/status using totals
+            self.status_label.setText(f"Fetched {len(self._records)} record(s)…")
+            return
+
+        # Append to filtered list and insert a new row
+        self._filtered_records.append(record)
+        row = self.results.rowCount()
+        self.results.insertRow(row)
+        self._set_table_text(row, 0, record.identifier)
+        self._set_table_text(row, 1, record.title)
+        self._set_table_text(row, 2, self._format_target(record))
+        self._set_table_text(row, 3, self._format_mission(record.metadata))
+        self._set_table_text(row, 4, self._format_instrument(record.metadata))
+        self._set_table_text(row, 5, self._format_product(record.metadata))
+        self._set_table_text(row, 6, "")
+        self._set_download_widget(row, 6, record.download_url)
+        self._set_table_text(row, 7, "")
+        self._set_preview_widget(row, 7, record.metadata)
+        # Update status with visible/total counts
+        visible = len(self._filtered_records)
+        total = len(self._records)
+        provider_name = self.provider_combo.currentText()
+        if visible == total:
+            self.status_label.setText(f"{visible} result(s) fetched from {provider_name}…")
+        else:
+            self.status_label.setText(f"Showing {visible} of {total} result(s) from {provider_name}…")
 
     def _handle_search_error(self, message: str) -> None:
         QtWidgets.QMessageBox.critical(self, "Search failed", message)
