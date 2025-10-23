@@ -506,9 +506,10 @@ def test_download_mast_uses_astroquery(
             return []
 
         @staticmethod
-        def download_file(data_uri: str, cache: bool = False) -> Path:
+        def download_file(data_uri: str, cache: bool = False, local_path: str | None = None) -> Path:
             download_calls["uri"] = data_uri
             download_calls["cache"] = cache
+            download_calls["local_path"] = local_path
             target = tmp_path / "mast_product.fits"
             target.write_bytes(b"mast-bytes")
             return target
