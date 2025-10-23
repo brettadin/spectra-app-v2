@@ -1,3 +1,13 @@
+# Training Links (Raw Materials)
+
+**NOTE**: This file contains raw training link materials used to create the structured `docs/link_collection.md`. 
+For the canonical, maintained link collection with integration notes and usage guidelines, see:
+- **`docs/link_collection.md`** - Structured resource index with integration notes
+
+This file is retained for historical reference.
+
+---
+
 Core stack to get work done
 Astroquery + MAST
 1.	Astroquery (repo) — https://github.com/astropy/astroquery

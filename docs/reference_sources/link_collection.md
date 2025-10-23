@@ -1,3 +1,13 @@
+# Reference Links Collection (Raw Materials)
+
+**NOTE**: This file contains raw link materials used to create the structured `docs/link_collection.md`. 
+For the canonical, maintained link collection with integration notes and usage guidelines, see:
+- **`docs/link_collection.md`** - Structured resource index with integration notes
+
+This file is retained for historical reference.
+
+---
+
 1\.	https://github.com/spacetelescope/mast\_notebooks/tree/main
 
 2\.	https://github.com/spacetelescope/jwst
