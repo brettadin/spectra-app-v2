@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json.schemastore.org/launch.json",
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Spectra App (module)",
+      "type": "python",
+      "request": "launch",
+      "module": "app.main",
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal",
+      "justMyCode": false,
+      "env": {
+        "SPECTRA_DEBUG": "1"
+      }
+    },
+    {
+      "name": "Spectra App (script)",
+      "type": "python",
+      "request": "launch",
+      "program": "${workspaceFolder}/app/main.py",
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal",
+      "justMyCode": false,
+      "env": {
+        "SPECTRA_DEBUG": "1"
+      }
+    }
+  ]
+}

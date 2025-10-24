@@ -17,7 +17,8 @@ if __package__ in (None, ""):
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from app.qt_compat import get_qt
-from .services import (
+from typing import Any
+from app.services import (
     UnitsService,
     ProvenanceService,
     DataIngestService,
@@ -31,10 +32,10 @@ from .services import (
     KnowledgeLogService,
     RemoteDataService,
 )
-from .services import nist_asd_service
-from .ui.plot_pane import PlotPane, TraceStyle
-from .ui.remote_data_dialog import RemoteDataDialog
-from .ui.export_options_dialog import ExportOptionsDialog
+from app.services import nist_asd_service
+from app.ui.plot_pane import PlotPane, TraceStyle
+from app.ui.remote_data_dialog import RemoteDataDialog
+from app.ui.export_options_dialog import ExportOptionsDialog
 
 QtCore: Any
 QtGui: Any
@@ -67,8 +68,17 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             self.reference_library.line_shape_metadata(),
         )
         self.overlay_service = OverlayService(self.units_service, line_shape_model=self.line_shape_model)
-        self._persistence_env_disabled = self._persistence_disabled_via_env()
-        self._persistence_disabled = self._persistence_env_disabled or self._load_persistence_preference()
+        # Compute persistence flags inline to avoid any bootstrap ordering issues
+        _flag = os.environ.get("SPECTRA_DISABLE_PERSISTENCE")
+        self._persistence_env_disabled = bool(
+            _flag and str(_flag).strip().lower() in {"1", "true", "yes", "on"}
+        )
+        try:
+            settings = QtCore.QSettings("SpectraApp", "DesktopPreview")
+            pref_disabled = bool(settings.value("persistence/disabled", False, type=bool))
+        except Exception:
+            pref_disabled = False
+        self._persistence_disabled = self._persistence_env_disabled or pref_disabled
         self.store: LocalStore | None = None if self._persistence_disabled else LocalStore()
         self.ingest_service = DataIngestService(self.units_service, store=self.store)
         remote_store = self.store
@@ -149,6 +159,58 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self._setup_menu()
         self._wire_shortcuts()
         # self._load_default_samples()  # Disabled: users prefer empty workspace on launch
+
+
+def _install_exception_handler() -> None:
+    """Show uncaught exceptions in both console and a dialog, then exit."""
+    def _excepthook(exc_type, exc_value, exc_tb):
+        import traceback
+        details = "".join(traceback.format_exception(exc_type, exc_value, exc_tb))
+        # Persist to a log file for sharing during support sessions
+        try:
+            logs_dir = Path(__file__).resolve().parent.parent / "reports"
+            logs_dir.mkdir(parents=True, exist_ok=True)
+            (logs_dir / "runtime.log").write_text(details, encoding="utf-8")
+        except Exception:
+            pass
+        try:
+            # Print to the terminal for real-time visibility
+            print(details, file=sys.stderr)
+        except Exception:
+            pass
+        try:
+            # Also surface in a message box so the window doesn't just vanish
+            QtWidgets.QMessageBox.critical(None, "Unhandled exception", details)
+        except Exception:
+            pass
+    sys.excepthook = _excepthook
+
+
+def main(argv: list[str] | None = None) -> int:
+    """Launch the Spectra desktop app.
+
+    Returns an OS exit code (0 for normal shutdown).
+    """
+    _install_exception_handler()
+
+    # High-DPI awareness for crisp UI on 4K/retina displays
+    try:
+        QtWidgets.QApplication.setAttribute(QtCore.Qt.ApplicationAttribute.AA_EnableHighDpiScaling)
+        QtWidgets.QApplication.setAttribute(QtCore.Qt.ApplicationAttribute.AA_UseHighDpiPixmaps)
+    except Exception:
+        pass
+
+    app = QtWidgets.QApplication.instance() or QtWidgets.QApplication(argv or sys.argv)
+    app.setApplicationName("Spectra App")
+    app.setOrganizationName("Spectra")
+
+    window = SpectraMainWindow()
+    window.show()
+    return app.exec()
+
+
+if __name__ == "__main__":  # Script/direct launch
+    raise SystemExit(main())
 
     # ------------------------------------------------------------------
     def _setup_menu(self) -> None:
