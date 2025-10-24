@@ -1,5 +1,22 @@
 # Bugs and UX Issues Identified
 
+## [Fixed] Running app/main.py directly raises ModuleNotFoundError: app
+
+Symptoms:
+- Launching with `python app/main.py` on some environments failed with: `ModuleNotFoundError: No module named 'app'`.
+
+Cause:
+- When a module is run as a script, Python sets `sys.path[0]` to the script directory (`app/`), so absolute imports like `from app.qt_compat import get_qt` fail because the package root (`spectra-app-v2/`) is not on `sys.path`.
+
+Resolution:
+- main.py now prepends the repository root to `sys.path` when `__package__` is empty, allowing both launch styles:
+	- Preferred: `python -m app.main` from the repo root
+	- Fallback: `python app/main.py`
+
+Notes:
+- This is a small, isolated bootstrap and does not affect packaged or module-based launches.
+- We still recommend the module form for consistency with tooling and relative imports.
+
 This document compiles notable defects and usability problems in the current Spectra‑App.  Issues were identified through examination of the source code, inspection of logs, and reproduction in the Streamlit UI.  Each entry includes reproduction steps and a recommended remediation strategy.  Where relevant, the redesign brief is referenced for context.
 
 ## 1. Double‑Click Requirement on UI Elements
