@@ -12,19 +12,11 @@ from typing import Any, Dict, Iterable, List, Mapping, Optional, Sequence, Tuple
 import numpy as np
 import pyqtgraph as pg
 
-"""Application entry point for the Spectra desktop shell.
-
-Supports both `python -m app.main` (preferred) and running `app/main.py` directly.
-When run directly, we prepend the repository root to sys.path so `from app import …`
-imports continue to work.
-"""
-
 # Ensure repository root is importable when run as a script
 if __package__ in (None, ""):
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from app.qt_compat import get_qt
-from typing import Any
 from .services import (
     UnitsService,
     ProvenanceService,

@@ -1,6 +1,18 @@
 # Patch Notes
 
 
+## 2025-10-24 (Fixed ModuleNotFoundError when running main.py directly) (16:06 EDT / 20:06 UTC)
+
+- Removed duplicate docstring in `app/main.py` (lines 15-20) that was causing confusion
+- Removed duplicate `from typing import Any` import
+- Fixed import order: path adjustment (`sys.path.insert`) now happens before Qt imports
+- This ensures both execution modes work correctly:
+  - `python -m app.main` (module import - preferred)
+  - `python app/main.py` (direct execution - debugger/IDE support)
+- Added `tests/test_main_import.py` to verify both import modes work
+
+The issue occurred when running the script directly (e.g., via VS Code debugger). The path adjustment code was present but came after imports were already parsed, causing `ModuleNotFoundError: No module named 'app'`.
+
 ## 2025-10-23 (Test fixes and numpy deprecation cleanup) (00:49 EDT / 04:49 UTC)
 
 - Fixed `test_download_mast_uses_astroquery` to accept `local_path` parameter in mock, matching real astroquery.mast API signature.
