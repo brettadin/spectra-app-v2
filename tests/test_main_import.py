@@ -1,5 +1,6 @@
 """Test that app.main can be imported in both module and script modes."""
 
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -26,25 +27,33 @@ def test_main_imports_as_module():
 def test_main_imports_when_run_directly():
     """Test that running app/main.py directly works with path adjustment."""
     repo_root = Path(__file__).parent.parent
-    main_path = repo_root / "app" / "main.py"
     
     # Try to import the module by running it in a subprocess
     # This simulates what happens when you run `python app/main.py`
-    result = subprocess.run(
-        [sys.executable, "-c", f"""
+    # We pass the repo_root as an environment variable to avoid path injection
+    test_script = """
 import sys
 from pathlib import Path
+import os
+
+# Get repo root from environment
+repo_root = Path(os.environ['REPO_ROOT'])
+main_path = repo_root / 'app' / 'main.py'
 
 # Simulate the direct execution path adjustment
-sys.path.insert(0, str(Path('{main_path}').resolve().parents[1]))
+sys.path.insert(0, str(main_path.resolve().parents[1]))
 
 # Now try to import
 import app.qt_compat
 print("SUCCESS: app.qt_compat imported")
-"""],
+"""
+    
+    result = subprocess.run(
+        [sys.executable, "-c", test_script],
         capture_output=True,
         text=True,
         cwd=repo_root,
+        env={**os.environ, "REPO_ROOT": str(repo_root)},
     )
     
     assert result.returncode == 0, f"Import failed: {result.stderr}"
