@@ -28,6 +28,22 @@ Each entry in this document should follow this structure:
 
 ---
 
+## 2025-10-24T16:07:16-04:00 / 2025-10-24T20:07:16+00:00 – Main module import path fix
+
+**Author**: agent (GitHub Copilot)
+
+**Context**: Application entry point (`app/main.py`) import resolution for direct script execution.
+
+**Summary**: Fixed `ModuleNotFoundError: No module named 'app'` when running `app/main.py` directly (e.g., via VS Code debugger with `python app/main.py`). The issue was caused by a duplicate docstring at lines 15-20 and improper import ordering. The path adjustment code (`sys.path.insert(0, ...)`) was present at line 24 but came after the imports were already parsed. Simplified the file by removing the duplicate docstring and duplicate `from typing import Any` import. The fix ensures both execution modes work:
+- **Module mode** (preferred): `python -m app.main`
+- **Direct mode** (IDE/debugger): `python app/main.py`
+
+Added `tests/test_main_import.py` to verify both import mechanisms work correctly. All existing tests continue to pass.
+
+**References**: `app/main.py`, `tests/test_main_import.py`, `docs/history/PATCH_NOTES.md`.
+
+---
+
 ## 2025-10-23T00:49:35-04:00 / 2025-10-23T04:49:35+00:00 – Test suite maintenance and numpy deprecation cleanup
 
 **Author**: agent (GitHub Copilot)
