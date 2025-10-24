@@ -30,7 +30,8 @@ def test_main_imports_when_run_directly():
     
     # Try to import the module by running it in a subprocess
     # This simulates what happens when you run `python app/main.py`
-    # We pass the repo_root as an environment variable to avoid path injection
+    # We pass the repo_root as an environment variable to avoid string interpolation
+    # in the subprocess command, which improves readability and maintainability
     test_script = """
 import sys
 from pathlib import Path
