@@ -12,7 +12,19 @@ from typing import Any, Dict, Iterable, List, Mapping, Optional, Sequence, Tuple
 import numpy as np
 import pyqtgraph as pg
 
+"""Application entry point for the Spectra desktop shell.
+
+Supports both `python -m app.main` (preferred) and running `app/main.py` directly.
+When run directly, we prepend the repository root to sys.path so `from app import …`
+imports continue to work.
+"""
+
+# Ensure repository root is importable when run as a script
+if __package__ in (None, ""):
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
 from app.qt_compat import get_qt
+from typing import Any
 from .services import (
     UnitsService,
     ProvenanceService,
@@ -2309,6 +2321,8 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                     range_text = f"Range: {lower_nm:.1f}–{upper_nm:.1f} {unit}"
                 elif lower_nm is not None:
                     range_text = f"Lower bound: {lower_nm:.1f} {unit}"
+                elif upper_nm is not None:
+                    range_text = f"< {upper_nm:.1f} {unit}"
                 notes_parts = []
                 if range_text:
                     notes_parts.append(range_text)
@@ -3126,7 +3140,9 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                 continue
             if not np.isfinite(start) or not np.isfinite(end):
                 continue
-            nm_bounds = self.units_service._to_canonical_wavelength(np.array([start, end], dtype=float), "cm^-1")
+            lower = min(start, end)
+            upper = max(start, end)
+            nm_bounds = self.units_service._to_canonical_wavelength(np.array([lower, upper], dtype=float), "cm^-1")
             nm_low, nm_high = float(np.nanmin(nm_bounds)), float(np.nanmax(nm_bounds))
             if not np.isfinite(nm_low) or not np.isfinite(nm_high):
                 continue
@@ -3166,681 +3182,805 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             "labels": labels,
         }
 
-    def _build_overlay_for_jwst(
+    def _render_reference_jwst(
         self,
         target: Mapping[str, Any],
-        wavelengths_nm: np.ndarray,
-        values: np.ndarray,
+        rows: List[Mapping[str, Any]],
+        wavelength_key: str,
+        value_key: str,
+        uncertainty_key: Optional[str],
     ) -> Optional[Dict[str, Any]]:
-        if wavelengths_nm.size == 0 or values.size == 0:
+        units = target.get("data_units", "Value")
+        self.reference_plot.setLabel("bottom", "Wavelength", units="µm")
+        self.reference_plot.setLabel("left", str(units))
+        if not rows:
             return None
 
-        if values.size != wavelengths_nm.size:
-            min_size = min(values.size, wavelengths_nm.size)
-            wavelengths_nm = wavelengths_nm[:min_size]
-            values = values[:min_size]
+        x_vals: List[float] = []
+        y_vals: List[float] = []
+        err_vals: List[float] = []
+        for entry in rows:
+            wavelength = self._coerce_float(entry.get(wavelength_key))
+            value = self._coerce_float(entry.get(value_key))
+            if wavelength is None or value is None:
+                continue
+            if not np.isfinite(wavelength) or not np.isfinite(value):
+                continue
+            x_vals.append(wavelength)
+            y_vals.append(value)
+            if uncertainty_key:
+                err = self._coerce_float(entry.get(uncertainty_key))
+                if err is None:
+                    err = float("nan")
+                err_vals.append(err)
 
-        key_suffix = target.get("id") or target.get("name") or "jwst"
-        key = f"reference::jwst::{key_suffix}"
-        alias = f"Reference – JWST {target.get('name', key_suffix)}"
-        color = target.get("plot_color", "#33658A")
-        width = float(target.get("plot_width", 1.6))
+        if not x_vals:
+            return None
+
+        x_array = np.array(x_vals, dtype=float)
+        y_array = np.array(y_vals, dtype=float)
+        plot_item = self.reference_plot.plot(x_array, y_array, pen=pg.mkPen(color="#33658A", width=2))
+        self._reference_plot_items.append(plot_item)
+
+        if uncertainty_key and err_vals:
+            err_array = np.array(err_vals, dtype=float)
+            upper = y_array + err_array
+            lower = y_array - err_array
+            dotted_pen = pg.mkPen(color="#33658A", width=1, style=QtCore.Qt.PenStyle.DotLine)
+            upper_item = self.reference_plot.plot(x_array, upper, pen=dotted_pen)
+            lower_item = self.reference_plot.plot(x_array, lower, pen=dotted_pen)
+            self._reference_plot_items.extend([upper_item, lower_item])
+
+        nm_values = self._convert_um_to_nm(x_array)
+        return self._build_overlay_for_jwst(target, nm_values, y_array)
+
+    def _on_reference_row_selection_changed(self) -> None:
+        if getattr(self, "_reference_mode", "") != "line_shapes":
+            return
+        overlay_payload = self._render_selected_line_shape()
+        self._update_reference_overlay_state(overlay_payload)
+
+    def _render_selected_line_shape(self) -> Optional[Dict[str, Any]]:
+        if not self._line_shape_rows or self.line_shape_model is None:
+            meta = self.reference_library.line_shape_metadata()
+            self.reference_meta.setHtml(self._line_shape_overview_html(meta))
+            self._clear_reference_plot()
+            return None
+        row = self.reference_table.currentRow()
+        if row < 0 or row >= len(self._line_shape_rows):
+            meta = self.reference_library.line_shape_metadata()
+            self.reference_meta.setHtml(self._line_shape_overview_html(meta))
+            self._clear_reference_plot()
+            return None
+        entry = self._line_shape_rows[row]
+        return self._render_line_shape_entry(entry)
+
+    def _render_line_shape_entry(self, entry: Mapping[str, Any]) -> Optional[Dict[str, Any]]:
+        if self.line_shape_model is None:
+            return None
+        model_id = str(entry.get("id", ""))
+        params = entry.get("example_parameters")
+        params_map = params if isinstance(params, Mapping) else None
+        outcome = self.line_shape_model.sample_profile(model_id, params_map)
+        meta = self.reference_library.line_shape_metadata()
+        if outcome is None:
+            self._clear_reference_plot()
+            self.reference_meta.setHtml(self._line_shape_overview_html(meta, entry, None))
+            return None
+
+        self._clear_reference_plot()
+        x_nm = np.asarray(outcome.x, dtype=float)
+        y_vals = np.asarray(outcome.y, dtype=float)
+        display_unit = self._reference_display_unit()
+        x_display = self._convert_nm_to_unit(x_nm, display_unit)
+        pen = pg.mkPen(color="#4F6D7A", width=2)
+        curve = self.reference_plot.plot(x_display, y_vals, pen=pen)
+        self._reference_plot_items.append(curve)
+        self.reference_plot.setLabel("bottom", "Wavelength", units=display_unit)
+        self.reference_plot.setLabel("left", "Normalised intensity (a.u.)")
+        if y_vals.size:
+            y_max = float(np.nanmax(y_vals))
+            if not np.isfinite(y_max) or y_max <= 0:
+                y_max = 1.0
+            self.reference_plot.setYRange(0.0, y_max * 1.1, padding=0.05)
+
+        self.reference_meta.setHtml(self._line_shape_overview_html(meta, entry, outcome.metadata))
+        alias = entry.get("label") or model_id or "Line-shape"
+        payload = {
+            "key": f"reference::line_shape::{model_id}",
+            "alias": f"Reference – {alias}",
+            "x_nm": x_nm,
+            "y": y_vals,
+            "color": "#4F6D7A",
+            "width": 2.0,
+            "model": model_id,
+            "parameters": outcome.metadata.get("parameters", {}),
+            "metadata": outcome.metadata,
+        }
+        return payload
+
+    def _format_line_shape_example(self, params: Any) -> str:
+        if not isinstance(params, Mapping):
+            return ""
+        tokens: List[str] = []
+        for key, value in params.items():
+            if isinstance(value, (int, float)):
+                tokens.append(f"{key}={self._format_float(value)}")
+            else:
+                tokens.append(f"{key}={value}")
+        return ", ".join(tokens)
+
+    def _line_shape_overview_html(
+        self,
+        meta: Mapping[str, Any],
+        entry: Mapping[str, Any] | None = None,
+        outcome: Mapping[str, Any] | None = None,
+    ) -> str:
+        parts: List[str] = []
+        if entry is not None:
+            title = entry.get("label") or entry.get("id") or "Line-shape model"
+            description = entry.get("description") or entry.get("notes") or ""
+            parts.append(f"<p><b>{title}</b><br/>{description}</p>")
+
+            units_map = entry.get("units")
+            if isinstance(units_map, Mapping) and units_map:
+                unit_items = "".join(
+                    f"<li>{key}: {value}</li>" for key, value in units_map.items()
+                )
+                parts.append(f"<p><b>Units</b></p><ul>{unit_items}</ul>")
+
+            params = outcome.get("parameters") if isinstance(outcome, Mapping) else entry.get("example_parameters")
+            example_text = self._format_line_shape_example(params)
+            if example_text:
+                parts.append(f"<p><b>Example parameters:</b> {example_text}</p>")
+
+            if isinstance(outcome, Mapping):
+                highlights: List[str] = []
+                for key in ("doppler_factor", "beta", "width_nm", "stark_width_nm", "delta_nm"):
+                    value = outcome.get(key)
+                    if value is None:
+                        continue
+                    if isinstance(value, (int, float)):
+                        highlights.append(f"{key.replace('_', ' ')} = {self._format_float(value)}")
+                    else:
+                        highlights.append(f"{key.replace('_', ' ')} = {value}")
+                if highlights:
+                    parts.append("<p><b>Computed metrics:</b> " + ", ".join(highlights) + "</p>")
+
+        notes = meta.get("notes")
+        if notes:
+            parts.append(f"<p>{notes}</p>")
+        references = meta.get("references")
+        if isinstance(references, list) and references:
+            ref_lines = "".join(
+                f"<li><a href='{ref.get('url')}'>{ref.get('citation')}</a></li>"
+                if isinstance(ref, Mapping) and ref.get("url")
+                else f"<li>{ref.get('citation')}</li>"
+                for ref in references
+                if isinstance(ref, Mapping) and ref.get("citation")
+            )
+            if ref_lines:
+                parts.append(f"<p><b>References</b></p><ul>{ref_lines}</ul>")
+        return "".join(parts) if parts else "<p>Line-shape placeholders</p>"
+
+    def _reference_display_unit(self) -> str:
+        return self.plot_unit()
+
+    def _convert_nm_to_unit(self, values_nm: np.ndarray, unit: str) -> np.ndarray:
+        normalised = self.units_service._normalise_x_unit(unit)
+        if normalised == "nm":
+            return values_nm
+        if normalised in {"um", "µm"}:
+            return values_nm / 1e3
+        if normalised == "angstrom":
+            return values_nm * 10.0
+        if normalised == "cm^-1":
+            with np.errstate(divide="ignore"):
+                return np.where(values_nm != 0, 1e7 / values_nm, np.nan)
+        return values_nm
+
+    @staticmethod
+    def _convert_um_to_nm(values_um: np.ndarray) -> np.ndarray:
+        return values_um * 1e3
+
+    @staticmethod
+    def _coerce_float(value: Any) -> Optional[float]:
+        try:
+            return float(value)
+        except (TypeError, ValueError):
+            return None
+
+    def _build_overlay_for_lines(
+        self,
+        wavelengths_nm: np.ndarray,
+        intensities: np.ndarray,
+        *,
+        key: str,
+        alias: str,
+        color: str = "#C72C41",
+    ) -> Optional[Dict[str, Any]]:
+        if wavelengths_nm.size == 0:
+            return None
+
+        if intensities.size != wavelengths_nm.size:
+            intensities = np.full_like(wavelengths_nm, 1.0)
+
+        y_min, y_max = self._overlay_vertical_bounds()
+        span = y_max - y_min if np.isfinite(y_max - y_min) else 1.0
+        baseline = y_min + span * 0.05
+        cap = y_min + span * 0.35
+        if not np.isfinite(baseline) or not np.isfinite(cap) or cap <= baseline:
+            baseline = y_min
+            cap = y_min + max(span, 1.0)
+        max_intensity = float(np.nanmax(intensities)) if intensities.size else 1.0
+        if not np.isfinite(max_intensity) or max_intensity <= 0:
+            max_intensity = 1.0
+
+        x_segments: List[float] = []
+        y_segments: List[float] = []
+        for value, raw_intensity in zip(wavelengths_nm, intensities):
+            if not np.isfinite(value):
+                continue
+            intensity = float(raw_intensity) if np.isfinite(raw_intensity) and raw_intensity >= 0 else 0.0
+            scaled_top = baseline + (cap - baseline) * (intensity / max_intensity)
+            x_segments.extend([value, value, np.nan])
+            y_segments.extend([baseline, scaled_top, np.nan])
+
+        if not x_segments:
+            return None
 
         return {
             "key": key,
             "alias": alias,
-            "x_nm": np.array(wavelengths_nm, dtype=float),
-            "y": np.array(values, dtype=float),
+            "x_nm": np.array(x_segments, dtype=float),
+            "y": np.array(y_segments, dtype=float),
             "color": color,
-            "width": width,
+            "width": 1.4,
         }
 
-    def _overlay_vertical_bounds(self) -> tuple[float, float]:
-        _, y_range = self.plot.view_range()
-        y_min, y_max = y_range
-        if not np.isfinite(y_min) or not np.isfinite(y_max) or y_min == y_max:
-            y_min, y_max = 0.0, 1.0
-        if y_min == y_max:
-            y_max = y_min + 1.0
-        return y_min, y_max
+    def _build_overlay_for_ir(self, entries: List[Mapping[str, Any]]) -> Optional[Dict[str, Any]]:
+        x_segments: List[float] = []
+        y_segments: List[float] = []
+        y_low, y_high = self._overlay_band_bounds()
+        labels: List[Dict[str, object]] = []
 
-    def _overlay_band_bounds(self) -> tuple[float, float]:
-        y_min, y_max = self._overlay_vertical_bounds()
-        span = y_max - y_min
-        bottom = y_min + span * 0.08
-        top = y_min + span * 0.38
-        if not np.isfinite(bottom) or not np.isfinite(top) or top <= bottom:
-            bottom = y_min + span * 0.1
-            top = bottom + max(span * 0.3, 1.0)
-        return bottom, top
-
-    def _reset_reference_overlay_state(self) -> None:
-        """Clear overlay bookkeeping while preserving payload state."""
-
-        self._reference_overlay_key.clear()
-        annotations = getattr(self, "_reference_overlay_annotations", None)
-        if annotations is None:
-            self._reference_overlay_annotations = []
-        else:
-            annotations.clear()
-
-    def _on_reference_overlay_toggled(self, checked: bool) -> None:
-        if getattr(self, "_suppress_overlay_refresh", False):
-            return
-        if checked:
-            self._apply_reference_overlay()
-            payload = self._reference_overlay_payload or {}
-            references = [str(key) for key in self._reference_overlay_key]
-            dataset = payload.get("dataset") if isinstance(payload, dict) else None
-            if dataset:
-                references.append(str(dataset))
-            elif isinstance(payload, dict) and payload.get("kind") == "nist-multi":
-                meta_refs = payload.get("datasets")
-                if isinstance(meta_refs, list):
-                    references.extend(str(item) for item in meta_refs)
-            self._record_history_event(
-                "Overlay",
-                "Enabled reference overlay(s).",
-                references,
-            )
-        else:
-            previous_keys = list(self._reference_overlay_key)
-            self._clear_reference_overlay()
-            references = [str(key) for key in previous_keys]
-            self._record_history_event("Overlay", "Reference overlay cleared.", references)
-
-    def _on_plot_range_changed(self, _: tuple[float, float], __: tuple[float, float]) -> None:
-        if self._suppress_overlay_refresh:
-            return
-        if not self.reference_overlay_checkbox.isChecked():
-            return
-        payload = self._reference_overlay_payload
-        if not payload:
-            return
-        if isinstance(payload, Mapping) and payload.get("kind") == "nist-multi":
-            return
-
-        band_bounds = payload.get("band_bounds")
-        if not (
-            isinstance(band_bounds, tuple)
-            and len(band_bounds) == 2
-        ):
-            return
-
-        new_bottom, new_top = self._overlay_band_bounds()
-        if not (np.isfinite(new_bottom) and np.isfinite(new_top)):
-            return
-
-        old_bottom = float(band_bounds[0])
-        old_top = float(band_bounds[1])
-        if np.isclose(new_bottom, old_bottom) and np.isclose(new_top, old_top):
-            return
-
-        y_values = payload.get("y")
-        if isinstance(y_values, np.ndarray):
-            updated = y_values.copy()
-            bottom_mask = np.isclose(
-                updated,
-                old_bottom,
-                rtol=1e-6,
-                atol=1e-9,
-                equal_nan=False,
-            )
-            top_mask = np.isclose(
-                updated,
-                old_top,
-                rtol=1e-6,
-                atol=1e-9,
-                equal_nan=False,
-            )
-            updated[bottom_mask] = float(new_bottom)
-            updated[top_mask] = float(new_top)
-            payload["y"] = updated
-
-        payload["fill_level"] = float(new_bottom)
-        payload["band_bounds"] = (float(new_bottom), float(new_top))
-
-        self._reference_overlay_payload = payload
-        self._suppress_overlay_refresh = True
-        try:
-            self._apply_reference_overlay()
-        finally:
-            self._suppress_overlay_refresh = False
-
-    def _update_reference_overlay_state(self, payload: Optional[Dict[str, Any]]) -> None:
-        self._reference_overlay_payload = payload
-        overlay_available = False
-        if isinstance(payload, Mapping) and payload.get("kind") == "nist-multi":
-            payloads = payload.get("payloads")
-            if isinstance(payloads, Mapping):
-                self._nist_overlay_payloads = {}
-                for key, item in payloads.items():
-                    if not isinstance(item, Mapping):
-                        continue
-                    x_values = item.get("x_nm")
-                    y_values = item.get("y")
-                    if (
-                        isinstance(x_values, np.ndarray)
-                        and isinstance(y_values, np.ndarray)
-                        and x_values.size > 0
-                        and y_values.size == x_values.size
-                    ):
-                        self._nist_overlay_payloads[str(key)] = dict(item)
-                overlay_available = bool(self._nist_overlay_payloads)
-        else:
-            self._nist_overlay_payloads = {}
-            x_values = payload.get("x_nm") if payload else None
-            y_values = payload.get("y") if payload else None
-            overlay_available = (
-                isinstance(x_values, np.ndarray)
-                and isinstance(y_values, np.ndarray)
-                and x_values.size > 0
-                and y_values.size == x_values.size
-            )
-
-        self.reference_overlay_checkbox.blockSignals(True)
-        self.reference_overlay_checkbox.setEnabled(overlay_available)
-        if not overlay_available:
-            self.reference_overlay_checkbox.setChecked(False)
-        self.reference_overlay_checkbox.blockSignals(False)
-
-        if overlay_available and self.reference_overlay_checkbox.isChecked():
-            self._apply_reference_overlay()
-        elif not overlay_available:
-            self._clear_reference_overlay()
-
-    def _apply_reference_overlay(self) -> None:
-        payload = self._reference_overlay_payload
-        if not payload:
-            self._clear_reference_overlay()
-            return
-
-        if isinstance(payload, Mapping) and payload.get("kind") == "nist-multi":
-            overlays = self._nist_overlay_payloads
-            if not overlays:
-                self._clear_reference_overlay()
-                return
-            self._clear_reference_overlay()
-            for item in overlays.values():
-                x_values = item.get("x_nm")
-                y_values = item.get("y")
-                if not (
-                    isinstance(x_values, np.ndarray)
-                    and isinstance(y_values, np.ndarray)
-                    and x_values.size
-                    and x_values.size == y_values.size
-                ):
-                    continue
-                key = str(item.get("key") or f"reference::nist::{len(self._reference_overlay_key)+1}")
-                alias = str(item.get("alias", key))
-                color = item.get("color", "#33658A")
-                width = float(item.get("width", 1.4))
-                style = TraceStyle(QtGui.QColor(color), width=width, show_in_legend=False)
-                self.plot.add_trace(key, alias, x_values, y_values, style)
-                self._reference_overlay_key.append(key)
-            self._reference_overlay_annotations.clear()
-            return
-
-        x_values = payload.get("x_nm")
-        y_values = payload.get("y")
-        if not isinstance(x_values, np.ndarray) or not isinstance(y_values, np.ndarray):
-            self._clear_reference_overlay()
-            return
-
-        key = str(payload.get("key", "reference::overlay"))
-        alias = str(payload.get("alias", key))
-        color = payload.get("color", "#33658A")
-        width = float(payload.get("width", 1.5))
-        fill_color = payload.get("fill_color")
-        fill_level = payload.get("fill_level")
-
-        self._clear_reference_overlay()
-
-        style = TraceStyle(
-            QtGui.QColor(color),
-            width=width,
-            show_in_legend=False,
-            fill_brush=fill_color,
-            fill_level=float(fill_level) if fill_level is not None else None,
-        )
-        self.plot.add_trace(key, alias, x_values, y_values, style)
-        self._reference_overlay_key.append(key)
-
-        self._reference_overlay_annotations.clear()
-        band_bounds = payload.get("band_bounds")
-        labels = payload.get("labels")
-        if (
-            isinstance(labels, list)
-            and isinstance(band_bounds, tuple)
-            and len(band_bounds) == 2
-        ):
-            band_bottom = float(band_bounds[0])
-            band_top = float(band_bounds[1])
-            if not (np.isfinite(band_bottom) and np.isfinite(band_top)):
-                return
-            if band_top <= band_bottom:
-                band_top = band_bottom + 1.0
-
-            x_range, _ = self.plot.view_range()
-            x_min, x_max = map(float, x_range)
-            x_span = abs(x_max - x_min)
-            if not np.isfinite(x_span) or x_span == 0.0:
-                x_span = 1.0
-            cluster_threshold = x_span * 0.04
-
-            assigned: List[tuple[str, float, int]] = []
-            row_last_x: List[float] = []
-
-            for label in sorted(
-                (label for label in labels if isinstance(label, Mapping)),
-                key=lambda entry: float(entry.get("centre_nm", float("inf"))),
-            ):
-                text = label.get("text")
-                centre_nm = label.get("centre_nm")
-                if not text or centre_nm is None:
-                    continue
-                centre_nm = float(centre_nm)
-                if not np.isfinite(centre_nm):
-                    continue
-                x_display = self.plot.map_nm_to_display(centre_nm)
-                if not np.isfinite(x_display):
-                    continue
-
-                row_index = None
-                for idx, last_x in enumerate(row_last_x):
-                    if abs(x_display - last_x) >= cluster_threshold:
-                        row_index = idx
-                        row_last_x[idx] = x_display
-                        break
-                if row_index is None:
-                    row_index = len(row_last_x)
-                    row_last_x.append(x_display)
-
-                assigned.append((str(text), x_display, row_index))
-
-            if not assigned:
-                return
-
-            row_count = max((row for *_, row in assigned), default=-1) + 1
-            if row_count <= 0:
-                row_count = 1
-
-            band_span = band_top - band_bottom
-            margin = band_span * 0.1
-            if not np.isfinite(margin) or margin < 0.0:
-                margin = 0.0
-            available = band_span - margin * 2.0
-            if available <= 0:
-                available = band_span
-            spacing = available / max(row_count, 1)
-
-            for text, x_display, row_index in assigned:
-                anchor_y = band_top - margin - spacing * (row_index + 0.5)
-                anchor_y = float(np.clip(anchor_y, band_bottom + margin, band_top - margin))
-                text_item = pg.TextItem(
-                    text,
-                    color=QtGui.QColor("#E6E1EB"),
-                    fill=pg.mkBrush(28, 28, 38, 200),
-                    border=pg.mkPen(color),
-                )
-                text_item.setAnchor((0.5, 0.5))
-                text_item.setPos(x_display, anchor_y)
-                text_item.setZValue(25)
-                self.plot.add_graphics_item(text_item, ignore_bounds=True)
-                self._reference_overlay_annotations.append(text_item)
-
-    def _clear_reference_overlay(self) -> None:
-        keys = list(self._reference_overlay_key)
-        for key in keys:
-            self.plot.remove_trace(key)
-        for item in self._reference_overlay_annotations:
-            try:
-                self.plot.remove_graphics_item(item)
-            except Exception:  # pragma: no cover - defensive cleanup
+        for entry in entries:
+            start = self._coerce_float(entry.get("wavenumber_cm_1_min"))
+            end = self._coerce_float(entry.get("wavenumber_cm_1_max"))
+            if start is None or end is None:
                 continue
-        self._reset_reference_overlay_state()
+            if not np.isfinite(start) or not np.isfinite(end):
+                continue
+            lower = min(start, end)
+            upper = max(start, end)
+            nm_bounds = self.units_service._to_canonical_wavelength(np.array([lower, upper], dtype=float), "cm^-1")
+            nm_low, nm_high = float(np.nanmin(nm_bounds)), float(np.nanmax(nm_bounds))
+            if not np.isfinite(nm_low) or not np.isfinite(nm_high):
+                continue
+            if nm_low == nm_high:
+                continue
+            # PyQtGraph's PlotDataItem differentiates successive X values when
+            # constructing fill paths; perfectly vertical edges therefore
+            # trigger divide-by-zero warnings if we submit identical
+            # coordinates back-to-back.  Use ``nextafter`` to pull the interior
+            # points infinitesimally towards the opposite edge so the segment
+            # remains visually vertical while avoiding zero-length steps.
+            low_edge = np.nextafter(nm_low, nm_high)
+            high_edge = np.nextafter(nm_high, nm_low)
+            x_segments.extend([nm_low, low_edge, high_edge, nm_high, np.nan])
+            y_segments.extend([y_low, y_high, y_high, y_low, np.nan])
 
-    def _set_reference_meta(self, title: Optional[str], url: Optional[str], notes: Optional[str]) -> None:
-        pieces: List[str] = []
-        if title:
-            pieces.append(f"<b>{title}</b>")
-        if url:
-            pieces.append(f"<a href='{url}'>{url}</a>")
-        if notes:
-            pieces.append(notes)
-        if pieces:
-            self.reference_meta.setHtml("<p>" + "<br/>".join(pieces) + "</p>")
-        else:
-            self.reference_meta.clear()
+            label = entry.get("group") or entry.get("id")
+            if label:
+                labels.append({
+                    "text": str(label),
+                    "centre_nm": float((nm_low + nm_high) / 2.0),
+                })
 
-    @staticmethod
-    def _merge_provenance(meta: Mapping[str, Any]) -> Optional[str]:
-        notes = str(meta.get("notes", "")) if meta.get("notes") else ""
-        retrieved = meta.get("retrieved_utc")
-        provenance = meta.get("provenance") if isinstance(meta.get("provenance"), Mapping) else None
-        details: List[str] = []
-        if retrieved:
-            details.append(f"Retrieved: {retrieved}")
-        if provenance:
-            status = provenance.get("curation_status")
-            if status:
-                details.append(f"Curation status: {status}")
-            generator = provenance.get("generator")
-            if generator:
-                details.append(f"Generator: {generator}")
-            replacement = provenance.get("replacement_plan") or provenance.get("planned_regeneration_uri")
-            if replacement:
-                details.append(f"Next steps: {replacement}")
-        segments: List[str] = []
-        if notes:
-            segments.append(notes)
-        if details:
-            segments.append("; ".join(details))
-        if not segments:
+        if not x_segments:
             return None
-        return "<br/>".join(segments)
 
-    @staticmethod
-    def _format_target_provenance(provenance: Optional[Mapping[str, Any]]) -> str:
-        if not isinstance(provenance, Mapping):
-            return ""
-        bits: List[str] = []
-        status = provenance.get("curation_status")
-        if status:
-            bits.append(f"Status: {status}")
-        if provenance.get("pipeline_version"):
-            bits.append(f"Pipeline: {provenance['pipeline_version']}")
-        if provenance.get("mast_product_uri"):
-            bits.append(f"MAST URI: {provenance['mast_product_uri']}")
-        if provenance.get("planned_regeneration_uri"):
-            bits.append(f"Planned URI: {provenance['planned_regeneration_uri']}")
-        if provenance.get("retrieved_utc"):
-            bits.append(f"Retrieved: {provenance['retrieved_utc']}")
-        if provenance.get("notes"):
-            bits.append(provenance["notes"])
-        if provenance.get("reference"):
-            bits.append(f"Reference: {provenance['reference']}")
-        if not bits:
-            return ""
-        return "<p><i>" + " | ".join(bits) + "</i></p>"
+        return {
+            "key": "reference::ir_groups",
+            "alias": "Reference – IR Functional Groups",
+            "x_nm": np.array(x_segments, dtype=float),
+            "y": np.array(y_segments, dtype=float),
+            "color": "#6D597A",
+            "width": 1.2,
+            "fill_color": (109, 89, 122, 70),
+            "fill_level": float(y_low),
+            "band_bounds": (float(y_low), float(y_high)),
+            "labels": labels,
+        }
 
-    @staticmethod
-    def _format_float(value: Any, *, precision: int = 3) -> str:
-        if value is None:
-            return "–"
-        try:
-            return f"{float(value):.{precision}f}"
-        except (TypeError, ValueError):
-            return str(value)
+    def _render_reference_jwst(
+        self,
+        target: Mapping[str, Any],
+        rows: List[Mapping[str, Any]],
+        wavelength_key: str,
+        value_key: str,
+        uncertainty_key: Optional[str],
+    ) -> Optional[Dict[str, Any]]:
+        units = target.get("data_units", "Value")
+        self.reference_plot.setLabel("bottom", "Wavelength", units="µm")
+        self.reference_plot.setLabel("left", str(units))
+        if not rows:
+            return None
 
-    @staticmethod
-    def _format_scientific(value: Any) -> str:
-        if value is None:
-            return "–"
-        try:
-            return f"{float(value):.3e}"
-        except (TypeError, ValueError):
-            return str(value)
-
-    def _set_table_item(self, row: int, column: int, value: Any) -> None:
-        text = str(value) if value not in (None, "") else "–"
-        item = QtWidgets.QTableWidgetItem(text)
-        item.setFlags(item.flags() & ~QtCore.Qt.ItemFlag.ItemIsEditable)
-        try:
-            float(value)
-        except (TypeError, ValueError):
-            pass
-        else:
-            item.setTextAlignment(
-                QtCore.Qt.AlignmentFlag.AlignRight | QtCore.Qt.AlignmentFlag.AlignVCenter
-            )
-        self.reference_table.setItem(row, column, item)
-
-    # Remote Data ------------------------------------------------------
-    def _build_remote_data_tab(self) -> None:
-        """Build tab with quick access to remote spectral data catalogs."""
-        self.tab_remote = QtWidgets.QWidget()
-        layout = QtWidgets.QVBoxLayout(self.tab_remote)
-        layout.setContentsMargins(12, 12, 12, 12)
-        layout.setSpacing(12)
-
-        # Title and description
-        title = QtWidgets.QLabel("Remote Spectral Data")
-        title.setStyleSheet("font-size: 16px; font-weight: bold;")
-        layout.addWidget(title)
-
-        description = QtWidgets.QLabel(
-            "Search and download spectra from MAST (JWST, HST, Spitzer), "
-            "NASA Exoplanet Archive, and NIST Atomic Spectra Database."
-        )
-        description.setWordWrap(True)
-        description.setStyleSheet("color: #555; margin-bottom: 8px;")
-        layout.addWidget(description)
-
-        # Main button to open dialog
-        button_container = QtWidgets.QWidget()
-        button_layout = QtWidgets.QHBoxLayout(button_container)
-        button_layout.setContentsMargins(0, 8, 0, 8)
-        
-        open_remote_button = QtWidgets.QPushButton("Open Remote Data Browser")
-        open_remote_button.setMinimumHeight(40)
-        open_remote_button.setStyleSheet("""
-            QPushButton {
-                background-color: #0066cc;
-                color: white;
-                border: none;
-                border-radius: 4px;
-                padding: 8px 16px;
-                font-size: 14px;
-                font-weight: bold;
-            }
-            QPushButton:hover {
-                background-color: #0052a3;
-            }
-            QPushButton:pressed {
-                background-color: #003d7a;
-            }
-        """)
-        open_remote_button.clicked.connect(self.open_remote_data_dialog)
-        button_layout.addWidget(open_remote_button)
-        layout.addWidget(button_container)
-
-        # Quick info panel
-        info_box = QtWidgets.QGroupBox("Available Catalogs")
-        info_layout = QtWidgets.QVBoxLayout(info_box)
-        
-        catalogs = [
-            ("MAST (Mikulski Archive)", "JWST, HST, Spitzer, Kepler, TESS spectroscopy"),
-            ("Exoplanet Systems", "Planets, host stars, solar system targets via MAST"),
-            ("NIST ASD", "Atomic spectral line databases (requires dependencies)"),
-        ]
-        
-        for catalog, description_text in catalogs:
-            item_widget = QtWidgets.QWidget()
-            item_layout = QtWidgets.QVBoxLayout(item_widget)
-            item_layout.setContentsMargins(0, 4, 0, 4)
-            item_layout.setSpacing(2)
-            
-            catalog_label = QtWidgets.QLabel(f"• {catalog}")
-            catalog_label.setStyleSheet("font-weight: bold;")
-            item_layout.addWidget(catalog_label)
-            
-            desc_label = QtWidgets.QLabel(description_text)
-            desc_label.setStyleSheet("color: #666; margin-left: 16px;")
-            desc_label.setWordWrap(True)
-            item_layout.addWidget(desc_label)
-            
-            info_layout.addWidget(item_widget)
-        
-        layout.addWidget(info_box)
-
-        # Keyboard shortcut hint
-        shortcut_hint = QtWidgets.QLabel("Keyboard shortcut: Ctrl+Shift+R")
-        shortcut_hint.setStyleSheet("color: #888; font-style: italic; margin-top: 8px;")
-        shortcut_hint.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
-        layout.addWidget(shortcut_hint)
-
-        layout.addStretch(1)
-
-    # Documentation -----------------------------------------------------
-    def _build_documentation_tab(self) -> None:
-        self.tab_docs = QtWidgets.QWidget()
-        layout = QtWidgets.QVBoxLayout(self.tab_docs)
-        layout.setContentsMargins(6, 6, 6, 6)
-
-        self.docs_filter = QtWidgets.QLineEdit()
-        self.docs_filter.setPlaceholderText("Filter topics…")
-        self.docs_filter.textChanged.connect(self._filter_docs)
-        layout.addWidget(self.docs_filter)
-
-        splitter = QtWidgets.QSplitter(QtCore.Qt.Orientation.Horizontal)
-        layout.addWidget(splitter, 1)
-
-        self.docs_list = QtWidgets.QListWidget()
-        self.docs_list.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
-        self.docs_list.itemSelectionChanged.connect(self._on_doc_selection_changed)
-        splitter.addWidget(self.docs_list)
-
-        self.doc_viewer = QtWidgets.QTextBrowser()
-        self.doc_viewer.setOpenExternalLinks(False)
-        self.doc_viewer.setPlaceholderText("Select a document to view its contents.")
-        splitter.addWidget(self.doc_viewer)
-
-        splitter.setStretchFactor(0, 1)
-        splitter.setStretchFactor(1, 3)
-
-        self.doc_placeholder = QtWidgets.QLabel("No documentation topics found in docs/user.")
-        self.doc_placeholder.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
-        layout.addWidget(self.doc_placeholder)
-
-        self._load_documentation_index()
-
-    def _load_documentation_index(self) -> None:
-        docs_root = Path(__file__).resolve().parent.parent / "docs" / "user"
-        entries: list[tuple[str, Path]] = []
-        if docs_root.exists():
-            for path in sorted(docs_root.glob("*.md")):
-                entries.append((self._extract_doc_title(path), path))
-
-        self._doc_entries = entries
-        self.docs_list.clear()
-        for title, path in entries:
-            item = QtWidgets.QListWidgetItem(title)
-            item.setData(QtCore.Qt.ItemDataRole.UserRole, path)
-            item.setData(QtCore.Qt.ItemDataRole.UserRole + 1, title.lower())
-            self.docs_list.addItem(item)
-
-        has_docs = bool(entries)
-        self.doc_placeholder.setVisible(not has_docs)
-        self.doc_viewer.setVisible(has_docs)
-        if has_docs:
-            self.docs_list.setCurrentRow(0)
-        else:
-            self.doc_viewer.clear()
-
-    def _extract_doc_title(self, path: Path) -> str:
-        try:
-            with path.open("r", encoding="utf-8") as handle:
-                for _ in range(40):
-                    line = handle.readline()
-                    if not line:
-                        break
-                    stripped = line.strip()
-                    if stripped.startswith("#"):
-                        return stripped.lstrip("# ")
-        except OSError:
-            return path.stem
-        return path.stem.replace("_", " ").title()
-
-    def _filter_docs(self, text: str) -> None:
-        query = text.strip().lower()
-        for idx in range(self.docs_list.count()):
-            item = self.docs_list.item(idx)
-            if not query:
-                item.setHidden(False)
+        x_vals: List[float] = []
+        y_vals: List[float] = []
+        err_vals: List[float] = []
+        for entry in rows:
+            wavelength = self._coerce_float(entry.get(wavelength_key))
+            value = self._coerce_float(entry.get(value_key))
+            if wavelength is None or value is None:
                 continue
-            haystack = item.data(QtCore.Qt.ItemDataRole.UserRole + 1) or ""
-            item.setHidden(query not in haystack)
-        if query:
-            for idx in range(self.docs_list.count()):
-                item = self.docs_list.item(idx)
-                if not item.isHidden():
-                    self.docs_list.setCurrentItem(item)
-                    break
+            if not np.isfinite(wavelength) or not np.isfinite(value):
+                continue
+            x_vals.append(wavelength)
+            y_vals.append(value)
+            if uncertainty_key:
+                err = self._coerce_float(entry.get(uncertainty_key))
+                if err is None:
+                    err = float("nan")
+                err_vals.append(err)
 
-    def _on_doc_selection_changed(self) -> None:
-        items = self.docs_list.selectedItems()
-        if not items:
-            self.doc_viewer.clear()
+        if not x_vals:
+            return None
+
+        x_array = np.array(x_vals, dtype=float)
+        y_array = np.array(y_vals, dtype=float)
+        plot_item = self.reference_plot.plot(x_array, y_array, pen=pg.mkPen(color="#33658A", width=2))
+        self._reference_plot_items.append(plot_item)
+
+        if uncertainty_key and err_vals:
+            err_array = np.array(err_vals, dtype=float)
+            upper = y_array + err_array
+            lower = y_array - err_array
+            dotted_pen = pg.mkPen(color="#33658A", width=1, style=QtCore.Qt.PenStyle.DotLine)
+            upper_item = self.reference_plot.plot(x_array, upper, pen=dotted_pen)
+            lower_item = self.reference_plot.plot(x_array, lower, pen=dotted_pen)
+            self._reference_plot_items.extend([upper_item, lower_item])
+
+        nm_values = self._convert_um_to_nm(x_array)
+        return self._build_overlay_for_jwst(target, nm_values, y_array)
+
+    def _on_reference_row_selection_changed(self) -> None:
+        if getattr(self, "_reference_mode", "") != "line_shapes":
             return
-        item = items[0]
-        path = item.data(QtCore.Qt.ItemDataRole.UserRole)
-        if not isinstance(path, Path):
-            self.doc_viewer.clear()
-            return
+        overlay_payload = self._render_selected_line_shape()
+        self._update_reference_overlay_state(overlay_payload)
+
+    def _render_selected_line_shape(self) -> Optional[Dict[str, Any]]:
+        if not self._line_shape_rows or self.line_shape_model is None:
+            meta = self.reference_library.line_shape_metadata()
+            self.reference_meta.setHtml(self._line_shape_overview_html(meta))
+            self._clear_reference_plot()
+            return None
+        row = self.reference_table.currentRow()
+        if row < 0 or row >= len(self._line_shape_rows):
+            meta = self.reference_library.line_shape_metadata()
+            self.reference_meta.setHtml(self._line_shape_overview_html(meta))
+            self._clear_reference_plot()
+            return None
+        entry = self._line_shape_rows[row]
+        return self._render_line_shape_entry(entry)
+
+    def _render_line_shape_entry(self, entry: Mapping[str, Any]) -> Optional[Dict[str, Any]]:
+        if self.line_shape_model is None:
+            return None
+        model_id = str(entry.get("id", ""))
+        params = entry.get("example_parameters")
+        params_map = params if isinstance(params, Mapping) else None
+        outcome = self.line_shape_model.sample_profile(model_id, params_map)
+        meta = self.reference_library.line_shape_metadata()
+        if outcome is None:
+            self._clear_reference_plot()
+            self.reference_meta.setHtml(self._line_shape_overview_html(meta, entry, None))
+            return None
+
+        self._clear_reference_plot()
+        x_nm = np.asarray(outcome.x, dtype=float)
+        y_vals = np.asarray(outcome.y, dtype=float)
+        display_unit = self._reference_display_unit()
+        x_display = self._convert_nm_to_unit(x_nm, display_unit)
+        pen = pg.mkPen(color="#4F6D7A", width=2)
+        curve = self.reference_plot.plot(x_display, y_vals, pen=pen)
+        self._reference_plot_items.append(curve)
+        self.reference_plot.setLabel("bottom", "Wavelength", units=display_unit)
+        self.reference_plot.setLabel("left", "Normalised intensity (a.u.)")
+        if y_vals.size:
+            y_max = float(np.nanmax(y_vals))
+            if not np.isfinite(y_max) or y_max <= 0:
+                y_max = 1.0
+            self.reference_plot.setYRange(0.0, y_max * 1.1, padding=0.05)
+
+        self.reference_meta.setHtml(self._line_shape_overview_html(meta, entry, outcome.metadata))
+        alias = entry.get("label") or model_id or "Line-shape"
+        payload = {
+            "key": f"reference::line_shape::{model_id}",
+            "alias": f"Reference – {alias}",
+            "x_nm": x_nm,
+            "y": y_vals,
+            "color": "#4F6D7A",
+            "width": 2.0,
+            "model": model_id,
+            "parameters": outcome.metadata.get("parameters", {}),
+            "metadata": outcome.metadata,
+        }
+        return payload
+
+    def _format_line_shape_example(self, params: Any) -> str:
+        if not isinstance(params, Mapping):
+            return ""
+        tokens: List[str] = []
+        for key, value in params.items():
+            if isinstance(value, (int, float)):
+                tokens.append(f"{key}={self._format_float(value)}")
+            else:
+                tokens.append(f"{key}={value}")
+        return ", ".join(tokens)
+
+    def _line_shape_overview_html(
+        self,
+        meta: Mapping[str, Any],
+        entry: Mapping[str, Any] | None = None,
+        outcome: Mapping[str, Any] | None = None,
+    ) -> str:
+        parts: List[str] = []
+        if entry is not None:
+            title = entry.get("label") or entry.get("id") or "Line-shape model"
+            description = entry.get("description") or entry.get("notes") or ""
+            parts.append(f"<p><b>{title}</b><br/>{description}</p>")
+
+            units_map = entry.get("units")
+            if isinstance(units_map, Mapping) and units_map:
+                unit_items = "".join(
+                    f"<li>{key}: {value}</li>" for key, value in units_map.items()
+                )
+                parts.append(f"<p><b>Units</b></p><ul>{unit_items}</ul>")
+
+            params = outcome.get("parameters") if isinstance(outcome, Mapping) else entry.get("example_parameters")
+            example_text = self._format_line_shape_example(params)
+            if example_text:
+                parts.append(f"<p><b>Example parameters:</b> {example_text}</p>")
+
+            if isinstance(outcome, Mapping):
+                highlights: List[str] = []
+                for key in ("doppler_factor", "beta", "width_nm", "stark_width_nm", "delta_nm"):
+                    value = outcome.get(key)
+                    if value is None:
+                        continue
+                    if isinstance(value, (int, float)):
+                        highlights.append(f"{key.replace('_', ' ')} = {self._format_float(value)}")
+                    else:
+                        highlights.append(f"{key.replace('_', ' ')} = {value}")
+                if highlights:
+                    parts.append("<p><b>Computed metrics:</b> " + ", ".join(highlights) + "</p>")
+
+        notes = meta.get("notes")
+        if notes:
+            parts.append(f"<p>{notes}</p>")
+        references = meta.get("references")
+        if isinstance(references, list) and references:
+            ref_lines = "".join(
+                f"<li><a href='{ref.get('url')}'>{ref.get('citation')}</a></li>"
+                if isinstance(ref, Mapping) and ref.get("url")
+                else f"<li>{ref.get('citation')}</li>"
+                for ref in references
+                if isinstance(ref, Mapping) and ref.get("citation")
+            )
+            if ref_lines:
+                parts.append(f"<p><b>References</b></p><ul>{ref_lines}</ul>")
+        return "".join(parts) if parts else "<p>Line-shape placeholders</p>"
+
+    def _reference_display_unit(self) -> str:
+        return self.plot_unit()
+
+    def _convert_nm_to_unit(self, values_nm: np.ndarray, unit: str) -> np.ndarray:
+        normalised = self.units_service._normalise_x_unit(unit)
+        if normalised == "nm":
+            return values_nm
+        if normalised in {"um", "µm"}:
+            return values_nm / 1e3
+        if normalised == "angstrom":
+            return values_nm * 10.0
+        if normalised == "cm^-1":
+            with np.errstate(divide="ignore"):
+                return np.where(values_nm != 0, 1e7 / values_nm, np.nan)
+        return values_nm
+
+    @staticmethod
+    def _convert_um_to_nm(values_um: np.ndarray) -> np.ndarray:
+        return values_um * 1e3
+
+    @staticmethod
+    def _coerce_float(value: Any) -> Optional[float]:
         try:
-            text = path.read_text(encoding="utf-8")
-        except OSError as exc:  # pragma: no cover - filesystem failure feedback
-            self.doc_viewer.setPlainText(f"Failed to load {path.name}: {exc}")
-            self._log("Docs", f"Failed to open {path.name}: {exc}")
+            return float(value)
+        except (TypeError, ValueError):
+            return None
+
+    def _build_overlay_for_lines(
+        self,
+        wavelengths_nm: np.ndarray,
+        intensities: np.ndarray,
+        *,
+        key: str,
+        alias: str,
+        color: str = "#C72C41",
+    ) -> Optional[Dict[str, Any]]:
+        if wavelengths_nm.size == 0:
+            return None
+
+        if intensities.size != wavelengths_nm.size:
+            intensities = np.full_like(wavelengths_nm, 1.0)
+
+        y_min, y_max = self._overlay_vertical_bounds()
+        span = y_max - y_min if np.isfinite(y_max - y_min) else 1.0
+        baseline = y_min + span * 0.05
+        cap = y_min + span * 0.35
+        if not np.isfinite(baseline) or not np.isfinite(cap) or cap <= baseline:
+            baseline = y_min
+            cap = y_min + max(span, 1.0)
+        max_intensity = float(np.nanmax(intensities)) if intensities.size else 1.0
+        if not np.isfinite(max_intensity) or max_intensity <= 0:
+            max_intensity = 1.0
+
+        x_segments: List[float] = []
+        y_segments: List[float] = []
+        for value, raw_intensity in zip(wavelengths_nm, intensities):
+            if not np.isfinite(value):
+                continue
+            intensity = float(raw_intensity) if np.isfinite(raw_intensity) and raw_intensity >= 0 else 0.0
+            scaled_top = baseline + (cap - baseline) * (intensity / max_intensity)
+            x_segments.extend([value, value, np.nan])
+            y_segments.extend([baseline, scaled_top, np.nan])
+
+        if not x_segments:
+            return None
+
+        return {
+            "key": key,
+            "alias": alias,
+            "x_nm": np.array(x_segments, dtype=float),
+            "y": np.array(y_segments, dtype=float),
+            "color": color,
+            "width": 1.4,
+        }
+
+    def _build_overlay_for_ir(self, entries: List[Mapping[str, Any]]) -> Optional[Dict[str, Any]]:
+        x_segments: List[float] = []
+        y_segments: List[float] = []
+        y_low, y_high = self._overlay_band_bounds()
+        labels: List[Dict[str, object]] = []
+
+        for entry in entries:
+            start = self._coerce_float(entry.get("wavenumber_cm_1_min"))
+            end = self._coerce_float(entry.get("wavenumber_cm_1_max"))
+            if start is None or end is None:
+                continue
+            if not np.isfinite(start) or not np.isfinite(end):
+                continue
+            lower = min(start, end)
+            upper = max(start, end)
+            nm_bounds = self.units_service._to_canonical_wavelength(np.array([lower, upper], dtype=float), "cm^-1")
+            nm_low, nm_high = float(np.nanmin(nm_bounds)), float(np.nanmax(nm_bounds))
+            if not np.isfinite(nm_low) or not np.isfinite(nm_high):
+                continue
+            if nm_low == nm_high:
+                continue
+            # PyQtGraph's PlotDataItem differentiates successive X values when
+            # constructing fill paths; perfectly vertical edges therefore
+            # trigger divide-by-zero warnings if we submit identical
+            # coordinates back-to-back.  Use ``nextafter`` to pull the interior
+            # points infinitesimally towards the opposite edge so the segment
+            # remains visually vertical while avoiding zero-length steps.
+            low_edge = np.nextafter(nm_low, nm_high)
+            high_edge = np.nextafter(nm_high, nm_low)
+            x_segments.extend([nm_low, low_edge, high_edge, nm_high, np.nan])
+            y_segments.extend([y_low, y_high, y_high, y_low, np.nan])
+
+            label = entry.get("group") or entry.get("id")
+            if label:
+                labels.append({
+                    "text": str(label),
+                    "centre_nm": float((nm_low + nm_high) / 2.0),
+                })
+
+        if not x_segments:
+            return None
+
+        return {
+            "key": "reference::ir_groups",
+            "alias": "Reference – IR Functional Groups",
+            "x_nm": np.array(x_segments, dtype=float),
+            "y": np.array(y_segments, dtype=float),
+            "color": "#6D597A",
+            "width": 1.2,
+            "fill_color": (109, 89, 122, 70),
+            "fill_level": float(y_low),
+            "band_bounds": (float(y_low), float(y_high)),
+            "labels": labels,
+        }
+
+    def _render_reference_jwst(
+        self,
+        target: Mapping[str, Any],
+        rows: List[Mapping[str, Any]],
+        wavelength_key: str,
+        value_key: str,
+        uncertainty_key: Optional[str],
+    ) -> Optional[Dict[str, Any]]:
+        units = target.get("data_units", "Value")
+        self.reference_plot.setLabel("bottom", "Wavelength", units="µm")
+        self.reference_plot.setLabel("left", str(units))
+        if not rows:
+            return None
+
+        x_vals: List[float] = []
+        y_vals: List[float] = []
+        err_vals: List[float] = []
+        for entry in rows:
+            wavelength = self._coerce_float(entry.get(wavelength_key))
+            value = self._coerce_float(entry.get(value_key))
+            if wavelength is None or value is None:
+                continue
+            if not np.isfinite(wavelength) or not np.isfinite(value):
+                continue
+            x_vals.append(wavelength)
+            y_vals.append(value)
+            if uncertainty_key:
+                err = self._coerce_float(entry.get(uncertainty_key))
+                if err is None:
+                    err = float("nan")
+                err_vals.append(err)
+
+        if not x_vals:
+            return None
+
+        x_array = np.array(x_vals, dtype=float)
+        y_array = np.array(y_vals, dtype=float)
+        plot_item = self.reference_plot.plot(x_array, y_array, pen=pg.mkPen(color="#33658A", width=2))
+        self._reference_plot_items.append(plot_item)
+
+        if uncertainty_key and err_vals:
+            err_array = np.array(err_vals, dtype=float)
+            upper = y_array + err_array
+            lower = y_array - err_array
+            dotted_pen = pg.mkPen(color="#33658A", width=1, style=QtCore.Qt.PenStyle.DotLine)
+            upper_item = self.reference_plot.plot(x_array, upper, pen=dotted_pen)
+            lower_item = self.reference_plot.plot(x_array, lower, pen=dotted_pen)
+            self._reference_plot_items.extend([upper_item, lower_item])
+
+        nm_values = self._convert_um_to_nm(x_array)
+        return self._build_overlay_for_jwst(target, nm_values, y_array)
+
+    def _on_reference_row_selection_changed(self) -> None:
+        if getattr(self, "_reference_mode", "") != "line_shapes":
             return
-        if hasattr(self.doc_viewer, "setMarkdown"):
-            self.doc_viewer.setMarkdown(text)
-        else:  # pragma: no cover - Qt fallback
-            self.doc_viewer.setPlainText(text)
-        self._log("Docs", f"Loaded {path.name}")
+        overlay_payload = self._render_selected_line_shape()
+        self._update_reference_overlay_state(overlay_payload)
 
-    def show_documentation(self) -> None:
-        self._load_documentation_index()
-        self.inspector_dock.show()
-        idx = self.inspector_tabs.indexOf(self.tab_docs)
-        if idx != -1:
-            self.inspector_tabs.setCurrentIndex(idx)
-        self.raise_()
+    def _render_selected_line_shape(self) -> Optional[Dict[str, Any]]:
+        if not self._line_shape_rows or self.line_shape_model is None:
+            meta = self.reference_library.line_shape_metadata()
+            self.reference_meta.setHtml(self._line_shape_overview_html(meta))
+            self._clear_reference_plot()
+            return None
+        row = self.reference_table.currentRow()
+        if row < 0 or row >= len(self._line_shape_rows):
+            meta = self.reference_library.line_shape_metadata()
+            self.reference_meta.setHtml(self._line_shape_overview_html(meta))
+            self._clear_reference_plot()
+            return None
+        entry = self._line_shape_rows[row]
+        return self._render_line_shape_entry(entry)
 
-    def _rename_selected_spectrum(self) -> None:
-        ids = self._selected_dataset_ids()
-        if not ids:
-            return
-        spectrum_id = ids[-1]
-        alias = self.info_alias.text().strip()
-        if not alias:
-            return
-        item = self._dataset_items.get(spectrum_id)
-        if item:
-            item.setText(alias)
-        self._update_math_selectors()
-        spectrum = self.overlay_service.get(spectrum_id)
-        self.info_name.setText(spectrum.name)
-        self.plot.update_alias(spectrum_id, alias)
-        self._log("Alias", f"{spectrum.name} → {alias}")
+    def _render_line_shape_entry(self, entry: Mapping[str, Any]) -> Optional[Dict[str, Any]]:
+        if self.line_shape_model is None:
+            return None
+        model_id = str(entry.get("id", ""))
+        params = entry.get("example_parameters")
+        params_map = params if isinstance(params, Mapping) else None
+        outcome = self.line_shape_model.sample_profile(model_id, params_map)
+        meta = self.reference_library.line_shape_metadata()
+        if outcome is None:
+            self._clear_reference_plot()
+            self.reference_meta.setHtml(self._line_shape_overview_html(meta, entry, None))
+            return None
 
-    def _on_normalize_changed(self, value: str) -> None:
-        self._normalization_mode = value or "None"
-        self.refresh_overlay()
-        self._log("Normalize", f"Mode set to {self._normalization_mode}")
+        self._clear_reference_plot()
+        x_nm = np.asarray(outcome.x, dtype=float)
+        y_vals = np.asarray(outcome.y, dtype=float)
+        display_unit = self._reference_display_unit()
+        x_display = self._convert_nm_to_unit(x_nm, display_unit)
+        pen = pg.mkPen(color="#4F6D7A", width=2)
+        curve = self.reference_plot.plot(x_display, y_vals, pen=pen)
+        self._reference_plot_items.append(curve)
+        self.reference_plot.setLabel("bottom", "Wavelength", units=display_unit)
+        self.reference_plot.setLabel("left", "Normalised intensity (a.u.)")
+        if y_vals.size:
+            y_max = float(np.nanmax(y_vals))
+            if not np.isfinite(y_max) or y_max <= 0:
+                y_max = 1.0
+            self.reference_plot.setYRange(0.0, y_max * 1.1, padding=0.05)
 
-    def _on_smoothing_changed(self, value: str) -> None:
-        self._log("Smoothing", f"Mode set to {value}")
+        self.reference_meta.setHtml(self._line_shape_overview_html(meta, entry, outcome.metadata))
+        alias = entry.get("label") or model_id or "Line-shape"
+        payload = {
+            "key": f"reference::line_shape::{model_id}",
+            "alias": f"Reference – {alias}",
+            "x_nm": x_nm,
+            "y": y_vals,
+            "color": "#4F6D7A",
+            "width": 2.0,
+            "model": model_id,
+            "parameters": outcome.metadata.get("parameters", {}),
+            "metadata": outcome.metadata,
+        }
+        return payload
 
-    def _log(self, channel: str, message: str) -> None:
-        if not hasattr(self, "log_view") or self.log_view is None:
-            return
-        self.log_view.appendPlainText(f"[{channel}] {message}")
+    def _format_line_shape_example(self, params: Any) -> str:
+        if not isinstance(params, Mapping):
+            return ""
+        tokens: List[str] = []
+        for key, value in params.items():
+            if isinstance(value, (int, float)):
+                tokens.append(f"{key}={self._format_float(value)}")
+            else:
+                tokens.append(f"{key}={value}")
+        return ", ".join(tokens)
 
+    def _line_shape_overview_html(
+        self,
+        meta: Mapping[str, Any],
+        entry: Mapping[str, Any] | None = None,
+        outcome: Mapping[str, Any] | None = None,
+    ) -> str:
+        parts: List[str] = []
+        if entry is not None:
+            title = entry.get("label") or entry.get("id") or "Line-shape model"
+            description = entry.get("description") or entry.get("notes") or ""
+            parts.append(f"<p><b>{title}</b><br/>{description}</p>")
 
-def json_pretty(data: dict) -> str:
-    import json
+            units_map = entry.get("units")
+            if isinstance(units_map, Mapping) and units_map:
+                unit_items = "".join(
+                    f"<li>{key}: {value}</li>" for key, value in units_map.items()
+                )
+                parts.append(f"<p><b>Units</b></p><ul>{unit_items}</ul>")
 
-    return json.dumps(data, indent=2, ensure_ascii=False)
+            params = outcome.get("parameters") if isinstance(outcome, Mapping) else entry.get("example_parameters")
+            example_text = self._format_line_shape_example(params)
+            if example_text:
+                parts.append(f"<p><b>Example parameters:</b> {example_text}</p>")
 
+            if isinstance(outcome, Mapping):
+                highlights: List[str] = []
+                for key in ("doppler_factor", "beta", "width_nm", "stark_width_nm", "delta_nm"):
+                    value = outcome.get(key)
+                    if value is None:
+                        continue
+                    if isinstance(value, (int, float)):
+                        highlights.append(f"{key.replace('_', ' ')} = {self._format_float(value)}")
+                    else:
+                        highlights.append(f"{key.replace('_', ' ')} = {value}")
+                if highlights:
+                    parts.append("<p><b>Computed metrics:</b> " + ", ".join(highlights) + "</p>")
 
-def main() -> None:
-    app = QtWidgets.QApplication(sys.argv)
-    window = SpectraMainWindow()
-    window.show()
-    sys.exit(app.exec())
-
-
-if __name__ == "__main__":
-    main()
+        notes = meta.get("notes")
+        if notes:
+            parts.append(f"<p>{notes}</p>")
+        references = meta.get("references")
+        if isinstance(references, list) and references:
+            ref_lines = "".join(
+                f"<li><a href='{ref.get('url')}'>{ref.get('citation')}</a></li>"
+                if isinstance(ref, Mapping) and ref.get("url")
+                else f"<li>{ref.get('citation')}</li>"
+                for ref in references
+                if isinstance(ref, Mapping) and ref.get("citation")
+            )
+            if ref_lines:
+                parts.append(f"<p><b>References</b></p><ul>{ref_lines}</ul>")
+        return "".join(parts) if parts else "<p>Line-shape placeholders</p>"
