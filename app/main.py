@@ -3965,3 +3965,22 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                     if isinstance(value, (int, float)):
                         highlights.append(f"{key.replace('_', ' ')} = {self._format_float(value)}")
                     else:
+                        highlights.append(f"{key.replace('_', ' ')} = {value}")
+                if highlights:
+                    parts.append("<p><b>Computed metrics:</b> " + ", ".join(highlights) + "</p>")
+
+        notes = meta.get("notes")
+        if notes:
+            parts.append(f"<p>{notes}</p>")
+        references = meta.get("references")
+        if isinstance(references, list) and references:
+            ref_lines = "".join(
+                f"<li><a href='{ref.get('url')}'>{ref.get('citation')}</a></li>"
+                if isinstance(ref, Mapping) and ref.get("url")
+                else f"<li>{ref.get('citation')}</li>"
+                for ref in references
+                if isinstance(ref, Mapping) and ref.get("citation")
+            )
+            if ref_lines:
+                parts.append(f"<p><b>References</b></p><ul>{ref_lines}</ul>")
+        return "".join(parts) if parts else "<p>Line-shape placeholders</p>"
