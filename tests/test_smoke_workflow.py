@@ -115,43 +115,20 @@ def test_library_dock_populates_and_previews(tmp_path: Path) -> None:
         if window.library_list is None or window.library_detail is None:
             pytest.skip("Persistence disabled: library dock not available")
 
+        # Ensure the library has at least one entry; if empty, ingest a tiny CSV to seed it
         count = window.library_list.topLevelItemCount()
         assert count >= 0
         if count == 0:
-            pytest.skip("Library is empty in this environment")
-
-        first_item = window.library_list.topLevelItem(0)
-        assert first_item is not None
-        window.library_list.setCurrentItem(first_item)
-        app.processEvents()
-
-        detail = window.library_detail.toPlainText()
-        assert detail, "Selecting a cached entry should display metadata"
-        assert "sha256" in detail
-        if window.library_hint is not None:
-            assert window.library_hint.text()
-    finally:
-        window.close()
-        window.deleteLater()
-        app.processEvents()
-
-
-def test_library_dock_populates_and_previews(tmp_path: Path) -> None:
-    if SpectraMainWindow is None or QtWidgets is None:
-        pytest.skip(f"Qt stack unavailable: {_qt_import_error}")
-
-    app = _ensure_app()
-    log_service = KnowledgeLogService(log_path=tmp_path / "history.md", author="pytest")
-    window = SpectraMainWindow(knowledge_log_service=log_service)
-    try:
-        app.processEvents()
-        if window.library_list is None or window.library_detail is None:
-            pytest.skip("Persistence disabled: library dock not available")
-
-        count = window.library_list.topLevelItemCount()
-        assert count >= 0
-        if count == 0:
-            pytest.skip("Library is empty in this environment")
+            csv_path = tmp_path / "seed.csv"
+            csv_path.write_text("wavelength_nm,absorbance\n500,0.1\n510,0.2\n", encoding="utf-8")
+            window._ingest_path(csv_path)
+            app.processEvents()
+            # Refresh the library dock after ingest
+            if hasattr(window, "_refresh_library_view"):
+                window._refresh_library_view()
+                app.processEvents()
+            count = window.library_list.topLevelItemCount()
+            assert count >= 1, "Library should populate after ingesting a dataset"
 
         first_item = window.library_list.topLevelItem(0)
         assert first_item is not None

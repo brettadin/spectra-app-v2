@@ -1405,3 +1405,123 @@ Import/Remote Import entries remain after the cleanup.
 - i froze h2o in the schlenk line oopsie.csv
 
 ---
+## 2025-10-25 16:45 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file CO2 - 500 torr.csv
+
+**References**:
+- CO2 - 500 torr.csv
+
+---
+## 2025-10-25 16:46 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file 10.8 Test 2.csv
+
+**References**:
+- 10.8 Test 2.csv
+
+---
+## 2025-10-25 16:46 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file run2.csv
+
+**References**:
+- run2.csv
+
+---
+## 2025-10-25 16:47 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file CO2 - 300 torr.csv
+
+**References**:
+- CO2 - 300 torr.csv
+
+---
+## 2025-10-25 16:47 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file bkgrd A.csv
+
+**References**:
+- bkgrd A.csv
+
+---
+## 2025-10-25 16:47 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file open air A.csv
+
+**References**:
+- open air A.csv
+
+---
+## 2025-10-25 16:47 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Run1 no co2.csv
+
+**References**:
+- Run1 no co2.csv
+
+---
+## 2025-10-25 16:47 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file 10.8 Test 2.csv
+
+**References**:
+- 10.8 Test 2.csv
+
+---
+## 2025-10-25 16:47 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file 10.8 Test 1.csv
+
+**References**:
+- 10.8 Test 1.csv
+
+---
+## 2025-10-25 16:48 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file run4.csv
+
+**References**:
+- run4.csv
+
+---
