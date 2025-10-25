@@ -74,6 +74,85 @@ Include version pins (library/line-list versions, app build), and citations used
 - **Functional groups** and bonding motifs from vibrational fundamentals/overtones.
 - **Gas-phase** rovibrational envelopes encode temperature and pressure.
 
+### 3.1a Comprehensive Functional Group Coverage (2025-10-25 Update)
+
+The application now provides an **extended IR functional groups database** with 50+ groups organized into 8 chemical families, enabling detailed molecular identification from IR/FTIR spectra:
+
+**1. Hydroxyl Groups (6 variants)**
+- O-H free (alcohols, 3650-3600 cm⁻¹): Sharp, concentration-dependent
+- O-H hydrogen-bonded (alcohols, 3550-3200 cm⁻¹): Broad, dominant in condensed phase
+- O-H phenolic (3650-3200 cm⁻¹): Intermediate sharpness, red-shifted from aliphatic
+- O-H carboxylic (3300-2500 cm⁻¹): Very broad, overlaps with C-H, diagnostic with C=O at 1710 cm⁻¹
+- Primary/secondary alcohols distinguished by C-O stretch position and coupling patterns
+
+**2. Carbonyl Groups (7 variants)**
+- Ketones (1750-1680 cm⁻¹): Strong, sharp; position varies with conjugation/ring strain
+- Aldehydes (1740-1720 cm⁻¹): Characteristic C-H aldehyde doublet at 2830, 2720 cm⁻¹
+- Esters (1750-1735 cm⁻¹): Often coupled with strong C-O stretch at 1300-1000 cm⁻¹
+- Carboxylic acids (1725-1700 cm⁻¹): Paired with broad O-H; dimers common in condensed phase
+- Amides (1690-1650 cm⁻¹): Amide I/II bands, position sensitive to H-bonding
+- Anhydrides (1850-1800, 1790-1740 cm⁻¹): Characteristic doublet from symmetric/asymmetric C=O stretch
+- Acid chlorides (1815-1785 cm⁻¹): Higher frequency than other carbonyls due to Cl electronegativity
+
+**3. Amine Groups (4 variants)**
+- Primary amines (NH₂): Doublet at 3500-3300 cm⁻¹ + N-H bend at 1650-1580 cm⁻¹
+- Secondary amines (NH): Single N-H stretch at 3350-3310 cm⁻¹, often weak
+- Tertiary amines (N): No N-H stretch, identified by C-N stretch + context
+- N-H wagging/twisting modes provide additional diagnostic information
+
+**4. Aromatic Groups (4 variants)**
+- C-H aromatic stretch (3100-3000 cm⁻¹): Multiple bands, weaker than aliphatic C-H
+- C=C aromatic stretch (1600-1585, 1500-1400 cm⁻¹): Ring breathing modes
+- C-H out-of-plane bending (900-690 cm⁻¹): Substitution pattern fingerprint (mono/ortho/meta/para)
+- Overtone/combination bands (2000-1650 cm⁻¹): Weak but characteristic patterns
+
+**5. Aliphatic Groups (5 variants)**
+- C-H sp³ stretch (2970-2850 cm⁻¹): Strong, methyl/methylene distinction via position
+- C-H sp² stretch (3095-3075 cm⁻¹): Alkenes, higher frequency than sp³
+- C-H sp stretch (3333-3267 cm⁻¹): Alkynes, sharp and distinctive
+- C=C alkene (1680-1620 cm⁻¹): Position varies with substitution; often weak in symmetric alkenes
+- C≡C alkyne (2260-2100 cm⁻¹): Sharp, medium intensity; absent if internal symmetric alkyne
+
+**6. Nitrogen Groups (3 variants)**
+- Nitriles (C≡N, 2260-2210 cm⁻¹): Sharp, medium-strong; conjugation lowers frequency
+- Nitro compounds (NO₂): Characteristic doublet at 1560-1540 + 1385-1345 cm⁻¹ (~150 cm⁻¹ separation)
+- Azo compounds (N=N, 1630-1575 cm⁻¹): Often weak; aromatic azo compounds more visible
+
+**7. Sulfur Groups (4 variants)**
+- Thiols (S-H, 2600-2550 cm⁻¹): Weaker than O-H, sharp, distinctive frequency
+- Sulfoxides (S=O, 1070-1030 cm⁻¹): Strong, asymmetric stretch
+- Sulfones (SO₂, 1350-1300 + 1160-1120 cm⁻¹): Doublet from symmetric + asymmetric stretch
+- Disulfides (S-S, 500-400 cm⁻¹): Weak, low frequency, requires far-IR or Raman confirmation
+
+**8. Halogen Groups (4 variants)**
+- C-F (1400-1000 cm⁻¹): Very strong, multiple bands; exact position varies with substitution
+- C-Cl (800-600 cm⁻¹): Medium-strong, decreases in frequency with halogen mass
+- C-Br (690-515 cm⁻¹): Weaker than C-Cl, overlaps with fingerprint region
+- C-I (600-500 cm⁻¹): Weak, far-IR region, often better characterized by Raman
+
+**Database Structure** (`app/data/reference/ir_functional_groups_extended.json`):
+- Wavenumber ranges: minimum, maximum, characteristic peak
+- Intensity descriptors: strong, medium, weak, variable
+- Vibrational modes: stretch (ν), bend (δ), rock (ρ), wag (ω), twist (τ)
+- Chemical classes: alcohols, ketones, aromatics, etc.
+- Related groups: functional groups that commonly co-occur (e.g., COOH has both C=O and O-H)
+- Diagnostic value (1-5 scale): reliability for identification
+- Notes: interference patterns, concentration effects, matrix dependencies
+
+**Usage in Application**:
+- Reference tab → IR Functional Groups: Browse all 50+ groups with wavenumber ranges
+- Filter/search by name, wavenumber, or chemical class
+- Preview overlays on inspector plot; click "Show on plot" to overlay on main spectrum
+- Auto-detection via `ReferenceLibrary.ir_groups` (falls back to basic 8-group database if extended version unavailable)
+
+**Future ML Integration** (see Chapter 7, §7a):
+- Phase 1 (4 weeks): Automated peak detection with rule-based functional group matching
+- Phase 2-3 (14 weeks): Neural network training on ~52K labeled IR spectra (NIST + SDBS)
+- Phase 4 (4 weeks): UI integration with confidence scores and evidence display
+- Phase 5 (4 weeks): Hybrid ensemble combining rule-based and ML predictions
+
+**Provenance**: Compiled from NIST Chemistry WebBook, Pavia et al. (2015), Silverstein et al. (2015), and SDBS (AIST Japan). All groups validated against authoritative spectroscopy references.
+
 ### 3.2 Typical campus instruments
 - FTIR bench (ATR accessory for solids/liquids). Optional: long-path **gas cell** for gases and vapors.
 

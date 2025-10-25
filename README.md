@@ -44,6 +44,8 @@ This repository represents the complete rewrite of the Spectra-App into a modern
 - **Mathematical Operations**: A−B, A/B (epsilon-guarded), baseline removal, Savitzky-Golay smoothing
 - **Spectral Analysis**: Gaussian fitting, peak detection, continuum subtraction
 - **Reference Overlays**: NIST atomic line lists with interactive redshift controls
+- **IR Functional Groups**: 50+ comprehensive functional groups (hydroxyl, carbonyl, amine, aromatic, aliphatic, nitrogen, sulfur, halogen) with wavenumber ranges, intensity profiles, and vibrational modes for FTIR/ATR analysis
+- **ML Roadmap**: Hybrid system planned for automated functional group identification combining rule-based peak detection (80% precision target) with neural network predictions (90% precision target) trained on ~52K spectra from NIST and SDBS databases
 
 ### User Experience
 - **High-Performance Plotting**: PyQtGraph with LOD optimization for 1M+ point datasets

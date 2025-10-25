@@ -28,6 +28,31 @@ Each entry in this document should follow this structure:
 
 ---
 
+## 2025-10-24T22:30:00-04:00 / 2025-10-25T02:30:00+00:00 – IR Functional Groups Database Expansion and ML Integration Documentation
+
+**Author**: agent (GitHub Copilot)
+
+**Context**: Reference data library expansion with comprehensive IR functional groups database and machine learning integration roadmap for automated functional group prediction.
+
+**Summary**: Documented the comprehensive expansion of IR functional groups reference data from 8 to 50+ groups, including hydroxyl, carbonyl, amine, aromatic, aliphatic, nitrogen, sulfur, and halogen families. The extended database (`app/data/reference/ir_functional_groups_extended.json`) includes rich metadata for each group: wavenumber ranges (min, max, peak), intensity descriptions, vibrational modes, chemical classes, related groups, diagnostic value ratings, and identification notes. The database is ML-ready with relationship mapping and structured for future neural network training.
+
+Created comprehensive ML integration design document (`docs/specs/ml_functional_group_prediction.md`) outlining a phased implementation approach:
+- **Phase 1**: Enhanced rule-based peak detection using scipy (4 weeks)
+- **Phase 2**: Data collection from NIST WebBook and SDBS (~52K spectra) with RDKit label generation (6 weeks)  
+- **Phase 3**: Neural network prototype with 1D CNN and attention mechanisms (8 weeks)
+- **Phase 4**: Integration and UI with "Analyze Functional Groups" panel (4 weeks)
+- **Phase 5**: Hybrid ensemble combining rule-based and ML predictions (4 weeks)
+
+Modified `app/services/reference_library.py` to automatically detect and use extended database when available, falling back to basic 8-group database for backward compatibility. This approach maintains provenance-first architecture while enabling future ML-powered identification with explainable predictions.
+
+Research incorporated from FG-BERT (idrugLab) transformer-based approach and FTIR prediction neural networks (aaditagarwal). Performance targets established: rule-based (80% precision, 70% recall), neural network (90% precision, 85% recall), ensemble (92% precision, 88% recall).
+
+This expansion directly supports the educational use case of comparing lab-collected IR/FTIR spectra with planetary/stellar observations for molecular identification, providing students with comprehensive reference data for functional group analysis.
+
+**References**: `app/data/reference/ir_functional_groups_extended.json`, `docs/specs/ml_functional_group_prediction.md`, `app/services/reference_library.py`, `IR_EXPANSION_SUMMARY.md`, `docs/brains/2025-10-25T0230-ir-ml-integration.md`, `docs/atlas/chapter_7_identification_and_prediction_logic.md`.
+
+---
+
 ## 2025-10-24T16:07:16-04:00 / 2025-10-24T20:07:16+00:00 – Main module import path fix
 
 **Author**: agent (GitHub Copilot)

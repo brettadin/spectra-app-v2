@@ -191,6 +191,86 @@ This document tracks feature batches, validation status, and outstanding backlog
 - [ ] Reconcile `reports/roadmap.md` with the current importer, overlay, and documentation backlog, adding longer-term research goals.
 - [ ] Schedule a documentation sweep covering reference data, patch notes, and roadmap updates with acceptance criteria tied to regression tests.
 
+## IR Functional Groups and ML Integration Roadmap (Added 2025-10-25)
+
+**Status**: Extended database (50+ groups) ✅ implemented and documented; ML phases designed and awaiting implementation.
+
+### Phase 1: Enhanced Rule-Based Analyzer (4 weeks)
+- [ ] Implement peak detection using `scipy.signal.find_peaks` with prominence/width filtering
+- [ ] Create peak-to-functional-group matching algorithm with confidence scoring
+- [ ] Implement contextual rules for group interactions (e.g., COOH = broad O-H + sharp C=O)
+- [ ] Add UI panel for displaying predictions with evidence
+- [ ] Write unit tests for peak detection on synthetic spectra
+- [ ] Write integration tests on known compounds (benzoic acid, acetone, ethanol)
+- [ ] Performance validation: 80% precision, 70% recall target
+- [ ] Documentation: User guide for rule-based functional group analysis
+
+### Phase 2: Data Collection & Preparation (6 weeks)
+- [ ] Script to download NIST WebBook IR spectra (~18K spectra with SMILES)
+- [ ] Script to download SDBS IR spectra (~34K spectra with structures)
+- [ ] Implement RDKit-based label generation (parse SMILES → functional group presence/absence)
+- [ ] Preprocess spectra: baseline correction, normalization, resampling to 4000-400 cm⁻¹
+- [ ] Implement data augmentation: baseline shifts, noise, spectral shifting (±5 cm⁻¹), intensity scaling
+- [ ] Create train/validation/test splits (60/20/20)
+- [ ] Store dataset in HDF5/Parquet format with metadata and provenance
+- [ ] Documentation: Data preparation pipeline and dataset schema
+
+### Phase 3: Neural Network Prototype (8 weeks)
+- [ ] Implement 1D CNN architecture with residual connections
+- [ ] Add multi-head self-attention mechanism for diagnostic region focus
+- [ ] Implement multi-label classification output (sigmoid activation)
+- [ ] Train initial model on subset (5K spectra) for proof-of-concept
+- [ ] Tune hyperparameters (learning rate, batch size, regularization)
+- [ ] Train full model on complete dataset (~52K spectra)
+- [ ] Evaluate on hold-out test set: 90% precision, 85% recall target
+- [ ] Implement model persistence and loading
+- [ ] Create prediction API for integration
+- [ ] Documentation: Model architecture, training procedure, performance metrics
+
+### Phase 4: UI Integration (4 weeks)
+- [ ] Create "Analyze Functional Groups" button/panel in UI
+- [ ] Display predictions with confidence bars and color-coded groups
+- [ ] Show supporting evidence: diagnostic peaks, attention maps, rule contributions
+- [ ] Implement annotated spectrum view with color-coded regions
+- [ ] Add export functionality for predictions (CSV/JSON with provenance)
+- [ ] Implement batch processing for multiple spectra
+- [ ] Write Qt integration tests for analysis panel
+- [ ] Performance validation: <500ms GPU, <2s CPU latency
+- [ ] Documentation: User guide for ML-powered functional group analysis
+
+### Phase 5: Hybrid Ensemble (4 weeks)
+- [ ] Implement ensemble prediction logic combining rule-based and neural network
+- [ ] Tune ensemble weights (default 40% rules, 60% neural; user-adjustable)
+- [ ] Add interpretability features: show method contribution per prediction
+- [ ] Implement comparison mode: side-by-side rule-based vs neural predictions
+- [ ] Add user feedback collection for active learning
+- [ ] Performance validation: 92% precision, 88% recall target
+- [ ] Write comprehensive test suite for ensemble system
+- [ ] Documentation: Ensemble methodology, interpretability guide, user feedback workflow
+
+### Long-Term Enhancements (6+ months)
+- [ ] Active learning: user corrections improve model continuously
+- [ ] Multi-modal fusion: combine IR with NMR, MS, UV-Vis for compound-level identification
+- [ ] Transfer learning: pre-train on large databases, fine-tune for specific domains
+- [ ] Bayesian uncertainty: upgrade to probabilistic neural networks for better confidence estimates
+- [ ] Compound suggestion: from functional groups + molecular formula → suggest structures
+- [ ] Literature integration: link predictions to reference papers and spectral databases
+
+**Dependencies to Add for ML Phases**:
+```toml
+rdkit >= 2023.3.1        # Phase 2: Molecular structure parsing for label generation
+tensorflow >= 2.13.0     # Phase 3: Neural network training/inference (or pytorch)
+scikit-learn >= 1.3.0    # Phase 2-3: Preprocessing, metrics, cross-validation
+h5py >= 3.9.0            # Phase 2: Efficient dataset storage
+```
+
+**Documentation References**:
+- Extended database: `app/data/reference/ir_functional_groups_extended.json`
+- ML design: `docs/specs/ml_functional_group_prediction.md`
+- Architectural decision: `docs/brains/2025-10-25T0230-ir-ml-integration.md`
+- User guide updates: `docs/user/reference_data.md`
+- Atlas coverage: Chapter 1 (§3.1a), Chapter 7 (§7a)
+
 ## Batch 9 (2025-10-15)
 
 - [x] Add reproducible build scripts for NIST hydrogen lines, IR functional groups, and JWST quick-look spectra.
