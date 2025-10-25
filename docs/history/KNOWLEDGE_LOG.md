@@ -1296,3 +1296,15 @@ Import/Remote Import entries remain after the cleanup.
 - i froze h2o in the schlenk line oopsie.csv
 
 ---
+## 2025-10-25 01:20 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file sample_spectrum.csv
+
+**References**:
+- sample_spectrum.csv
+
+---

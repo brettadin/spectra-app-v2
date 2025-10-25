@@ -247,6 +247,8 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.data_tabs.addTab(library_container, "Library")
         self.dataset_dock.setWidget(self.data_tabs)
         self.addDockWidget(QtCore.Qt.DockWidgetArea.LeftDockWidgetArea, self.dataset_dock)
+        # Ensure dataset dock is visible
+        self.dataset_dock.show()
 
         # Right dock: inspector (tab widget placeholder)
         self.inspector_dock = QtWidgets.QDockWidget("Inspector", self)
@@ -397,6 +399,8 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         
         self.inspector_dock.setWidget(self.inspector_tabs)
         self.addDockWidget(QtCore.Qt.DockWidgetArea.RightDockWidgetArea, self.inspector_dock)
+        # Ensure inspector dock is visible
+        self.inspector_dock.show()
 
         # Bottom dock: log view
         self.log_dock = QtWidgets.QDockWidget("Log", self)
