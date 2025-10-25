@@ -1248,3 +1248,75 @@ Import/Remote Import entries remain after the cleanup.
 - {'archive': 'NIST ASD', 'atomic_number': 1, 'citation': 'Kramida, A. et al. (NIST ASD), https://physics.nist.gov/asd', 'element_name': 'Hydrogen', 'element_symbol': 'H', 'fetched_at_utc': '2025-10-23T00:44:27.115929+00:00', 'ion_stage': 'I', 'ion_stage_number': 1, 'label': 'H I (NIST ASD)', 'query': {'identifier': 'H', 'linename': 'H I', 'lower_wavelength': 380.0, 'upper_wavelength': 750.0, 'use_ritz': True, 'wavelength_type': 'vacuum', 'wavelength_unit': 'nm'}, 'retrieved_via': 'astroquery.nist', 'source_type': 'reference'}
 
 ---
+## 2025-10-24 21:03 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file jupiter__9408090029N_vo.fits
+
+**References**:
+- jupiter__9408090029N_vo.fits
+
+---
+## 2025-10-24 21:06 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file CO2 - 500 torr.csv
+
+**References**:
+- CO2 - 500 torr.csv
+
+---
+## 2025-10-24 21:07 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file goodo vapor run i think.csv
+
+**References**:
+- goodo vapor run i think.csv
+
+---
+## 2025-10-24 21:07 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file i froze h2o in the schlenk line oopsie.csv
+
+**References**:
+- i froze h2o in the schlenk line oopsie.csv
+
+---
+## 2025-10-25 01:20 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file sample_spectrum.csv
+
+**References**:
+- sample_spectrum.csv
+
+---
+## 2025-10-25 01:22 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file sample_spectrum.csv
+
+**References**:
+- sample_spectrum.csv
+
+---
