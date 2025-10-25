@@ -128,6 +128,162 @@ Thresholds \(\tau_H, \tau_M\) are set via validation (see §10) and recorded wit
 
 ---
 
+## 7a. IR Functional Group Identification — Hybrid Approach (Implementation in Progress)
+
+The application implements a **three-tier hybrid system** for automated IR functional group identification, combining comprehensive reference databases, rule-based analysis, and neural network predictions.
+
+### 7a.1 Extended IR Functional Groups Database
+
+**Status**: ✅ Implemented (`app/data/reference/ir_functional_groups_extended.json`)
+
+The reference library contains **50+ functional groups** organized into 8 chemical families:
+
+1. **Hydroxyl groups** (6 variants): O-H free, hydrogen-bonded, phenolic, carboxylic, primary/secondary alcohols
+2. **Carbonyl groups** (7 variants): ketone, aldehyde, ester, carboxylic acid, amide, anhydride, acid chloride
+3. **Amine groups** (4 variants): primary (NH₂), secondary (NH), tertiary (N), N-H stretch/bend patterns
+4. **Aromatic groups** (4 variants): C-H aromatic stretch, C=C stretch/bending, substitution patterns
+5. **Aliphatic groups** (5 variants): sp³/sp²/sp C-H systems, C=C alkene, C≡C alkyne
+6. **Nitrogen groups** (3 variants): nitrile (C≡N), nitro (doublet at 1550/1350 cm⁻¹), azo (N=N)
+7. **Sulfur groups** (4 variants): thiol (S-H), sulfoxide (S=O), sulfone (SO₂), disulfide (S-S)
+8. **Halogen groups** (4 variants): C-F, C-Cl, C-Br, C-I
+
+Each group record includes:
+- **Wavenumber ranges**: minimum, maximum, characteristic peak (cm⁻¹)
+- **Intensity descriptors**: strong, medium, weak, variable
+- **Vibrational modes**: stretch, bend, rock, wag, twist, symmetric/asymmetric
+- **Chemical classes**: alcohols, ketones, aromatic, etc.
+- **Related groups**: functional groups that commonly co-occur
+- **Diagnostic value** (1-5 scale): reliability for identification
+- **Notes**: interference patterns, concentration effects, matrix dependencies
+
+**Usage**: `ReferenceLibrary.ir_functional_groups()` automatically loads extended database when available, falling back to basic 8-group database for backward compatibility.
+
+**Provenance**: Compiled from NIST Chemistry WebBook, Pavia et al. (2015) *Introduction to Spectroscopy*, Silverstein et al. (2015) *Spectrometric Identification of Organic Compounds*, and SDBS (AIST Japan) database.
+
+### 7a.2 Enhanced Rule-Based Analyzer (Phase 1 — Planned, 4 weeks)
+
+**Peak Detection Pipeline**:
+1. Convert spectrum to canonical wavenumber (cm⁻¹) if needed via `UnitsService`
+2. Apply `scipy.signal.find_peaks` with prominence and width filtering
+3. Match detected peaks to functional group database ranges
+4. Score matches using Gaussian likelihood (position accuracy)
+5. Apply contextual rules for group interactions
+6. Rank predictions by confidence score
+
+**Contextual Rules** (examples):
+- Broad O-H (2500-3300 cm⁻¹) + sharp C=O (1710 cm⁻¹) → **Carboxylic acid** (high confidence)
+- Doublet at 3400 + 3300 cm⁻¹ + N-H bend at 1600 cm⁻¹ → **Primary amine** (moderate confidence)
+- C-H aromatic (3030 cm⁻¹) + C=C (1600, 1500 cm⁻¹) → **Aromatic ring** (high confidence)
+- Nitro doublet (1550 + 1350 cm⁻¹) with ~150 cm⁻¹ separation → **Nitro group** (high confidence)
+
+**Confidence Scoring**:
+\[
+\text{Confidence}_i = w_{\text{pos}} \cdot \mathcal{L}_{\text{pos}} + w_{\text{int}} \cdot \mathcal{L}_{\text{int}} + w_{\text{context}} \cdot N_{\text{correlated}}
+\]
+where:
+- \(\mathcal{L}_{\text{pos}}\) = position likelihood (Gaussian with instrument + library uncertainties)
+- \(\mathcal{L}_{\text{int}}\) = intensity consistency (observed vs expected relative intensity)
+- \(N_{\text{correlated}}\) = number of correlated peaks present (e.g., C=O with O-H for COOH)
+
+**Performance Target**: 80% precision, 70% recall, <100ms latency per spectrum.
+
+### 7a.3 Neural Network Predictor (Phases 2-3 — Planned, 14 weeks)
+
+**Data Collection** (Phase 2 — 6 weeks):
+- **NIST Chemistry WebBook**: ~18,000 IR spectra with molecular structures (SMILES/InChI)
+- **SDBS (AIST Japan)**: ~34,000 IR spectra with chemical annotations
+- **Label Generation**: Use RDKit `Fragments` module to parse structures into functional group presence/absence
+- **Preprocessing**: Baseline correction, normalization, resampling to 4000-400 cm⁻¹ at 2 cm⁻¹ resolution (1800 points)
+- **Augmentation**: Baseline shifts, noise injection (realistic instrument noise), spectral shifting (±5 cm⁻¹), intensity scaling
+- **Storage**: HDF5 or Parquet for efficient batch loading during training
+
+**Model Architecture** (Phase 3 — 8 weeks):
+```
+Input Layer: (1800,) — IR spectrum resampled to fixed grid
+↓
+Conv1D(64, kernel=11) + ReLU + MaxPool(2)
+↓
+Conv1D(128, kernel=7) + ReLU + MaxPool(2)
+↓
+Multi-Head Self-Attention (4 heads) — Focus on diagnostic regions
+↓
+Global Average Pooling
+↓
+Dense(256) + ReLU + Dropout(0.3)
+↓
+Dense(50+) + Sigmoid — Multi-label classification (independent probabilities)
+```
+
+**Training Strategy**:
+- Loss: Binary cross-entropy with class weights for imbalanced groups
+- Optimizer: Adam with learning rate scheduling
+- Validation: 5-fold cross-validation on training set (80% data)
+- Holdout test: 20% of data never seen during training or validation
+- Early stopping on validation loss to prevent overfitting
+- Model checkpointing to save best weights
+
+**Interpretability**:
+- Attention weights show which spectral regions influenced each prediction
+- SHAP values decompose predictions into per-wavenumber contributions
+- Gradient-weighted class activation mapping (Grad-CAM) highlights diagnostic peaks
+
+**Performance Target**: 90% precision, 85% recall, <500ms GPU / <2s CPU latency.
+
+### 7a.4 Hybrid Ensemble (Phase 5 — Planned, 4 weeks)
+
+**Combination Strategy**:
+\[
+P_{\text{ensemble}}(\text{group}) = w_{\text{rules}} \cdot P_{\text{rules}}(\text{group}) + w_{\text{nn}} \cdot P_{\text{nn}}(\text{group})
+\]
+
+**Default Weights**: 40% rule-based, 60% neural network (tunable per session based on user feedback)
+
+**Fallback Logic**:
+- If neural network unavailable → 100% rule-based
+- If rule-based detects high confidence → boost rule weight to 60%
+- If both methods disagree → flag for manual review, show both predictions
+
+**Interpretability Features**:
+- Show which method contributed to each prediction (color-coded: blue=rules, green=NN, purple=ensemble)
+- Display supporting evidence from both approaches side-by-side
+- Attention map overlay on spectrum showing neural focus regions
+- Peak list showing rule-based matches
+
+**Performance Target**: 92% precision, 88% recall.
+
+### 7a.5 Implementation Status and References
+
+**Current State** (as of 2025-10-25):
+- ✅ Extended IR database (50+ groups) implemented and integrated
+- ✅ Auto-detection in `ReferenceLibrary.ir_groups` property
+- ✅ Comprehensive metadata with provenance tracking
+- 📋 Phase 1 (rule-based) design complete, implementation pending
+- 📋 Phases 2-5 (ML) design documented in `docs/specs/ml_functional_group_prediction.md`
+
+**Documentation**:
+- Complete specification: `docs/specs/ml_functional_group_prediction.md`
+- Architectural decision: `docs/brains/2025-10-25T0230-ir-ml-integration.md`
+- Implementation summary: `IR_EXPANSION_SUMMARY.md`
+- User guide updates pending Phase 1 implementation
+
+**Dependencies**:
+- Current: `scipy >= 1.11.0` (peak detection)
+- Future ML phases: `rdkit`, `tensorflow` or `pytorch`, `scikit-learn`, `h5py` (all optional)
+
+**Testing Strategy**:
+- Phase 1: Unit tests on synthetic spectra, integration tests on known compounds (benzoic acid, acetone, ethanol)
+- Phase 3: Hold-out test set (20%), 5-fold cross-validation, adversarial testing (noisy baselines, overlapping bands)
+- Phase 5: Ensemble consistency, interpretability validation, user acceptance testing
+
+**Research References**:
+- FG-BERT (idrugLab): Transformer-based functional group prediction from SMILES
+- FTIR Neural Networks (aaditagarwal): Direct spectral pattern learning
+- RDKit: Molecular structure parsing for training label generation
+
+> **Cross-links**: See `docs/specs/ml_functional_group_prediction.md` for complete technical specification, `app/data/reference/ir_functional_groups_extended.json` for database schema, and `docs/brains/2025-10-25T0230-ir-ml-integration.md` for architectural rationale. User interface design and workflow integration pending Phase 4 implementation.
+
+---
+
 ## 8. Conflict handling and follow‑up design
 
 - Generate a **conflict report** when modalities disagree beyond tolerance: list discordant features, suspected causes (resolution mismatch, baseline, fluorescence, matrix), and recommended follow‑ups (e.g., higher‑resolution IR, low‑freq Raman, different solvent).

@@ -20,6 +20,10 @@ class ReferencePaths:
 
     @property
     def ir_groups(self) -> Path:
+        # Try extended database first, fall back to basic
+        extended = self.base_dir / "ir_functional_groups_extended.json"
+        if extended.exists():
+            return extended
         return self.base_dir / "ir_functional_groups.json"
 
     @property

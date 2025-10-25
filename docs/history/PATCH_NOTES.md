@@ -1,6 +1,48 @@
 # Patch Notes
 
 
+## 2025-10-24 (IR Functional Groups Database Expansion and ML Integration Documentation) (22:30 EDT / 02:30 UTC)
+
+**Extended IR Functional Groups Database (50+ groups)**
+- Expanded IR functional groups reference from 8 to 50+ comprehensive groups covering:
+  - Hydroxyl groups: O-H free vs hydrogen-bonded, phenolic, carboxylic
+  - Carbonyl groups: ketone, aldehyde, ester, acid, amide, anhydride, acid chloride variants
+  - Amine groups: primary (NH₂), secondary (NH), tertiary (N)
+  - Aromatic groups: C-H stretch, C=C stretch/bending, substitution patterns
+  - Aliphatic groups: sp³/sp²/sp C-H systems, alkene/alkyne
+  - Nitrogen groups: nitriles (C≡N), nitro compounds (doublet), azo
+  - Sulfur groups: thiols (S-H), sulfoxides (S=O), sulfones (SO₂)
+  - Halogen compounds: C-F, C-Cl, C-Br, C-I
+- Added rich metadata: wavenumber ranges (min/max/peak), intensity descriptions, vibrational modes, chemical classes, related groups, diagnostic value ratings, identification notes
+- Structured for ML training with relationship mapping between functional groups
+- Database auto-detection in `app/services/reference_library.py` - uses extended database when available, falls back to basic
+
+**ML Integration Design Document**
+- Created comprehensive roadmap at `docs/specs/ml_functional_group_prediction.md`
+- Phased implementation (26 weeks total):
+  - Phase 1: Enhanced rule-based peak detection with scipy (4 weeks)
+  - Phase 2: Data collection from NIST/SDBS with RDKit label generation (6 weeks)
+  - Phase 3: 1D CNN with attention mechanisms (8 weeks)
+  - Phase 4: UI integration with confidence scores and evidence display (4 weeks)
+  - Phase 5: Hybrid ensemble combining rule-based and ML (4 weeks)
+- Performance targets: Rule-based (80%/70% precision/recall) → NN (90%/85%) → Ensemble (92%/88%)
+- Research from FG-BERT and FTIR prediction neural networks incorporated
+- Training sources: NIST WebBook (~18K spectra), SDBS (~34K spectra)
+
+**Documentation Updates**
+- Created brains entry: `docs/brains/2025-10-25T0230-ir-ml-integration.md`
+- Updated Atlas Chapter 7 with IR/ML functional group identification sections
+- Updated Atlas Chapter 1 with expanded IR spectroscopy coverage
+- Enhanced user documentation for extended IR functional groups
+- Updated workplan with ML implementation phases and milestones
+- Added developer notes for ML dependencies (scipy, rdkit, tensorflow/pytorch, scikit-learn, h5py)
+
+**File Changes**
+- `app/data/reference/ir_functional_groups_extended.json` - 50+ groups with comprehensive metadata
+- `docs/specs/ml_functional_group_prediction.md` - Complete ML integration design
+- `IR_EXPANSION_SUMMARY.md` - Summary document at repo root
+- All changes maintain provenance-first architecture and canonical unit storage (cm⁻¹ for IR)
+
 ## 2025-10-24 (Fixed ModuleNotFoundError when running main.py directly) (16:06 EDT / 20:06 UTC)
 
 - Removed duplicate docstring in `app/main.py` (lines 15-20) that was causing confusion
