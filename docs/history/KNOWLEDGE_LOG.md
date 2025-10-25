@@ -1308,3 +1308,15 @@ Import/Remote Import entries remain after the cleanup.
 - sample_spectrum.csv
 
 ---
+## 2025-10-25 01:22 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file sample_spectrum.csv
+
+**References**:
+- sample_spectrum.csv
+
+---
