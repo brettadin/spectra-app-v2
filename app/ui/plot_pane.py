@@ -337,7 +337,8 @@ class PlotPane(QtWidgets.QWidget):
     def _redraw_units(self) -> None:
         for key in self._traces:
             self._update_curve(key)
-        self._plot.setLabel("bottom", "Wavelength", units=self._display_unit)
+        label = "Wavenumber" if self._display_unit == "cm⁻¹" else "Wavelength"
+        self._plot.setLabel("bottom", label, units=self._display_unit)
 
     def map_nm_to_display(self, value_nm: float) -> float:
         """Convert a canonical wavelength (nm) to the current display unit."""

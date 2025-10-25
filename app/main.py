@@ -43,6 +43,164 @@ QtWidgets: Any
 QT_BINDING: str
 QtCore, QtGui, QtWidgets, QT_BINDING = get_qt()
 
+
+# Lightweight background workers for Remote Data tab (streaming search and downloads)
+# These mirror the behavior of the dialog workers but are local to the main window module
+
+Signal = getattr(QtCore, "Signal", None)  # type: ignore[attr-defined]
+if Signal is None:
+    Signal = getattr(QtCore, "pyqtSignal")  # type: ignore[attr-defined]
+
+Slot = getattr(QtCore, "Slot", None)  # type: ignore[attr-defined]
+if Slot is None:
+    Slot = getattr(QtCore, "pyqtSlot")  # type: ignore[attr-defined]
+
+
+class _RemoteSearchWorker(QtCore.QObject):  # type: ignore[name-defined]
+    started = Signal()  # type: ignore[misc]
+    record_found = Signal(object)  # type: ignore[misc]
+    finished = Signal(list)  # type: ignore[misc]
+    failed = Signal(str)  # type: ignore[misc]
+    cancelled = Signal()  # type: ignore[misc]
+
+    def __init__(self, remote_service: RemoteDataService) -> None:
+        super().__init__()
+        self._remote_service = remote_service
+        self._cancel_requested = False
+
+    @Slot(str, dict, bool)  # type: ignore[misc]
+    def run(self, provider: str, query: dict[str, str], include_imaging: bool) -> None:
+        self.started.emit()  # type: ignore[attr-defined]
+        collected: list[Any] = []
+        try:
+            # Fast path for simple providers
+            if provider == RemoteDataService.PROVIDER_NIST:
+                results = self._remote_service.search(provider, query, include_imaging=include_imaging)
+                for rec in results:
+                    if self._cancel_requested:
+                        self.cancelled.emit()  # type: ignore[attr-defined]
+                        return
+                    collected.append(rec)
+                    self.record_found.emit(rec)  # type: ignore[attr-defined]
+                self.finished.emit(collected)  # type: ignore[attr-defined]
+                return
+
+            # Progressive strategy for MAST (spectra first, then optional imaging)
+            if provider == RemoteDataService.PROVIDER_MAST:
+                base = dict(query)
+                mission_batches: list[list[str]] = [["JWST"], ["HST"], ["IUE", "FUSE", "GALEX"], ["Kepler", "K2", "TESS"]]
+                seen: set[tuple[str, str]] = set()
+
+                def _emit(batch: list[Any]) -> None:
+                    for rec in batch:
+                        if self._cancel_requested:
+                            self.cancelled.emit()  # type: ignore[attr-defined]
+                            return
+                        key = (getattr(rec, 'download_url', ''), getattr(rec, 'identifier', ''))
+                        if key in seen:
+                            continue
+                        seen.add(key)
+                        collected.append(rec)
+                        self.record_found.emit(rec)  # type: ignore[attr-defined]
+
+                # Spectra first
+                for missions in mission_batches:
+                    for mission in missions:
+                        if self._cancel_requested:
+                            self.cancelled.emit()  # type: ignore[attr-defined]
+                            return
+                        criteria = {**base, "obs_collection": mission, "dataproduct_type": "spectrum", "calib_level": [2, 3], "intentType": "SCIENCE"}
+                        try:
+                            batch = self._remote_service.search(RemoteDataService.PROVIDER_MAST, criteria, include_imaging=False)
+                        except Exception:
+                            batch = []
+                        _emit(batch)
+
+                # Imaging next (optional)
+                if include_imaging:
+                    for missions in mission_batches:
+                        for mission in missions:
+                            if self._cancel_requested:
+                                self.cancelled.emit()  # type: ignore[attr-defined]
+                                return
+                            criteria = {**base, "obs_collection": mission, "dataproduct_type": "image", "intentType": "SCIENCE"}
+                            try:
+                                batch = self._remote_service.search(RemoteDataService.PROVIDER_MAST, criteria, include_imaging=True)
+                            except Exception:
+                                batch = []
+                            _emit(batch)
+
+                self.finished.emit(collected)  # type: ignore[attr-defined]
+                return
+
+            # Fallback: single-shot
+            results = self._remote_service.search(provider, query, include_imaging=include_imaging)
+            for rec in results:
+                if self._cancel_requested:
+                    self.cancelled.emit()  # type: ignore[attr-defined]
+                    return
+                collected.append(rec)
+                self.record_found.emit(rec)  # type: ignore[attr-defined]
+            self.finished.emit(collected)  # type: ignore[attr-defined]
+        except Exception as exc:  # pragma: no cover
+            self.failed.emit(str(exc))  # type: ignore[attr-defined]
+
+    @Slot()  # type: ignore[misc]
+    def cancel(self) -> None:
+        self._cancel_requested = True
+
+
+class _RemoteDownloadWorker(QtCore.QObject):  # type: ignore[name-defined]
+    started = Signal(int)  # type: ignore[misc]
+    record_ingested = Signal(object)  # type: ignore[misc]
+    record_failed = Signal(object, str)  # type: ignore[misc]
+    finished = Signal(list)  # type: ignore[misc]
+    failed = Signal(str)  # type: ignore[misc]
+    cancelled = Signal()  # type: ignore[misc]
+
+    def __init__(self, remote_service: RemoteDataService, ingest_service: DataIngestService) -> None:
+        super().__init__()
+        self._remote_service = remote_service
+        self._ingest_service = ingest_service
+        self._cancel_requested = False
+
+    @Slot(list)  # type: ignore[misc]
+    def run(self, records: list[Any]) -> None:
+        self.started.emit(len(records))  # type: ignore[attr-defined]
+        ingested: list[Any] = []
+        try:
+            for record in records:
+                if self._cancel_requested:
+                    self.cancelled.emit()  # type: ignore[attr-defined]
+                    return
+                try:
+                    download = self._remote_service.download(record)
+                    file_path = Path(download.cache_entry["stored_path"])  # type: ignore[index]
+                    non_spectral_extensions = {'.gif', '.png', '.jpg', '.jpeg', '.bmp', '.tif', '.tiff', '.svg', '.txt', '.log', '.xml', '.html', '.htm', '.json', '.md'}
+                    if file_path.suffix.lower() in non_spectral_extensions:
+                        self.record_failed.emit(record, f"Skipped non-spectral file type: {file_path.suffix}")  # type: ignore[attr-defined]
+                        continue
+                    ing_item = self._ingest_service.ingest(file_path)
+                except Exception as exc:  # pragma: no cover
+                    self.record_failed.emit(record, str(exc))  # type: ignore[attr-defined]
+                    continue
+                if isinstance(ing_item, list):
+                    ingested.extend(ing_item)
+                else:
+                    ingested.append(ing_item)
+                self.record_ingested.emit(record)  # type: ignore[attr-defined]
+            if self._cancel_requested:
+                self.cancelled.emit()  # type: ignore[attr-defined]
+                return
+        except Exception as exc:  # pragma: no cover
+            self.failed.emit(str(exc))  # type: ignore[attr-defined]
+            return
+        self.finished.emit(ingested)  # type: ignore[attr-defined]
+
+    @Slot()  # type: ignore[misc]
+    def cancel(self) -> None:
+        self._cancel_requested = True
+
 SAMPLES_DIR = Path(__file__).resolve().parent.parent / "samples"
 PLOT_MAX_POINTS_KEY = "plot/max_points"
 
@@ -110,6 +268,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self._suppress_overlay_refresh = False
         self._display_y_units: Dict[str, str] = {}
         self._line_shape_rows: List[Mapping[str, Any]] = []
+        self._ir_rows: List[Mapping[str, Any]] = []
         self._palette: List[QtGui.QColor] = [
             QtGui.QColor("#4F6D7A"),
             QtGui.QColor("#C0D6DF"),
@@ -167,6 +326,8 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self._remote_records: List[Any] = []
         self._remote_search_thread: Optional[QtCore.QThread] = None
         self._remote_search_worker: Optional[QtCore.QObject] = None
+        self._remote_download_thread: Optional[QtCore.QThread] = None
+        self._remote_download_worker: Optional[QtCore.QObject] = None
 
         self._setup_ui()
         self._setup_menu()
@@ -332,20 +493,31 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         nist_layout.addWidget(self.reference_table, 3)
         self.reference_tabs.addTab(nist_tab, "NIST ASD")
 
-        # --- IR functional groups tab
-        ir_tab = QtWidgets.QWidget()
-        ir_layout = QtWidgets.QVBoxLayout(ir_tab)
-        self.reference_filter = QtWidgets.QLineEdit()
-        self.reference_filter.setPlaceholderText("Filter IR groups…")
-        self.reference_filter.textChanged.connect(self._on_reference_filter_changed)
-        ir_layout.addWidget(self.reference_filter)
-        self.reference_tabs.addTab(ir_tab, "IR Functional Groups")
+    # --- IR functional groups tab
+    ir_tab = QtWidgets.QWidget()
+    ir_layout = QtWidgets.QVBoxLayout(ir_tab)
+    self.reference_filter = QtWidgets.QLineEdit()
+    self.reference_filter.setPlaceholderText("Filter IR groups…")
+    self.reference_filter.textChanged.connect(self._on_reference_filter_changed)
+    ir_layout.addWidget(self.reference_filter)
+    # Table dedicated to IR
+    self.ir_table = QtWidgets.QTableWidget(0, 3)
+    self.ir_table.setHorizontalHeaderLabels(["Group", "min (cm⁻¹)", "max (cm⁻¹)"])
+    self.ir_table.horizontalHeader().setStretchLastSection(True)
+    self.ir_table.itemSelectionChanged.connect(self._on_ir_row_selected)
+    ir_layout.addWidget(self.ir_table, 1)
+    self.reference_tabs.addTab(ir_tab, "IR Functional Groups")
 
-        # --- Line shapes tab
-        ls_tab = QtWidgets.QWidget()
-        ls_layout = QtWidgets.QVBoxLayout(ls_tab)
-        # No separate widgets needed; we reuse the shared filter and table outside
-        self.reference_tabs.addTab(ls_tab, "Line Shapes")
+    # --- Line shapes tab
+    ls_tab = QtWidgets.QWidget()
+    ls_layout = QtWidgets.QVBoxLayout(ls_tab)
+    # Table dedicated to Line Shapes
+    self.ls_table = QtWidgets.QTableWidget(0, 2)
+    self.ls_table.setHorizontalHeaderLabels(["Model", "Notes"])
+    self.ls_table.horizontalHeader().setStretchLastSection(True)
+    self.ls_table.itemSelectionChanged.connect(self._on_line_shape_row_selected)
+    ls_layout.addWidget(self.ls_table, 1)
+    self.reference_tabs.addTab(ls_tab, "Line Shapes")
 
         # When the tab changes, refresh the view
         self.reference_tabs.currentChanged.connect(lambda _: self._refresh_reference_view())
@@ -662,11 +834,17 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
     def _log(self, channel: str, message: str) -> None:
         line = f"[{channel}] {message}"
         print(line)
+        # Always bounce UI updates onto the main thread to avoid cross-thread Qt warnings
+        def _append() -> None:
+            try:
+                if self.log_view is not None:
+                    self.log_view.appendPlainText(line)
+            except Exception:
+                pass
         try:
-            if self.log_view is not None:
-                self.log_view.appendPlainText(line)
+            QtCore.QTimer.singleShot(0, _append)
         except Exception:
-            pass
+            _append()
 
     # ------------------------------------------------------------------
     # Library, ingest, and docs helpers
@@ -882,7 +1060,16 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
     # ----------------------------- Reference tab helpers -----------------
     def _update_reference_axis(self, unit: str) -> None:
         try:
-            self.reference_plot.setLabel("bottom", f"Wavelength ({unit})")
+            # If IR tab is active, prefer wavenumber labelling for clarity
+            is_ir = False
+            try:
+                is_ir = (self.reference_tabs.currentIndex() == 1)
+            except Exception:
+                is_ir = False
+            if is_ir and unit == "cm⁻¹":
+                self.reference_plot.setLabel("bottom", "Wavenumber (cm⁻¹)")
+            else:
+                self.reference_plot.setLabel("bottom", f"Wavelength ({unit})")
         except Exception:
             pass
 
@@ -894,6 +1081,11 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         except Exception:
             pass
         self.reference_table.setRowCount(0)
+        # Also clear dedicated IR/Line Shape tables if present
+        if hasattr(self, 'ir_table') and isinstance(self.ir_table, QtWidgets.QTableWidget):
+            self.ir_table.setRowCount(0)
+        if hasattr(self, 'ls_table') and isinstance(self.ls_table, QtWidgets.QTableWidget):
+            self.ls_table.setRowCount(0)
         current = self.reference_tabs.currentIndex()
         if current == 0:
             # NIST: no automatic fetch; leave controls ready
@@ -922,40 +1114,130 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
     def _populate_reference_table_ir(self, groups: Sequence[Mapping[str, Any]] | None) -> None:
         from typing import Mapping, Sequence
         rows = list(groups or [])
-        self.reference_table.setColumnCount(3)
-        self.reference_table.setHorizontalHeaderLabels(["Group", "min (cm⁻¹)", "max (cm⁻¹)"])
-        self.reference_table.setRowCount(len(rows))
-        for r, entry in enumerate(rows):
-            self.reference_table.setItem(r, 0, QtWidgets.QTableWidgetItem(str(entry.get("group", ""))))
-            self.reference_table.setItem(r, 1, QtWidgets.QTableWidgetItem(str(entry.get("wavenumber_cm_1_min", ""))))
-            self.reference_table.setItem(r, 2, QtWidgets.QTableWidgetItem(str(entry.get("wavenumber_cm_1_max", ""))))
+        self._ir_rows = rows
+        if hasattr(self, 'ir_table') and isinstance(self.ir_table, QtWidgets.QTableWidget):
+            self.ir_table.setRowCount(len(rows))
+            for r, entry in enumerate(rows):
+                self.ir_table.setItem(r, 0, QtWidgets.QTableWidgetItem(str(entry.get("group", ""))))
+                self.ir_table.setItem(r, 1, QtWidgets.QTableWidgetItem(str(entry.get("wavenumber_cm_1_min", ""))))
+                self.ir_table.setItem(r, 2, QtWidgets.QTableWidgetItem(str(entry.get("wavenumber_cm_1_max", ""))))
 
     def _populate_reference_table_line_shapes(self, defs: Sequence[Mapping[str, Any]] | None) -> None:
         from typing import Mapping, Sequence
         rows = list(defs or [])
-        self.reference_table.setColumnCount(2)
-        self.reference_table.setHorizontalHeaderLabels(["Model", "Notes"])
-        self.reference_table.setRowCount(len(rows))
-        for r, entry in enumerate(rows):
-            self.reference_table.setItem(r, 0, QtWidgets.QTableWidgetItem(str(entry.get("id", ""))))
-            self.reference_table.setItem(r, 1, QtWidgets.QTableWidgetItem(str(entry.get("label", ""))))
-        # When a row is selected, preview
-        self.reference_table.itemSelectionChanged.connect(self._on_line_shape_row_selected)
+        if hasattr(self, 'ls_table') and isinstance(self.ls_table, QtWidgets.QTableWidget):
+            self.ls_table.setRowCount(len(rows))
+            for r, entry in enumerate(rows):
+                self.ls_table.setItem(r, 0, QtWidgets.QTableWidgetItem(str(entry.get("id", ""))))
+                self.ls_table.setItem(r, 1, QtWidgets.QTableWidgetItem(str(entry.get("label", ""))))
 
     def _preview_reference_payload(self, payload: Mapping[str, Any]) -> None:
         import numpy as _np
+        # Clear existing preview items
+        try:
+            for item in self.reference_plot.listDataItems():
+                self.reference_plot.removeItem(item)
+        except Exception:
+            pass
         # Draw preview in the reference_plot
+        mode = str(payload.get("mode") or "").lower()
         x = _np.asarray(payload.get("x_nm", []), dtype=float)
         y = _np.asarray(payload.get("y", []), dtype=float)
+        domain = str(payload.get("domain") or "")
+        # For IR domain, show preview axis in cm^-1 for readability
+        try:
+            if domain == "ir":
+                self.reference_plot.setLabel("bottom", "Wavenumber (cm⁻¹)")
+            else:
+                self.reference_plot.setLabel("bottom", "Wavelength (nm)")
+        except Exception:
+            pass
+        if domain == "ir" and x.size:
+            with _np.errstate(divide="ignore"):
+                x = 1e7 / x
+        if mode == "bars" and x.size and y.size and x.size == y.size:
+            # Render vertical bar segments scaled by y intensities
+            try:
+                _, y_range = self.reference_plot.getPlotItem().viewRange()
+                y_min, y_max = float(y_range[0]), float(y_range[1])
+            except Exception:
+                y_min, y_max = -1.0, 1.0
+            band_bottom = y_min + (y_max - y_min) * 0.05
+            band_top = y_max - (y_max - y_min) * 0.05
+            span = max(1e-9, band_top - band_bottom)
+            xs: list[float] = []
+            ys: list[float] = []
+            for xi, yi in zip(x.tolist(), y.tolist()):
+                xs.extend([xi, xi, _np.nan])
+                ys.extend([band_bottom, band_bottom + float(yi) * span, _np.nan])
+            pen = pg.mkPen(color=payload.get("color", "#6D597A"), width=float(payload.get("width", 1.2)))
+            item = pg.PlotDataItem(_np.array(xs, dtype=float), _np.array(ys, dtype=float), pen=pen, connect="finite")
+            self.reference_plot.addItem(item)
+            return
+        # Default polyline/filled preview
         if x.size and y.size and x.size == y.size:
             self.reference_plot.plot(x, y, pen=(100, 100, 180, 190), fillLevel=payload.get("fill_level"))
 
-    def _on_reference_filter_changed(self, _: str) -> None:
-        # Minimal placeholder – full filtering can come later
-        pass
+    def _on_reference_filter_changed(self, text: str) -> None:
+        # Only applies to IR tab currently
+        try:
+            if self.reference_tabs.currentIndex() != 1:
+                return
+        except Exception:
+            return
+        needle = (text or "").strip().lower()
+        groups = self.reference_library.ir_functional_groups() or []
+        if needle:
+            filtered = [g for g in groups if needle in str(g.get("group", "")).lower() or needle in str(g.get("category", "")).lower()]
+        else:
+            filtered = list(groups)
+        self._populate_reference_table_ir(filtered)
+        # If there is a selection, preview selected; otherwise preview all filtered
+        try:
+            items = self.ir_table.selectedItems()
+        except Exception:
+            items = []
+        rows: list[Mapping[str, Any]] = []
+        if items:
+            sel_rows = sorted({it.row() for it in items})
+            for r in sel_rows:
+                if 0 <= r < len(self._ir_rows):
+                    rows.append(self._ir_rows[r])
+        else:
+            rows = filtered
+        payload = self._build_overlay_for_ir(rows)
+        self._update_reference_overlay_state(payload)
+        self._preview_reference_payload(payload)
+
+    def _on_ir_row_selected(self) -> None:
+        # Only act when IR tab is active
+        try:
+            if self.reference_tabs.currentIndex() != 1:
+                return
+        except Exception:
+            return
+        try:
+            items = self.ir_table.selectedItems()
+        except Exception:
+            items = []
+        if not items:
+            # No selection – preview all visible rows
+            rows = list(self._ir_rows)
+        else:
+            rows = []
+            sel_rows = sorted({it.row() for it in items})
+            for r in sel_rows:
+                if 0 <= r < len(self._ir_rows):
+                    rows.append(self._ir_rows[r])
+        payload = self._build_overlay_for_ir(rows)
+        self._update_reference_overlay_state(payload)
+        self._preview_reference_payload(payload)
 
     def _on_line_shape_row_selected(self) -> None:
-        items = self.reference_table.selectedItems()
+        try:
+            items = self.ls_table.selectedItems()
+        except Exception:
+            items = []
         if not items:
             return
         model_item = items[0]
@@ -1024,7 +1306,16 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             label = element
         alias = f"Reference – {label}"
         xs = np.array([row.get("wavelength_nm") for row in lines if isinstance(row, Mapping)], dtype=float)
-        ys = np.ones_like(xs)
+        # Normalise intensities to [0,1] for bar heights
+        intensities = []
+        for row in lines:
+            try:
+                intensities.append(float(row.get("relative_intensity") or 0.0))
+            except Exception:
+                intensities.append(0.0)
+        ys_raw = np.array(intensities, dtype=float)
+        max_i = float(np.nanmax(ys_raw)) if ys_raw.size else 0.0
+        ys = (ys_raw / max_i) if max_i > 0 else np.ones_like(xs)
         single = {
             "key": f"reference::nist::{label}",
             "alias": alias,
@@ -1032,6 +1323,8 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             "y": ys,
             "color": "#6D597A",
             "width": 1.2,
+            "mode": "bars",
+            "labels": [],
         }
         # Track pinned sets
         self._nist_collection_counter += 1
@@ -1044,6 +1337,8 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         count = len(self._nist_collections)
         suffix = "set" if count == 1 else "sets"
         self.reference_status_label.setText(f"{count} pinned {suffix}")
+        # Preview the most recent fetch as bars
+        self._preview_reference_payload(single)
 
     # Build IR overlay payload used by tests
     def _build_overlay_for_ir(self, entries: Sequence[Mapping[str, Any]]) -> Dict[str, Any]:
@@ -1090,6 +1385,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             "fill_level": float(band_bottom),
             "band_bounds": (float(band_bottom), float(band_top)),
             "labels": labels,
+            "domain": "ir",
         }
         return payload
 
@@ -1141,6 +1437,82 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                 self.plot.add_graphics_item(item)
                 self._reference_overlay_annotations.append(item)
 
+        # Draw overlay shapes/bars on the main plot
+        # Clear any previous overlay graphics
+        for item in list(self._reference_items):
+            try:
+                self.plot.remove_graphics_item(item)
+            except Exception:
+                pass
+        self._reference_items.clear()
+
+        # Helper to convert nm -> current unit for arrays
+        def _convert_x_nm(x_nm: np.ndarray) -> np.ndarray:
+            unit = self.unit_combo.currentText() if self.unit_combo is not None else "nm"
+            if unit == "nm":
+                return x_nm
+            if unit == "Å":
+                return x_nm * 10.0
+            if unit == "µm":
+                return x_nm / 1000.0
+            if unit == "cm⁻¹":
+                with np.errstate(divide="ignore"):
+                    return 1e7 / x_nm
+            return x_nm
+
+        try:
+            _, y_range = self.plot.view_range()
+            y_min, y_max = float(y_range[0]), float(y_range[1])
+        except Exception:
+            y_min, y_max = -1.0, 1.0
+        band_bottom = y_min + (y_max - y_min) * 0.05
+        band_top = y_max - (y_max - y_min) * 0.05
+        span = max(1e-9, band_top - band_bottom)
+
+        # NIST multi: draw one set of bars per pinned collection
+        if payload.get("kind") == "nist-multi":
+            pmap = payload.get("payloads", {})
+            if isinstance(pmap, dict):
+                for pin_key, p in pmap.items():
+                    try:
+                        xs_nm = np.asarray(p.get("x_nm", []), dtype=float)
+                        ys = np.asarray(p.get("y", []), dtype=float)
+                    except Exception:
+                        continue
+                    if xs_nm.size == 0 or ys.size == 0 or xs_nm.size != ys.size:
+                        continue
+                    xs_disp = _convert_x_nm(xs_nm)
+                    xs: list[float] = []
+                    ys_plot: list[float] = []
+                    for xd, yi in zip(xs_disp.tolist(), ys.tolist()):
+                        xs.extend([xd, xd, np.nan])
+                        ys_plot.extend([band_bottom, band_bottom + float(yi) * span, np.nan])
+                    pen = pg.mkPen(color=p.get("color", "#6D597A"), width=float(p.get("width", 1.2)))
+                    item = pg.PlotDataItem(np.array(xs, dtype=float), np.array(ys_plot, dtype=float), pen=pen, connect="finite")
+                    self.plot.add_graphics_item(item)
+                    self._reference_items.append(item)
+            return
+
+        # Generic polyline/filled overlay for IR and other references
+        try:
+            xs_nm = np.asarray(payload.get("x_nm", []), dtype=float)
+            ys = np.asarray(payload.get("y", []), dtype=float)
+        except Exception:
+            xs_nm = np.array([], dtype=float)
+            ys = np.array([], dtype=float)
+        if xs_nm.size and ys.size and xs_nm.size == ys.size:
+            xs_disp = _convert_x_nm(xs_nm)
+            pen = pg.mkPen(color=payload.get("color", "#6D597A"), width=float(payload.get("width", 1.2)))
+            item = pg.PlotDataItem(xs_disp, ys, pen=pen, connect="finite")
+            # Fill if specified
+            fill_color = payload.get("fill_color")
+            if fill_color is not None and hasattr(item, "setBrush"):
+                item.setBrush(pg.mkBrush(fill_color))
+                if hasattr(item, "setFillLevel"):
+                    item.setFillLevel(float(payload.get("fill_level", band_bottom)))
+            self.plot.add_graphics_item(item)
+            self._reference_items.append(item)
+
     def _clear_reference_overlay(self) -> None:
         for item in list(self._reference_overlay_annotations):
             try:
@@ -1149,6 +1521,13 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                 pass
         # Preserve identity; just clear
         self._reference_overlay_annotations.clear()
+        # Remove drawn overlay items
+        for item in list(self._reference_items):
+            try:
+                self.plot.remove_graphics_item(item)
+            except Exception:
+                pass
+        self._reference_items.clear()
 
     def _update_reference_overlay_state(self, payload: Mapping[str, Any]) -> None:
         self._reference_overlay_payload = payload  # preserve identity for tests
@@ -1193,18 +1572,21 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         else:
             self.remote_search_edit.setPlaceholderText("Target name or keyword…")
     
+    def _cancel_remote_search_worker(self) -> None:
+        if self._remote_search_worker is None:
+            return
+        queued = getattr(QtCore.Qt, "ConnectionType", QtCore.Qt).QueuedConnection
+        QtCore.QMetaObject.invokeMethod(self._remote_search_worker, "cancel", queued)
+
     def _on_remote_search(self) -> None:
-        """Initiate remote data search."""
+        """Initiate remote data search (non-blocking with streaming updates)."""
         if not hasattr(self, 'remote_provider_combo'):
             return
-        
         provider = self.remote_provider_combo.currentText()
         query_text = self.remote_search_edit.text().strip()
-        
         if not query_text:
             self.remote_status_label.setText("Enter a search term")
             return
-        
         # Build provider-specific query
         if provider == RemoteDataService.PROVIDER_MAST:
             query = {"target_name": query_text}
@@ -1212,29 +1594,87 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             query = {"text": query_text}
         else:
             query = {"text": query_text}
-        
-        # Clear previous results
+
+        # Reset UI and state
+        self._cancel_remote_search_worker()
         self._remote_records = []
         self.remote_results_table.setRowCount(0)
         self.remote_import_button.setEnabled(False)
-        self.remote_status_label.setText(f"Searching {provider}...")
+        self.remote_status_label.setText(f"Searching {provider}…")
         self.remote_search_button.setEnabled(False)
-        
-        # Perform search
-        try:
-            results = self.remote_data_service.search(provider, query, include_imaging=False)
-            self._remote_records = results
-            self._populate_remote_results(results)
-            
-            if results:
-                self.remote_status_label.setText(f"Found {len(results)} result(s)")
-            else:
-                self.remote_status_label.setText("No results found")
-        except Exception as exc:
-            self.remote_status_label.setText(f"Search failed: {exc}")
-            self._log("Remote", f"Search failed: {exc}")
-        finally:
+
+        # Create streaming worker (reuse dialog worker logic)
+        worker = _RemoteSearchWorker(self.remote_data_service)
+        thread = QtCore.QThread(self)
+        self._remote_search_worker = worker
+        self._remote_search_thread = thread
+        worker.moveToThread(thread)
+        thread.started.connect(lambda p=provider, q=query: worker.run(p, q, False))
+        # Streamed records
+        worker.record_found.connect(self._handle_remote_record_found)
+        worker.finished.connect(self._handle_remote_search_finished)
+        worker.failed.connect(self._handle_remote_search_failed)
+        worker.cancelled.connect(self._handle_remote_search_cancelled)
+        # Cleanup
+        def _cleanup() -> None:
+            if thread.isRunning():
+                thread.quit()
+            worker.deleteLater()
+            thread.deleteLater()
+            if self._remote_search_worker is worker:
+                self._remote_search_worker = None
+                self._remote_search_thread = None
+        worker.finished.connect(lambda *_: QtCore.QTimer.singleShot(0, _cleanup))
+        worker.failed.connect(lambda *_: QtCore.QTimer.singleShot(0, _cleanup))
+        worker.cancelled.connect(lambda *_: QtCore.QTimer.singleShot(0, _cleanup))
+        thread.start()
+
+    def _handle_remote_record_found(self, record: Any) -> None:
+        def _append():
+            # Append incrementally to the table for streaming UX
+            self._remote_records.append(record)
+            row = self.remote_results_table.rowCount()
+            self.remote_results_table.insertRow(row)
+            # ID
+            item = QtWidgets.QTableWidgetItem(str(getattr(record, 'identifier', '')))
+            item.setFlags(item.flags() & ~QtCore.Qt.ItemFlag.ItemIsEditable)
+            self.remote_results_table.setItem(row, 0, item)
+            # Title
+            item = QtWidgets.QTableWidgetItem(str(getattr(record, 'title', '')))
+            item.setFlags(item.flags() & ~QtCore.Qt.ItemFlag.ItemIsEditable)
+            self.remote_results_table.setItem(row, 1, item)
+            # Target
+            metadata = getattr(record, 'metadata', {}) if isinstance(getattr(record, 'metadata', {}), dict) else {}
+            target = str(metadata.get("target_name", ""))
+            item = QtWidgets.QTableWidgetItem(target)
+            item.setFlags(item.flags() & ~QtCore.Qt.ItemFlag.ItemIsEditable)
+            self.remote_results_table.setItem(row, 2, item)
+            # Telescope
+            telescope = str(metadata.get("obs_collection", metadata.get("telescope_name", "")))
+            item = QtWidgets.QTableWidgetItem(telescope)
+            item.setFlags(item.flags() & ~QtCore.Qt.ItemFlag.ItemIsEditable)
+            self.remote_results_table.setItem(row, 3, item)
+        QtCore.QTimer.singleShot(0, _append)
+
+    def _handle_remote_search_finished(self, results: List[Any]) -> None:
+        def _done():
             self.remote_search_button.setEnabled(True)
+            count = len(results)
+            self.remote_status_label.setText(f"Found {count} result(s)" if count else "No results found")
+        QtCore.QTimer.singleShot(0, _done)
+
+    def _handle_remote_search_failed(self, message: str) -> None:
+        def _fail():
+            self.remote_search_button.setEnabled(True)
+            self.remote_status_label.setText(f"Search failed: {message}")
+            self._log("Remote", f"Search failed: {message}")
+        QtCore.QTimer.singleShot(0, _fail)
+
+    def _handle_remote_search_cancelled(self) -> None:
+        def _cancel():
+            self.remote_search_button.setEnabled(True)
+            self.remote_status_label.setText("Search cancelled")
+        QtCore.QTimer.singleShot(0, _cancel)
     
     def _populate_remote_results(self, records: List[Any]) -> None:
         """Populate the results table with records."""
@@ -1279,59 +1719,95 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         else:
             self.remote_import_button.setText("Download & Import Selected")
     
+    def _cancel_remote_download_worker(self) -> None:
+        if self._remote_download_worker is None:
+            return
+        queued = getattr(QtCore.Qt, "ConnectionType", QtCore.Qt).QueuedConnection
+        QtCore.QMetaObject.invokeMethod(self._remote_download_worker, "cancel", queued)
+
     def _on_remote_import(self) -> None:
-        """Download and import selected records."""
+        """Download and import selected records (in background with progress)."""
         if not hasattr(self, 'remote_results_table'):
             return
-        
         selected = self.remote_results_table.selectionModel().selectedRows()
         if not selected:
             return
-        
-        # Get selected records
         records = [self._remote_records[index.row()] for index in selected]
-        
-        self.remote_status_label.setText(f"Downloading {len(records)} record(s)...")
+        self.remote_status_label.setText(f"Preparing download of {len(records)} record(s)…")
         self.remote_import_button.setEnabled(False)
-        
-        imported_count = 0
-        failed_count = 0
-        
-        for record in records:
-            try:
-                # Download the file
-                download_result = self.remote_data_service.download(record)
-                file_path = Path(download_result.cache_entry["stored_path"])
-                
-                # Ingest it
-                spectra = self.ingest_service.ingest(file_path)
-                
-                # Add to overlay
-                for spectrum in spectra:
-                    self.overlay_service.add(spectrum)
-                    self._add_spectrum(spectrum)
-                    imported_count += 1
-                
-                # Record in history
-                self._record_remote_history_event(spectra)
-                
-            except Exception as exc:
-                failed_count += 1
-                self._log("Remote Import", f"Failed to import {record.identifier}: {exc}")
-        
-        # Update UI
-        self.plot.autoscale()
-        self._refresh_library_view()
-        self._refresh_history_view()
-        
-        if failed_count == 0:
-            self.remote_status_label.setText(f"Successfully imported {imported_count} spectrum(a)")
-        else:
-            self.remote_status_label.setText(
-                f"Imported {imported_count} spectrum(a), {failed_count} failed"
-            )
-        
-        self.remote_import_button.setEnabled(True)
+
+        # Start background downloads using shared worker
+        worker = _RemoteDownloadWorker(self.remote_data_service, self.ingest_service)
+        thread = QtCore.QThread(self)
+        self._remote_download_worker = worker
+        self._remote_download_thread = thread
+        worker.moveToThread(thread)
+        thread.started.connect(lambda recs=records: worker.run(recs))
+
+        def _on_started(total: int) -> None:
+            QtCore.QTimer.singleShot(0, lambda: self.remote_status_label.setText(f"Downloading {total} record(s)…"))
+        def _on_progress(_record: Any) -> None:
+            # Refresh plot and library gradually is expensive; update status only
+            pass
+        def _on_failure(record: Any, message: str) -> None:
+            # Ensure UI/log update occurs on main thread
+            QtCore.QTimer.singleShot(0, lambda: self._log("Remote Import", f"Failed to import {getattr(record, 'identifier', '')}: {message}"))
+        def _on_finished(ingested: list[Any]) -> None:
+            # Merge spectra into overlay and UI
+            count = 0
+            all_spectra: list[Spectrum] = []
+            for item in ingested:
+                try:
+                    spectra = item if isinstance(item, list) else [item]
+                    for spectrum in spectra:
+                        self.overlay_service.add(spectrum)
+                        self._add_spectrum(spectrum)
+                        all_spectra.append(spectrum)
+                        count += 1
+                except Exception:
+                    continue
+            def _finalize_ui() -> None:
+                self.plot.autoscale()
+                self._refresh_library_view()
+                # Record in history and refresh
+                try:
+                    if all_spectra:
+                        self._record_remote_history_event(all_spectra)
+                finally:
+                    self._refresh_history_view()
+                self.remote_status_label.setText(f"Imported {count} dataset(s)")
+                self.remote_import_button.setEnabled(True)
+            QtCore.QTimer.singleShot(0, _finalize_ui)
+        def _on_failed(message: str) -> None:
+            QtCore.QTimer.singleShot(0, lambda: (
+                self.remote_status_label.setText(f"Download failed: {message}"),
+                self.remote_import_button.setEnabled(True)
+            ))
+        def _on_cancelled() -> None:
+            QtCore.QTimer.singleShot(0, lambda: (
+                self.remote_status_label.setText("Download cancelled"),
+                self.remote_import_button.setEnabled(True)
+            ))
+
+        worker.started.connect(_on_started)
+        worker.record_ingested.connect(_on_progress)
+        worker.record_failed.connect(_on_failure)
+        worker.finished.connect(_on_finished)
+        worker.failed.connect(_on_failed)
+        worker.cancelled.connect(_on_cancelled)
+
+        def _cleanup() -> None:
+            if thread.isRunning():
+                thread.quit()
+            worker.deleteLater()
+            thread.deleteLater()
+            if self._remote_download_worker is worker:
+                self._remote_download_worker = None
+                self._remote_download_thread = None
+        worker.finished.connect(lambda *_: QtCore.QTimer.singleShot(0, _cleanup))
+        worker.failed.connect(lambda *_: QtCore.QTimer.singleShot(0, _cleanup))
+        worker.cancelled.connect(lambda *_: QtCore.QTimer.singleShot(0, _cleanup))
+        thread.start()
 
     # ----------------------------- History helpers ----------------------
     def _refresh_history_view(self) -> None:

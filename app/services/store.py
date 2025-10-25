@@ -10,6 +10,7 @@ import json
 import os
 from pathlib import Path
 import shutil
+import time
 import sys
 from typing import Any, Callable, Dict, Mapping, MutableMapping
 
@@ -130,7 +131,16 @@ class LocalStore:
         filename = alias or source_path.name
         target_path = target_dir / filename
         if not target_path.exists():
-            shutil.copy2(source_path, target_path)
+            try:
+                shutil.copy2(source_path, target_path)
+            except PermissionError:
+                # On Windows, antivirus or indexers can transiently lock files.
+                # Retry briefly and fall back to a basic copy if needed.
+                time.sleep(0.1)
+                try:
+                    shutil.copy2(source_path, target_path)
+                except PermissionError:
+                    shutil.copyfile(source_path, target_path)
         return target_path
 
     @staticmethod
