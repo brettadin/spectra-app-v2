@@ -172,6 +172,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self._setup_menu()
         self._wire_shortcuts()
         self._initialize_remote_data_providers()
+        self._load_docs_if_needed()  # Pre-load documentation so it's ready immediately
         # self._load_default_samples()  # Disabled: users prefer empty workspace on launch
         # Ensure visibility in offscreen test environments so isVisible() checks pass
         try:
@@ -422,6 +423,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         history_layout.addWidget(self.history_detail, 1)
         self.history_dock.setWidget(history_container)
         self.addDockWidget(QtCore.Qt.DockWidgetArea.RightDockWidgetArea, self.history_dock)
+        # Don't auto-show History dock - let users open it via View menu when needed
         self.history_table.itemSelectionChanged.connect(self._on_history_row_selected)
         self._refresh_history_view()
 
@@ -994,7 +996,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             return
         try:
             payload = nist_asd_service.fetch_lines(
-                element_symbol=element,
+                element,
                 lower_wavelength=lower,
                 upper_wavelength=upper,
                 wavelength_unit="nm",

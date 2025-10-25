@@ -1320,3 +1320,15 @@ Import/Remote Import entries remain after the cleanup.
 - sample_spectrum.csv
 
 ---
+## 2025-10-24 21:33 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file jupiter__9408090029N_vo.fits
+
+**References**:
+- jupiter__9408090029N_vo.fits
+
+---
