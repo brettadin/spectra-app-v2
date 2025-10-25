@@ -855,7 +855,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             self._preview_reference_payload(payload)
         else:
             # Line shapes
-            self.reference_filter_line_shapes.setPlaceholderText("Filter line-shape placeholders…")
+            self.reference_filter.setPlaceholderText("Filter line-shape…")
             placeholders = self.reference_library.line_shape_placeholders()
             self._populate_reference_table_line_shapes(placeholders)
             # Pick the first model for preview by default
@@ -983,10 +983,12 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         pin_key = f"set-{self._nist_collection_counter}"
         self._nist_collections[pin_key] = {"payload": single, "label": label}
         self.nist_collections_list.addItem(f"{label} – pinned")
-        multi = {"kind": "nist-multi", "payloads": {pin_key: single}}
+        multi = {"kind": "nist-multi", "payloads": {k: v["payload"] for k, v in self._nist_collections.items()}}
         self._update_reference_overlay_state(multi)
         self.reference_overlay_checkbox.setEnabled(True)
-        self.reference_status_label.setText(f"{len(self._nist_collections)} pinned set(s)")
+        count = len(self._nist_collections)
+        suffix = "set" if count == 1 else "sets"
+        self.reference_status_label.setText(f"{count} pinned {suffix}")
 
     # Build IR overlay payload used by tests
     def _build_overlay_for_ir(self, entries: Sequence[Mapping[str, Any]]) -> Dict[str, Any]:
@@ -1073,7 +1075,8 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                 band_bottom, band_top = self._overlay_band_bounds()
             span = float(band_top - band_bottom) if (band_top is not None and band_bottom is not None) else 1.0
             n = max(1, len(labels))
-            self._reference_overlay_annotations = []
+            # Do not replace the list object; mutate in-place so identity is preserved for tests
+            self._reference_overlay_annotations.clear()
             for i, label in enumerate(sorted(labels, key=lambda d: d.get("centre_nm", 0))):
                 y = float(band_bottom) + (i + 1) * span / (n + 1)
                 x_nm = float(label.get("centre_nm", 0.0))
@@ -1089,10 +1092,11 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                 self.plot.remove_graphics_item(item)
             except Exception:
                 pass
-        self._reference_overlay_annotations = []
+        # Preserve identity; just clear
+        self._reference_overlay_annotations.clear()
 
     def _update_reference_overlay_state(self, payload: Mapping[str, Any]) -> None:
-        self._reference_overlay_payload = dict(payload)
+        self._reference_overlay_payload = payload  # preserve identity for tests
         self.reference_overlay_checkbox.setEnabled(True)
         # Do not auto-enable the overlay; keep toggle under user control
 
@@ -1130,16 +1134,15 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
     def refresh_overlay(self) -> None:
         # Rebuild traces using the current unit selections and visibility
         x_unit = self.unit_combo.currentText() if self.unit_combo is not None else "nm"
-        # Preserve original y-intensity label based on spectrum metadata if available
         for spec in self.overlay_service.list():
             visible = self._visibility.get(spec.id, True)
             style = TraceStyle(color=self._spectrum_colors.get(spec.id, QtGui.QColor("#4F6D7A")))
-            x = np.array(spec.x, copy=True)
-            y = np.array(spec.y, copy=True)
-            # Determine display label
-            y_label = "%T" if (spec.metadata.get("source_units", {}).get("y") in {"%T", "percent_transmittance"}) else "Intensity"
+            # Convert canonical data back to the source intensity unit for display
+            src_y_unit = str(spec.metadata.get("source_units", {}).get("y", "absorbance"))
+            x_disp, y_disp = self.units_service.from_canonical(spec.x, spec.y, x_unit, src_y_unit)
+            y_label = "%T" if src_y_unit in {"%T", "percent_transmittance"} else "Intensity"
             self.plot.set_y_label(y_label)
-            self.plot.add_trace(spec.id, spec.name, x, y, style)
+            self.plot.add_trace(spec.id, spec.name, x_disp, y_disp, style)
             self.plot.set_visible(spec.id, visible)
         self.plot.autoscale()
 
