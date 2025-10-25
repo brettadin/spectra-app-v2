@@ -28,6 +28,18 @@ Each entry in this document should follow this structure:
 
 ---
 
+## 2025-10-25T10:30:18-04:00 / 2025-10-25T14:30:20+00:00 – IR functional group provenance backfill
+
+**Author**: agent (GitHub Copilot)
+
+**Context**: Documentation and provenance for the expanded IR functional groups database and ML roadmap assets.
+
+**Summary**: Reconstructed the historical record for the previously undocumented IR functional group expansion. Added patch notes summarising the shipped 50+ group dataset (`app/data/reference/ir_functional_groups_extended.json`) and the runtime auto-detection behaviour in `ReferenceLibrary`. Cross-referenced the ML integration design (`docs/specs/ml_functional_group_prediction.md`), atlas additions, and the 2025-10-25 brains entry to keep provenance aligned with the delivered assets. Verified that README and `IR_EXPANSION_SUMMARY.md` already surface the same messaging so contributors have a single source of truth across guides.
+
+**References**: `docs/history/PATCH_NOTES.md`, `docs/brains/2025-10-25T0230-ir-ml-integration.md`, `IR_EXPANSION_SUMMARY.md`, `docs/specs/ml_functional_group_prediction.md`, `app/services/reference_library.py`.
+
+---
+
 ## 2025-10-24T22:30:00-04:00 / 2025-10-25T02:30:00+00:00 – IR Functional Groups Database Expansion and ML Integration Documentation
 
 **Author**: agent (GitHub Copilot)
@@ -1367,5 +1379,269 @@ Import/Remote Import entries remain after the cleanup.
 
 **References**:
 - goodo vapor run i think.csv
+
+---
+## 2025-10-25 11:10 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file goodo vapor run i think.csv
+
+**References**:
+- goodo vapor run i think.csv
+
+---
+## 2025-10-25 11:10 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file i froze h2o in the schlenk line oopsie.csv
+
+**References**:
+- i froze h2o in the schlenk line oopsie.csv
+
+---
+## 2025-10-25 16:45 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file CO2 - 500 torr.csv
+
+**References**:
+- CO2 - 500 torr.csv
+
+---
+## 2025-10-25 16:46 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file 10.8 Test 2.csv
+
+**References**:
+- 10.8 Test 2.csv
+
+---
+## 2025-10-25 16:46 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file run2.csv
+
+**References**:
+- run2.csv
+
+---
+## 2025-10-25 16:47 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file CO2 - 300 torr.csv
+
+**References**:
+- CO2 - 300 torr.csv
+
+---
+## 2025-10-25 16:47 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file bkgrd A.csv
+
+**References**:
+- bkgrd A.csv
+
+---
+## 2025-10-25 16:47 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file open air A.csv
+
+**References**:
+- open air A.csv
+
+---
+## 2025-10-25 16:47 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Run1 no co2.csv
+
+**References**:
+- Run1 no co2.csv
+
+---
+## 2025-10-25 16:47 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file 10.8 Test 2.csv
+
+**References**:
+- 10.8 Test 2.csv
+
+---
+## 2025-10-25 16:47 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file 10.8 Test 1.csv
+
+**References**:
+- 10.8 Test 1.csv
+
+---
+## 2025-10-25 16:48 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file run4.csv
+
+**References**:
+- run4.csv
+
+---
+## 2025-10-25 17:08 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file CO2 - 500 torr.csv
+
+**References**:
+- CO2 - 500 torr.csv
+
+---
+## 2025-10-25 17:11 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file 10.8 Test 1.csv
+
+**References**:
+- 10.8 Test 1.csv
+
+---
+## 2025-10-25 17:11 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file 10.8 Test 1.csv
+
+**References**:
+- 10.8 Test 1.csv
+
+---
+## 2025-10-25 17:12 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file _880torr~ w low vol h2o vapor.csv
+
+**References**:
+- _880torr~ w low vol h2o vapor.csv
+
+---
+## 2025-10-25 17:12 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file 7ish torr w h2o vapor.csv
+
+**References**:
+- 7ish torr w h2o vapor.csv
+
+---
+## 2025-10-25 17:12 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file goodo vapor run i think.csv
+
+**References**:
+- goodo vapor run i think.csv
+
+---
+## 2025-10-25 17:12 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file i froze h2o in the schlenk line oopsie.csv
+
+**References**:
+- i froze h2o in the schlenk line oopsie.csv
+
+---
+## 2025-10-25 17:35 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file jupiter__9408090029N_vo.fits
+
+**References**:
+- jupiter__9408090029N_vo.fits
+
+---
+## 2025-10-25 18:16 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file transmittance.csv
+
+**References**:
+- transmittance.csv
+
+---
+## 2025-10-25 18:17 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file integration.csv
+
+**References**:
+- integration.csv
 
 ---

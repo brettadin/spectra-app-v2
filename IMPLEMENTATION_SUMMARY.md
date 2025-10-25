@@ -4,6 +4,8 @@
 **Branch**: `copilot/enhance-data-retrieval-display`  
 **Status**: ✅ Ready for Review
 
+**Latest Update**: 2025-10-25 - Critical remote download issue identified (see Section 7)
+
 ## What Was Done
 
 ### 1. Test Suite Maintenance ✅
@@ -200,7 +202,52 @@ New users can now:
 - **-3 lines** of deprecated code
 - **+4 lines** of fixed test code
 
+---
+
+## 7. Remote Download Critical Issue (2025-10-25) ⚠️ **BLOCKER**
+
+**Problem**: Remote data download feature non-functional despite successful file retrieval
+- All remote imports fail with: `argument should be a str or an os.PathLike object where __fspath__ returns a str, not 'tuple'`
+- Cross-thread Qt warnings: `QObject: Cannot create children for a parent that is in a different thread`
+- Downloads complete but ingest fails; no spectra added to workspace
+
+**Investigation Findings**:
+- Files download successfully to temp directories
+- Error occurs when worker thread tries to ingest downloaded files
+- `RemoteDownloadResult.path` appears to be tuple instead of `Path` object
+- Likely issue in `LocalStore.record()` or `RemoteDataService.download()` return paths
+
+**Immediate Impact**:
+- Remote Data tab (Ctrl+Shift+R) searches work
+- Downloads start and complete
+- **FAILURE**: No files actually imported; all downloads wasted
+- Local file ingestion unaffected (CSV/FITS/JCAMP work fine)
+
+**Documentation Created**:
+- `docs/dev/worklog/2025-10-25_remote_download_handoff.md` - Comprehensive debugging guide
+- `docs/brains/2025-10-25-remote-download-tuple-issue.md` - Technical deep-dive
+- `reports/bugs_and_issues.md` - Issue #7 added
+
+**Next Agent Action Items**:
+1. Add debug logging to `RemoteDataService.download()` and `LocalStore.record()`
+2. Verify return types match dataclass/dict specifications
+3. Fix `_on_failure` threading issue by using explicit `QMetaObject.invokeMethod()`
+4. Add regression tests for download return types
+5. Validate with end-to-end remote import test
+
+**Status**: Documented but unresolved; critical blocker for remote workflows
+
+---
+
 ## Recommendations for Next Steps
+
+### CRITICAL (Before Any Other Work)
+1. **Fix remote download tuple issue** - Core functionality broken
+   - Follow debugging strategy in `docs/dev/worklog/2025-10-25_remote_download_handoff.md`
+   - Add type hints and assertions to prevent regression
+   - Test with multiple providers (MAST/NIST/ExoSystems)
+2. **Fix Qt threading warnings** - Cross-thread UI access causes instability
+3. **Regression test suite** - Ensure remote downloads stay fixed
 
 ### Immediate (This Week)
 1. **Review the new guides** for accuracy and completeness
@@ -243,9 +290,44 @@ The Comprehensive Enhancement Plan remains valuable for future work, but the imm
 ✅ Enhancement status clearly documented  
 ✅ README prominently features guides  
 ✅ Historical logs updated with timestamps  
-✅ No regressions introduced  
+✅ No regressions introduced in local workflows  
+⚠️ **CRITICAL**: Remote download tuple issue blocking remote data import (2025-10-25)
 
-**Ready for user review and feedback!**
+**Status**: Local workflows stable and ready for use; remote downloads require immediate fix before production deployment.
+
+---
+
+## Agent Handoff Notes (2025-10-25)
+
+For the next developer/agent working on this codebase:
+
+### What's Stable and Working
+- Application launches cleanly on Windows
+- Local file ingestion (CSV, FITS, JCAMP-DX)
+- Plot visualization with unit conversion
+- Reference overlays (NIST, IR functional groups)
+- Math operations (normalize, subtract, ratio)
+- Export with provenance manifests
+- History tracking and documentation system
+
+### What's Broken and Needs Immediate Attention
+- **Remote downloads**: Files download but don't import (tuple path error)
+- **Threading**: Cross-thread Qt warnings during remote import logging
+
+### Documentation for Next Session
+- **Main handoff**: `docs/dev/worklog/2025-10-25_remote_download_handoff.md`
+- **Technical analysis**: `docs/brains/2025-10-25-remote-download-tuple-issue.md`
+- **Bug tracking**: `reports/bugs_and_issues.md` (Issue #7)
+
+### Quick Start for Debugging
+1. Read `docs/dev/worklog/2025-10-25_remote_download_handoff.md` (20 min)
+2. Add debug logging per Section "Debugging Strategy"
+3. Run remote download test: Search MAST for "Jupiter", download 2-3 files
+4. Examine console output for tuple source
+5. Apply fix to `RemoteDataService.download()` or `LocalStore.record()`
+6. Add regression test to prevent recurrence
+
+**DO NOT** break existing local workflows while fixing remote downloads. Test suite must remain green.
 
 ---
 

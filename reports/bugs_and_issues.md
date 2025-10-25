@@ -65,3 +65,39 @@ This document compiles notable defects and usability problems in the current Spe
 **Symptoms:** Business logic (e.g. differential operations, unit conversions, ML predictions) is interwoven with UI code.  Functions in `app/ui/main.py` make HTTP requests, perform numerical operations and update session state.  This tight coupling makes it hard to test modules independently and replace the front‑end without rewriting the backend.
 
 **Remediation:** Separate concerns into distinct layers: a **data layer** for reading and converting spectra; a **service layer** for transformations, ML predictions and similarity calculations; and a **presentation layer** for the UI.  Define clear interfaces between layers.  Use dependency inversion to allow the UI to call into services via well‑defined APIs.
+
+---
+
+## 7. Remote Download Path Tuple Error (2025-10-25 - CRITICAL)
+
+**Symptoms:** When downloading remote spectral data from MAST/ExoSystems, all imports fail with:
+```
+[Remote Import] Failed to import <filename>: argument should be a str or an os.PathLike object where __fspath__ returns a str, not 'tuple'
+```
+
+Files download successfully to temporary directories, but the ingest phase crashes. Additionally, cross-thread QObject warnings appear:
+```
+QObject: Cannot create children for a parent that is in a different thread.
+(Parent is QTextDocument(0x...), parent's thread is QThread(0x...), current thread is QThread(0x...))
+```
+
+**Cause:** The `RemoteDataService.download()` method or `LocalStore.record()` may be returning a tuple instead of a proper `RemoteDownloadResult` dataclass in some code paths. The worker thread expects `download.path` to be a `Path` object, but it appears to be receiving a tuple.
+
+The threading warning occurs because the `_on_failure` signal handler calls `self._log()`, which attempts to update the log view's `QTextDocument` from the worker thread, despite queued connection guards.
+
+**Reproduction:**
+1. Launch app: `python -m app.main`
+2. Open Remote Data tab (Ctrl+Shift+R)
+3. Search MAST ExoSystems for "Jupiter"
+4. Select multiple results (EUVE/BEFS/HST spectra)
+5. Click "Download & Import"
+6. Observe: Downloads complete but all imports fail with tuple error
+
+**Remediation:** 
+1. **Path Tuple Issue**: Audit `RemoteDataService.download()` (lines 397-430 in `remote_data_service.py`) and `LocalStore.record()` (lines 70-115 in `store.py`) to ensure all return paths produce proper dataclass/dict structures. Add explicit type hints (`-> RemoteDownloadResult`) and runtime assertions.
+2. **Threading Issue**: Replace direct `self._log()` call in `_on_failure` callback with `QMetaObject.invokeMethod()` to marshal log message to GUI thread explicitly.
+3. **Regression Test**: Add test that downloads from each provider (MAST/NIST/ExoSystems) and asserts `isinstance(result, RemoteDownloadResult)`.
+
+**Status:** ACTIVE - Critical blocker for remote data import functionality. Local workflows remain stable.
+
+**References:** See detailed debugging strategy in `docs/dev/worklog/2025-10-25_remote_download_handoff.md`

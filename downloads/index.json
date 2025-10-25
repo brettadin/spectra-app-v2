@@ -1,0 +1,51 @@
+{
+  "version": 1,
+  "items": {
+    "cf31b0bf5bf1f7ee04d67a372cb468d1b2158f55de75f46bb191d249bb5a1a35": {
+      "sha256": "cf31b0bf5bf1f7ee04d67a372cb468d1b2158f55de75f46bb191d249bb5a1a35",
+      "filename": "integration.csv",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\cf\\integration.csv",
+      "original_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\cf\\integration.csv",
+      "bytes": 44,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\cf\\integration.csv",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "absorbance"
+        }
+      },
+      "created": "2025-10-25T21:38:01.183439+00:00",
+      "updated": "2025-10-25T22:17:10.943335+00:00"
+    },
+    "5b6728e12bace6c5126a7e2d19555b7c53f1421e8ef8f133286fe3aec1ebbcf8": {
+      "sha256": "5b6728e12bace6c5126a7e2d19555b7c53f1421e8ef8f133286fe3aec1ebbcf8",
+      "filename": "transmittance.csv",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\5b\\transmittance.csv",
+      "original_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\5b\\transmittance.csv",
+      "bytes": 43,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\5b\\transmittance.csv",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "percent_transmittance"
+        }
+      },
+      "created": "2025-10-25T21:38:01.385004+00:00",
+      "updated": "2025-10-25T22:16:59.607190+00:00"
+    }
+  }
+}
