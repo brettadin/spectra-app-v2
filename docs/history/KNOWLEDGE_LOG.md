@@ -1621,3 +1621,27 @@ Import/Remote Import entries remain after the cleanup.
 - jupiter__9408090029N_vo.fits
 
 ---
+## 2025-10-25 18:16 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file transmittance.csv
+
+**References**:
+- transmittance.csv
+
+---
+## 2025-10-25 18:17 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file integration.csv
+
+**References**:
+- integration.csv
+
+---

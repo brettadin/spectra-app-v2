@@ -180,12 +180,8 @@ class _RemoteDownloadWorker(QtCore.QObject):  # type: ignore[name-defined]
                     return
                 try:
                     download = self._remote_service.download(record)
-                    # Be tolerant of provider differences: stored_path may be a string,
-                    # Path-like, or a (path, aux) tuple/list in some clients.
-                    stored = getattr(download, "cache_entry", {}).get("stored_path")  # type: ignore[attr-defined]
-                    if isinstance(stored, (list, tuple)):
-                        stored = stored[0] if stored else ""
-                    file_path = Path(str(stored))
+                    # RemoteDownloadResult has a clean Path attribute; use it directly
+                    file_path = download.path
                     non_spectral_extensions = {'.gif', '.png', '.jpg', '.jpeg', '.bmp', '.tif', '.tiff', '.svg', '.txt', '.log', '.xml', '.html', '.htm', '.json', '.md'}
                     if file_path.suffix.lower() in non_spectral_extensions:
                         self.record_failed.emit(record, f"Skipped non-spectral file type: {file_path.suffix}")  # type: ignore[attr-defined]
@@ -1882,12 +1878,14 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             except Exception:
                 pass
 
-        worker.started.connect(_on_started)
-        worker.record_ingested.connect(_on_progress)
-        worker.record_failed.connect(_on_failure)
-        worker.finished.connect(_on_finished)
-        worker.failed.connect(_on_failed)
-        worker.cancelled.connect(_on_cancelled)
+        # Force all signal connections to use queued connection to ensure slots run on GUI thread
+        queued = getattr(QtCore.Qt, "ConnectionType", QtCore.Qt).QueuedConnection
+        worker.started.connect(_on_started, queued)
+        worker.record_ingested.connect(_on_progress, queued)
+        worker.record_failed.connect(_on_failure, queued)
+        worker.finished.connect(_on_finished, queued)
+        worker.failed.connect(_on_failed, queued)
+        worker.cancelled.connect(_on_cancelled, queued)
 
         def _cleanup() -> None:
             if thread.isRunning():
@@ -1982,13 +1980,7 @@ def main(argv: list[str] | None = None) -> int:
     """
     _install_exception_handler()
 
-    # High-DPI awareness for crisp UI on 4K/retina displays
-    try:
-        QtWidgets.QApplication.setAttribute(QtCore.Qt.ApplicationAttribute.AA_EnableHighDpiScaling)
-        QtWidgets.QApplication.setAttribute(QtCore.Qt.ApplicationAttribute.AA_UseHighDpiPixmaps)
-    except Exception:
-        pass
-
+    # High-DPI scaling is automatic in Qt6; no need for deprecated attributes
     app = QtWidgets.QApplication.instance() or QtWidgets.QApplication(argv or sys.argv)
     app.setApplicationName("Spectra App")
     app.setOrganizationName("Spectra")
