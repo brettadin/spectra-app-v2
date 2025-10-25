@@ -1,6 +1,12 @@
 # Patch Notes
 
 
+## 2025-10-25 (Reference status pluralisation test update) (10:29 EDT / 14:29 UTC)
+
+- Updated `tests/test_reference_ui.py::test_reference_nist_fetch_populates_table` to expect the pluralised "2 pinned sets" copy
+  exposed by `SpectraMainWindow` after pinning multiple NIST line lists, keeping the Qt regression suite aligned with the
+  inspector status label grammar change.
+
 ## 2025-10-24 (Fixed ModuleNotFoundError when running main.py directly) (16:06 EDT / 20:06 UTC)
 
 - Removed duplicate docstring in `app/main.py` (lines 15-20) that was causing confusion

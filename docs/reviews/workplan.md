@@ -26,6 +26,11 @@ This document tracks feature batches, validation status, and outstanding backlog
 - [x] Document dependency prerequisites (requests, astroquery, pandas, astropy)
       and add installation verification guidance for Windows 11 users.
 
+### Recently Completed (2025-10-25)
+
+- [x] Synced the Reference dock Qt regression with the pluralised pinned-count status label so multiple NIST overlays keep tests
+      passing after the UI copy change (`tests/test_reference_ui.py`).
+
 ### Recently Completed (2025-10-22)
 
 - [x] Patched the numpy bootstrap to export `SPECTRA_SKIP_AUTO_NUMPY=1` into the child `python -m pip` call so missing wheels no

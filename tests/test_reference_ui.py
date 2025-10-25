@@ -167,7 +167,7 @@ def test_reference_nist_fetch_populates_table(monkeypatch) -> None:
         app.processEvents()
 
         assert window.nist_collections_list.count() == 2
-        assert "2 pinned set" in window.reference_status_label.text()
+        assert "2 pinned sets" in window.reference_status_label.text()
 
         window.nist_collections_list.setCurrentRow(0)
         app.processEvents()
