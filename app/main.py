@@ -247,11 +247,16 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         except Exception:
             pref_disabled = False
         self._persistence_disabled = self._persistence_env_disabled or pref_disabled
-        self.store: LocalStore | None = None if self._persistence_disabled else LocalStore()
+        # Use an app-local, easy-to-find downloads directory by default (override with SPECTRA_STORE_DIR)
+        self._app_root = Path(__file__).resolve().parent.parent
+        _store_override = os.environ.get("SPECTRA_STORE_DIR")
+        self._default_store_dir = Path(_store_override) if _store_override else (self._app_root / "downloads")
+        self.store: LocalStore | None = None if self._persistence_disabled else LocalStore(base_dir=self._default_store_dir)
         self.ingest_service = DataIngestService(self.units_service, store=self.store)
         remote_store = self.store
         if remote_store is None:
-            remote_store = LocalStore(base_dir=Path(tempfile.mkdtemp(prefix="spectra-remote-")))
+            # Fall back to app-local downloads directory even when persistence is toggled off
+            remote_store = LocalStore(base_dir=self._default_store_dir)
         self.remote_data_service = RemoteDataService(remote_store)
         self.math_service = MathService()
         self.knowledge_log = knowledge_log_service or KnowledgeLogService(
@@ -831,14 +836,16 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             self.store = None
             self._log("System", "Persistent cache disabled. New data will be stored in memory only.")
         else:
-            self.store = LocalStore()
+            # Re-enable persistent cache in the app-local downloads directory
+            self.store = LocalStore(base_dir=self._default_store_dir)
             self._log("System", "Persistent cache enabled.")
         self.ingest_service.store = self.store
         if hasattr(self, "remote_data_service") and isinstance(self.remote_data_service, RemoteDataService):
             if self.store is None:
-                self.remote_data_service._store = LocalStore()
+                # When disabled, still use app-local dir for remote downloads
+                self.remote_data_service.store = LocalStore(base_dir=self._default_store_dir)
             else:
-                self.remote_data_service._store = self.store
+                self.remote_data_service.store = self.store
         self._build_library_tab()
 
     def _log(self, channel: str, message: str) -> None:
@@ -873,7 +880,11 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         if self.library_view is None:
             return
         self.library_view.clear()
-        entries = self.store.list_entries() if self.store is not None else {}
+        # Prefer the main store; if persistence is disabled, fall back to remote service store
+        effective_store = self.store
+        if effective_store is None and hasattr(self, "remote_data_service"):
+            effective_store = getattr(self.remote_data_service, "store", None)
+        entries = effective_store.list_entries() if effective_store is not None else {}
         if not entries:
             placeholder = QtWidgets.QTreeWidgetItem(["No cached files", ""])
             self.library_view.addTopLevelItem(placeholder)
