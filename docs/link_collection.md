@@ -56,6 +56,71 @@ resource into build scripts or documentation updates quickly.
 - [`scikit-spectra`](https://pypi.org/project/scikit-spectra/) – Exploratory tools
   for chemometric analysis; evaluate before integrating additional math modules.
 
+## Interactive visualization and portals
+
+- [IPAC Firefly (repo)](https://github.com/Caltech-IPAC/firefly) – Web-based astronomical visualization platform used by several archives (images, catalogs, spectra). Reference for future web export or remote visualization integrations.
+- Exoplanet Archive Firefly Online Help – Feature-specific guides for the Firefly UI used by NASA Exoplanet Archive:
+  - [Visualization](https://exoplanetarchive.ipac.caltech.edu/firefly/onlinehelp/#visualization)
+  - [Catalogs](https://exoplanetarchive.ipac.caltech.edu/firefly/onlinehelp/#catalogs)
+  - [Images](https://exoplanetarchive.ipac.caltech.edu/firefly/onlinehelp/#images)
+  - [Spectra](https://exoplanetarchive.ipac.caltech.edu/firefly/onlinehelp/#spectra)
+  - [Download](https://exoplanetarchive.ipac.caltech.edu/firefly/onlinehelp/#download)
+  - [Job Monitor](https://exoplanetarchive.ipac.caltech.edu/firefly/onlinehelp/#jobmon)
+
+## MAST notebooks and mission examples
+
+Curated examples from the MAST Notebooks gallery to accelerate remote-search and ingest workflows. Use these as working references when expanding our Remote Data dialog and backend services.
+
+- TESS
+  - [Beginner overview](https://spacetelescope.github.io/mast_notebooks/notebooks/TESS/beginner.html)
+  - [Beginner (astroquery DV)](https://spacetelescope.github.io/mast_notebooks/notebooks/TESS/beginner_astroquery_dv/beginner_astroquery_dv.html)
+  - [How to use DVT](https://spacetelescope.github.io/mast_notebooks/notebooks/TESS/beginner_how_to_use_dvt/beginner_how_to_use_dvt.html)
+  - [How to use FFI](https://spacetelescope.github.io/mast_notebooks/notebooks/TESS/beginner_how_to_use_ffi/beginner_how_to_use_ffi.html)
+  - [How to use LC](https://spacetelescope.github.io/mast_notebooks/notebooks/TESS/beginner_how_to_use_lc/beginner_how_to_use_lc.html)
+  - [How to use TP](https://spacetelescope.github.io/mast_notebooks/notebooks/TESS/beginner_how_to_use_tp/beginner_how_to_use_tp.html)
+  - [Beginner TESS Exo.MAST](https://spacetelescope.github.io/mast_notebooks/notebooks/TESS/beginner_tess_exomast/beginner_tess_exomast.html)
+  - [Beginner TESS TAP search](https://spacetelescope.github.io/mast_notebooks/notebooks/TESS/beginner_tess_tap_search/beginner_tess_tap_search.html)
+  - [Beginner TIC search (HD 209458)](https://spacetelescope.github.io/mast_notebooks/notebooks/TESS/beginner_tic_search_hd209458/beginner_tic_search_hd209458.html)
+  - [Beginner TESSCut (astroquery)](https://spacetelescope.github.io/mast_notebooks/notebooks/TESS/beginner_tesscut_astroquery/beginner_tesscut_astroquery.html)
+
+- GALEX
+  - [MIS mosaic](https://spacetelescope.github.io/mast_notebooks/notebooks/GALEX/mis_mosaic/mis_mosaic.html) ([imports section](https://spacetelescope.github.io/mast_notebooks/notebooks/GALEX/mis_mosaic/mis_mosaic.html#imports))
+
+- Kepler
+  - [Plotting images from TPF](https://spacetelescope.github.io/mast_notebooks/notebooks/Kepler/plotting_images_from_tpf/plotting_images_from_tpf.html)
+  - [Plotting lightcurves](https://spacetelescope.github.io/mast_notebooks/notebooks/Kepler/plotting_lightcurves/plotting_lightcurves.html)
+  - [Plotting DV Time Series](https://spacetelescope.github.io/mast_notebooks/notebooks/Kepler/plotting_dvts/plotting_dvts.html)
+
+- JWST
+  - [Engineering Database Retrieval](https://spacetelescope.github.io/mast_notebooks/notebooks/JWST/Engineering_Database_Retreival/EDB_Retrieval.html)
+  - [SI keyword exoplanet search](https://spacetelescope.github.io/mast_notebooks/notebooks/JWST/SI_keyword_exoplanet_search/SI_keyword_exoplanet_search.html)
+  - [MAST metadata search](https://spacetelescope.github.io/mast_notebooks/notebooks/JWST/MAST_metadata_search/MAST_metadata_search.html)
+  - [Download by program ID](https://spacetelescope.github.io/mast_notebooks/notebooks/JWST/download_by_program_id/download_by_program_id.html)
+  - [Duplication checking](https://spacetelescope.github.io/mast_notebooks/notebooks/JWST/duplication_checking/duplication_checking.html)
+
+- IUE
+  - [Exploring UV extinction curves](https://spacetelescope.github.io/mast_notebooks/notebooks/IUE/exploring_UV_extinction_curves/exploring_UV_extinction_curves.html)
+
+- HSC (Hubble Source Catalog)
+  - [Queries overview](https://spacetelescope.github.io/mast_notebooks/notebooks/HSC/queries.html)
+  - [HSCv3 API](https://spacetelescope.github.io/mast_notebooks/notebooks/HSC/HSCV3_API/hscv3_api.html)
+  - [HSCv3 SMC API](https://spacetelescope.github.io/mast_notebooks/notebooks/HSC/HSCV3_SMC_API/hscv3_smc_api.html)
+  - [HSC TAP](https://spacetelescope.github.io/mast_notebooks/notebooks/HSC/HSC_TAP/HSC_TAP.html)
+  - [SWEEPS HSCV3P1](https://spacetelescope.github.io/mast_notebooks/notebooks/HSC/SWEEPS_HSCV3P1/sweeps_hscv3p1.html)
+  - [SWEEPS HSCV3P1 API](https://spacetelescope.github.io/mast_notebooks/notebooks/HSC/SWEEPS_HSCV3P1_API/sweeps_hscv3p1_api.html)
+  - [HCV API demo](https://spacetelescope.github.io/mast_notebooks/notebooks/HSC/HCV_API/HCV_API_demo.html)
+  - [HCV CasJobs demo](https://spacetelescope.github.io/mast_notebooks/notebooks/HSC/HCV_CASJOBS/HCV_casjobs_demo.html)
+
+- PanSTARRS
+  - [PS1 DR2 TAP](https://spacetelescope.github.io/mast_notebooks/notebooks/PanSTARRS/PS1_DR2_TAP/PS1_DR2_TAP.html)
+  - [PS1 image](https://spacetelescope.github.io/mast_notebooks/notebooks/PanSTARRS/PS1_image/PS1_image.html)
+
+- Visualizations
+  - [MAST Sky](https://spacetelescope.github.io/mast_notebooks/notebooks/Visualizations/mast_sky/mast_sky.html#What-am-I-looking-at?)
+
+- Multi-mission
+  - [astroquery with MAST](https://spacetelescope.github.io/mast_notebooks/notebooks/multi_mission/astroquery.html)
+
 ## Usage guidelines
 
 1. **Record provenance** – When importing data from these sources, capture the
@@ -69,6 +134,7 @@ resource into build scripts or documentation updates quickly.
 4. **Respect licensing** – Some catalogues (HITRAN, proprietary lab spectra)
    require credentials. Document access requirements and avoid committing
    restricted data.
+5. **Leverage notebooks for prototypes** – Adapt the linked MAST notebooks into small, tested Python snippets that call our Remote Data services (prefer `astroquery` patterns). Attribute the original notebook in provenance.
 
 ## Maintenance checklist
 

@@ -103,3 +103,57 @@ Misc infrastructure you’ll thank later
 68.	gwcs (repo) — https://github.com/spacetelescope/gwcs
 69.	gwcs docs — https://gwcs.readthedocs.io/en/latest/
 
+---
+
+Additional mission notebooks and visualization resources
+
+MAST Notebooks (mission-specific)
+- TESS beginner — https://spacetelescope.github.io/mast_notebooks/notebooks/TESS/beginner.html
+- TESS beginner (astroquery DV) — https://spacetelescope.github.io/mast_notebooks/notebooks/TESS/beginner_astroquery_dv/beginner_astroquery_dv.html
+- TESS how to use DVT — https://spacetelescope.github.io/mast_notebooks/notebooks/TESS/beginner_how_to_use_dvt/beginner_how_to_use_dvt.html
+- TESS how to use FFI — https://spacetelescope.github.io/mast_notebooks/notebooks/TESS/beginner_how_to_use_ffi/beginner_how_to_use_ffi.html
+- TESS how to use LC — https://spacetelescope.github.io/mast_notebooks/notebooks/TESS/beginner_how_to_use_lc/beginner_how_to_use_lc.html
+- TESS how to use TP — https://spacetelescope.github.io/mast_notebooks/notebooks/TESS/beginner_how_to_use_tp/beginner_how_to_use_tp.html
+- TESS Exo.MAST — https://spacetelescope.github.io/mast_notebooks/notebooks/TESS/beginner_tess_exomast/beginner_tess_exomast.html
+- TESS TAP search — https://spacetelescope.github.io/mast_notebooks/notebooks/TESS/beginner_tess_tap_search/beginner_tess_tap_search.html
+- TESS TIC search (HD 209458) — https://spacetelescope.github.io/mast_notebooks/notebooks/TESS/beginner_tic_search_hd209458/beginner_tic_search_hd209458.html
+- TESSCut (astroquery) — https://spacetelescope.github.io/mast_notebooks/notebooks/TESS/beginner_tesscut_astroquery/beginner_tesscut_astroquery.html
+
+- GALEX MIS mosaic — https://spacetelescope.github.io/mast_notebooks/notebooks/GALEX/mis_mosaic/mis_mosaic.html
+- GALEX MIS mosaic (imports) — https://spacetelescope.github.io/mast_notebooks/notebooks/GALEX/mis_mosaic/mis_mosaic.html#imports
+
+- Kepler plotting images from TPF — https://spacetelescope.github.io/mast_notebooks/notebooks/Kepler/plotting_images_from_tpf/plotting_images_from_tpf.html
+- Kepler plotting lightcurves — https://spacetelescope.github.io/mast_notebooks/notebooks/Kepler/plotting_lightcurves/plotting_lightcurves.html
+- Kepler plotting DV time series — https://spacetelescope.github.io/mast_notebooks/notebooks/Kepler/plotting_dvts/plotting_dvts.html
+
+- JWST EDB Retrieval — https://spacetelescope.github.io/mast_notebooks/notebooks/JWST/Engineering_Database_Retreival/EDB_Retrieval.html
+- JWST SI keyword exoplanet search — https://spacetelescope.github.io/mast_notebooks/notebooks/JWST/SI_keyword_exoplanet_search/SI_keyword_exoplanet_search.html
+- JWST MAST metadata search — https://spacetelescope.github.io/mast_notebooks/notebooks/JWST/MAST_metadata_search/MAST_metadata_search.html
+- JWST download by program ID — https://spacetelescope.github.io/mast_notebooks/notebooks/JWST/download_by_program_id/download_by_program_id.html
+- JWST duplication checking — https://spacetelescope.github.io/mast_notebooks/notebooks/JWST/duplication_checking/duplication_checking.html
+
+- IUE exploring UV extinction curves — https://spacetelescope.github.io/mast_notebooks/notebooks/IUE/exploring_UV_extinction_curves/exploring_UV_extinction_curves.html
+
+- HSC queries — https://spacetelescope.github.io/mast_notebooks/notebooks/HSC/queries.html
+- HSC HSCV3 API — https://spacetelescope.github.io/mast_notebooks/notebooks/HSC/HSCV3_API/hscv3_api.html
+- HSC HSCV3 SMC API — https://spacetelescope.github.io/mast_notebooks/notebooks/HSC/HSCV3_SMC_API/hscv3_smc_api.html
+- HSC TAP — https://spacetelescope.github.io/mast_notebooks/notebooks/HSC/HSC_TAP/HSC_TAP.html
+- HSC SWEEPS HSCV3P1 — https://spacetelescope.github.io/mast_notebooks/notebooks/HSC/SWEEPS_HSCV3P1/sweeps_hscv3p1.html
+- HSC SWEEPS HSCV3P1 API — https://spacetelescope.github.io/mast_notebooks/notebooks/HSC/SWEEPS_HSCV3P1_API/sweeps_hscv3p1_api.html
+- HSC HCV API demo — https://spacetelescope.github.io/mast_notebooks/notebooks/HSC/HCV_API/HCV_API_demo.html
+- HSC HCV CasJobs demo — https://spacetelescope.github.io/mast_notebooks/notebooks/HSC/HCV_CASJOBS/HCV_casjobs_demo.html
+
+- PanSTARRS PS1 DR2 TAP — https://spacetelescope.github.io/mast_notebooks/notebooks/PanSTARRS/PS1_DR2_TAP/PS1_DR2_TAP.html
+- PanSTARRS PS1 image — https://spacetelescope.github.io/mast_notebooks/notebooks/PanSTARRS/PS1_image/PS1_image.html
+
+- Visualizations: MAST Sky — https://spacetelescope.github.io/mast_notebooks/notebooks/Visualizations/mast_sky/mast_sky.html#What-am-I-looking-at?
+
+Exoplanet Archive & Firefly
+- Firefly (repo) — https://github.com/Caltech-IPAC/firefly
+- Firefly help (Visualization) — https://exoplanetarchive.ipac.caltech.edu/firefly/onlinehelp/#visualization
+- Firefly help (Catalogs) — https://exoplanetarchive.ipac.caltech.edu/firefly/onlinehelp/#catalogs
+- Firefly help (Images) — https://exoplanetarchive.ipac.caltech.edu/firefly/onlinehelp/#images
+- Firefly help (Spectra) — https://exoplanetarchive.ipac.caltech.edu/firefly/onlinehelp/#spectra
+- Firefly help (Download) — https://exoplanetarchive.ipac.caltech.edu/firefly/onlinehelp/#download
+- Firefly help (Job Monitor) — https://exoplanetarchive.ipac.caltech.edu/firefly/onlinehelp/#jobmon
+

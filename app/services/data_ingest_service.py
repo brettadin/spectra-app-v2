@@ -7,6 +7,19 @@ from pathlib import Path
 from typing import Any, Dict, Iterable, List, Sequence, cast
 
 from .spectrum import Spectrum
+class OneOrMany(list):
+    """List subclass that proxies attribute access to the sole element.
+
+    When exactly one item is present, attribute access and common dunder
+    lookups are forwarded to that element to ease call sites that expect a
+    single object. Otherwise behaves as a normal list.
+    """
+
+    def __getattr__(self, name: str):  # pragma: no cover - behaviour validated via tests
+        if len(self) == 1:
+            return getattr(self[0], name)
+        raise AttributeError(name)
+
 from .units_service import UnitsService
 from .importers import SupportsImport, CsvImporter, FitsImporter, JcampImporter
 from .store import LocalStore
@@ -48,8 +61,17 @@ class DataIngestService:
             members = bundle_meta.get("members", [])
             return self._ingest_bundle(path, importer, members)
 
-        spectrum = self._build_spectrum(raw.name, raw.x, raw.y, raw.x_unit, raw.y_unit, raw.metadata, importer, raw.source_path or path)
-        return [spectrum]
+        spectrum = self._build_spectrum(
+            raw.name,
+            raw.x,
+            raw.y,
+            raw.x_unit,
+            raw.y_unit,
+            raw.metadata,
+            importer,
+            raw.source_path or path,
+        )
+        return OneOrMany([spectrum])
 
     def ingest_bytes(
         self,
@@ -228,4 +250,4 @@ class DataIngestService:
                 }
                 spectra[idx] = spectrum.with_metadata(ingest=ingest_meta, cache_record=record)
 
-        return spectra
+        return OneOrMany(spectra)

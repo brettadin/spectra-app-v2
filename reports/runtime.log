@@ -1,0 +1,15 @@
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Code\spectra-app-v2\app\main.py", line 420, in <module>
+    raise SystemExit(main())
+                     ^^^^^^
+  File "C:\Code\spectra-app-v2\app\main.py", line 414, in main
+    window = SpectraMainWindow()
+             ^^^^^^^^^^^^^^^^^^^
+  File "C:\Code\spectra-app-v2\app\main.py", line 159, in __init__
+    self._setup_menu()
+  File "C:\Code\spectra-app-v2\app\main.py", line 255, in _setup_menu
+    export_action.triggered.connect(self.export_manifest)
+                                    ^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'SpectraMainWindow' object has no attribute 'export_manifest'
