@@ -1,6 +1,17 @@
 # Patch Notes
 
 
+## 2025-10-25 (Re-authored IR functional group expansion provenance) (10:30 EDT / 14:30 UTC)
+
+**Restored documentation for IR database expansion**
+- Captured the missing provenance for the extended IR functional groups database (50+ groups) that shipped in `app/data/reference/ir_functional_groups_extended.json` but previously lacked historical notes.
+- Logged how the analyzer auto-detects the extended dataset and falls back to the legacy 8-group bundle for backward compatibility (`app/services/reference_library.py`).
+- Linked the supporting ML roadmap design in `docs/specs/ml_functional_group_prediction.md` so the documentation trail matches the shipped assets.
+
+**Historical records brought back online**
+- Added the companion knowledge-log entry (`docs/history/KNOWLEDGE_LOG.md`) with Eastern/UTC timestamps and cross-references to the atlas, brains entry (`docs/brains/2025-10-25T0230-ir-ml-integration.md`), and IR expansion summary.
+- Noted that README and IR expansion summary already describe the dataset so future contributors see consistent messaging across guides.
+
 ## 2025-10-24 (IR Functional Groups Database Expansion and ML Integration Documentation) (22:30 EDT / 02:30 UTC)
 
 **Extended IR Functional Groups Database (50+ groups)**

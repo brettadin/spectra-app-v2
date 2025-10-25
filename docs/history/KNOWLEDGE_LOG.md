@@ -28,6 +28,18 @@ Each entry in this document should follow this structure:
 
 ---
 
+## 2025-10-25T10:30:18-04:00 / 2025-10-25T14:30:20+00:00 – IR functional group provenance backfill
+
+**Author**: agent (GitHub Copilot)
+
+**Context**: Documentation and provenance for the expanded IR functional groups database and ML roadmap assets.
+
+**Summary**: Reconstructed the historical record for the previously undocumented IR functional group expansion. Added patch notes summarising the shipped 50+ group dataset (`app/data/reference/ir_functional_groups_extended.json`) and the runtime auto-detection behaviour in `ReferenceLibrary`. Cross-referenced the ML integration design (`docs/specs/ml_functional_group_prediction.md`), atlas additions, and the 2025-10-25 brains entry to keep provenance aligned with the delivered assets. Verified that README and `IR_EXPANSION_SUMMARY.md` already surface the same messaging so contributors have a single source of truth across guides.
+
+**References**: `docs/history/PATCH_NOTES.md`, `docs/brains/2025-10-25T0230-ir-ml-integration.md`, `IR_EXPANSION_SUMMARY.md`, `docs/specs/ml_functional_group_prediction.md`, `app/services/reference_library.py`.
+
+---
+
 ## 2025-10-24T22:30:00-04:00 / 2025-10-25T02:30:00+00:00 – IR Functional Groups Database Expansion and ML Integration Documentation
 
 **Author**: agent (GitHub Copilot)
