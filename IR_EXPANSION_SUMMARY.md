@@ -1,5 +1,8 @@
 # IR Functional Group Database Expansion - Summary
 
+**Last Updated**: 2025-10-25  
+**Status**: Extended database ✅ complete and fully documented; ML integration 📋 planned
+
 ## What Was Created
 
 ### 1. Extended IR Functional Groups Database
@@ -7,7 +10,7 @@
 
 **Content**:
 - **50+ functional groups** (expanded from original 8)
-- **Comprehensive coverage**: alcohols, carbonyls, amines, aromatics, nitriles, nitro, sulfur, phosphorus, halogens
+- **Comprehensive coverage**: alcohols, carbonyls, amines, aromatics, nitriles, nitro, sulfur, halogens
 - **Rich metadata** for each group:
   - Wavenumber ranges (min, max, peak)
   - Intensity descriptions
@@ -29,16 +32,17 @@
 - Nitro compounds (doublet pattern)
 - Sulfur compounds (thiols, sulfoxides, sulfones)
 - Halogen compounds
-- Phosphates (for biochemistry)
 
 ### 2. ML Prediction Design Document
 **File**: `docs/specs/ml_functional_group_prediction.md`
 
 **Comprehensive roadmap including**:
-- **3-Phase Implementation**:
-  1. Enhanced rule-based peak detection (immediate)
-  2. Neural network predictor (medium-term)
-  3. Hybrid ensemble system (advanced)
+- **5-Phase Implementation** (26 weeks total):
+  1. Enhanced rule-based peak detection (4 weeks)
+  2. Data collection and preparation (6 weeks)
+  3. Neural network prototype (8 weeks)
+  4. UI integration (4 weeks)
+  5. Hybrid ensemble system (4 weeks)
 
 - **Technical Architecture**:
   - Peak detection with scipy
@@ -173,6 +177,76 @@ Try it now:
 4. Filter them (e.g., search "carbonyl" to see all C=O variants)
 5. Click "Show on plot" to overlay bands on your spectrum
 
+## Comprehensive Documentation (Added 2025-10-25)
+
+All aspects of the IR expansion and ML integration have been thoroughly documented:
+
+### User Documentation
+- **README.md**: Updated Analysis & Processing section mentioning 50+ IR groups and ML roadmap
+- **docs/user/reference_data.md**: Complete rewrite of IR section with:
+  - Extended database coverage (all 8 families detailed)
+  - Usage instructions with filtering/search
+  - Example workflows (unknown identification, student labs, contextual analysis)
+  - Future ML integration phases
+
+### Developer Documentation
+- **docs/developer_notes.md**: New "IR Functional Groups and ML Integration" section with:
+  - Implementation guidance for all 5 phases
+  - Code examples for each phase
+  - File locations and dependencies
+  - Key architectural constraints
+
+- **docs/dev/ir_ml_quick_reference.md**: 10KB quick reference guide with:
+  - Current state summary
+  - Implementation phases overview
+  - Code examples for using extended database
+  - Example Phase 1 implementation (rule-based analyzer)
+  - Complete cross-references
+
+### Architecture & Planning
+- **docs/brains/2025-10-25T0230-ir-ml-integration.md**: 13KB comprehensive architectural decision document covering:
+  - Research background (FG-BERT, FTIR neural networks)
+  - Three-tier hybrid system design
+  - UI/UX specifications
+  - Performance targets and testing strategy
+  - Dependencies and future enhancements
+
+- **docs/reviews/workplan.md**: Added "IR Functional Groups and ML Integration Roadmap" with:
+  - 5 implementation phases with detailed task checklists
+  - 26-week timeline breakdown
+  - Long-term enhancement plans
+
+### Domain Knowledge
+- **docs/atlas/chapter_1_modalities_instruments_and_what_they_tell_you.md**: New §3.1a "Comprehensive Functional Group Coverage" detailing all 8 families with characteristic frequencies
+
+- **docs/atlas/chapter_7_identification_and_prediction_logic.md**: New §7a "IR Functional Group Identification — Hybrid Approach" with complete technical specifications
+
+### History & Tracking
+- **docs/history/KNOWLEDGE_LOG.md**: Timestamped entry documenting the expansion, ML design, research references, and educational use cases
+
+- **docs/history/PATCH_NOTES.md**: Detailed patch notes with EDT/UTC timestamps covering all changes
+
+### Technical Specifications
+- **docs/specs/ml_functional_group_prediction.md**: Complete ML integration specification (already existed, now cross-referenced throughout)
+
+## Documentation Coverage
+
+**30+ markdown files** now reference IR functional groups or ML integration, providing:
+- User workflows and examples
+- Developer implementation guidance  
+- Architectural decisions with rationale
+- Domain knowledge and spectroscopy theory
+- Testing strategies
+- Performance targets
+- Research citations
+
+All documentation maintains project standards:
+- Provenance-first architecture
+- Canonical unit storage (cm⁻¹ for IR, never mutated)
+- Immutable spectra with derived predictions
+- Explainability requirements
+- Offline-first approach with optional dependencies
+
 ## Dependencies for ML Features
 
 When ready to implement ML:
@@ -184,6 +258,21 @@ pip install scikit-learn   # Preprocessing, metrics
 pip install h5py           # Efficient data storage
 ```
 
+## Next Steps
+
+1. **Current**: Extended database (50+ groups) is ✅ complete and ready to use
+2. **Phase 1** (4 weeks): Implement rule-based peak detection and contextual analysis
+3. **Phase 2** (6 weeks): Collect and prepare ~52K training spectra from NIST + SDBS
+4. **Phase 3** (8 weeks): Train neural network with 1D CNN + attention
+5. **Phase 4** (4 weeks): Integrate ML predictions into UI
+6. **Phase 5** (4 weeks): Build hybrid ensemble system
+
 ## Questions?
+
+- **User guide**: See `docs/user/reference_data.md` for usage instructions and examples
+- **Quick reference**: See `docs/dev/ir_ml_quick_reference.md` for implementation overview
+- **Complete spec**: See `docs/specs/ml_functional_group_prediction.md` for detailed technical design
+- **Architectural decision**: See `docs/brains/2025-10-25T0230-ir-ml-integration.md` for rationale and constraints
+- **Implementation tracking**: See `docs/reviews/workplan.md` for phase checklists and progress
 
 The design document has detailed pseudocode, architecture diagrams, and implementation guidance. Ready to proceed with Phase 1 (rule-based peak detection) whenever you'd like!
