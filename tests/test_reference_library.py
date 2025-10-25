@@ -17,9 +17,15 @@ def test_reference_library_hydrogen_and_ir_catalogues() -> None:
 
     ir_groups = library.ir_functional_groups()
     group_names = {entry["group"] for entry in ir_groups}
-    assert "C=O (ketone/aldehyde)" in group_names
+    # Check for presence of carbonyl groups (extended DB has separate ketone/aldehyde)
+    assert "C=O (ketone)" in group_names or "C=O (ketone/aldehyde)" in group_names
+    assert "C=O (aldehyde)" in group_names or "C=O (ketone/aldehyde)" in group_names
+    # Verify we have a substantial database
+    assert len(ir_groups) >= 8  # Should have at least original 8 groups
     ir_meta = library.ir_metadata()
-    assert ir_meta.get("provenance", {}).get("generator") == "tools/reference_build/build_ir_bands.py"
+    # Generator varies between basic and extended database
+    generator = ir_meta.get("provenance", {}).get("generator")
+    assert generator in ["tools/reference_build/build_ir_bands.py", "manual_curation_2025"]
 
     placeholders = library.line_shape_placeholders()
     placeholder_ids = {entry["id"] for entry in placeholders}
