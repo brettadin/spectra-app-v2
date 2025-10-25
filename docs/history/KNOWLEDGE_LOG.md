@@ -28,6 +28,20 @@ Each entry in this document should follow this structure:
 
 ---
 
+## 2025-10-25T10:29:50-04:00 / 2025-10-25T14:29:52+00:00 – Reference status label pluralisation guard
+
+**Author**: agent (GitHub Copilot Codex)
+
+**Context**: Inspector Reference dock status messaging and Qt regression coverage.
+
+**Summary**: Adjusted `tests/test_reference_ui.py::test_reference_nist_fetch_populates_table` to assert the pluralised "2 pinned sets"
+status text emitted by `SpectraMainWindow` after pinning multiple NIST ASD queries. This keeps the Reference dock UI contract test
+in sync with the grammar fix shipped in `app/main.py` without altering runtime behaviour.
+
+**References**: `tests/test_reference_ui.py`, `app/main.py`, `docs/history/PATCH_NOTES.md`.
+
+---
+
 ## 2025-10-24T16:07:16-04:00 / 2025-10-24T20:07:16+00:00 – Main module import path fix
 
 **Author**: agent (GitHub Copilot)
