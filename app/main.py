@@ -40,7 +40,7 @@ from app.services import (
 from app.services import nist_asd_service
 from app.ui.plot_pane import PlotPane, TraceStyle
 from app.ui.remote_data_dialog import RemoteDataDialog
-from app.ui.export_options_dialog import ExportOptionsDialog
+from app.ui.export_center_dialog import ExportCenterDialog
 
 QtCore: Any
 QtGui: Any
@@ -375,6 +375,12 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.plot = PlotPane(self, max_points=self._plot_max_points)
         self.central_split.addWidget(self.plot)
         self.plot.autoscale()
+        
+        # Disable pyqtgraph's built-in export menu - we use unified Export Center instead
+        try:
+            self.plot._plot.getPlotItem().getViewBox().menu = None  # type: ignore[attr-defined]
+        except Exception:
+            pass
 
         # Left dock: datasets and library
         self.dataset_dock = QtWidgets.QDockWidget("Data", self)
@@ -395,6 +401,14 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.dataset_view.setRootIsDecorated(True)
         self.dataset_tree = self.dataset_view  # compatibility alias for tests
         self.dataset_view.setAlternatingRowColors(True)
+        self.dataset_view.setSelectionMode(QtWidgets.QAbstractItemView.SelectionMode.ExtendedSelection)
+        self.dataset_view.setContextMenuPolicy(QtCore.Qt.ContextMenuPolicy.CustomContextMenu)
+        self.dataset_view.customContextMenuRequested.connect(self._on_dataset_context_menu)
+        
+        # Add keyboard shortcut for deletion
+        delete_shortcut = QtGui.QShortcut(QtGui.QKeySequence.StandardKey.Delete, self.dataset_view)
+        delete_shortcut.activated.connect(self._remove_selected_datasets_shortcut)
+        
         self.dataset_model = QtGui.QStandardItemModel(0, 2, self)
         self.dataset_model.setHorizontalHeaderLabels(["Dataset", "Visible"])
         # Create a root group "Originals" to hold imported spectra
@@ -407,6 +421,8 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             self.dataset_view.header().setSectionResizeMode(0, QtWidgets.QHeaderView.ResizeMode.Stretch)
             self.dataset_view.header().setSectionResizeMode(1, QtWidgets.QHeaderView.ResizeMode.ResizeToContents)
         self.dataset_model.itemChanged.connect(self._on_dataset_item_changed)
+        # Connect selection changes to update merge preview
+        self.dataset_view.selectionModel().selectionChanged.connect(self._update_merge_preview)
         datasets_layout.addWidget(self.dataset_view)
         self.data_tabs.addTab(datasets_container, "Datasets")
 
@@ -581,6 +597,60 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         
         self.inspector_tabs.addTab(self.tab_remote, "Remote Data")
         
+        # Merge/Average tab
+        self.tab_merge = QtWidgets.QWidget()
+        merge_layout = QtWidgets.QVBoxLayout(self.tab_merge)
+        merge_layout.setContentsMargins(4, 4, 4, 4)
+        
+        # Instructions
+        merge_info = QtWidgets.QLabel(
+            "Select multiple datasets from the Datasets panel, then merge or average them into a single spectrum."
+        )
+        merge_info.setWordWrap(True)
+        merge_layout.addWidget(merge_info)
+        
+        # Options
+        merge_options_group = QtWidgets.QGroupBox("Options")
+        merge_options_layout = QtWidgets.QVBoxLayout(merge_options_group)
+        
+        self.merge_only_visible = QtWidgets.QCheckBox("Only include visible (checked) datasets")
+        self.merge_only_visible.setChecked(True)
+        self.merge_only_visible.toggled.connect(lambda _: self._update_merge_preview())
+        merge_options_layout.addWidget(self.merge_only_visible)
+        
+        merge_layout.addWidget(merge_options_group)
+        
+        # Name for result
+        merge_name_layout = QtWidgets.QHBoxLayout()
+        merge_name_layout.addWidget(QtWidgets.QLabel("Result name:"))
+        self.merge_name_edit = QtWidgets.QLineEdit()
+        self.merge_name_edit.setPlaceholderText("(auto-generated)")
+        merge_name_layout.addWidget(self.merge_name_edit, 1)
+        merge_layout.addLayout(merge_name_layout)
+        
+        # Preview info
+        self.merge_preview_label = QtWidgets.QLabel("No datasets selected")
+        self.merge_preview_label.setWordWrap(True)
+        self.merge_preview_label.setStyleSheet("QLabel { padding: 8px; background: #2b2b2b; border-radius: 4px; }")
+        merge_layout.addWidget(self.merge_preview_label)
+        
+        # Action buttons
+        merge_buttons_layout = QtWidgets.QHBoxLayout()
+        self.merge_average_button = QtWidgets.QPushButton("Average Selected")
+        self.merge_average_button.setEnabled(False)
+        self.merge_average_button.clicked.connect(self._on_merge_average)
+        merge_buttons_layout.addWidget(self.merge_average_button)
+        merge_layout.addLayout(merge_buttons_layout)
+        
+        # Status
+        self.merge_status_label = QtWidgets.QLabel("")
+        self.merge_status_label.setWordWrap(True)
+        merge_layout.addWidget(self.merge_status_label)
+        
+        merge_layout.addStretch()
+        
+        self.inspector_tabs.addTab(self.tab_merge, "Merge/Average")
+        
         self.inspector_dock.setWidget(self.inspector_tabs)
         self.addDockWidget(QtCore.Qt.DockWidgetArea.RightDockWidgetArea, self.inspector_dock)
         # Ensure inspector dock is visible
@@ -673,9 +743,13 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.persistence_action.triggered.connect(self._on_persistence_toggled)
         file_menu.addAction(self.persistence_action)
 
-        export_action = QtGui.QAction("Export &Manifest", self)
-        export_action.triggered.connect(self.export_manifest)
-        file_menu.addAction(export_action)
+        file_menu.addSeparator()
+
+        # Unified Export Center
+        export_center_action = QtGui.QAction("&Export…", self)
+        export_center_action.setShortcut("Ctrl+E")
+        export_center_action.triggered.connect(self.export_center)
+        file_menu.addAction(export_center_action)
 
         file_menu.addSeparator()
         exit_action = QtGui.QAction("E&xit", self)
@@ -738,15 +812,16 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             pass
 
     def open_file(self) -> None:
-        path_str, _ = QtWidgets.QFileDialog.getOpenFileName(
+        path_strs, _ = QtWidgets.QFileDialog.getOpenFileNames(
             self,
-            "Open Spectrum",
+            "Open Spectrum(s)",
             str(SAMPLES_DIR),
             "Data files (*.csv *.txt *.fits *.fit *.fts *.jdx *.dx *.jcamp);;All files (*.*)",
         )
-        if not path_str:
+        if not path_strs:
             return
-        self._ingest_path(Path(path_str))
+        for path_str in path_strs:
+            self._ingest_path(Path(path_str))
 
     def load_sample_via_menu(self) -> None:
         if not SAMPLES_DIR.exists():
@@ -762,46 +837,63 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             return
         self._ingest_path(Path(path_str))
 
-    def export_manifest(self) -> None:
+    def export_center(self) -> None:
+        """Unified export entry-point to write manifest, CSVs, and plot artifacts."""
         spectra = [spec for spec in self.overlay_service.list() if self._visibility.get(spec.id, True)]
         if not spectra:
             QtWidgets.QMessageBox.information(self, "Export", "No visible spectra to export.")
             return
         allow_composite = len(spectra) >= 2
-        dialog = ExportOptionsDialog(self, allow_composite=allow_composite)
+        dialog = ExportCenterDialog(self, allow_composite=allow_composite)
         if dialog.exec() != QtWidgets.QDialog.DialogCode.Accepted:
             return
-        options = dialog.result()
-        if not options.has_selection:
+        opts = dialog.result()
+        if not any([opts.manifest, opts.wide_csv, opts.composite_csv, opts.plot_png, opts.plot_svg, opts.plot_csv]):
             return
-
-        target_str, _ = QtWidgets.QFileDialog.getSaveFileName(
+        base_str, _ = QtWidgets.QFileDialog.getSaveFileName(
             self,
-            "Save Manifest",
-            str(Path.home() / "export" / "manifest.json"),
-            "JSON (*.json)",
+            "Choose export base name",
+            str(Path.home() / "export" / "export"),
+            "All files (*.*)",
         )
-        if not target_str:
+        if not base_str:
             return
-        target = Path(target_str)
-        # Always write the bundle manifest + combined CSV + PNG
-        outcome = self.provenance_service.export_bundle(
-            spectra,
-            target,
-            png_writer=lambda p: self.plot.export_png(p),
-        )
-        # Optional additional CSVs
-        if options.include_wide_csv:
+        base = Path(base_str)
+        try:
+            # Manifest bundle (JSON + per-spectrum CSVs + PNG snapshot)
+            if opts.manifest:
+                outcome = self.provenance_service.export_bundle(
+                    spectra,
+                    base.with_suffix(".json"),
+                    png_writer=lambda p: self.plot.export_png(p),
+                )
+                self._log("Export", f"Bundle written: {outcome.get('manifest_path')}")
+            # Wide CSV
+            if opts.wide_csv:
+                self.provenance_service.write_wide_csv(base.with_name(base.stem + "-wide.csv"), spectra)
+                self._log("Export", f"Wide CSV written: {base.with_name(base.stem + '-wide.csv')}")
+            # Composite CSV (mean across visible spectra)
+            if opts.composite_csv and allow_composite:
+                self.provenance_service.write_composite_csv(base.with_name(base.stem + "-composite.csv"), spectra)
+                self._log("Export", f"Composite CSV written: {base.with_name(base.stem + '-composite.csv')}")
+            # Plot artifacts via pyqtgraph exporters (best-effort)
             try:
-                self.provenance_service.write_wide_csv(target.with_name(target.stem + "-wide.csv"), spectra)
-            except Exception as exc:
-                self._log("Export", f"Wide CSV failed: {exc}")
-        if options.include_composite_csv and len(spectra) >= 2:
-            try:
-                self.provenance_service.write_composite_csv(target.with_name(target.stem + "-composite.csv"), spectra)
-            except Exception as exc:
-                self._log("Export", f"Composite CSV failed: {exc}")
-        self._log("Export", f"Bundle written: {outcome.get('manifest_path')}")
+                from pyqtgraph.exporters import ImageExporter, SVGExporter, CSVExporter  # type: ignore
+                plot_item = self.plot._plot.plotItem  # type: ignore[attr-defined]
+                if opts.plot_png:
+                    ImageExporter(plot_item).export(str(base.with_name(base.stem + "-plot.png")))
+                    self._log("Export", f"Plot PNG written: {base.with_name(base.stem + '-plot.png')}")
+                if opts.plot_svg:
+                    SVGExporter(plot_item).export(str(base.with_name(base.stem + "-plot.svg")))
+                    self._log("Export", f"Plot SVG written: {base.with_name(base.stem + '-plot.svg')}")
+                if opts.plot_csv:
+                    CSVExporter(plot_item).export(fileName=str(base.with_name(base.stem + "-plot.csv")))
+                    self._log("Export", f"Plot CSV written: {base.with_name(base.stem + '-plot.csv')}")
+            except Exception:
+                # Ignore exporter errors; manifest/CSVs may still have succeeded
+                pass
+        except Exception as exc:
+            QtWidgets.QMessageBox.warning(self, "Export failed", str(exc))
 
     def _persistence_disabled_via_env(self) -> bool:
         flag = os.environ.get("SPECTRA_DISABLE_PERSISTENCE")
@@ -975,11 +1067,16 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         color = self._next_palette_color()
         self._spectrum_colors[spectrum.id] = color
         style = TraceStyle(color=color, width=1.5, show_in_legend=True)
+        
+        # Apply current normalization mode
+        norm_mode = self.norm_combo.currentText()
+        y_data = self._apply_normalization(spectrum.y, norm_mode)
+        
         self.plot.add_trace(
             key=spectrum.id,
             alias=spectrum.name,
             x_nm=spectrum.x,
-            y=spectrum.y,
+            y=y_data,
             style=style,
         )
         self._visibility[spectrum.id] = True
@@ -1021,6 +1118,8 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             self.plot.set_visible(spec_id, checked)
         except Exception:
             pass
+        # Update merge preview when visibility changes
+        self._update_merge_preview()
 
     def _on_dataset_filter_changed(self, text: str) -> None:
         if self.dataset_model is None or getattr(self, "_originals_item", None) is None:
@@ -1033,6 +1132,109 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             match = needle in alias_item.text().lower()
             # Hide or show the child row relative to the parent
             self.dataset_tree.setRowHidden(row, parent_index, not match)
+
+    def _on_dataset_context_menu(self, position: QtCore.QPoint) -> None:
+        """Show context menu for dataset tree view."""
+        if self.dataset_view is None or self.dataset_model is None:
+            return
+        
+        # Get the item at the position
+        index = self.dataset_view.indexAt(position)
+        if not index.isValid():
+            return
+        
+        # Don't show menu for the root "Originals" item
+        if index.parent() == QtCore.QModelIndex():
+            return
+        
+        # Get selected rows (support multi-selection)
+        selected_indexes = self.dataset_view.selectionModel().selectedRows()
+        if not selected_indexes:
+            return
+        
+        # Build context menu
+        menu = QtWidgets.QMenu(self.dataset_view)
+        
+        if len(selected_indexes) == 1:
+            remove_action = menu.addAction("Remove Dataset")
+        else:
+            remove_action = menu.addAction(f"Remove {len(selected_indexes)} Datasets")
+        
+        remove_action.triggered.connect(lambda: self._remove_selected_datasets(selected_indexes))
+        
+        # Show menu at cursor position
+        menu.exec(self.dataset_view.viewport().mapToGlobal(position))
+
+    def _remove_selected_datasets(self, indexes: list[QtCore.QModelIndex]) -> None:
+        """Remove selected datasets from the overlay and UI."""
+        if not indexes:
+            return
+        
+        # Collect spectrum IDs to remove
+        spec_ids_to_remove = []
+        rows_to_remove = []
+        
+        for index in indexes:
+            # Get the alias item from column 0
+            alias_index = self.dataset_model.index(index.row(), 0, index.parent())
+            alias_item = self.dataset_model.itemFromIndex(alias_index)
+            
+            # Find corresponding spectrum ID
+            for spec_id, item in self._dataset_items.items():
+                if item is alias_item:
+                    spec_ids_to_remove.append(spec_id)
+                    rows_to_remove.append((index.row(), index.parent()))
+                    break
+        
+        # Remove from overlay service
+        for spec_id in spec_ids_to_remove:
+            try:
+                self.overlay_service.remove(spec_id)
+            except Exception:
+                pass
+            
+            # Remove from plot
+            try:
+                self.plot.remove_trace(spec_id)
+            except Exception:
+                pass
+            
+            # Remove from internal tracking
+            self._dataset_items.pop(spec_id, None)
+            self._spectrum_colors.pop(spec_id, None)
+            self._visibility.pop(spec_id, None)
+            self._display_y_units.pop(spec_id, None)
+        
+        # Remove rows from model (sort in reverse to avoid index shifting)
+        rows_to_remove.sort(reverse=True, key=lambda x: x[0])
+        for row, parent in rows_to_remove:
+            if parent.isValid():
+                parent_item = self.dataset_model.itemFromIndex(parent)
+                if parent_item:
+                    parent_item.removeRow(row)
+        
+        # Update math selectors
+        self._update_math_selectors()
+        
+        # Log the removal
+        if len(spec_ids_to_remove) == 1:
+            self._log("Datasets", f"Removed 1 dataset")
+        else:
+            self._log("Datasets", f"Removed {len(spec_ids_to_remove)} datasets")
+
+    def _remove_selected_datasets_shortcut(self) -> None:
+        """Handle Delete key press to remove selected datasets."""
+        if self.dataset_view is None:
+            return
+        
+        selected_indexes = self.dataset_view.selectionModel().selectedRows()
+        if not selected_indexes:
+            return
+        
+        # Filter out the root "Originals" item
+        valid_indexes = [idx for idx in selected_indexes if idx.parent().isValid()]
+        if valid_indexes:
+            self._remove_selected_datasets(valid_indexes)
 
     def _on_doc_selected(self, row: int) -> None:
         if self.docs_list is None or self.doc_viewer is None:
@@ -1069,14 +1271,45 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self._save_plot_max_points(self._plot_max_points)
 
     def _refresh_plot(self) -> None:
-        # For now, just re-apply visibility and autoscale. A full redraw with
-        # normalization can be wired in a later step.
+        """Refresh plot with current normalization mode."""
+        norm_mode = self.norm_combo.currentText()
+        
         for spec in self.overlay_service.list():
             try:
                 self.plot.update_alias(spec.id, spec.name)
+                # Apply normalization
+                y_data = self._apply_normalization(spec.y, norm_mode)
+                color = self._spectrum_colors.get(spec.id, QtGui.QColor("white"))
+                style = TraceStyle(color=color, width=1.5, show_in_legend=True)
+                self.plot.add_trace(
+                    key=spec.id,
+                    alias=spec.name,
+                    x_nm=spec.x,
+                    y=y_data,
+                    style=style,
+                )
             except Exception:
                 pass
         self.plot.autoscale()
+    
+    def _apply_normalization(self, y: np.ndarray, mode: str) -> np.ndarray:
+        """Apply normalization to y-data based on mode."""
+        if mode == "None" or len(y) == 0:
+            return y
+        
+        if mode == "Max":
+            max_val = np.max(np.abs(y))
+            if max_val > 0:
+                return y / max_val
+            return y
+        
+        if mode == "Area":
+            area = np.trapz(np.abs(y))
+            if area > 0:
+                return y / area
+            return y
+        
+        return y
 
     def _next_palette_color(self) -> QtGui.QColor:
         if self._use_uniform_palette:
@@ -1926,6 +2159,145 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             return
         entry = self._history_entries[row]
         self.history_detail.setPlainText(entry.raw)
+
+    # ----------------------------- Merge/Average helpers ----------------
+    def _update_merge_preview(self) -> None:
+        """Update the merge preview when dataset selection or visibility changes."""
+        if not hasattr(self, 'merge_preview_label') or not hasattr(self, 'merge_average_button'):
+            return
+        
+        # Get selected datasets
+        selected_specs = self._get_merge_candidates()
+        
+        if len(selected_specs) == 0:
+            self.merge_preview_label.setText("No datasets selected")
+            self.merge_average_button.setEnabled(False)
+        elif len(selected_specs) == 1:
+            spec = selected_specs[0]
+            self.merge_preview_label.setText(
+                f"1 dataset selected: {spec.name}\n"
+                f"Points: {len(spec.x)}, Range: {spec.x.min():.2f}-{spec.x.max():.2f} nm"
+            )
+            self.merge_average_button.setEnabled(False)
+        else:
+            # Show info about multiple spectra
+            point_counts = [len(spec.x) for spec in selected_specs]
+            min_wls = [spec.x.min() for spec in selected_specs]
+            max_wls = [spec.x.max() for spec in selected_specs]
+            
+            overlap_min = max(min_wls)
+            overlap_max = min(max_wls)
+            
+            if overlap_min >= overlap_max:
+                self.merge_preview_label.setText(
+                    f"{len(selected_specs)} datasets selected\n"
+                    f"⚠️ No overlapping wavelength range - cannot average"
+                )
+                self.merge_average_button.setEnabled(False)
+            else:
+                self.merge_preview_label.setText(
+                    f"{len(selected_specs)} datasets selected\n"
+                    f"Point counts: {min(point_counts)}-{max(point_counts)}\n"
+                    f"Overlapping range: {overlap_min:.2f}-{overlap_max:.2f} nm"
+                )
+                self.merge_average_button.setEnabled(True)
+    
+    def _get_merge_candidates(self) -> list[Spectrum]:
+        """Get list of spectra that are candidates for merging based on selection and visibility."""
+        if not hasattr(self, 'merge_only_visible') or not hasattr(self, 'dataset_view'):
+            return []
+        
+        only_visible = self.merge_only_visible.isChecked()
+        
+        # Get selected indexes
+        selection_model = self.dataset_view.selectionModel()
+        if not selection_model:
+            return []
+        
+        selected_indexes = selection_model.selectedRows()
+        
+        # Collect spectrum IDs from selection
+        selected_ids = []
+        for index in selected_indexes:
+            # Get the alias item (column 0)
+            alias_item = self.dataset_model.itemFromIndex(
+                self.dataset_model.index(index.row(), 0, index.parent())
+            )
+            if alias_item is None:
+                continue
+            
+            # Find spectrum ID for this item
+            for spec_id, item in self._dataset_items.items():
+                if item is alias_item:
+                    selected_ids.append(spec_id)
+                    break
+        
+        # Filter by visibility if requested
+        if only_visible:
+            selected_ids = [sid for sid in selected_ids if self._visibility.get(sid, True)]
+        
+        # Get the actual Spectrum objects
+        candidates = []
+        for spec_id in selected_ids:
+            try:
+                spec = self.overlay_service.get(spec_id)
+                candidates.append(spec)
+            except Exception:
+                pass
+        
+        return candidates
+    
+    def _on_merge_average(self) -> None:
+        """Perform averaging operation on selected spectra."""
+        if not hasattr(self, 'merge_status_label'):
+            return
+        
+        self.merge_status_label.setText("Processing...")
+        
+        try:
+            # Get spectra to average
+            spectra = self._get_merge_candidates()
+            
+            if len(spectra) < 2:
+                self.merge_status_label.setText("⚠️ Select at least 2 datasets to average")
+                return
+            
+            # Get custom name if provided
+            custom_name = self.merge_name_edit.text().strip() if hasattr(self, 'merge_name_edit') else ""
+            name = custom_name or None
+            
+            # Perform averaging
+            result, metadata = self.math_service.average(spectra, name=name)
+            
+            # Add to overlay
+            self.overlay_service.add(result)
+            self._add_spectrum(result)
+            
+            # Log the operation
+            self.knowledge_log.log(
+                "merge_average",
+                f"Averaged {len(spectra)} spectra into '{result.name}'",
+                metadata=metadata,
+                persist=True,
+            )
+            
+            # Update status
+            self.merge_status_label.setText(
+                f"✓ Created '{result.name}' from {len(spectra)} spectra"
+            )
+            
+            # Clear the name field
+            if hasattr(self, 'merge_name_edit'):
+                self.merge_name_edit.clear()
+            
+            # Refresh UI
+            self.plot.autoscale()
+            self._refresh_history_view()
+            
+        except Exception as exc:
+            self.merge_status_label.setText(f"❌ Error: {exc}")
+            import traceback
+            traceback.print_exc()
 
     # ----------------------------- Overlay refresh ----------------------
     def _update_math_selectors(self) -> None:

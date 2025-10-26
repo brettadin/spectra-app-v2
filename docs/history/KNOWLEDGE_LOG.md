@@ -1885,3 +1885,483 @@ Import/Remote Import entries remain after the cleanup.
 - okay sun file.csv
 
 ---
+## 2025-10-26 13:15 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file 4_51 _Subt2__1__16-51-23-367.txt
+
+**References**:
+- 4_51 _Subt2__1__16-51-23-367.txt
+
+---
+## 2025-10-26 13:15 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file 3_57 pm cloudy_Subt2__2__15-59-37-611.txt
+
+**References**:
+- 3_57 pm cloudy_Subt2__2__15-59-37-611.txt
+
+---
+## 2025-10-26 13:15 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file 4_51 _Subt2__2__16-53-38-520.txt
+
+**References**:
+- 4_51 _Subt2__2__16-53-38-520.txt
+
+---
+## 2025-10-26 13:15 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file 6_44 3.txt
+
+**References**:
+- 6_44 3.txt
+
+---
+## 2025-10-26 13:15 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file 6_44.txt
+
+**References**:
+- 6_44.txt
+
+---
+## 2025-10-26 13:26 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Sun outside no cover_USB4F034991__1__09-49-01-484.txt
+
+**References**:
+- Sun outside no cover_USB4F034991__1__09-49-01-484.txt
+
+---
+## 2025-10-26 13:26 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Sun outside no cover_USB4F034991__0__09-48-55-005.txt
+
+**References**:
+- Sun outside no cover_USB4F034991__0__09-48-55-005.txt
+
+---
+## 2025-10-26 13:26 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Good Sun reading.txt
+
+**References**:
+- Good Sun reading.txt
+
+---
+## 2025-10-26 13:26 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file okay sun file.csv
+
+**References**:
+- okay sun file.csv
+
+---
+## 2025-10-26 13:33 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file okay sun file.csv
+
+**References**:
+- okay sun file.csv
+
+---
+## 2025-10-26 13:33 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file 6_44 2.txt
+
+**References**:
+- 6_44 2.txt
+
+---
+## 2025-10-26 13:34 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file 6_44 3.txt
+
+**References**:
+- 6_44 3.txt
+
+---
+## 2025-10-26 13:34 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Good Sun reading.txt
+
+**References**:
+- Good Sun reading.txt
+
+---
+## 2025-10-26 14:00 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file 1003 pointing at moon_Subt2__0__22-05-15-398.txt
+
+**References**:
+- 1003 pointing at moon_Subt2__0__22-05-15-398.txt
+
+---
+## 2025-10-26 14:00 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file 1003 pointing at moon_Subt2__1__22-05-34-253.txt
+
+**References**:
+- 1003 pointing at moon_Subt2__1__22-05-34-253.txt
+
+---
+## 2025-10-26 14:00 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file 1003 pointing at moon_Subt2__2__22-06-33-699.txt
+
+**References**:
+- 1003 pointing at moon_Subt2__2__22-06-33-699.txt
+
+---
+## 2025-10-26 14:00 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file 1003 pointing at moon_Subt2__3__22-06-59-997.txt
+
+**References**:
+- 1003 pointing at moon_Subt2__3__22-06-59-997.txt
+
+---
+## 2025-10-26 14:00 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file 1003 pointing at moon_Subt2__4__22-07-16-794.txt
+
+**References**:
+- 1003 pointing at moon_Subt2__4__22-07-16-794.txt
+
+---
+## 2025-10-26 14:00 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file 1003 pointing at moon_Subt2__5__22-07-20-794.txt
+
+**References**:
+- 1003 pointing at moon_Subt2__5__22-07-20-794.txt
+
+---
+## 2025-10-26 14:00 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file 1003 pointing at moon_Subt2__6__22-07-21-694.txt
+
+**References**:
+- 1003 pointing at moon_Subt2__6__22-07-21-694.txt
+
+---
+## 2025-10-26 14:00 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file 1003 pointing at moon_Subt2__7__22-08-57-183.txt
+
+**References**:
+- 1003 pointing at moon_Subt2__7__22-08-57-183.txt
+
+---
+## 2025-10-26 14:00 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file 1003 pointing at moon_Subt2__8__22-09-25-280.txt
+
+**References**:
+- 1003 pointing at moon_Subt2__8__22-09-25-280.txt
+
+---
+## 2025-10-26 14:00 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file 1003 pointing at moon_Subt2__9__22-09-26-080.txt
+
+**References**:
+- 1003 pointing at moon_Subt2__9__22-09-26-080.txt
+
+---
+## 2025-10-26 14:00 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file 1003 pointing at moon_Subt2__10__22-10-16-917.txt
+
+**References**:
+- 1003 pointing at moon_Subt2__10__22-10-16-917.txt
+
+---
+## 2025-10-26 14:00 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file 1003 pointing at moon_Subt2__11__22-12-59-897.txt
+
+**References**:
+- 1003 pointing at moon_Subt2__11__22-12-59-897.txt
+
+---
+## 2025-10-26 14:00 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file 1003 pointing at moon_Subt2__12__22-14-42-087.txt
+
+**References**:
+- 1003 pointing at moon_Subt2__12__22-14-42-087.txt
+
+---
+## 2025-10-26 14:04 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file moon.csv
+
+**References**:
+- moon.csv
+
+---
+## 2025-10-26 14:06 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file moon_manifest-composite.csv
+
+**References**:
+- moon_manifest-composite.csv
+
+---
+## 2025-10-26 14:09 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Good Sun reading.txt
+
+**References**:
+- Good Sun reading.txt
+
+---
+## 2025-10-26 14:10 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Subt2__0__22-16-39-696.txt
+
+**References**:
+- Subt2__0__22-16-39-696.txt
+
+---
+## 2025-10-26 14:10 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Subt2__1__22-16-45-574.txt
+
+**References**:
+- Subt2__1__22-16-45-574.txt
+
+---
+## 2025-10-26 14:10 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Subt2__2__22-17-14-405.txt
+
+**References**:
+- Subt2__2__22-17-14-405.txt
+
+---
+## 2025-10-26 14:10 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Subt2__3__22-17-22-120.txt
+
+**References**:
+- Subt2__3__22-17-22-120.txt
+
+---
+## 2025-10-26 14:10 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Subt2__4__22-17-55-978.txt
+
+**References**:
+- Subt2__4__22-17-55-978.txt
+
+---
+## 2025-10-26 14:15 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file cleaner moon 2 files.csv
+
+**References**:
+- cleaner moon 2 files.csv
+
+---
+## 2025-10-26 14:15 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file cleaner moon 2 files-composite.csv
+
+**References**:
+- cleaner moon 2 files-composite.csv
+
+---
+## 2025-10-26 14:16 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file cleaner moon 2 files-composite.csv
+
+**References**:
+- cleaner moon 2 files-composite.csv
+
+---
+## 2025-10-26 14:30 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file okay sun file.csv
+
+**References**:
+- okay sun file.csv
+
+---
+## 2025-10-26 14:31 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file cleaner moon 2 files-composite.csv
+
+**References**:
+- cleaner moon 2 files-composite.csv
+
+---
+## 2025-10-26 14:32 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Good Sun reading.txt
+
+**References**:
+- Good Sun reading.txt
+
+---

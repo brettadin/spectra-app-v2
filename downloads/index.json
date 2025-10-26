@@ -3,9 +3,9 @@
   "items": {
     "cf31b0bf5bf1f7ee04d67a372cb468d1b2158f55de75f46bb191d249bb5a1a35": {
       "sha256": "cf31b0bf5bf1f7ee04d67a372cb468d1b2158f55de75f46bb191d249bb5a1a35",
-      "filename": "integration.csv",
-      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\cf\\integration.csv",
-      "original_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\cf\\integration.csv",
+      "filename": "first.csv",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\cf\\first.csv",
+      "original_path": "C:\\Users\\brett\\AppData\\Local\\Temp\\pytest-of-brett\\pytest-51\\test_export_skips_hidden_spect0\\first.csv",
       "bytes": 44,
       "units": {
         "x": "nm",
@@ -13,7 +13,7 @@
       },
       "source": {
         "ingest": {
-          "source_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\cf\\integration.csv",
+          "source_path": "C:\\Users\\brett\\AppData\\Local\\Temp\\pytest-of-brett\\pytest-51\\test_export_skips_hidden_spect0\\first.csv",
           "importer": "CsvImporter"
         },
         "source_units": {
@@ -22,7 +22,7 @@
         }
       },
       "created": "2025-10-25T21:38:01.183439+00:00",
-      "updated": "2025-10-25T22:17:10.943335+00:00"
+      "updated": "2025-10-26T18:45:22.315381+00:00"
     },
     "5b6728e12bace6c5126a7e2d19555b7c53f1421e8ef8f133286fe3aec1ebbcf8": {
       "sha256": "5b6728e12bace6c5126a7e2d19555b7c53f1421e8ef8f133286fe3aec1ebbcf8",
@@ -166,7 +166,7 @@
       "sha256": "a39c5b38ba14f61b01eba899e1b953ea9b458838f5a94ce4bc0a059fd41b3337",
       "filename": "okay sun file.csv",
       "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\a3\\okay sun file.csv",
-      "original_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\Sun\\okay sun file.csv",
+      "original_path": "C:\\Code\\spectra-app-v2\\samples\\SUN AND MOON\\okay sun file.csv",
       "bytes": 23085394,
       "units": {
         "x": "nm",
@@ -174,7 +174,7 @@
       },
       "source": {
         "ingest": {
-          "source_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\Sun\\okay sun file.csv",
+          "source_path": "C:\\Code\\spectra-app-v2\\samples\\SUN AND MOON\\okay sun file.csv",
           "importer": "CsvImporter"
         },
         "source_units": {
@@ -183,13 +183,13 @@
         }
       },
       "created": "2025-10-26T16:57:56.272849+00:00",
-      "updated": "2025-10-26T17:07:27.905122+00:00"
+      "updated": "2025-10-26T18:30:25.926050+00:00"
     },
     "283417d0db257f60e458765472c01550f5af2dfdfd2daf0f151c7e6710d7bf52": {
       "sha256": "283417d0db257f60e458765472c01550f5af2dfdfd2daf0f151c7e6710d7bf52",
       "filename": "Good Sun reading.txt",
       "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\28\\Good Sun reading.txt",
-      "original_path": "C:\\Code\\spectra-app-v2\\samples\\other file types\\Good Sun reading.txt",
+      "original_path": "C:\\Code\\spectra-app-v2\\samples\\SUN AND MOON\\Good Sun reading.txt",
       "bytes": 69934,
       "units": {
         "x": "nm",
@@ -197,7 +197,7 @@
       },
       "source": {
         "ingest": {
-          "source_path": "C:\\Code\\spectra-app-v2\\samples\\other file types\\Good Sun reading.txt",
+          "source_path": "C:\\Code\\spectra-app-v2\\samples\\SUN AND MOON\\Good Sun reading.txt",
           "importer": "CsvImporter"
         },
         "source_units": {
@@ -206,7 +206,7 @@
         }
       },
       "created": "2025-10-26T16:58:03.536602+00:00",
-      "updated": "2025-10-26T16:58:03.536602+00:00"
+      "updated": "2025-10-26T18:32:10.386058+00:00"
     },
     "7cc3a528beb2b24bc84cb8991c4da78457f97f27005d4edc04fe16c4233738c5": {
       "sha256": "7cc3a528beb2b24bc84cb8991c4da78457f97f27005d4edc04fe16c4233738c5",
@@ -304,7 +304,7 @@
       "sha256": "5c61f754e8b30dcccb862eeabb7764bbf0222518e1b451c65402eb6c657157ab",
       "filename": "3_57 pm cloudy_Subt2__2__15-59-37-611.txt",
       "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\5c\\3_57 pm cloudy_Subt2__2__15-59-37-611.txt",
-      "original_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\Sun\\oceanview\\10 7 25 at home\\3_57 pm cloudy_Subt2__2__15-59-37-611.txt",
+      "original_path": "C:\\Code\\spectra-app-v2\\samples\\SUN AND MOON\\cloudy\\3_57 pm cloudy_Subt2__2__15-59-37-611.txt",
       "bytes": 72100,
       "units": {
         "x": "nm",
@@ -312,7 +312,7 @@
       },
       "source": {
         "ingest": {
-          "source_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\Sun\\oceanview\\10 7 25 at home\\3_57 pm cloudy_Subt2__2__15-59-37-611.txt",
+          "source_path": "C:\\Code\\spectra-app-v2\\samples\\SUN AND MOON\\cloudy\\3_57 pm cloudy_Subt2__2__15-59-37-611.txt",
           "importer": "CsvImporter"
         },
         "source_units": {
@@ -321,7 +321,7 @@
         }
       },
       "created": "2025-10-26T17:05:34.505073+00:00",
-      "updated": "2025-10-26T17:05:34.505073+00:00"
+      "updated": "2025-10-26T17:15:16.808990+00:00"
     },
     "c940702e5e9941a183c5dd412f2c219c31d5463da527c9dad222f75f7a6d8f28": {
       "sha256": "c940702e5e9941a183c5dd412f2c219c31d5463da527c9dad222f75f7a6d8f28",
@@ -350,7 +350,7 @@
       "sha256": "c998db896ea532303475aa14f5083786ddd6f187a7e9c610872a7476bc713f90",
       "filename": "6_44 2.txt",
       "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\c9\\6_44 2.txt",
-      "original_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\Sun\\oceanview\\10 7 25 at home\\6_44 2.txt",
+      "original_path": "C:\\Code\\spectra-app-v2\\samples\\SUN AND MOON\\cloudy\\6_44 2.txt",
       "bytes": 70564,
       "units": {
         "x": "nm",
@@ -358,7 +358,7 @@
       },
       "source": {
         "ingest": {
-          "source_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\Sun\\oceanview\\10 7 25 at home\\6_44 2.txt",
+          "source_path": "C:\\Code\\spectra-app-v2\\samples\\SUN AND MOON\\cloudy\\6_44 2.txt",
           "importer": "CsvImporter"
         },
         "source_units": {
@@ -367,7 +367,7 @@
         }
       },
       "created": "2025-10-26T17:05:59.122343+00:00",
-      "updated": "2025-10-26T17:05:59.123343+00:00"
+      "updated": "2025-10-26T17:33:53.760887+00:00"
     },
     "2d01d12ddd204f21e62b785e41203940b9461ea21144b4f90be15559f4b01983": {
       "sha256": "2d01d12ddd204f21e62b785e41203940b9461ea21144b4f90be15559f4b01983",
@@ -419,7 +419,7 @@
       "sha256": "7f4e83faa0cbed365c55809fe18b7e1394a3d2166da8aace58f6a03add2c5c41",
       "filename": "6_44.txt",
       "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\7f\\6_44.txt",
-      "original_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\Sun\\oceanview\\10 7 25 at home\\6_44.txt",
+      "original_path": "C:\\Code\\spectra-app-v2\\samples\\SUN AND MOON\\cloudy\\6_44.txt",
       "bytes": 70572,
       "units": {
         "x": "nm",
@@ -427,7 +427,7 @@
       },
       "source": {
         "ingest": {
-          "source_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\Sun\\oceanview\\10 7 25 at home\\6_44.txt",
+          "source_path": "C:\\Code\\spectra-app-v2\\samples\\SUN AND MOON\\cloudy\\6_44.txt",
           "importer": "CsvImporter"
         },
         "source_units": {
@@ -436,7 +436,1084 @@
         }
       },
       "created": "2025-10-26T17:07:01.883962+00:00",
-      "updated": "2025-10-26T17:07:01.884983+00:00"
+      "updated": "2025-10-26T17:15:44.549314+00:00"
+    },
+    "76f3fe995738c19dc3b443e4a0fe9d0f5a5320f56207b8c7d0ab8c9d890cc4c3": {
+      "sha256": "76f3fe995738c19dc3b443e4a0fe9d0f5a5320f56207b8c7d0ab8c9d890cc4c3",
+      "filename": "4_51 _Subt2__1__16-51-23-367.txt",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\76\\4_51 _Subt2__1__16-51-23-367.txt",
+      "original_path": "C:\\Code\\spectra-app-v2\\samples\\SUN AND MOON\\cloudy\\4_51 _Subt2__1__16-51-23-367.txt",
+      "bytes": 70934,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Code\\spectra-app-v2\\samples\\SUN AND MOON\\cloudy\\4_51 _Subt2__1__16-51-23-367.txt",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "absorbance"
+        }
+      },
+      "created": "2025-10-26T17:15:10.429164+00:00",
+      "updated": "2025-10-26T17:15:10.429164+00:00"
+    },
+    "b0cd3d72ef27eccbbb0f1dbdb258f40e0266dffc7236e16f11889d0a407b030d": {
+      "sha256": "b0cd3d72ef27eccbbb0f1dbdb258f40e0266dffc7236e16f11889d0a407b030d",
+      "filename": "4_51 _Subt2__2__16-53-38-520.txt",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\b0\\4_51 _Subt2__2__16-53-38-520.txt",
+      "original_path": "C:\\Code\\spectra-app-v2\\samples\\SUN AND MOON\\cloudy\\4_51 _Subt2__2__16-53-38-520.txt",
+      "bytes": 70952,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Code\\spectra-app-v2\\samples\\SUN AND MOON\\cloudy\\4_51 _Subt2__2__16-53-38-520.txt",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "absorbance"
+        }
+      },
+      "created": "2025-10-26T17:15:23.874963+00:00",
+      "updated": "2025-10-26T17:15:23.874963+00:00"
+    },
+    "05bacf2396b7fc7676a4413544ca696f828437293ff0be162dd0bfd7da202229": {
+      "sha256": "05bacf2396b7fc7676a4413544ca696f828437293ff0be162dd0bfd7da202229",
+      "filename": "6_44 3.txt",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\05\\6_44 3.txt",
+      "original_path": "C:\\Code\\spectra-app-v2\\samples\\SUN AND MOON\\cloudy\\6_44 3.txt",
+      "bytes": 70641,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Code\\spectra-app-v2\\samples\\SUN AND MOON\\cloudy\\6_44 3.txt",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "absorbance"
+        }
+      },
+      "created": "2025-10-26T17:15:32.645073+00:00",
+      "updated": "2025-10-26T17:34:14.200975+00:00"
+    },
+    "d132ae2e75c103d70dc8a6341985c20bd7238208c124ff79b00389f8250f9fbb": {
+      "sha256": "d132ae2e75c103d70dc8a6341985c20bd7238208c124ff79b00389f8250f9fbb",
+      "filename": "test.csv",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\d1\\test.csv",
+      "original_path": "C:\\Users\\brett\\AppData\\Local\\Temp\\pytest-of-brett\\pytest-43\\test_delete_key_shortcut0\\test.csv",
+      "bytes": 44,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Users\\brett\\AppData\\Local\\Temp\\pytest-of-brett\\pytest-43\\test_delete_key_shortcut0\\test.csv",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "absorbance"
+        }
+      },
+      "created": "2025-10-26T17:21:45.495007+00:00",
+      "updated": "2025-10-26T17:21:45.833947+00:00"
+    },
+    "26fe274d0c869be12e1a1d4f161f1ae6c72b85b7457bd1f8dfcf70fcbe6513ba": {
+      "sha256": "26fe274d0c869be12e1a1d4f161f1ae6c72b85b7457bd1f8dfcf70fcbe6513ba",
+      "filename": "test0.csv",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\26\\test0.csv",
+      "original_path": "C:\\Users\\brett\\AppData\\Local\\Temp\\pytest-of-brett\\pytest-43\\test_remove_multiple_datasets0\\test0.csv",
+      "bytes": 44,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Users\\brett\\AppData\\Local\\Temp\\pytest-of-brett\\pytest-43\\test_remove_multiple_datasets0\\test0.csv",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "absorbance"
+        }
+      },
+      "created": "2025-10-26T17:21:45.625016+00:00",
+      "updated": "2025-10-26T17:21:45.625016+00:00"
+    },
+    "99595bc91ee66bb75348a22d8e99d1fcd0c4ae03a4cd15b2d6dde3edaa2dabc8": {
+      "sha256": "99595bc91ee66bb75348a22d8e99d1fcd0c4ae03a4cd15b2d6dde3edaa2dabc8",
+      "filename": "test2.csv",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\99\\test2.csv",
+      "original_path": "C:\\Users\\brett\\AppData\\Local\\Temp\\pytest-of-brett\\pytest-43\\test_remove_multiple_datasets0\\test2.csv",
+      "bytes": 44,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Users\\brett\\AppData\\Local\\Temp\\pytest-of-brett\\pytest-43\\test_remove_multiple_datasets0\\test2.csv",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "absorbance"
+        }
+      },
+      "created": "2025-10-26T17:21:45.705161+00:00",
+      "updated": "2025-10-26T17:21:45.705161+00:00"
+    },
+    "ef90a8c66ca1062a06aef7b88601964e0e6112dda6888df7a2c8c6cc8f4f8cd7": {
+      "sha256": "ef90a8c66ca1062a06aef7b88601964e0e6112dda6888df7a2c8c6cc8f4f8cd7",
+      "filename": "Sun outside no cover_USB4F034991__1__09-49-01-484.txt",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\ef\\Sun outside no cover_USB4F034991__1__09-49-01-484.txt",
+      "original_path": "C:\\Code\\spectra-app-v2\\samples\\SUN AND MOON\\Sun outside no cover_USB4F034991__1__09-49-01-484.txt",
+      "bytes": 76100,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Code\\spectra-app-v2\\samples\\SUN AND MOON\\Sun outside no cover_USB4F034991__1__09-49-01-484.txt",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "absorbance"
+        }
+      },
+      "created": "2025-10-26T17:26:00.760110+00:00",
+      "updated": "2025-10-26T17:26:00.760110+00:00"
+    },
+    "a108f973f961e5538c45725477f784dafef82a53fa7da62b60efd196ec158a3a": {
+      "sha256": "a108f973f961e5538c45725477f784dafef82a53fa7da62b60efd196ec158a3a",
+      "filename": "Sun outside no cover_USB4F034991__0__09-48-55-005.txt",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\a1\\Sun outside no cover_USB4F034991__0__09-48-55-005.txt",
+      "original_path": "C:\\Code\\spectra-app-v2\\samples\\SUN AND MOON\\Sun outside no cover_USB4F034991__0__09-48-55-005.txt",
+      "bytes": 76094,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Code\\spectra-app-v2\\samples\\SUN AND MOON\\Sun outside no cover_USB4F034991__0__09-48-55-005.txt",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "absorbance"
+        }
+      },
+      "created": "2025-10-26T17:26:08.849256+00:00",
+      "updated": "2025-10-26T17:26:08.849256+00:00"
+    },
+    "b20520824df8a7bb4335482bd21ebe45445163937bc20a0a3afb4cdf20666dd8": {
+      "sha256": "b20520824df8a7bb4335482bd21ebe45445163937bc20a0a3afb4cdf20666dd8",
+      "filename": "test.csv",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\b2\\test.csv",
+      "original_path": "C:\\Users\\brett\\AppData\\Local\\Temp\\pytest-of-brett\\pytest-45\\test_normalization_max0\\test.csv",
+      "bytes": 52,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Users\\brett\\AppData\\Local\\Temp\\pytest-of-brett\\pytest-45\\test_normalization_max0\\test.csv",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "absorbance"
+        }
+      },
+      "created": "2025-10-26T17:30:40.546117+00:00",
+      "updated": "2025-10-26T17:31:28.589623+00:00"
+    },
+    "796cc4780264ad72cc574267822114bf49165730fc17648c1ba19a100e1e4974": {
+      "sha256": "796cc4780264ad72cc574267822114bf49165730fc17648c1ba19a100e1e4974",
+      "filename": "test.csv",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\79\\test.csv",
+      "original_path": "C:\\Users\\brett\\AppData\\Local\\Temp\\pytest-of-brett\\pytest-45\\test_normalization_area0\\test.csv",
+      "bytes": 52,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Users\\brett\\AppData\\Local\\Temp\\pytest-of-brett\\pytest-45\\test_normalization_area0\\test.csv",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "absorbance"
+        }
+      },
+      "created": "2025-10-26T17:30:40.735194+00:00",
+      "updated": "2025-10-26T17:31:28.776306+00:00"
+    },
+    "14100dbe858a38e707979d617209bdb895e3c57b7b92cb1cf7ac2f2bd9f594a2": {
+      "sha256": "14100dbe858a38e707979d617209bdb895e3c57b7b92cb1cf7ac2f2bd9f594a2",
+      "filename": "test2.csv",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\14\\test2.csv",
+      "original_path": "C:\\Users\\brett\\AppData\\Local\\Temp\\pytest-of-brett\\pytest-45\\test_normalization_multiple_sp0\\test2.csv",
+      "bytes": 58,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Users\\brett\\AppData\\Local\\Temp\\pytest-of-brett\\pytest-45\\test_normalization_multiple_sp0\\test2.csv",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "absorbance"
+        }
+      },
+      "created": "2025-10-26T17:30:40.878416+00:00",
+      "updated": "2025-10-26T17:31:29.394972+00:00"
+    },
+    "03ed7c2585bae7881c9c9c04850dfc36fd80bafa82f055f1708ad7628ffb120d": {
+      "sha256": "03ed7c2585bae7881c9c9c04850dfc36fd80bafa82f055f1708ad7628ffb120d",
+      "filename": "test.csv",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\03\\test.csv",
+      "original_path": "C:\\Users\\brett\\AppData\\Local\\Temp\\pytest-of-brett\\pytest-44\\test_normalization_change_upda0\\test.csv",
+      "bytes": 55,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Users\\brett\\AppData\\Local\\Temp\\pytest-of-brett\\pytest-44\\test_normalization_change_upda0\\test.csv",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "percent_transmittance"
+        }
+      },
+      "created": "2025-10-26T17:30:41.030066+00:00",
+      "updated": "2025-10-26T17:30:41.030066+00:00"
+    },
+    "4928ab151c3d4a0d899832b4745f362d2b679857e5ccee694bc0db8989488eab": {
+      "sha256": "4928ab151c3d4a0d899832b4745f362d2b679857e5ccee694bc0db8989488eab",
+      "filename": "test1.csv",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\49\\test1.csv",
+      "original_path": "C:\\Users\\brett\\AppData\\Local\\Temp\\pytest-of-brett\\pytest-45\\test_normalization_multiple_sp0\\test1.csv",
+      "bytes": 52,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Users\\brett\\AppData\\Local\\Temp\\pytest-of-brett\\pytest-45\\test_normalization_multiple_sp0\\test1.csv",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "absorbance"
+        }
+      },
+      "created": "2025-10-26T17:30:41.224959+00:00",
+      "updated": "2025-10-26T17:31:29.370611+00:00"
+    },
+    "9d3a730cd18ef3f15d0d55f3cf179aca4de0c270e4191abc834b2a947a8d293b": {
+      "sha256": "9d3a730cd18ef3f15d0d55f3cf179aca4de0c270e4191abc834b2a947a8d293b",
+      "filename": "test.csv",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\9d\\test.csv",
+      "original_path": "C:\\Users\\brett\\AppData\\Local\\Temp\\pytest-of-brett\\pytest-45\\test_normalization_change_upda0\\test.csv",
+      "bytes": 55,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Users\\brett\\AppData\\Local\\Temp\\pytest-of-brett\\pytest-45\\test_normalization_change_upda0\\test.csv",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "percent_transmittance"
+        }
+      },
+      "created": "2025-10-26T17:31:29.136493+00:00",
+      "updated": "2025-10-26T17:31:29.136493+00:00"
+    },
+    "c1ca25da475f04363d53243822a6b254f1c449853cecf9ac03d6cda20fb01945": {
+      "sha256": "c1ca25da475f04363d53243822a6b254f1c449853cecf9ac03d6cda20fb01945",
+      "filename": "test.csv",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\c1\\test.csv",
+      "original_path": "C:\\Users\\brett\\AppData\\Local\\Temp\\pytest-of-brett\\pytest-50\\test_normalization_max0\\test.csv",
+      "bytes": 53,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Users\\brett\\AppData\\Local\\Temp\\pytest-of-brett\\pytest-50\\test_normalization_max0\\test.csv",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "absorbance"
+        }
+      },
+      "created": "2025-10-26T17:33:42.175022+00:00",
+      "updated": "2025-10-26T17:52:06.709104+00:00"
+    },
+    "93c36f2a8adf292ec0cbe6853976b5a2308d925ae981acb33253b649e4ddf501": {
+      "sha256": "93c36f2a8adf292ec0cbe6853976b5a2308d925ae981acb33253b649e4ddf501",
+      "filename": "test.csv",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\93\\test.csv",
+      "original_path": "C:\\Users\\brett\\AppData\\Local\\Temp\\pytest-of-brett\\pytest-50\\test_normalization_area0\\test.csv",
+      "bytes": 53,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Users\\brett\\AppData\\Local\\Temp\\pytest-of-brett\\pytest-50\\test_normalization_area0\\test.csv",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "absorbance"
+        }
+      },
+      "created": "2025-10-26T17:33:42.365141+00:00",
+      "updated": "2025-10-26T17:52:06.851297+00:00"
+    },
+    "4ca5da9d32ba1d30b4cbe6a9e0b22ce8edb1fc67ac87221e186434c6fd20603f": {
+      "sha256": "4ca5da9d32ba1d30b4cbe6a9e0b22ce8edb1fc67ac87221e186434c6fd20603f",
+      "filename": "test2.csv",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\4c\\test2.csv",
+      "original_path": "C:\\Users\\brett\\AppData\\Local\\Temp\\pytest-of-brett\\pytest-50\\test_normalization_multiple_sp0\\test2.csv",
+      "bytes": 59,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Users\\brett\\AppData\\Local\\Temp\\pytest-of-brett\\pytest-50\\test_normalization_multiple_sp0\\test2.csv",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "absorbance"
+        }
+      },
+      "created": "2025-10-26T17:33:42.495175+00:00",
+      "updated": "2025-10-26T17:52:07.255125+00:00"
+    },
+    "c2ade8f6dd2564597d870a6ff048dc1595bd943319dbbcc3f67e471723a08a8a": {
+      "sha256": "c2ade8f6dd2564597d870a6ff048dc1595bd943319dbbcc3f67e471723a08a8a",
+      "filename": "test.csv",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\c2\\test.csv",
+      "original_path": "C:\\Users\\brett\\AppData\\Local\\Temp\\pytest-of-brett\\pytest-50\\test_normalization_change_upda0\\test.csv",
+      "bytes": 56,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Users\\brett\\AppData\\Local\\Temp\\pytest-of-brett\\pytest-50\\test_normalization_change_upda0\\test.csv",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "absorbance"
+        }
+      },
+      "created": "2025-10-26T17:33:42.632861+00:00",
+      "updated": "2025-10-26T17:52:07.077758+00:00"
+    },
+    "3439b66affaec179e1c49f9b545b1aacc7e0050e471daf164c0c70a2a67ac79e": {
+      "sha256": "3439b66affaec179e1c49f9b545b1aacc7e0050e471daf164c0c70a2a67ac79e",
+      "filename": "test1.csv",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\34\\test1.csv",
+      "original_path": "C:\\Users\\brett\\AppData\\Local\\Temp\\pytest-of-brett\\pytest-50\\test_normalization_multiple_sp0\\test1.csv",
+      "bytes": 53,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Users\\brett\\AppData\\Local\\Temp\\pytest-of-brett\\pytest-50\\test_normalization_multiple_sp0\\test1.csv",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "absorbance"
+        }
+      },
+      "created": "2025-10-26T17:33:42.808980+00:00",
+      "updated": "2025-10-26T17:52:07.236846+00:00"
+    },
+    "96135de54c58679240b4af8f60f0608d0e31c916d4497b60962ccd17fe9c9442": {
+      "sha256": "96135de54c58679240b4af8f60f0608d0e31c916d4497b60962ccd17fe9c9442",
+      "filename": "test0.csv",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\96\\test0.csv",
+      "original_path": "C:\\Users\\brett\\AppData\\Local\\Temp\\pytest-of-brett\\pytest-47\\test_merge_respects_visibility0\\test0.csv",
+      "bytes": 53,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Users\\brett\\AppData\\Local\\Temp\\pytest-of-brett\\pytest-47\\test_merge_respects_visibility0\\test0.csv",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "absorbance"
+        }
+      },
+      "created": "2025-10-26T17:45:42.746257+00:00",
+      "updated": "2025-10-26T17:45:43.019793+00:00"
+    },
+    "c1d0278a2a9e710761a44857b2767559346d2efc729437ae22822bd2480f51d9": {
+      "sha256": "c1d0278a2a9e710761a44857b2767559346d2efc729437ae22822bd2480f51d9",
+      "filename": "test1.csv",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\c1\\test1.csv",
+      "original_path": "C:\\Users\\brett\\AppData\\Local\\Temp\\pytest-of-brett\\pytest-47\\test_merge_respects_visibility0\\test1.csv",
+      "bytes": 53,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Users\\brett\\AppData\\Local\\Temp\\pytest-of-brett\\pytest-47\\test_merge_respects_visibility0\\test1.csv",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "absorbance"
+        }
+      },
+      "created": "2025-10-26T17:45:42.809645+00:00",
+      "updated": "2025-10-26T17:45:43.055121+00:00"
+    },
+    "1c97f968bb37fa38e3422ee7cab450f56d561882f9e2a62e8d074e9168cb983b": {
+      "sha256": "1c97f968bb37fa38e3422ee7cab450f56d561882f9e2a62e8d074e9168cb983b",
+      "filename": "test2.csv",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\1c\\test2.csv",
+      "original_path": "C:\\Users\\brett\\AppData\\Local\\Temp\\pytest-of-brett\\pytest-47\\test_merge_respects_visibility0\\test2.csv",
+      "bytes": 53,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Users\\brett\\AppData\\Local\\Temp\\pytest-of-brett\\pytest-47\\test_merge_respects_visibility0\\test2.csv",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "absorbance"
+        }
+      },
+      "created": "2025-10-26T17:45:42.858922+00:00",
+      "updated": "2025-10-26T17:45:43.085108+00:00"
+    },
+    "ae72157005860f43147565b11eadd76eed2ee172a0e3a9867bcbbfea45b1c7cb": {
+      "sha256": "ae72157005860f43147565b11eadd76eed2ee172a0e3a9867bcbbfea45b1c7cb",
+      "filename": "test1.csv",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\ae\\test1.csv",
+      "original_path": "C:\\Users\\brett\\AppData\\Local\\Temp\\pytest-of-brett\\pytest-47\\test_merge_average_creates_new0\\test1.csv",
+      "bytes": 53,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Users\\brett\\AppData\\Local\\Temp\\pytest-of-brett\\pytest-47\\test_merge_average_creates_new0\\test1.csv",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "absorbance"
+        }
+      },
+      "created": "2025-10-26T17:45:43.236678+00:00",
+      "updated": "2025-10-26T17:45:43.236678+00:00"
+    },
+    "eee39b8a88e1b2ac6f0b72ea15ef47ebd19fed2d747ef987f907a0feeb3df71f": {
+      "sha256": "eee39b8a88e1b2ac6f0b72ea15ef47ebd19fed2d747ef987f907a0feeb3df71f",
+      "filename": "test2.csv",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\ee\\test2.csv",
+      "original_path": "C:\\Users\\brett\\AppData\\Local\\Temp\\pytest-of-brett\\pytest-47\\test_merge_average_creates_new0\\test2.csv",
+      "bytes": 53,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Users\\brett\\AppData\\Local\\Temp\\pytest-of-brett\\pytest-47\\test_merge_average_creates_new0\\test2.csv",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "absorbance"
+        }
+      },
+      "created": "2025-10-26T17:45:43.266867+00:00",
+      "updated": "2025-10-26T17:45:43.266867+00:00"
+    },
+    "24dcb0ecdbe2c19c8c40660e937d4615115fda5e4bf51c175cb41e84c0e17d58": {
+      "sha256": "24dcb0ecdbe2c19c8c40660e937d4615115fda5e4bf51c175cb41e84c0e17d58",
+      "filename": "1003 pointing at moon_Subt2__0__22-05-15-398.txt",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\24\\1003 pointing at moon_Subt2__0__22-05-15-398.txt",
+      "original_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\moon\\1003 pointing at moon_Subt2__0__22-05-15-398.txt",
+      "bytes": 73791,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\moon\\1003 pointing at moon_Subt2__0__22-05-15-398.txt",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "absorbance"
+        }
+      },
+      "created": "2025-10-26T18:00:07.618449+00:00",
+      "updated": "2025-10-26T18:00:07.618449+00:00"
+    },
+    "19a64f307e5d80145a4cb48b1b9175f15b2bed87811d64491307ed295109ced5": {
+      "sha256": "19a64f307e5d80145a4cb48b1b9175f15b2bed87811d64491307ed295109ced5",
+      "filename": "1003 pointing at moon_Subt2__1__22-05-34-253.txt",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\19\\1003 pointing at moon_Subt2__1__22-05-34-253.txt",
+      "original_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\moon\\1003 pointing at moon_Subt2__1__22-05-34-253.txt",
+      "bytes": 74178,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\moon\\1003 pointing at moon_Subt2__1__22-05-34-253.txt",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "absorbance"
+        }
+      },
+      "created": "2025-10-26T18:00:07.697892+00:00",
+      "updated": "2025-10-26T18:00:07.697892+00:00"
+    },
+    "48023abc397ba5d3bb9912b0b6b5403b7409244c7f10f3d2afe30ae41aa59022": {
+      "sha256": "48023abc397ba5d3bb9912b0b6b5403b7409244c7f10f3d2afe30ae41aa59022",
+      "filename": "1003 pointing at moon_Subt2__2__22-06-33-699.txt",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\48\\1003 pointing at moon_Subt2__2__22-06-33-699.txt",
+      "original_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\moon\\1003 pointing at moon_Subt2__2__22-06-33-699.txt",
+      "bytes": 69233,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\moon\\1003 pointing at moon_Subt2__2__22-06-33-699.txt",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "absorbance"
+        }
+      },
+      "created": "2025-10-26T18:00:07.763011+00:00",
+      "updated": "2025-10-26T18:00:07.763011+00:00"
+    },
+    "025ec784e8f73b1500b9f108435dd44ee96ac99d118425ddf4831547f4297d9c": {
+      "sha256": "025ec784e8f73b1500b9f108435dd44ee96ac99d118425ddf4831547f4297d9c",
+      "filename": "1003 pointing at moon_Subt2__3__22-06-59-997.txt",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\02\\1003 pointing at moon_Subt2__3__22-06-59-997.txt",
+      "original_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\moon\\1003 pointing at moon_Subt2__3__22-06-59-997.txt",
+      "bytes": 69230,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\moon\\1003 pointing at moon_Subt2__3__22-06-59-997.txt",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "absorbance"
+        }
+      },
+      "created": "2025-10-26T18:00:07.828416+00:00",
+      "updated": "2025-10-26T18:00:07.828416+00:00"
+    },
+    "56ddf6f9c31500290c0c10ffc50a3d82938ac2389824df057f13110e6f48b553": {
+      "sha256": "56ddf6f9c31500290c0c10ffc50a3d82938ac2389824df057f13110e6f48b553",
+      "filename": "1003 pointing at moon_Subt2__4__22-07-16-794.txt",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\56\\1003 pointing at moon_Subt2__4__22-07-16-794.txt",
+      "original_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\moon\\1003 pointing at moon_Subt2__4__22-07-16-794.txt",
+      "bytes": 68491,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\moon\\1003 pointing at moon_Subt2__4__22-07-16-794.txt",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "absorbance"
+        }
+      },
+      "created": "2025-10-26T18:00:07.888126+00:00",
+      "updated": "2025-10-26T18:00:07.888126+00:00"
+    },
+    "b4c0e18db261c3701d7fbe9f65f2dcc7e9bcd892a3add125504aa57e403293fd": {
+      "sha256": "b4c0e18db261c3701d7fbe9f65f2dcc7e9bcd892a3add125504aa57e403293fd",
+      "filename": "1003 pointing at moon_Subt2__5__22-07-20-794.txt",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\b4\\1003 pointing at moon_Subt2__5__22-07-20-794.txt",
+      "original_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\moon\\1003 pointing at moon_Subt2__5__22-07-20-794.txt",
+      "bytes": 69235,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\moon\\1003 pointing at moon_Subt2__5__22-07-20-794.txt",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "absorbance"
+        }
+      },
+      "created": "2025-10-26T18:00:07.956632+00:00",
+      "updated": "2025-10-26T18:00:07.956632+00:00"
+    },
+    "a2c1e8b91959240c2efee4afeda055e9f245885a537c7924321549a7ac992af9": {
+      "sha256": "a2c1e8b91959240c2efee4afeda055e9f245885a537c7924321549a7ac992af9",
+      "filename": "1003 pointing at moon_Subt2__6__22-07-21-694.txt",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\a2\\1003 pointing at moon_Subt2__6__22-07-21-694.txt",
+      "original_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\moon\\1003 pointing at moon_Subt2__6__22-07-21-694.txt",
+      "bytes": 69211,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\moon\\1003 pointing at moon_Subt2__6__22-07-21-694.txt",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "absorbance"
+        }
+      },
+      "created": "2025-10-26T18:00:08.015853+00:00",
+      "updated": "2025-10-26T18:00:08.015853+00:00"
+    },
+    "54a5d7d8aaacdb8cce72de108ec5d034768d666b22ce5c36d224b7f4411fa203": {
+      "sha256": "54a5d7d8aaacdb8cce72de108ec5d034768d666b22ce5c36d224b7f4411fa203",
+      "filename": "1003 pointing at moon_Subt2__7__22-08-57-183.txt",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\54\\1003 pointing at moon_Subt2__7__22-08-57-183.txt",
+      "original_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\moon\\1003 pointing at moon_Subt2__7__22-08-57-183.txt",
+      "bytes": 69158,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\moon\\1003 pointing at moon_Subt2__7__22-08-57-183.txt",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "absorbance"
+        }
+      },
+      "created": "2025-10-26T18:00:08.079363+00:00",
+      "updated": "2025-10-26T18:00:08.079363+00:00"
+    },
+    "10bfc83554e8f13abec2eb4d9a8dc4f18af224e097289c8c4db52b506c25a1fb": {
+      "sha256": "10bfc83554e8f13abec2eb4d9a8dc4f18af224e097289c8c4db52b506c25a1fb",
+      "filename": "1003 pointing at moon_Subt2__8__22-09-25-280.txt",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\10\\1003 pointing at moon_Subt2__8__22-09-25-280.txt",
+      "original_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\moon\\1003 pointing at moon_Subt2__8__22-09-25-280.txt",
+      "bytes": 69467,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\moon\\1003 pointing at moon_Subt2__8__22-09-25-280.txt",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "absorbance"
+        }
+      },
+      "created": "2025-10-26T18:00:08.155066+00:00",
+      "updated": "2025-10-26T18:00:08.155066+00:00"
+    },
+    "9f0a2565a559adc8374ad2ac28e8da709f735c08b3b99e57ef53fb1028ad34d3": {
+      "sha256": "9f0a2565a559adc8374ad2ac28e8da709f735c08b3b99e57ef53fb1028ad34d3",
+      "filename": "1003 pointing at moon_Subt2__9__22-09-26-080.txt",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\9f\\1003 pointing at moon_Subt2__9__22-09-26-080.txt",
+      "original_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\moon\\1003 pointing at moon_Subt2__9__22-09-26-080.txt",
+      "bytes": 69343,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\moon\\1003 pointing at moon_Subt2__9__22-09-26-080.txt",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "absorbance"
+        }
+      },
+      "created": "2025-10-26T18:00:08.222619+00:00",
+      "updated": "2025-10-26T18:00:08.222619+00:00"
+    },
+    "265032f2ef3fd61f1a4b16e8339740925a0003bfe4868b4d55618478c0a7d8f8": {
+      "sha256": "265032f2ef3fd61f1a4b16e8339740925a0003bfe4868b4d55618478c0a7d8f8",
+      "filename": "1003 pointing at moon_Subt2__10__22-10-16-917.txt",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\26\\1003 pointing at moon_Subt2__10__22-10-16-917.txt",
+      "original_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\moon\\1003 pointing at moon_Subt2__10__22-10-16-917.txt",
+      "bytes": 72970,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\moon\\1003 pointing at moon_Subt2__10__22-10-16-917.txt",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "absorbance"
+        }
+      },
+      "created": "2025-10-26T18:00:08.302397+00:00",
+      "updated": "2025-10-26T18:00:08.302397+00:00"
+    },
+    "10472f431c33189a4e86afa200f447e5e59864fb0631521ae6e2e7478dfdd4d3": {
+      "sha256": "10472f431c33189a4e86afa200f447e5e59864fb0631521ae6e2e7478dfdd4d3",
+      "filename": "1003 pointing at moon_Subt2__11__22-12-59-897.txt",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\10\\1003 pointing at moon_Subt2__11__22-12-59-897.txt",
+      "original_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\moon\\1003 pointing at moon_Subt2__11__22-12-59-897.txt",
+      "bytes": 70071,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\moon\\1003 pointing at moon_Subt2__11__22-12-59-897.txt",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "absorbance"
+        }
+      },
+      "created": "2025-10-26T18:00:08.372808+00:00",
+      "updated": "2025-10-26T18:00:08.372808+00:00"
+    },
+    "e1ccc1f6a61f114675cd9e69cea0e712c9a292e22815b9d5a089aab65009937a": {
+      "sha256": "e1ccc1f6a61f114675cd9e69cea0e712c9a292e22815b9d5a089aab65009937a",
+      "filename": "1003 pointing at moon_Subt2__12__22-14-42-087.txt",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\e1\\1003 pointing at moon_Subt2__12__22-14-42-087.txt",
+      "original_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\moon\\1003 pointing at moon_Subt2__12__22-14-42-087.txt",
+      "bytes": 69974,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\moon\\1003 pointing at moon_Subt2__12__22-14-42-087.txt",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "absorbance"
+        }
+      },
+      "created": "2025-10-26T18:00:08.445353+00:00",
+      "updated": "2025-10-26T18:00:08.445353+00:00"
+    },
+    "53cce748b7503d8288b8950c693644c96408a9312397de81ba18979381e33a7c": {
+      "sha256": "53cce748b7503d8288b8950c693644c96408a9312397de81ba18979381e33a7c",
+      "filename": "moon.csv",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\53\\moon.csv",
+      "original_path": "C:\\Code\\spectra-app-v2\\exports\\moon.csv",
+      "bytes": 1075367,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Code\\spectra-app-v2\\exports\\moon.csv",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "absorbance"
+        }
+      },
+      "created": "2025-10-26T18:04:19.850457+00:00",
+      "updated": "2025-10-26T18:04:19.850457+00:00"
+    },
+    "5c93e1e588fb1ed9c9ea4579c5cd3e5de18a028d6d7761f553b03c846a5de5e8": {
+      "sha256": "5c93e1e588fb1ed9c9ea4579c5cd3e5de18a028d6d7761f553b03c846a5de5e8",
+      "filename": "moon_manifest-composite.csv",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\5c\\moon_manifest-composite.csv",
+      "original_path": "C:\\Code\\spectra-app-v2\\exports\\moon_manifest-composite.csv",
+      "bytes": 107309,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Code\\spectra-app-v2\\exports\\moon_manifest-composite.csv",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "absorbance"
+        }
+      },
+      "created": "2025-10-26T18:06:02.720762+00:00",
+      "updated": "2025-10-26T18:06:02.720762+00:00"
+    },
+    "4f874f86b2342a0d48814a0545ce1841f6372c5b69d6adb64c16ce6bbb5a77a5": {
+      "sha256": "4f874f86b2342a0d48814a0545ce1841f6372c5b69d6adb64c16ce6bbb5a77a5",
+      "filename": "Subt2__0__22-16-39-696.txt",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\4f\\Subt2__0__22-16-39-696.txt",
+      "original_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\moon\\Subt2__0__22-16-39-696.txt",
+      "bytes": 69242,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\moon\\Subt2__0__22-16-39-696.txt",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "absorbance"
+        }
+      },
+      "created": "2025-10-26T18:10:45.843652+00:00",
+      "updated": "2025-10-26T18:10:45.843652+00:00"
+    },
+    "27e2c4137e35bb486d26a7e45a6f6ecc7b48e22c1694496853f36c6fbf19a2b4": {
+      "sha256": "27e2c4137e35bb486d26a7e45a6f6ecc7b48e22c1694496853f36c6fbf19a2b4",
+      "filename": "Subt2__1__22-16-45-574.txt",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\27\\Subt2__1__22-16-45-574.txt",
+      "original_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\moon\\Subt2__1__22-16-45-574.txt",
+      "bytes": 69225,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\moon\\Subt2__1__22-16-45-574.txt",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "absorbance"
+        }
+      },
+      "created": "2025-10-26T18:10:45.912921+00:00",
+      "updated": "2025-10-26T18:10:45.912921+00:00"
+    },
+    "a1511d47d13561331c9ff98c82d3fe1b0840272c0dfd92521e3fc9658baef72d": {
+      "sha256": "a1511d47d13561331c9ff98c82d3fe1b0840272c0dfd92521e3fc9658baef72d",
+      "filename": "Subt2__2__22-17-14-405.txt",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\a1\\Subt2__2__22-17-14-405.txt",
+      "original_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\moon\\Subt2__2__22-17-14-405.txt",
+      "bytes": 73113,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\moon\\Subt2__2__22-17-14-405.txt",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "absorbance"
+        }
+      },
+      "created": "2025-10-26T18:10:45.979549+00:00",
+      "updated": "2025-10-26T18:10:45.979549+00:00"
+    },
+    "bd8e94bf174bc8ef7d6b310f3fcbce51ac6c1cd0fd3db8198c291d34128073c7": {
+      "sha256": "bd8e94bf174bc8ef7d6b310f3fcbce51ac6c1cd0fd3db8198c291d34128073c7",
+      "filename": "Subt2__3__22-17-22-120.txt",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\bd\\Subt2__3__22-17-22-120.txt",
+      "original_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\moon\\Subt2__3__22-17-22-120.txt",
+      "bytes": 72950,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\moon\\Subt2__3__22-17-22-120.txt",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "absorbance"
+        }
+      },
+      "created": "2025-10-26T18:10:46.049193+00:00",
+      "updated": "2025-10-26T18:10:46.049193+00:00"
+    },
+    "6cbc32735642f262eb3da61fa3b2e9c5943bfbca2de7dcd4cdaa3bdb5b8c968d": {
+      "sha256": "6cbc32735642f262eb3da61fa3b2e9c5943bfbca2de7dcd4cdaa3bdb5b8c968d",
+      "filename": "Subt2__4__22-17-55-978.txt",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\6c\\Subt2__4__22-17-55-978.txt",
+      "original_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\moon\\Subt2__4__22-17-55-978.txt",
+      "bytes": 73564,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\moon\\Subt2__4__22-17-55-978.txt",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "absorbance"
+        }
+      },
+      "created": "2025-10-26T18:10:46.120894+00:00",
+      "updated": "2025-10-26T18:10:46.120894+00:00"
+    },
+    "892586207fa447dc8e4f11526dba7ec63c2ba1a4c550b393e7b4db7dd5c62bad": {
+      "sha256": "892586207fa447dc8e4f11526dba7ec63c2ba1a4c550b393e7b4db7dd5c62bad",
+      "filename": "cleaner moon 2 files.csv",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\89\\cleaner moon 2 files.csv",
+      "original_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\moon\\cleaner moon 2 files.csv",
+      "bytes": 711962,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "bundle_members": [
+          "999ca980-e201-4950-99db-22d339fa6481",
+          "39eb1a94-c53f-49f8-bd08-29c41aa16756"
+        ]
+      },
+      "created": "2025-10-26T18:15:00.367577+00:00",
+      "updated": "2025-10-26T18:15:00.367577+00:00"
+    },
+    "09c6ada410a2cdffecb2a4ee53bc2e3ed6b8407e39cd4f7b97132c57c40d9803": {
+      "sha256": "09c6ada410a2cdffecb2a4ee53bc2e3ed6b8407e39cd4f7b97132c57c40d9803",
+      "filename": "cleaner moon 2 files-composite.csv",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\09\\cleaner moon 2 files-composite.csv",
+      "original_path": "C:\\Code\\spectra-app-v2\\samples\\SUN AND MOON\\MOON\\cleaner moon 2 files-composite.csv",
+      "bytes": 86246,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Code\\spectra-app-v2\\samples\\SUN AND MOON\\MOON\\cleaner moon 2 files-composite.csv",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "absorbance"
+        }
+      },
+      "created": "2025-10-26T18:15:12.361063+00:00",
+      "updated": "2025-10-26T18:31:59.247788+00:00"
+    },
+    "80b1b5b619e4cd0028cbe294562988cc787b9e191a3c69efa3a7660091d51883": {
+      "sha256": "80b1b5b619e4cd0028cbe294562988cc787b9e191a3c69efa3a7660091d51883",
+      "filename": "second.csv",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\80\\second.csv",
+      "original_path": "C:\\Users\\brett\\AppData\\Local\\Temp\\pytest-of-brett\\pytest-51\\test_export_skips_hidden_spect0\\second.csv",
+      "bytes": 44,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Users\\brett\\AppData\\Local\\Temp\\pytest-of-brett\\pytest-51\\test_export_skips_hidden_spect0\\second.csv",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "absorbance"
+        }
+      },
+      "created": "2025-10-26T18:45:22.350742+00:00",
+      "updated": "2025-10-26T18:45:22.350742+00:00"
     }
   }
 }

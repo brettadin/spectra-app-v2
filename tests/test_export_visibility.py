@@ -78,11 +78,18 @@ def test_export_skips_hidden_spectra(tmp_path: Path, monkeypatch: pytest.MonkeyP
                 return QtWidgets.QDialog.DialogCode.Accepted
 
             def result(self):  # type: ignore[override]
-                from app.ui.export_options_dialog import ExportOptions
+                from app.ui.export_center_dialog import ExportCenterOptions
 
-                return ExportOptions(include_manifest=True, include_wide_csv=False, include_composite_csv=False)
+                return ExportCenterOptions(
+                    manifest=True,
+                    wide_csv=False,
+                    composite_csv=False,
+                    plot_png=False,
+                    plot_svg=False,
+                    plot_csv=False,
+                )
 
-        monkeypatch.setattr(main_module, "ExportOptionsDialog", _AcceptDialog)
+        monkeypatch.setattr(main_module, "ExportCenterDialog", _AcceptDialog)
 
         def _fake_export_bundle(spectra_arg, manifest_path, **kwargs):
             ids = [spec.id for spec in spectra_arg]
@@ -109,7 +116,7 @@ def test_export_skips_hidden_spectra(tmp_path: Path, monkeypatch: pytest.MonkeyP
 
         monkeypatch.setattr(window.provenance_service, "export_bundle", _fake_export_bundle)
 
-        window.export_manifest()
+        window.export_center()
         app.processEvents()
 
         expected_ids = [spec.id for spec in window.overlay_service.list() if window._visibility.get(spec.id, True)]
