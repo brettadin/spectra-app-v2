@@ -3505,3 +3505,15 @@ Import/Remote Import entries remain after the cleanup.
 - mildly cloudy_Subt2__14__14-24-24-077.txt
 
 ---
+## 2025-10-26 19:45 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file jupiter__9408090029N_vo.fits
+
+**References**:
+- jupiter__9408090029N_vo.fits
+
+---

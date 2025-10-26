@@ -2833,6 +2833,29 @@
       },
       "created": "2025-10-26T20:39:09.911108+00:00",
       "updated": "2025-10-26T20:39:09.911108+00:00"
+    },
+    "45f1696ebcc53007e8e3ca8910fc422939c606d17f88234454077a934a18894b": {
+      "sha256": "45f1696ebcc53007e8e3ca8910fc422939c606d17f88234454077a934a18894b",
+      "filename": "jupiter__9408090029N_vo.fits",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\45\\jupiter__9408090029N_vo.fits",
+      "original_path": "C:\\Code\\spectra-app-v2\\samples\\fits data\\jupiter__9408090029N_vo.fits",
+      "bytes": 43200,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Code\\spectra-app-v2\\samples\\fits data\\jupiter__9408090029N_vo.fits",
+          "importer": "FitsImporter"
+        },
+        "source_units": {
+          "x": "angstrom",
+          "y": "absorbance"
+        }
+      },
+      "created": "2025-10-26T23:45:35.528865+00:00",
+      "updated": "2025-10-26T23:45:35.528865+00:00"
     }
   }
 }

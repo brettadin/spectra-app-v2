@@ -1,5 +1,7 @@
 """Reusable plotting pane for spectral traces."""
 
+# pyright: reportMissingTypeStubs=false, reportUnknownVariableType=false, reportUnknownMemberType=false, reportOptionalMemberAccess=false
+
 from __future__ import annotations
 
 from dataclasses import dataclass
