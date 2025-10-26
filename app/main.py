@@ -325,6 +325,8 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self._uniform_color = QtGui.QColor("#4F6D7A")
         self._last_display_views: List[Dict[str, object]] = []
         self._data_table_attached = False
+        self.data_table_dock: QtWidgets.QDockWidget | None = None
+        self.data_table: QtWidgets.QTableWidget | None = None
         # Docs UI
         self.docs_list: QtWidgets.QListWidget | None = None
         self.doc_viewer: QtWidgets.QPlainTextEdit | None = None
@@ -375,10 +377,9 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.plot = PlotPane(self, max_points=self._plot_max_points)
         self.central_split.addWidget(self.plot)
         self.plot.autoscale()
-        
-        # Disable pyqtgraph's built-in export menu - we use unified Export Center instead
+        # Keep the right-click menu but remove only the Export entry
         try:
-            self.plot._plot.getPlotItem().getViewBox().menu = None  # type: ignore[attr-defined]
+            self._remove_export_from_plot_context(self.plot._plot)  # type: ignore[attr-defined]
         except Exception:
             pass
 
@@ -477,6 +478,11 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.reference_plot: _pg.PlotWidget = _pg.PlotWidget()
         self.reference_plot.setLabel("bottom", "Wavelength (nm)")
         ref_layout.addWidget(self.reference_plot, 2)
+        # Keep right-click options here too, but strip Export
+        try:
+            self._remove_export_from_plot_context(self.reference_plot)
+        except Exception:
+            pass
 
         # Tabs within Reference
         self.reference_tabs = QtWidgets.QTabWidget()
@@ -791,8 +797,127 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self._refresh_library_view()
 
     def _toggle_data_table(self, checked: bool) -> None:
-        # Not implemented in the minimal UI; ignore toggle.
-        pass
+        if checked:
+            self._ensure_data_table()
+            if self.data_table_dock is not None:
+                self.data_table_dock.show()
+                self.data_table_dock.raise_()
+            self._refresh_data_table()
+        else:
+            if self.data_table_dock is not None:
+                self.data_table_dock.hide()
+
+    def _ensure_data_table(self) -> None:
+        """Create the Data Table dock on first use and wire refresh hooks."""
+        if self.data_table_dock is not None:
+            return
+        self.data_table_dock = QtWidgets.QDockWidget("Data Table", self)
+        self.data_table_dock.setObjectName("dock-data-table")
+        self.data_table = QtWidgets.QTableWidget()
+        self.data_table.setColumnCount(2)
+        self.data_table.setHorizontalHeaderLabels(["Wavelength", "Value"])
+        self.data_table.setAlternatingRowColors(True)
+        self.data_table.setEditTriggers(QtWidgets.QAbstractItemView.EditTrigger.NoEditTriggers)
+        self.data_table.setSelectionMode(QtWidgets.QAbstractItemView.SelectionMode.NoSelection)
+        self.data_table_dock.setWidget(self.data_table)
+        self.addDockWidget(QtCore.Qt.DockWidgetArea.BottomDockWidgetArea, self.data_table_dock)
+        # Keep visibility action in sync with dock
+        if self.data_table_action is not None:
+            self.data_table_action.setChecked(True)
+        # Refresh on selection/unit/normalization changes
+        try:
+            if self.dataset_view is not None and self.dataset_view.selectionModel() is not None:
+                self.dataset_view.selectionModel().selectionChanged.connect(self._refresh_data_table)
+        except Exception:
+            pass
+        try:
+            if self.unit_combo is not None:
+                self.unit_combo.currentTextChanged.connect(lambda *_: self._refresh_data_table())
+        except Exception:
+            pass
+        try:
+            if self.norm_combo is not None:
+                self.norm_combo.currentTextChanged.connect(lambda *_: self._refresh_data_table())
+        except Exception:
+            pass
+
+    def _refresh_data_table(self) -> None:
+        """Populate the Data Table with the currently selected dataset (single selection)."""
+        if self.data_table is None or self.dataset_view is None:
+            return
+        # Determine selected spectrum (single selection preferred)
+        selected = self.dataset_view.selectionModel().selectedRows() if self.dataset_view.selectionModel() else []
+        # Filter out root rows
+        selected = [idx for idx in selected if idx.parent().isValid()]
+        if len(selected) != 1:
+            self.data_table.clearContents()
+            self.data_table.setRowCount(0)
+            return
+        index = selected[0]
+        alias_item = self.dataset_model.itemFromIndex(self.dataset_model.index(index.row(), 0, index.parent()))
+        spec_id = None
+        for sid, item in self._dataset_items.items():
+            if item is alias_item:
+                spec_id = sid
+                break
+        if not spec_id:
+            self.data_table.clearContents()
+            self.data_table.setRowCount(0)
+            return
+        try:
+            spec = self.overlay_service.get(spec_id)
+        except Exception:
+            self.data_table.clearContents()
+            self.data_table.setRowCount(0)
+            return
+        # Build display arrays (match plot: current X unit + current normalization)
+        unit = self.unit_combo.currentText() if self.unit_combo is not None else "nm"
+        x_nm = np.asarray(spec.x, dtype=float)
+        if unit == "nm":
+            x_disp = x_nm
+        elif unit == "Å":
+            x_disp = x_nm * 10.0
+        elif unit == "µm":
+            x_disp = x_nm / 1000.0
+        elif unit == "cm⁻¹":
+            with np.errstate(divide="ignore"):
+                x_disp = 1e7 / x_nm
+        else:
+            x_disp = x_nm
+        y = self._apply_normalization(np.asarray(spec.y, dtype=float), self.norm_combo.currentText() if self.norm_combo is not None else "None")
+        # Populate table (cap for very large datasets to keep UI responsive)
+        cap = 20000
+        n = int(min(len(x_disp), len(y), cap))
+        self.data_table.setRowCount(n)
+        self.data_table.setHorizontalHeaderLabels([f"Wavelength ({unit})", "Value"])
+        for r in range(n):
+            xi = QtWidgets.QTableWidgetItem(f"{float(x_disp[r]):.6g}")
+            yi = QtWidgets.QTableWidgetItem(f"{float(y[r]):.6g}")
+            xi.setFlags(xi.flags() & ~QtCore.Qt.ItemFlag.ItemIsEditable)
+            yi.setFlags(yi.flags() & ~QtCore.Qt.ItemFlag.ItemIsEditable)
+            self.data_table.setItem(r, 0, xi)
+            self.data_table.setItem(r, 1, yi)
+        self.data_table.resizeColumnsToContents()
+
+    # ----------------------------- Plot context menu helpers -----------
+    def _remove_export_from_plot_context(self, plot_widget: object) -> None:
+        """Remove the 'Export…' action from a pyqtgraph PlotWidget context menu, keep the rest."""
+        try:
+            plot_item = plot_widget.getPlotItem()
+            vb = plot_item.getViewBox()
+            menu = vb.getMenu()
+        except Exception:
+            return
+        if menu is None:
+            return
+        try:
+            # Remove any top-level action labelled like Export (with '...' or ellipsis)
+            for act in list(menu.actions()):
+                text = (act.text() or "").strip().lower()
+                if text.startswith("export"):
+                    menu.removeAction(act)
+        except Exception:
+            pass
 
     def show_documentation(self) -> None:
         self._load_docs_if_needed()

@@ -2365,3 +2365,15 @@ Import/Remote Import entries remain after the cleanup.
 - Good Sun reading.txt
 
 ---
+## 2025-10-26 15:08 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file sample_spectrum.csv
+
+**References**:
+- sample_spectrum.csv
+
+---

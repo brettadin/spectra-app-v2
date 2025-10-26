@@ -1514,6 +1514,29 @@
       },
       "created": "2025-10-26T18:45:22.350742+00:00",
       "updated": "2025-10-26T18:45:22.350742+00:00"
+    },
+    "2123411e02139b817c29dc6eaa81cd6bd4eb3339f9170963511a59d98a48922c": {
+      "sha256": "2123411e02139b817c29dc6eaa81cd6bd4eb3339f9170963511a59d98a48922c",
+      "filename": "sample_spectrum.csv",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\21\\sample_spectrum.csv",
+      "original_path": "C:\\Code\\spectra-app-v2\\samples\\sample_spectrum.csv",
+      "bytes": 58,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Code\\spectra-app-v2\\samples\\sample_spectrum.csv",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "absorbance"
+        }
+      },
+      "created": "2025-10-26T19:08:59.566460+00:00",
+      "updated": "2025-10-26T19:08:59.566460+00:00"
     }
   }
 }
