@@ -1,0 +1,96 @@
+{
+  "version": "1.0",
+  "app": {
+    "name": "SpectraApp",
+    "version": "0.1.0",
+    "build_date": "2025-10-26",
+    "libraries": {
+      "numpy": "2.3.2",
+      "pyside6": "6.10.0",
+      "pytest": "8.4.2"
+    }
+  },
+  "timestamp_utc": "2025-10-26T20:27:42.529118+00:00",
+  "sources": [
+    {
+      "id": "1ae7e46c-6f99-47d7-b354-c938c5eb26bf",
+      "name": "3_57 merged",
+      "units": {
+        "wavelength": "nm",
+        "intensity": "absorbance"
+      },
+      "metadata": {
+        "operation": {
+          "name": "average",
+          "parameters": {
+            "count": 10,
+            "wavelength_range": [
+              345.386,
+              1045.841
+            ],
+            "points": 3648
+          },
+          "parents": [
+            "839a6d58-dc68-4498-bc3a-56f0ff4d30fc",
+            "5b98c761-5db6-4843-b62a-5899df08d30a",
+            "72cc7983-1d17-48eb-855f-ec6fe2bfc9c3",
+            "37911303-3f9c-4d81-8823-21e0bf3a1a69",
+            "c7170593-26f0-492f-a77b-b470b1eb418e",
+            "3e490c44-a5b7-496e-9e5a-59205b048f8d",
+            "5a5b6709-bc61-4df5-9b15-6c616b28b9b3",
+            "115617c2-5683-4985-bc94-7e02b810166e",
+            "e964ca88-2d36-4b66-a602-9377cc4ef573",
+            "dae76da8-9a2c-48ec-9022-10b7fa2b989d"
+          ]
+        },
+        "source_spectra": [
+          {
+            "id": "839a6d58-dc68-4498-bc3a-56f0ff4d30fc",
+            "name": "3_57 pm cloudy_Subt2__0__15-59-37-571"
+          },
+          {
+            "id": "5b98c761-5db6-4843-b62a-5899df08d30a",
+            "name": "3_57 pm cloudy_Subt2__1__15-59-37-591"
+          },
+          {
+            "id": "72cc7983-1d17-48eb-855f-ec6fe2bfc9c3",
+            "name": "3_57 pm cloudy_Subt2__2__15-59-37-611"
+          },
+          {
+            "id": "37911303-3f9c-4d81-8823-21e0bf3a1a69",
+            "name": "3_57 pm cloudy_Subt2__3__15-59-37-631"
+          },
+          {
+            "id": "c7170593-26f0-492f-a77b-b470b1eb418e",
+            "name": "3_57 pm cloudy_Subt2__4__15-59-37-651"
+          },
+          {
+            "id": "3e490c44-a5b7-496e-9e5a-59205b048f8d",
+            "name": "3_57 pm cloudy_Subt2__5__16-00-08-088"
+          },
+          {
+            "id": "5a5b6709-bc61-4df5-9b15-6c616b28b9b3",
+            "name": "3_57 pm cloudy_Subt2__6__16-00-08-198"
+          },
+          {
+            "id": "115617c2-5683-4985-bc94-7e02b810166e",
+            "name": "3_57 pm cloudy_Subt2__7__16-00-08-308"
+          },
+          {
+            "id": "e964ca88-2d36-4b66-a602-9377cc4ef573",
+            "name": "3_57 pm cloudy_Subt2__8__16-00-08-418"
+          },
+          {
+            "id": "dae76da8-9a2c-48ec-9022-10b7fa2b989d",
+            "name": "3_57 pm cloudy_Subt2__9__16-00-08-528"
+          }
+        ]
+      },
+      "parents": [],
+      "transforms": [],
+      "canonical_csv": "spectra\\3-57-merged-1ae7e46c-6f99-47d7-b354-c938c5eb26bf.csv"
+    }
+  ],
+  "transforms": [],
+  "citations": []
+}

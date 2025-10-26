@@ -1,0 +1,66 @@
+{
+  "version": "1.0",
+  "app": {
+    "name": "SpectraApp",
+    "version": "0.1.0",
+    "build_date": "2025-10-26",
+    "libraries": {
+      "numpy": "2.3.2",
+      "pyside6": "6.10.0",
+      "pytest": "8.4.2"
+    }
+  },
+  "timestamp_utc": "2025-10-26T20:25:16.062442+00:00",
+  "sources": [
+    {
+      "id": "e3ae98b3-6185-484b-9998-a54a341ceea8",
+      "name": "4_51pm",
+      "units": {
+        "wavelength": "nm",
+        "intensity": "absorbance"
+      },
+      "metadata": {
+        "operation": {
+          "name": "average",
+          "parameters": {
+            "count": 4,
+            "wavelength_range": [
+              345.386,
+              1045.841
+            ],
+            "points": 3648
+          },
+          "parents": [
+            "583984e6-a12e-44be-89fd-700e6dc12c64",
+            "0d3b681c-6600-4a36-9e10-664d6cb4f9ca",
+            "2ceb933b-cd9f-407d-a463-3060a5a3f094",
+            "eb54dc88-75a2-4fea-971c-f70ecab0d3ff"
+          ]
+        },
+        "source_spectra": [
+          {
+            "id": "583984e6-a12e-44be-89fd-700e6dc12c64",
+            "name": "4_51 _Subt2__0__16-51-23-322"
+          },
+          {
+            "id": "0d3b681c-6600-4a36-9e10-664d6cb4f9ca",
+            "name": "4_51 _Subt2__1__16-51-23-367"
+          },
+          {
+            "id": "2ceb933b-cd9f-407d-a463-3060a5a3f094",
+            "name": "4_51 _Subt2__2__16-53-38-520"
+          },
+          {
+            "id": "eb54dc88-75a2-4fea-971c-f70ecab0d3ff",
+            "name": "4_51 _Subt2__3__16-53-38-550"
+          }
+        ]
+      },
+      "parents": [],
+      "transforms": [],
+      "canonical_csv": "spectra\\4-51pm-e3ae98b3-6185-484b-9998-a54a341ceea8.csv"
+    }
+  ],
+  "transforms": [],
+  "citations": []
+}

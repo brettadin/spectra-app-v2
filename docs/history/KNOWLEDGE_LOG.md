@@ -2377,3 +2377,1083 @@ Import/Remote Import entries remain after the cleanup.
 - sample_spectrum.csv
 
 ---
+## 2025-10-26 15:42 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Good Sun reading.txt
+
+**References**:
+- Good Sun reading.txt
+
+---
+## 2025-10-26 15:42 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file H2O_Lamp.csv
+
+**References**:
+- H2O_Lamp.csv
+
+---
+## 2025-10-26 15:48 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file 3_57 pm cloudy_Subt2__2__15-59-37-611.txt
+
+**References**:
+- 3_57 pm cloudy_Subt2__2__15-59-37-611.txt
+
+---
+## 2025-10-26 15:48 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file 4_51 _Subt2__0__16-51-23-322.txt
+
+**References**:
+- 4_51 _Subt2__0__16-51-23-322.txt
+
+---
+## 2025-10-26 15:48 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file 4_51 _Subt2__1__16-51-23-367.txt
+
+**References**:
+- 4_51 _Subt2__1__16-51-23-367.txt
+
+---
+## 2025-10-26 15:48 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file 4_51 _Subt2__2__16-53-38-520.txt
+
+**References**:
+- 4_51 _Subt2__2__16-53-38-520.txt
+
+---
+## 2025-10-26 15:48 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file 6_44 2.txt
+
+**References**:
+- 6_44 2.txt
+
+---
+## 2025-10-26 15:48 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file 6_44 3.txt
+
+**References**:
+- 6_44 3.txt
+
+---
+## 2025-10-26 15:48 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file 6_44.txt
+
+**References**:
+- 6_44.txt
+
+---
+## 2025-10-26 15:50 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Sun blanked_Subt2__0__09-54-16-966.txt
+
+**References**:
+- Sun blanked_Subt2__0__09-54-16-966.txt
+
+---
+## 2025-10-26 15:50 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Sun blanked_Subt2__1__09-54-27-048.txt
+
+**References**:
+- Sun blanked_Subt2__1__09-54-27-048.txt
+
+---
+## 2025-10-26 15:50 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Sun covered_USB4F034991__0__09-50-03-477.txt
+
+**References**:
+- Sun covered_USB4F034991__0__09-50-03-477.txt
+
+---
+## 2025-10-26 15:50 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Sun covered_USB4F034991__1__09-50-09-976.txt
+
+**References**:
+- Sun covered_USB4F034991__1__09-50-09-976.txt
+
+---
+## 2025-10-26 15:50 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Sun outside no cover_USB4F034991__0__09-48-55-005.txt
+
+**References**:
+- Sun outside no cover_USB4F034991__0__09-48-55-005.txt
+
+---
+## 2025-10-26 15:50 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Sun outside no cover_USB4F034991__1__09-49-01-484.txt
+
+**References**:
+- Sun outside no cover_USB4F034991__1__09-49-01-484.txt
+
+---
+## 2025-10-26 15:50 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Sun spf450_Subt2__0__09-55-34-340.txt
+
+**References**:
+- Sun spf450_Subt2__0__09-55-34-340.txt
+
+---
+## 2025-10-26 15:50 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Sun spf450_Subt2__1__09-55-44-440.txt
+
+**References**:
+- Sun spf450_Subt2__1__09-55-44-440.txt
+
+---
+## 2025-10-26 15:50 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Sun spf500_Subt2__0__09-57-04-231.txt
+
+**References**:
+- Sun spf500_Subt2__0__09-57-04-231.txt
+
+---
+## 2025-10-26 15:50 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Sun spf500_Subt2__1__09-57-14-333.txt
+
+**References**:
+- Sun spf500_Subt2__1__09-57-14-333.txt
+
+---
+## 2025-10-26 15:50 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Sun spf550_Subt2__0__10-00-16-810.txt
+
+**References**:
+- Sun spf550_Subt2__0__10-00-16-810.txt
+
+---
+## 2025-10-26 15:50 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Sun spf550_Subt2__1__10-00-17-110.txt
+
+**References**:
+- Sun spf550_Subt2__1__10-00-17-110.txt
+
+---
+## 2025-10-26 15:50 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Sun spf600_Subt2__0__10-01-59-398.txt
+
+**References**:
+- Sun spf600_Subt2__0__10-01-59-398.txt
+
+---
+## 2025-10-26 15:50 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Sun spf600_Subt2__1__10-01-59-698.txt
+
+**References**:
+- Sun spf600_Subt2__1__10-01-59-698.txt
+
+---
+## 2025-10-26 15:50 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Sun spf650_Subt2__0__10-02-50-293.txt
+
+**References**:
+- Sun spf650_Subt2__0__10-02-50-293.txt
+
+---
+## 2025-10-26 15:50 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Sun spf650_Subt2__1__10-02-50-593.txt
+
+**References**:
+- Sun spf650_Subt2__1__10-02-50-593.txt
+
+---
+## 2025-10-26 15:50 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Sun spf700_Subt2__2__10-03-15-990.txt
+
+**References**:
+- Sun spf700_Subt2__2__10-03-15-990.txt
+
+---
+## 2025-10-26 15:50 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Sun spf700_Subt2__3__10-03-16-290.txt
+
+**References**:
+- Sun spf700_Subt2__3__10-03-16-290.txt
+
+---
+## 2025-10-26 15:50 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Sun spf750_Subt2__0__10-05-11-777.txt
+
+**References**:
+- Sun spf750_Subt2__0__10-05-11-777.txt
+
+---
+## 2025-10-26 15:50 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Sun spf750_Subt2__1__10-05-12-078.txt
+
+**References**:
+- Sun spf750_Subt2__1__10-05-12-078.txt
+
+---
+## 2025-10-26 15:50 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Sun spf800_Subt2__0__10-06-22-270.txt
+
+**References**:
+- Sun spf800_Subt2__0__10-06-22-270.txt
+
+---
+## 2025-10-26 15:50 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Sun spf900_Subt2__0__10-07-13-864.txt
+
+**References**:
+- Sun spf900_Subt2__0__10-07-13-864.txt
+
+---
+## 2025-10-26 15:50 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Sun spf900_Subt2__1__10-07-14-164.txt
+
+**References**:
+- Sun spf900_Subt2__1__10-07-14-164.txt
+
+---
+## 2025-10-26 15:50 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Sun spf1000_Subt2__0__10-07-45-961.txt
+
+**References**:
+- Sun spf1000_Subt2__0__10-07-45-961.txt
+
+---
+## 2025-10-26 15:50 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Sun spf1000_Subt2__1__10-07-46-261.txt
+
+**References**:
+- Sun spf1000_Subt2__1__10-07-46-261.txt
+
+---
+## 2025-10-26 15:53 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Sun covered_USB4F034991__0__09-50-03-477.txt
+
+**References**:
+- Sun covered_USB4F034991__0__09-50-03-477.txt
+
+---
+## 2025-10-26 15:53 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Sun covered_USB4F034991__1__09-50-09-976.txt
+
+**References**:
+- Sun covered_USB4F034991__1__09-50-09-976.txt
+
+---
+## 2025-10-26 15:53 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Sun outside no cover_USB4F034991__0__09-48-55-005.txt
+
+**References**:
+- Sun outside no cover_USB4F034991__0__09-48-55-005.txt
+
+---
+## 2025-10-26 15:53 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Sun outside no cover_USB4F034991__1__09-49-01-484.txt
+
+**References**:
+- Sun outside no cover_USB4F034991__1__09-49-01-484.txt
+
+---
+## 2025-10-26 15:55 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Sun spf450_Subt2__0__09-55-34-340.txt
+
+**References**:
+- Sun spf450_Subt2__0__09-55-34-340.txt
+
+---
+## 2025-10-26 15:55 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Sun spf450_Subt2__1__09-55-44-440.txt
+
+**References**:
+- Sun spf450_Subt2__1__09-55-44-440.txt
+
+---
+## 2025-10-26 15:55 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Sun spf500_Subt2__0__09-57-04-231.txt
+
+**References**:
+- Sun spf500_Subt2__0__09-57-04-231.txt
+
+---
+## 2025-10-26 15:55 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Sun spf500_Subt2__1__09-57-14-333.txt
+
+**References**:
+- Sun spf500_Subt2__1__09-57-14-333.txt
+
+---
+## 2025-10-26 15:55 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Sun spf550_Subt2__0__10-00-16-810.txt
+
+**References**:
+- Sun spf550_Subt2__0__10-00-16-810.txt
+
+---
+## 2025-10-26 15:55 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Sun spf550_Subt2__1__10-00-17-110.txt
+
+**References**:
+- Sun spf550_Subt2__1__10-00-17-110.txt
+
+---
+## 2025-10-26 15:56 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file USB4F034991__0__10-38-56-658.txt
+
+**References**:
+- USB4F034991__0__10-38-56-658.txt
+
+---
+## 2025-10-26 15:56 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file USB4F034991__1__10-38-56-679.txt
+
+**References**:
+- USB4F034991__1__10-38-56-679.txt
+
+---
+## 2025-10-26 15:57 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Good Sun reading.txt
+
+**References**:
+- Good Sun reading.txt
+
+---
+## 2025-10-26 16:04 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file subt2-0-22-16-39-696-999ca980-e201-4950-99db-22d339fa6481.csv
+
+**References**:
+- subt2-0-22-16-39-696-999ca980-e201-4950-99db-22d339fa6481.csv
+
+---
+## 2025-10-26 16:04 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file subt2-1-22-16-45-574-39eb1a94-c53f-49f8-bd08-29c41aa16756.csv
+
+**References**:
+- subt2-1-22-16-45-574-39eb1a94-c53f-49f8-bd08-29c41aa16756.csv
+
+---
+## 2025-10-26 16:21 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file 3_57 pm cloudy_Subt2__0__15-59-37-571.txt
+
+**References**:
+- 3_57 pm cloudy_Subt2__0__15-59-37-571.txt
+
+---
+## 2025-10-26 16:21 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file 3_57 pm cloudy_Subt2__1__15-59-37-591.txt
+
+**References**:
+- 3_57 pm cloudy_Subt2__1__15-59-37-591.txt
+
+---
+## 2025-10-26 16:21 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file 3_57 pm cloudy_Subt2__2__15-59-37-611.txt
+
+**References**:
+- 3_57 pm cloudy_Subt2__2__15-59-37-611.txt
+
+---
+## 2025-10-26 16:21 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file 3_57 pm cloudy_Subt2__3__15-59-37-631.txt
+
+**References**:
+- 3_57 pm cloudy_Subt2__3__15-59-37-631.txt
+
+---
+## 2025-10-26 16:21 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file 3_57 pm cloudy_Subt2__4__15-59-37-651.txt
+
+**References**:
+- 3_57 pm cloudy_Subt2__4__15-59-37-651.txt
+
+---
+## 2025-10-26 16:21 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file 3_57 pm cloudy_Subt2__5__16-00-08-088.txt
+
+**References**:
+- 3_57 pm cloudy_Subt2__5__16-00-08-088.txt
+
+---
+## 2025-10-26 16:21 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file 3_57 pm cloudy_Subt2__6__16-00-08-198.txt
+
+**References**:
+- 3_57 pm cloudy_Subt2__6__16-00-08-198.txt
+
+---
+## 2025-10-26 16:21 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file 3_57 pm cloudy_Subt2__7__16-00-08-308.txt
+
+**References**:
+- 3_57 pm cloudy_Subt2__7__16-00-08-308.txt
+
+---
+## 2025-10-26 16:21 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file 3_57 pm cloudy_Subt2__8__16-00-08-418.txt
+
+**References**:
+- 3_57 pm cloudy_Subt2__8__16-00-08-418.txt
+
+---
+## 2025-10-26 16:21 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file 3_57 pm cloudy_Subt2__9__16-00-08-528.txt
+
+**References**:
+- 3_57 pm cloudy_Subt2__9__16-00-08-528.txt
+
+---
+## 2025-10-26 16:21 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file 4_51 _Subt2__0__16-51-23-322.txt
+
+**References**:
+- 4_51 _Subt2__0__16-51-23-322.txt
+
+---
+## 2025-10-26 16:21 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file 4_51 _Subt2__1__16-51-23-367.txt
+
+**References**:
+- 4_51 _Subt2__1__16-51-23-367.txt
+
+---
+## 2025-10-26 16:21 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file 4_51 _Subt2__2__16-53-38-520.txt
+
+**References**:
+- 4_51 _Subt2__2__16-53-38-520.txt
+
+---
+## 2025-10-26 16:21 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file 4_51 _Subt2__3__16-53-38-550.txt
+
+**References**:
+- 4_51 _Subt2__3__16-53-38-550.txt
+
+---
+## 2025-10-26 16:21 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file 6_44 2.txt
+
+**References**:
+- 6_44 2.txt
+
+---
+## 2025-10-26 16:21 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file 6_44 3.txt
+
+**References**:
+- 6_44 3.txt
+
+---
+## 2025-10-26 16:21 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file 6_44.txt
+
+**References**:
+- 6_44.txt
+
+---
+## 2025-10-26 16:24 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file 644_merged.csv
+
+**References**:
+- 644_merged.csv
+
+---
+## 2025-10-26 16:25 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file 451_merged.csv
+
+**References**:
+- 451_merged.csv
+
+---
+## 2025-10-26 16:27 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file 3_57pm_merged.csv
+
+**References**:
+- 3_57pm_merged.csv
+
+---
+## 2025-10-26 16:32 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file mildly cloudy_Subt2__0__14-15-27-068.txt
+
+**References**:
+- mildly cloudy_Subt2__0__14-15-27-068.txt
+
+---
+## 2025-10-26 16:32 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file mildly cloudy_Subt2__1__14-15-27-115.txt
+
+**References**:
+- mildly cloudy_Subt2__1__14-15-27-115.txt
+
+---
+## 2025-10-26 16:32 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file mildly cloudy_Subt2__2__14-15-27-153.txt
+
+**References**:
+- mildly cloudy_Subt2__2__14-15-27-153.txt
+
+---
+## 2025-10-26 16:32 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file mildly cloudy_Subt2__3__14-15-27-186.txt
+
+**References**:
+- mildly cloudy_Subt2__3__14-15-27-186.txt
+
+---
+## 2025-10-26 16:32 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file mildly cloudy_Subt2__4__14-19-35-371.txt
+
+**References**:
+- mildly cloudy_Subt2__4__14-19-35-371.txt
+
+---
+## 2025-10-26 16:32 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file mildly cloudy_Subt2__5__14-19-35-395.txt
+
+**References**:
+- mildly cloudy_Subt2__5__14-19-35-395.txt
+
+---
+## 2025-10-26 16:32 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file mildly cloudy_Subt2__6__14-20-13-168.txt
+
+**References**:
+- mildly cloudy_Subt2__6__14-20-13-168.txt
+
+---
+## 2025-10-26 16:32 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file mildly cloudy_Subt2__7__14-20-32-599.txt
+
+**References**:
+- mildly cloudy_Subt2__7__14-20-32-599.txt
+
+---
+## 2025-10-26 16:32 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file mildly cloudy_Subt2__8__14-22-20-956.txt
+
+**References**:
+- mildly cloudy_Subt2__8__14-22-20-956.txt
+
+---
+## 2025-10-26 16:32 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file mildly cloudy_Subt2__9__14-22-20-991.txt
+
+**References**:
+- mildly cloudy_Subt2__9__14-22-20-991.txt
+
+---
+## 2025-10-26 16:32 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file mildly cloudy_Subt2__10__14-22-21-006.txt
+
+**References**:
+- mildly cloudy_Subt2__10__14-22-21-006.txt
+
+---
+## 2025-10-26 16:32 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file mildly cloudy_Subt2__11__14-22-55-646.txt
+
+**References**:
+- mildly cloudy_Subt2__11__14-22-55-646.txt
+
+---
+## 2025-10-26 16:32 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file mildly cloudy_Subt2__12__14-23-40-170.txt
+
+**References**:
+- mildly cloudy_Subt2__12__14-23-40-170.txt
+
+---
+## 2025-10-26 16:32 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file mildly cloudy_Subt2__13__14-24-19-404.txt
+
+**References**:
+- mildly cloudy_Subt2__13__14-24-19-404.txt
+
+---
+## 2025-10-26 16:32 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file mildly cloudy_Subt2__14__14-24-24-077.txt
+
+**References**:
+- mildly cloudy_Subt2__14__14-24-24-077.txt
+
+---
+## 2025-10-26 16:32 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file mildly cloudy_Subt2__15__14-26-33-674.txt
+
+**References**:
+- mildly cloudy_Subt2__15__14-26-33-674.txt
+
+---
+## 2025-10-26 16:39 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file sample_spectrum.csv
+
+**References**:
+- sample_spectrum.csv
+
+---
+## 2025-10-26 16:39 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Sun covered_USB4F034991__0__09-50-03-477.txt
+
+**References**:
+- Sun covered_USB4F034991__0__09-50-03-477.txt
+
+---
+## 2025-10-26 16:39 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Sun covered_USB4F034991__1__09-50-09-976.txt
+
+**References**:
+- Sun covered_USB4F034991__1__09-50-09-976.txt
+
+---
+## 2025-10-26 16:39 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Sun outside no cover_USB4F034991__0__09-48-55-005.txt
+
+**References**:
+- Sun outside no cover_USB4F034991__0__09-48-55-005.txt
+
+---
+## 2025-10-26 16:39 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Sun outside no cover_USB4F034991__1__09-49-01-484.txt
+
+**References**:
+- Sun outside no cover_USB4F034991__1__09-49-01-484.txt
+
+---
