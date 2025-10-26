@@ -7,8 +7,12 @@ from pathlib import Path
 from typing import Any, Dict, Sequence
 
 import numpy as np
-import pyqtgraph as pg
-import pyqtgraph.exporters
+
+try:
+    import pyqtgraph as pg  # type: ignore[import-not-found]
+    import pyqtgraph.exporters  # noqa: F401
+except Exception:  # pragma: no cover
+    pg = None  # type: ignore[assignment]
 
 from app.qt_compat import get_qt
 from .palettes import DEFAULT_PALETTE_KEY, PaletteDefinition, load_palette_definitions
@@ -51,6 +55,8 @@ class PlotPane(QtWidgets.QWidget):
         max_points: int | None = None,
     ) -> None:
         super().__init__(parent)
+        if pg is None:
+            raise RuntimeError("pyqtgraph is required for PlotPane")
         self._display_unit = "nm"
         self._y_label = "Intensity"
         self._traces: Dict[str, Dict[str, object]] = {}
@@ -86,23 +92,52 @@ class PlotPane(QtWidgets.QWidget):
             trace["style"] = style
             self._apply_style(key)
             self._update_curve(key)
-            self._rebuild_legend()
             return
 
         curve = pg.PlotDataItem()
-        self._plot.addItem(curve)
+        x_copy = np.array(x_nm, copy=True)
+        y_copy = np.array(y, copy=True)
         self._traces[key] = {
             "alias": alias,
-            "x_nm": np.array(x_nm, copy=True),
-            "y": np.array(y, copy=True),
+            "x_nm": x_copy,
+            "y": y_copy,
             "item": curve,
             "style": style,
             "visible": True,
         }
         self._order.append(key)
         self._apply_style(key)
-        self._update_curve(key)
+        self._update_curve(key)  # Populate data before the curve is added to the plot
+        self._plot.addItem(curve)
         self._rebuild_legend()
+
+    def remove_export_from_context_menu(self) -> None:
+        """Keep pyqtgraph's context menu but strip the built-in Export entry."""
+        if pg is None:
+            return
+        try:
+            plot_item = self._plot.getPlotItem()
+            vb = plot_item.getViewBox()
+            menu = vb.menu if hasattr(vb, "menu") else None
+            if menu is None:
+                return
+
+            def _prune_export() -> None:
+                try:
+                    for act in list(menu.actions()):
+                        text = (act.text() or "").strip().lower()
+                        if text.startswith("export"):
+                            menu.removeAction(act)
+                except Exception:
+                    pass
+
+            try:
+                menu.aboutToShow.disconnect(_prune_export)  # type: ignore[arg-type]
+            except Exception:
+                pass
+            menu.aboutToShow.connect(_prune_export)  # type: ignore[arg-type]
+        except Exception:
+            pass
 
     def view_range(self) -> tuple[tuple[float, float], tuple[float, float]]:
         """Return the current (x, y) view ranges."""

@@ -3,9 +3,9 @@
   "items": {
     "cf31b0bf5bf1f7ee04d67a372cb468d1b2158f55de75f46bb191d249bb5a1a35": {
       "sha256": "cf31b0bf5bf1f7ee04d67a372cb468d1b2158f55de75f46bb191d249bb5a1a35",
-      "filename": "first.csv",
-      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\cf\\first.csv",
-      "original_path": "C:\\Users\\brett\\AppData\\Local\\Temp\\pytest-of-brett\\pytest-51\\test_export_skips_hidden_spect0\\first.csv",
+      "filename": "integration.csv",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\cf\\integration.csv",
+      "original_path": "C:\\Users\\brett\\AppData\\Local\\Temp\\pytest-of-brett\\pytest-52\\test_history_view_updates_on_i0\\integration.csv",
       "bytes": 44,
       "units": {
         "x": "nm",
@@ -13,7 +13,7 @@
       },
       "source": {
         "ingest": {
-          "source_path": "C:\\Users\\brett\\AppData\\Local\\Temp\\pytest-of-brett\\pytest-51\\test_export_skips_hidden_spect0\\first.csv",
+          "source_path": "C:\\Users\\brett\\AppData\\Local\\Temp\\pytest-of-brett\\pytest-52\\test_history_view_updates_on_i0\\integration.csv",
           "importer": "CsvImporter"
         },
         "source_units": {
@@ -22,13 +22,13 @@
         }
       },
       "created": "2025-10-25T21:38:01.183439+00:00",
-      "updated": "2025-10-26T18:45:22.315381+00:00"
+      "updated": "2025-10-26T21:04:21.864472+00:00"
     },
     "5b6728e12bace6c5126a7e2d19555b7c53f1421e8ef8f133286fe3aec1ebbcf8": {
       "sha256": "5b6728e12bace6c5126a7e2d19555b7c53f1421e8ef8f133286fe3aec1ebbcf8",
       "filename": "transmittance.csv",
       "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\5b\\transmittance.csv",
-      "original_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\5b\\transmittance.csv",
+      "original_path": "C:\\Users\\brett\\AppData\\Local\\Temp\\pytest-of-brett\\pytest-52\\test_plot_preserves_source_int0\\transmittance.csv",
       "bytes": 43,
       "units": {
         "x": "nm",
@@ -36,7 +36,7 @@
       },
       "source": {
         "ingest": {
-          "source_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\5b\\transmittance.csv",
+          "source_path": "C:\\Users\\brett\\AppData\\Local\\Temp\\pytest-of-brett\\pytest-52\\test_plot_preserves_source_int0\\transmittance.csv",
           "importer": "CsvImporter"
         },
         "source_units": {
@@ -45,7 +45,7 @@
         }
       },
       "created": "2025-10-25T21:38:01.385004+00:00",
-      "updated": "2025-10-25T22:16:59.607190+00:00"
+      "updated": "2025-10-26T21:04:22.087956+00:00"
     },
     "e65613f6310f7568b66f4fbbef236ef6090c604475f76d390ac92f3c4c560d87": {
       "sha256": "e65613f6310f7568b66f4fbbef236ef6090c604475f76d390ac92f3c4c560d87",
@@ -511,7 +511,7 @@
       "sha256": "d132ae2e75c103d70dc8a6341985c20bd7238208c124ff79b00389f8250f9fbb",
       "filename": "test.csv",
       "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\d1\\test.csv",
-      "original_path": "C:\\Users\\brett\\AppData\\Local\\Temp\\pytest-of-brett\\pytest-43\\test_delete_key_shortcut0\\test.csv",
+      "original_path": "C:\\Users\\brett\\AppData\\Local\\Temp\\pytest-of-brett\\pytest-52\\test_delete_key_shortcut0\\test.csv",
       "bytes": 44,
       "units": {
         "x": "nm",
@@ -519,7 +519,7 @@
       },
       "source": {
         "ingest": {
-          "source_path": "C:\\Users\\brett\\AppData\\Local\\Temp\\pytest-of-brett\\pytest-43\\test_delete_key_shortcut0\\test.csv",
+          "source_path": "C:\\Users\\brett\\AppData\\Local\\Temp\\pytest-of-brett\\pytest-52\\test_delete_key_shortcut0\\test.csv",
           "importer": "CsvImporter"
         },
         "source_units": {
@@ -528,13 +528,13 @@
         }
       },
       "created": "2025-10-26T17:21:45.495007+00:00",
-      "updated": "2025-10-26T17:21:45.833947+00:00"
+      "updated": "2025-10-26T21:04:15.488740+00:00"
     },
     "26fe274d0c869be12e1a1d4f161f1ae6c72b85b7457bd1f8dfcf70fcbe6513ba": {
       "sha256": "26fe274d0c869be12e1a1d4f161f1ae6c72b85b7457bd1f8dfcf70fcbe6513ba",
       "filename": "test0.csv",
       "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\26\\test0.csv",
-      "original_path": "C:\\Users\\brett\\AppData\\Local\\Temp\\pytest-of-brett\\pytest-43\\test_remove_multiple_datasets0\\test0.csv",
+      "original_path": "C:\\Users\\brett\\AppData\\Local\\Temp\\pytest-of-brett\\pytest-52\\test_remove_multiple_datasets0\\test0.csv",
       "bytes": 44,
       "units": {
         "x": "nm",
@@ -542,7 +542,7 @@
       },
       "source": {
         "ingest": {
-          "source_path": "C:\\Users\\brett\\AppData\\Local\\Temp\\pytest-of-brett\\pytest-43\\test_remove_multiple_datasets0\\test0.csv",
+          "source_path": "C:\\Users\\brett\\AppData\\Local\\Temp\\pytest-of-brett\\pytest-52\\test_remove_multiple_datasets0\\test0.csv",
           "importer": "CsvImporter"
         },
         "source_units": {
@@ -551,13 +551,13 @@
         }
       },
       "created": "2025-10-26T17:21:45.625016+00:00",
-      "updated": "2025-10-26T17:21:45.625016+00:00"
+      "updated": "2025-10-26T21:04:15.137557+00:00"
     },
     "99595bc91ee66bb75348a22d8e99d1fcd0c4ae03a4cd15b2d6dde3edaa2dabc8": {
       "sha256": "99595bc91ee66bb75348a22d8e99d1fcd0c4ae03a4cd15b2d6dde3edaa2dabc8",
       "filename": "test2.csv",
       "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\99\\test2.csv",
-      "original_path": "C:\\Users\\brett\\AppData\\Local\\Temp\\pytest-of-brett\\pytest-43\\test_remove_multiple_datasets0\\test2.csv",
+      "original_path": "C:\\Users\\brett\\AppData\\Local\\Temp\\pytest-of-brett\\pytest-52\\test_remove_multiple_datasets0\\test2.csv",
       "bytes": 44,
       "units": {
         "x": "nm",
@@ -565,7 +565,7 @@
       },
       "source": {
         "ingest": {
-          "source_path": "C:\\Users\\brett\\AppData\\Local\\Temp\\pytest-of-brett\\pytest-43\\test_remove_multiple_datasets0\\test2.csv",
+          "source_path": "C:\\Users\\brett\\AppData\\Local\\Temp\\pytest-of-brett\\pytest-52\\test_remove_multiple_datasets0\\test2.csv",
           "importer": "CsvImporter"
         },
         "source_units": {
@@ -574,7 +574,7 @@
         }
       },
       "created": "2025-10-26T17:21:45.705161+00:00",
-      "updated": "2025-10-26T17:21:45.705161+00:00"
+      "updated": "2025-10-26T21:04:15.278473+00:00"
     },
     "ef90a8c66ca1062a06aef7b88601964e0e6112dda6888df7a2c8c6cc8f4f8cd7": {
       "sha256": "ef90a8c66ca1062a06aef7b88601964e0e6112dda6888df7a2c8c6cc8f4f8cd7",
@@ -764,7 +764,7 @@
       "sha256": "c1ca25da475f04363d53243822a6b254f1c449853cecf9ac03d6cda20fb01945",
       "filename": "test.csv",
       "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\c1\\test.csv",
-      "original_path": "C:\\Users\\brett\\AppData\\Local\\Temp\\pytest-of-brett\\pytest-50\\test_normalization_max0\\test.csv",
+      "original_path": "C:\\Users\\brett\\AppData\\Local\\Temp\\pytest-of-brett\\pytest-52\\test_normalization_max0\\test.csv",
       "bytes": 53,
       "units": {
         "x": "nm",
@@ -772,7 +772,7 @@
       },
       "source": {
         "ingest": {
-          "source_path": "C:\\Users\\brett\\AppData\\Local\\Temp\\pytest-of-brett\\pytest-50\\test_normalization_max0\\test.csv",
+          "source_path": "C:\\Users\\brett\\AppData\\Local\\Temp\\pytest-of-brett\\pytest-52\\test_normalization_max0\\test.csv",
           "importer": "CsvImporter"
         },
         "source_units": {
@@ -781,13 +781,13 @@
         }
       },
       "created": "2025-10-26T17:33:42.175022+00:00",
-      "updated": "2025-10-26T17:52:06.709104+00:00"
+      "updated": "2025-10-26T21:04:18.519756+00:00"
     },
     "93c36f2a8adf292ec0cbe6853976b5a2308d925ae981acb33253b649e4ddf501": {
       "sha256": "93c36f2a8adf292ec0cbe6853976b5a2308d925ae981acb33253b649e4ddf501",
       "filename": "test.csv",
       "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\93\\test.csv",
-      "original_path": "C:\\Users\\brett\\AppData\\Local\\Temp\\pytest-of-brett\\pytest-50\\test_normalization_area0\\test.csv",
+      "original_path": "C:\\Users\\brett\\AppData\\Local\\Temp\\pytest-of-brett\\pytest-52\\test_normalization_area0\\test.csv",
       "bytes": 53,
       "units": {
         "x": "nm",
@@ -795,7 +795,7 @@
       },
       "source": {
         "ingest": {
-          "source_path": "C:\\Users\\brett\\AppData\\Local\\Temp\\pytest-of-brett\\pytest-50\\test_normalization_area0\\test.csv",
+          "source_path": "C:\\Users\\brett\\AppData\\Local\\Temp\\pytest-of-brett\\pytest-52\\test_normalization_area0\\test.csv",
           "importer": "CsvImporter"
         },
         "source_units": {
@@ -804,13 +804,13 @@
         }
       },
       "created": "2025-10-26T17:33:42.365141+00:00",
-      "updated": "2025-10-26T17:52:06.851297+00:00"
+      "updated": "2025-10-26T21:04:18.710865+00:00"
     },
     "4ca5da9d32ba1d30b4cbe6a9e0b22ce8edb1fc67ac87221e186434c6fd20603f": {
       "sha256": "4ca5da9d32ba1d30b4cbe6a9e0b22ce8edb1fc67ac87221e186434c6fd20603f",
       "filename": "test2.csv",
       "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\4c\\test2.csv",
-      "original_path": "C:\\Users\\brett\\AppData\\Local\\Temp\\pytest-of-brett\\pytest-50\\test_normalization_multiple_sp0\\test2.csv",
+      "original_path": "C:\\Users\\brett\\AppData\\Local\\Temp\\pytest-of-brett\\pytest-52\\test_normalization_multiple_sp0\\test2.csv",
       "bytes": 59,
       "units": {
         "x": "nm",
@@ -818,7 +818,7 @@
       },
       "source": {
         "ingest": {
-          "source_path": "C:\\Users\\brett\\AppData\\Local\\Temp\\pytest-of-brett\\pytest-50\\test_normalization_multiple_sp0\\test2.csv",
+          "source_path": "C:\\Users\\brett\\AppData\\Local\\Temp\\pytest-of-brett\\pytest-52\\test_normalization_multiple_sp0\\test2.csv",
           "importer": "CsvImporter"
         },
         "source_units": {
@@ -827,13 +827,13 @@
         }
       },
       "created": "2025-10-26T17:33:42.495175+00:00",
-      "updated": "2025-10-26T17:52:07.255125+00:00"
+      "updated": "2025-10-26T21:04:19.307925+00:00"
     },
     "c2ade8f6dd2564597d870a6ff048dc1595bd943319dbbcc3f67e471723a08a8a": {
       "sha256": "c2ade8f6dd2564597d870a6ff048dc1595bd943319dbbcc3f67e471723a08a8a",
       "filename": "test.csv",
       "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\c2\\test.csv",
-      "original_path": "C:\\Users\\brett\\AppData\\Local\\Temp\\pytest-of-brett\\pytest-50\\test_normalization_change_upda0\\test.csv",
+      "original_path": "C:\\Users\\brett\\AppData\\Local\\Temp\\pytest-of-brett\\pytest-52\\test_normalization_change_upda0\\test.csv",
       "bytes": 56,
       "units": {
         "x": "nm",
@@ -841,7 +841,7 @@
       },
       "source": {
         "ingest": {
-          "source_path": "C:\\Users\\brett\\AppData\\Local\\Temp\\pytest-of-brett\\pytest-50\\test_normalization_change_upda0\\test.csv",
+          "source_path": "C:\\Users\\brett\\AppData\\Local\\Temp\\pytest-of-brett\\pytest-52\\test_normalization_change_upda0\\test.csv",
           "importer": "CsvImporter"
         },
         "source_units": {
@@ -850,13 +850,13 @@
         }
       },
       "created": "2025-10-26T17:33:42.632861+00:00",
-      "updated": "2025-10-26T17:52:07.077758+00:00"
+      "updated": "2025-10-26T21:04:19.072797+00:00"
     },
     "3439b66affaec179e1c49f9b545b1aacc7e0050e471daf164c0c70a2a67ac79e": {
       "sha256": "3439b66affaec179e1c49f9b545b1aacc7e0050e471daf164c0c70a2a67ac79e",
       "filename": "test1.csv",
       "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\34\\test1.csv",
-      "original_path": "C:\\Users\\brett\\AppData\\Local\\Temp\\pytest-of-brett\\pytest-50\\test_normalization_multiple_sp0\\test1.csv",
+      "original_path": "C:\\Users\\brett\\AppData\\Local\\Temp\\pytest-of-brett\\pytest-52\\test_normalization_multiple_sp0\\test1.csv",
       "bytes": 53,
       "units": {
         "x": "nm",
@@ -864,7 +864,7 @@
       },
       "source": {
         "ingest": {
-          "source_path": "C:\\Users\\brett\\AppData\\Local\\Temp\\pytest-of-brett\\pytest-50\\test_normalization_multiple_sp0\\test1.csv",
+          "source_path": "C:\\Users\\brett\\AppData\\Local\\Temp\\pytest-of-brett\\pytest-52\\test_normalization_multiple_sp0\\test1.csv",
           "importer": "CsvImporter"
         },
         "source_units": {
@@ -873,13 +873,13 @@
         }
       },
       "created": "2025-10-26T17:33:42.808980+00:00",
-      "updated": "2025-10-26T17:52:07.236846+00:00"
+      "updated": "2025-10-26T21:04:19.287241+00:00"
     },
     "96135de54c58679240b4af8f60f0608d0e31c916d4497b60962ccd17fe9c9442": {
       "sha256": "96135de54c58679240b4af8f60f0608d0e31c916d4497b60962ccd17fe9c9442",
       "filename": "test0.csv",
       "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\96\\test0.csv",
-      "original_path": "C:\\Users\\brett\\AppData\\Local\\Temp\\pytest-of-brett\\pytest-47\\test_merge_respects_visibility0\\test0.csv",
+      "original_path": "C:\\Users\\brett\\AppData\\Local\\Temp\\pytest-of-brett\\pytest-52\\test_merge_respects_visibility0\\test0.csv",
       "bytes": 53,
       "units": {
         "x": "nm",
@@ -887,7 +887,7 @@
       },
       "source": {
         "ingest": {
-          "source_path": "C:\\Users\\brett\\AppData\\Local\\Temp\\pytest-of-brett\\pytest-47\\test_merge_respects_visibility0\\test0.csv",
+          "source_path": "C:\\Users\\brett\\AppData\\Local\\Temp\\pytest-of-brett\\pytest-52\\test_merge_respects_visibility0\\test0.csv",
           "importer": "CsvImporter"
         },
         "source_units": {
@@ -896,13 +896,13 @@
         }
       },
       "created": "2025-10-26T17:45:42.746257+00:00",
-      "updated": "2025-10-26T17:45:43.019793+00:00"
+      "updated": "2025-10-26T21:04:17.685364+00:00"
     },
     "c1d0278a2a9e710761a44857b2767559346d2efc729437ae22822bd2480f51d9": {
       "sha256": "c1d0278a2a9e710761a44857b2767559346d2efc729437ae22822bd2480f51d9",
       "filename": "test1.csv",
       "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\c1\\test1.csv",
-      "original_path": "C:\\Users\\brett\\AppData\\Local\\Temp\\pytest-of-brett\\pytest-47\\test_merge_respects_visibility0\\test1.csv",
+      "original_path": "C:\\Users\\brett\\AppData\\Local\\Temp\\pytest-of-brett\\pytest-52\\test_merge_respects_visibility0\\test1.csv",
       "bytes": 53,
       "units": {
         "x": "nm",
@@ -910,7 +910,7 @@
       },
       "source": {
         "ingest": {
-          "source_path": "C:\\Users\\brett\\AppData\\Local\\Temp\\pytest-of-brett\\pytest-47\\test_merge_respects_visibility0\\test1.csv",
+          "source_path": "C:\\Users\\brett\\AppData\\Local\\Temp\\pytest-of-brett\\pytest-52\\test_merge_respects_visibility0\\test1.csv",
           "importer": "CsvImporter"
         },
         "source_units": {
@@ -919,13 +919,13 @@
         }
       },
       "created": "2025-10-26T17:45:42.809645+00:00",
-      "updated": "2025-10-26T17:45:43.055121+00:00"
+      "updated": "2025-10-26T21:04:17.751976+00:00"
     },
     "1c97f968bb37fa38e3422ee7cab450f56d561882f9e2a62e8d074e9168cb983b": {
       "sha256": "1c97f968bb37fa38e3422ee7cab450f56d561882f9e2a62e8d074e9168cb983b",
       "filename": "test2.csv",
       "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\1c\\test2.csv",
-      "original_path": "C:\\Users\\brett\\AppData\\Local\\Temp\\pytest-of-brett\\pytest-47\\test_merge_respects_visibility0\\test2.csv",
+      "original_path": "C:\\Users\\brett\\AppData\\Local\\Temp\\pytest-of-brett\\pytest-52\\test_merge_respects_visibility0\\test2.csv",
       "bytes": 53,
       "units": {
         "x": "nm",
@@ -933,7 +933,7 @@
       },
       "source": {
         "ingest": {
-          "source_path": "C:\\Users\\brett\\AppData\\Local\\Temp\\pytest-of-brett\\pytest-47\\test_merge_respects_visibility0\\test2.csv",
+          "source_path": "C:\\Users\\brett\\AppData\\Local\\Temp\\pytest-of-brett\\pytest-52\\test_merge_respects_visibility0\\test2.csv",
           "importer": "CsvImporter"
         },
         "source_units": {
@@ -942,13 +942,13 @@
         }
       },
       "created": "2025-10-26T17:45:42.858922+00:00",
-      "updated": "2025-10-26T17:45:43.085108+00:00"
+      "updated": "2025-10-26T21:04:17.791420+00:00"
     },
     "ae72157005860f43147565b11eadd76eed2ee172a0e3a9867bcbbfea45b1c7cb": {
       "sha256": "ae72157005860f43147565b11eadd76eed2ee172a0e3a9867bcbbfea45b1c7cb",
       "filename": "test1.csv",
       "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\ae\\test1.csv",
-      "original_path": "C:\\Users\\brett\\AppData\\Local\\Temp\\pytest-of-brett\\pytest-47\\test_merge_average_creates_new0\\test1.csv",
+      "original_path": "C:\\Users\\brett\\AppData\\Local\\Temp\\pytest-of-brett\\pytest-52\\test_merge_average_creates_new0\\test1.csv",
       "bytes": 53,
       "units": {
         "x": "nm",
@@ -956,7 +956,7 @@
       },
       "source": {
         "ingest": {
-          "source_path": "C:\\Users\\brett\\AppData\\Local\\Temp\\pytest-of-brett\\pytest-47\\test_merge_average_creates_new0\\test1.csv",
+          "source_path": "C:\\Users\\brett\\AppData\\Local\\Temp\\pytest-of-brett\\pytest-52\\test_merge_average_creates_new0\\test1.csv",
           "importer": "CsvImporter"
         },
         "source_units": {
@@ -965,13 +965,13 @@
         }
       },
       "created": "2025-10-26T17:45:43.236678+00:00",
-      "updated": "2025-10-26T17:45:43.236678+00:00"
+      "updated": "2025-10-26T21:04:17.947804+00:00"
     },
     "eee39b8a88e1b2ac6f0b72ea15ef47ebd19fed2d747ef987f907a0feeb3df71f": {
       "sha256": "eee39b8a88e1b2ac6f0b72ea15ef47ebd19fed2d747ef987f907a0feeb3df71f",
       "filename": "test2.csv",
       "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\ee\\test2.csv",
-      "original_path": "C:\\Users\\brett\\AppData\\Local\\Temp\\pytest-of-brett\\pytest-47\\test_merge_average_creates_new0\\test2.csv",
+      "original_path": "C:\\Users\\brett\\AppData\\Local\\Temp\\pytest-of-brett\\pytest-52\\test_merge_average_creates_new0\\test2.csv",
       "bytes": 53,
       "units": {
         "x": "nm",
@@ -979,7 +979,7 @@
       },
       "source": {
         "ingest": {
-          "source_path": "C:\\Users\\brett\\AppData\\Local\\Temp\\pytest-of-brett\\pytest-47\\test_merge_average_creates_new0\\test2.csv",
+          "source_path": "C:\\Users\\brett\\AppData\\Local\\Temp\\pytest-of-brett\\pytest-52\\test_merge_average_creates_new0\\test2.csv",
           "importer": "CsvImporter"
         },
         "source_units": {
@@ -988,7 +988,7 @@
         }
       },
       "created": "2025-10-26T17:45:43.266867+00:00",
-      "updated": "2025-10-26T17:45:43.266867+00:00"
+      "updated": "2025-10-26T21:04:17.980710+00:00"
     },
     "24dcb0ecdbe2c19c8c40660e937d4615115fda5e4bf51c175cb41e84c0e17d58": {
       "sha256": "24dcb0ecdbe2c19c8c40660e937d4615115fda5e4bf51c175cb41e84c0e17d58",
@@ -1496,7 +1496,7 @@
       "sha256": "80b1b5b619e4cd0028cbe294562988cc787b9e191a3c69efa3a7660091d51883",
       "filename": "second.csv",
       "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\80\\second.csv",
-      "original_path": "C:\\Users\\brett\\AppData\\Local\\Temp\\pytest-of-brett\\pytest-51\\test_export_skips_hidden_spect0\\second.csv",
+      "original_path": "C:\\Users\\brett\\AppData\\Local\\Temp\\pytest-of-brett\\pytest-52\\test_export_skips_hidden_spect0\\second.csv",
       "bytes": 44,
       "units": {
         "x": "nm",
@@ -1504,7 +1504,7 @@
       },
       "source": {
         "ingest": {
-          "source_path": "C:\\Users\\brett\\AppData\\Local\\Temp\\pytest-of-brett\\pytest-51\\test_export_skips_hidden_spect0\\second.csv",
+          "source_path": "C:\\Users\\brett\\AppData\\Local\\Temp\\pytest-of-brett\\pytest-52\\test_export_skips_hidden_spect0\\second.csv",
           "importer": "CsvImporter"
         },
         "source_units": {
@@ -1513,7 +1513,7 @@
         }
       },
       "created": "2025-10-26T18:45:22.350742+00:00",
-      "updated": "2025-10-26T18:45:22.350742+00:00"
+      "updated": "2025-10-26T21:04:16.192569+00:00"
     },
     "2123411e02139b817c29dc6eaa81cd6bd4eb3339f9170963511a59d98a48922c": {
       "sha256": "2123411e02139b817c29dc6eaa81cd6bd4eb3339f9170963511a59d98a48922c",
@@ -2516,7 +2516,7 @@
       "sha256": "ca9a83fec7dd2298b9bf851a25c5e85df2fae1f5d60df01ca7a58cd81c68657d",
       "filename": "mildly cloudy_Subt2__3__14-15-27-186.txt",
       "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\ca\\mildly cloudy_Subt2__3__14-15-27-186.txt",
-      "original_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\Anfuso_Bell STEC Research (Fall 2025) - Documents\\General\\Data\\DATA\\All raw files\\sun\\oceanview\\10 7 25 at home\\moon\\mildly cloudy_Subt2__3__14-15-27-186.txt",
+      "original_path": "C:\\Code\\spectra-app-v2\\samples\\SUN AND MOON\\MOON\\mildly cloudy_Subt2__3__14-15-27-186.txt",
       "bytes": 72288,
       "units": {
         "x": "nm",
@@ -2524,7 +2524,7 @@
       },
       "source": {
         "ingest": {
-          "source_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\Anfuso_Bell STEC Research (Fall 2025) - Documents\\General\\Data\\DATA\\All raw files\\sun\\oceanview\\10 7 25 at home\\moon\\mildly cloudy_Subt2__3__14-15-27-186.txt",
+          "source_path": "C:\\Code\\spectra-app-v2\\samples\\SUN AND MOON\\MOON\\mildly cloudy_Subt2__3__14-15-27-186.txt",
           "importer": "CsvImporter"
         },
         "source_units": {
@@ -2533,7 +2533,7 @@
         }
       },
       "created": "2025-10-26T20:32:04.321706+00:00",
-      "updated": "2025-10-26T20:32:04.321706+00:00"
+      "updated": "2025-10-26T23:42:06.528973+00:00"
     },
     "5eee02ee4bf05899f1e23ea4e01d3d8038fb289f91009e725e4c604c6a5f7d5e": {
       "sha256": "5eee02ee4bf05899f1e23ea4e01d3d8038fb289f91009e725e4c604c6a5f7d5e",
@@ -2631,7 +2631,7 @@
       "sha256": "98eb1aa7211cbb9a41d62ddaaebe869276d6cf8e2b9de1546aea91f4532e460a",
       "filename": "mildly cloudy_Subt2__8__14-22-20-956.txt",
       "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\98\\mildly cloudy_Subt2__8__14-22-20-956.txt",
-      "original_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\Anfuso_Bell STEC Research (Fall 2025) - Documents\\General\\Data\\DATA\\All raw files\\sun\\oceanview\\10 7 25 at home\\moon\\mildly cloudy_Subt2__8__14-22-20-956.txt",
+      "original_path": "C:\\Code\\spectra-app-v2\\samples\\SUN AND MOON\\MOON\\mildly cloudy_Subt2__8__14-22-20-956.txt",
       "bytes": 70129,
       "units": {
         "x": "nm",
@@ -2639,7 +2639,7 @@
       },
       "source": {
         "ingest": {
-          "source_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\Anfuso_Bell STEC Research (Fall 2025) - Documents\\General\\Data\\DATA\\All raw files\\sun\\oceanview\\10 7 25 at home\\moon\\mildly cloudy_Subt2__8__14-22-20-956.txt",
+          "source_path": "C:\\Code\\spectra-app-v2\\samples\\SUN AND MOON\\MOON\\mildly cloudy_Subt2__8__14-22-20-956.txt",
           "importer": "CsvImporter"
         },
         "source_units": {
@@ -2648,7 +2648,7 @@
         }
       },
       "created": "2025-10-26T20:32:04.706024+00:00",
-      "updated": "2025-10-26T20:32:04.706024+00:00"
+      "updated": "2025-10-26T23:42:06.588903+00:00"
     },
     "be24d6d13934312dad4460d7d35ad38123927dd57dcfc167fe6b81d07cee25d4": {
       "sha256": "be24d6d13934312dad4460d7d35ad38123927dd57dcfc167fe6b81d07cee25d4",
@@ -2677,7 +2677,7 @@
       "sha256": "f214362aa1e646672ae7abe30e38e6f6daae551997ee57d2d17e61349d970db0",
       "filename": "mildly cloudy_Subt2__10__14-22-21-006.txt",
       "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\f2\\mildly cloudy_Subt2__10__14-22-21-006.txt",
-      "original_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\Anfuso_Bell STEC Research (Fall 2025) - Documents\\General\\Data\\DATA\\All raw files\\sun\\oceanview\\10 7 25 at home\\moon\\mildly cloudy_Subt2__10__14-22-21-006.txt",
+      "original_path": "C:\\Code\\spectra-app-v2\\samples\\SUN AND MOON\\MOON\\mildly cloudy_Subt2__10__14-22-21-006.txt",
       "bytes": 70177,
       "units": {
         "x": "nm",
@@ -2685,7 +2685,7 @@
       },
       "source": {
         "ingest": {
-          "source_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\Anfuso_Bell STEC Research (Fall 2025) - Documents\\General\\Data\\DATA\\All raw files\\sun\\oceanview\\10 7 25 at home\\moon\\mildly cloudy_Subt2__10__14-22-21-006.txt",
+          "source_path": "C:\\Code\\spectra-app-v2\\samples\\SUN AND MOON\\MOON\\mildly cloudy_Subt2__10__14-22-21-006.txt",
           "importer": "CsvImporter"
         },
         "source_units": {
@@ -2694,7 +2694,7 @@
         }
       },
       "created": "2025-10-26T20:32:04.927540+00:00",
-      "updated": "2025-10-26T20:32:04.927540+00:00"
+      "updated": "2025-10-26T23:42:06.639091+00:00"
     },
     "c55142ab5b87346b5a068d921828481dba0148e043925e18988f2a629ac4940a": {
       "sha256": "c55142ab5b87346b5a068d921828481dba0148e043925e18988f2a629ac4940a",
@@ -2769,7 +2769,7 @@
       "sha256": "d1358245524eba2799d74993fd7922fa24e2fb5309c0805d7bbd6a0c6ae5eb0e",
       "filename": "mildly cloudy_Subt2__14__14-24-24-077.txt",
       "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\d1\\mildly cloudy_Subt2__14__14-24-24-077.txt",
-      "original_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\Anfuso_Bell STEC Research (Fall 2025) - Documents\\General\\Data\\DATA\\All raw files\\sun\\oceanview\\10 7 25 at home\\moon\\mildly cloudy_Subt2__14__14-24-24-077.txt",
+      "original_path": "C:\\Code\\spectra-app-v2\\samples\\SUN AND MOON\\MOON\\mildly cloudy_Subt2__14__14-24-24-077.txt",
       "bytes": 71209,
       "units": {
         "x": "nm",
@@ -2777,7 +2777,7 @@
       },
       "source": {
         "ingest": {
-          "source_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\Anfuso_Bell STEC Research (Fall 2025) - Documents\\General\\Data\\DATA\\All raw files\\sun\\oceanview\\10 7 25 at home\\moon\\mildly cloudy_Subt2__14__14-24-24-077.txt",
+          "source_path": "C:\\Code\\spectra-app-v2\\samples\\SUN AND MOON\\MOON\\mildly cloudy_Subt2__14__14-24-24-077.txt",
           "importer": "CsvImporter"
         },
         "source_units": {
@@ -2786,7 +2786,7 @@
         }
       },
       "created": "2025-10-26T20:32:05.276343+00:00",
-      "updated": "2025-10-26T20:32:05.276343+00:00"
+      "updated": "2025-10-26T23:42:06.701492+00:00"
     },
     "aa07822f1eda7d92e36063a7be8333d44e1f7647c6009712d7867b421f615ece": {
       "sha256": "aa07822f1eda7d92e36063a7be8333d44e1f7647c6009712d7867b421f615ece",

@@ -412,7 +412,7 @@ class RemoteDataService:
             "uri": record.download_url,
             "identifier": record.identifier,
             "fetched_at": self._timestamp(),
-            "metadata": json.loads(json.dumps(record.metadata)),
+            "metadata": self._json_safe(record.metadata),
         }
         store_entry = self.store.record(
             fetch_path,
@@ -681,13 +681,15 @@ class RemoteDataService:
             units_map = merged.get("units") if isinstance(merged.get("units"), Mapping) else None
             merged["observation"] = observation_meta
 
+            clean_metadata = self._json_safe(merged)
+
             records.append(
                 RemoteRecord(
                     provider=provider,
                     identifier=str(identifier),
                     title=title,
                     download_url=str(data_uri),
-                    metadata=merged,
+                    metadata=clean_metadata,
                     units=units_map,
                 )
             )
@@ -897,7 +899,7 @@ class RemoteDataService:
         ):
             value = system.get(key)
             if value is not None:
-                metadata[key] = value
+                metadata[key] = self._json_safe(value)
 
         coordinates: Dict[str, Any] = {}
         ra = system.get("ra")
@@ -910,9 +912,39 @@ class RemoteDataService:
             metadata["coordinates"] = coordinates
 
         if system.get("exomast") is not None:
-            metadata["exomast"] = system.get("exomast")
+            metadata["exomast"] = self._json_safe(system.get("exomast"))
 
         return metadata
+
+    @staticmethod
+    def _json_safe(value: Any) -> Any:
+        if isinstance(value, (str, int, float, bool)) or value is None:
+            return value
+        if isinstance(value, datetime):
+            return value.isoformat()
+        if isinstance(value, Path):
+            return str(value)
+        if hasattr(value, "tolist"):
+            try:
+                return RemoteDataService._json_safe(value.tolist())
+            except Exception:
+                pass
+        if hasattr(value, "item") and not isinstance(value, (str, bytes)):
+            try:
+                return RemoteDataService._json_safe(value.item())
+            except Exception:
+                pass
+        if isinstance(value, Mapping):
+            return {str(key): RemoteDataService._json_safe(subvalue) for key, subvalue in value.items()}
+        if isinstance(value, set):
+            try:
+                ordered = sorted(value)
+            except Exception:
+                ordered = list(value)
+            return [RemoteDataService._json_safe(item) for item in ordered]
+        if isinstance(value, (list, tuple)):
+            return [RemoteDataService._json_safe(item) for item in value]
+        return str(value)
 
     @staticmethod
     def _to_float(value: Any) -> float | None:
