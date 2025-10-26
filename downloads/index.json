@@ -46,6 +46,121 @@
       },
       "created": "2025-10-25T21:38:01.385004+00:00",
       "updated": "2025-10-25T22:16:59.607190+00:00"
+    },
+    "e65613f6310f7568b66f4fbbef236ef6090c604475f76d390ac92f3c4c560d87": {
+      "sha256": "e65613f6310f7568b66f4fbbef236ef6090c604475f76d390ac92f3c4c560d87",
+      "filename": "CO2_Lamp.csv",
+      "stored_path": "C:\\Code\\spectra-app-beta\\downloads\\files\\e6\\CO2_Lamp.csv",
+      "original_path": "C:\\Code\\spectra-app-beta\\samples\\lamp data\\CO2_Lamp.csv",
+      "bytes": 75846,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Code\\spectra-app-beta\\samples\\lamp data\\CO2_Lamp.csv",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "absorbance"
+        }
+      },
+      "created": "2025-10-26T16:30:48.814542+00:00",
+      "updated": "2025-10-26T16:30:48.814822+00:00"
+    },
+    "7ee9228c5b4561d33a03ce5469d0824905fa0f62354ee5e482eb42e86ea53e1d": {
+      "sha256": "7ee9228c5b4561d33a03ce5469d0824905fa0f62354ee5e482eb42e86ea53e1d",
+      "filename": "CO2 - 500 torr.csv",
+      "stored_path": "C:\\Code\\spectra-app-beta\\downloads\\files\\7e\\CO2 - 500 torr.csv",
+      "original_path": "C:\\Code\\spectra-app-beta\\samples\\csv files\\IR - CO2\\CO2 - 500 torr.csv",
+      "bytes": 55843,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Code\\spectra-app-beta\\samples\\csv files\\IR - CO2\\CO2 - 500 torr.csv",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "cm^-1",
+          "y": "percent_transmittance"
+        }
+      },
+      "created": "2025-10-26T16:30:59.343778+00:00",
+      "updated": "2025-10-26T16:30:59.343939+00:00"
+    },
+    "b45c8a053cbcbe3f38d88118d2ab250da58e9ad7434bfa8184ceda3401c30e84": {
+      "sha256": "b45c8a053cbcbe3f38d88118d2ab250da58e9ad7434bfa8184ceda3401c30e84",
+      "filename": "Air_Lamp.csv",
+      "stored_path": "C:\\Code\\spectra-app-beta\\downloads\\files\\b4\\Air_Lamp.csv",
+      "original_path": "C:\\Code\\spectra-app-beta\\samples\\lamp data\\Air_Lamp.csv",
+      "bytes": 76894,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Code\\spectra-app-beta\\samples\\lamp data\\Air_Lamp.csv",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "absorbance"
+        }
+      },
+      "created": "2025-10-26T16:31:31.200301+00:00",
+      "updated": "2025-10-26T16:31:31.200441+00:00"
+    },
+    "4458173bc3fb86549be349e283060f14fb2e45876e3daa44efbed0407e43210f": {
+      "sha256": "4458173bc3fb86549be349e283060f14fb2e45876e3daa44efbed0407e43210f",
+      "filename": "H2O_Lamp.csv",
+      "stored_path": "C:\\Code\\spectra-app-beta\\downloads\\files\\44\\H2O_Lamp.csv",
+      "original_path": "C:\\Code\\spectra-app-beta\\samples\\lamp data\\H2O_Lamp.csv",
+      "bytes": 74495,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Code\\spectra-app-beta\\samples\\lamp data\\H2O_Lamp.csv",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "absorbance"
+        }
+      },
+      "created": "2025-10-26T16:31:39.023672+00:00",
+      "updated": "2025-10-26T16:31:39.023925+00:00"
+    },
+    "55b7ae12a6d1c48569a209547eabe7c796842f2b9e3808d18cf64318227b7c77": {
+      "sha256": "55b7ae12a6d1c48569a209547eabe7c796842f2b9e3808d18cf64318227b7c77",
+      "filename": "H2O AIR AND CO2 LAMP MERGED.csv",
+      "stored_path": "C:\\Code\\spectra-app-beta\\downloads\\files\\55\\H2O AIR AND CO2 LAMP MERGED.csv",
+      "original_path": "C:\\Code\\spectra-app-beta\\samples\\lamp data\\H2O AIR AND CO2 LAMP MERGED.csv",
+      "bytes": 389190,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Code\\spectra-app-beta\\samples\\lamp data\\H2O AIR AND CO2 LAMP MERGED.csv",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "absorbance"
+        }
+      },
+      "created": "2025-10-26T16:33:19.483934+00:00",
+      "updated": "2025-10-26T16:33:19.484079+00:00"
     }
   }
 }

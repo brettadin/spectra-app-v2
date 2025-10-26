@@ -1,15 +1,27 @@
 Traceback (most recent call last):
-  File "<frozen runpy>", line 198, in _run_module_as_main
-  File "<frozen runpy>", line 88, in _run_code
-  File "C:\Code\spectra-app-v2\app\main.py", line 420, in <module>
-    raise SystemExit(main())
-                     ^^^^^^
-  File "C:\Code\spectra-app-v2\app\main.py", line 414, in main
-    window = SpectraMainWindow()
-             ^^^^^^^^^^^^^^^^^^^
-  File "C:\Code\spectra-app-v2\app\main.py", line 159, in __init__
-    self._setup_menu()
-  File "C:\Code\spectra-app-v2\app\main.py", line 255, in _setup_menu
-    export_action.triggered.connect(self.export_manifest)
-                                    ^^^^^^^^^^^^^^^^^^^^
-AttributeError: 'SpectraMainWindow' object has no attribute 'export_manifest'
+  File "C:\Code\spectra-app-beta\app\main.py", line 749, in open_file
+    self._ingest_path(Path(path_str))
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "C:\Code\spectra-app-beta\app\main.py", line 959, in _ingest_path
+    self._add_spectrum(spectrum)
+    ~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "C:\Code\spectra-app-beta\app\main.py", line 978, in _add_spectrum
+    self.plot.add_trace(
+    ~~~~~~~~~~~~~~~~~~~^
+        key=spectrum.id,
+        ^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+        style=style,
+        ^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Code\spectra-app-beta\app\ui\plot_pane.py", line 93, in add_trace
+    self._plot.addItem(curve)
+    ~~~~~~~~~~~~~~~~~~^^^^^^^
+  File "C:\Code\spectra-app-beta\.venv\Lib\site-packages\pyqtgraph\graphicsItems\PlotItem\PlotItem.py", line 545, in addItem
+    self.addAvgCurve(item)
+    ~~~~~~~~~~~~~~~~^^^^^^
+  File "C:\Code\spectra-app-beta\.venv\Lib\site-packages\pyqtgraph\graphicsItems\PlotItem\PlotItem.py", line 484, in addAvgCurve
+    if plot.yData is not None and y.shape == plot.yData.shape:
+                                  ^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'shape'
