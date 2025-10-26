@@ -1693,3 +1693,195 @@ Import/Remote Import entries remain after the cleanup.
 - H2O_Lamp.csv
 
 ---
+## 2025-10-26 12:57 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file okay sun file.csv
+
+**References**:
+- okay sun file.csv
+
+---
+## 2025-10-26 12:58 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Good Sun reading.txt
+
+**References**:
+- Good Sun reading.txt
+
+---
+## 2025-10-26 13:00 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Air_Lamp.csv
+
+**References**:
+- Air_Lamp.csv
+
+---
+## 2025-10-26 13:00 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Helium_Lamp.csv
+
+**References**:
+- Helium_Lamp.csv
+
+---
+## 2025-10-26 13:01 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Helium_Lamp.csv
+
+**References**:
+- Helium_Lamp.csv
+
+---
+## 2025-10-26 13:01 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Hydrogen_Lamp.csv
+
+**References**:
+- Hydrogen_Lamp.csv
+
+---
+## 2025-10-26 13:01 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Star_Lamp.csv
+
+**References**:
+- Star_Lamp.csv
+
+---
+## 2025-10-26 13:03 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file H2O_Lamp.csv
+
+**References**:
+- H2O_Lamp.csv
+
+---
+## 2025-10-26 13:05 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file NO filter_Subt4__0__10-21-03-630.txt
+
+**References**:
+- NO filter_Subt4__0__10-21-03-630.txt
+
+---
+## 2025-10-26 13:05 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file 3_57 pm cloudy_Subt2__2__15-59-37-611.txt
+
+**References**:
+- 3_57 pm cloudy_Subt2__2__15-59-37-611.txt
+
+---
+## 2025-10-26 13:05 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file 4_51 _Subt2__0__16-51-23-322.txt
+
+**References**:
+- 4_51 _Subt2__0__16-51-23-322.txt
+
+---
+## 2025-10-26 13:05 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file 6_44 2.txt
+
+**References**:
+- 6_44 2.txt
+
+---
+## 2025-10-26 13:06 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Subt4__0__10-20-14-245.txt
+
+**References**:
+- Subt4__0__10-20-14-245.txt
+
+---
+## 2025-10-26 13:06 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Subt4__1__10-20-14-272.txt
+
+**References**:
+- Subt4__1__10-20-14-272.txt
+
+---
+## 2025-10-26 13:07 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file 6_44.txt
+
+**References**:
+- 6_44.txt
+
+---
+## 2025-10-26 13:07 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file okay sun file.csv
+
+**References**:
+- okay sun file.csv
+
+---

@@ -96,8 +96,8 @@
     "b45c8a053cbcbe3f38d88118d2ab250da58e9ad7434bfa8184ceda3401c30e84": {
       "sha256": "b45c8a053cbcbe3f38d88118d2ab250da58e9ad7434bfa8184ceda3401c30e84",
       "filename": "Air_Lamp.csv",
-      "stored_path": "C:\\Code\\spectra-app-beta\\downloads\\files\\b4\\Air_Lamp.csv",
-      "original_path": "C:\\Code\\spectra-app-beta\\samples\\lamp data\\Air_Lamp.csv",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\b4\\Air_Lamp.csv",
+      "original_path": "C:\\Code\\spectra-app-v2\\samples\\lamp data\\Air_Lamp.csv",
       "bytes": 76894,
       "units": {
         "x": "nm",
@@ -105,7 +105,7 @@
       },
       "source": {
         "ingest": {
-          "source_path": "C:\\Code\\spectra-app-beta\\samples\\lamp data\\Air_Lamp.csv",
+          "source_path": "C:\\Code\\spectra-app-v2\\samples\\lamp data\\Air_Lamp.csv",
           "importer": "CsvImporter"
         },
         "source_units": {
@@ -114,13 +114,13 @@
         }
       },
       "created": "2025-10-26T16:31:31.200301+00:00",
-      "updated": "2025-10-26T16:31:31.200441+00:00"
+      "updated": "2025-10-26T17:00:31.911830+00:00"
     },
     "4458173bc3fb86549be349e283060f14fb2e45876e3daa44efbed0407e43210f": {
       "sha256": "4458173bc3fb86549be349e283060f14fb2e45876e3daa44efbed0407e43210f",
       "filename": "H2O_Lamp.csv",
-      "stored_path": "C:\\Code\\spectra-app-beta\\downloads\\files\\44\\H2O_Lamp.csv",
-      "original_path": "C:\\Code\\spectra-app-beta\\samples\\lamp data\\H2O_Lamp.csv",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\44\\H2O_Lamp.csv",
+      "original_path": "C:\\Code\\spectra-app-v2\\samples\\lamp data\\H2O_Lamp.csv",
       "bytes": 74495,
       "units": {
         "x": "nm",
@@ -128,7 +128,7 @@
       },
       "source": {
         "ingest": {
-          "source_path": "C:\\Code\\spectra-app-beta\\samples\\lamp data\\H2O_Lamp.csv",
+          "source_path": "C:\\Code\\spectra-app-v2\\samples\\lamp data\\H2O_Lamp.csv",
           "importer": "CsvImporter"
         },
         "source_units": {
@@ -137,7 +137,7 @@
         }
       },
       "created": "2025-10-26T16:31:39.023672+00:00",
-      "updated": "2025-10-26T16:31:39.023925+00:00"
+      "updated": "2025-10-26T17:03:56.129509+00:00"
     },
     "55b7ae12a6d1c48569a209547eabe7c796842f2b9e3808d18cf64318227b7c77": {
       "sha256": "55b7ae12a6d1c48569a209547eabe7c796842f2b9e3808d18cf64318227b7c77",
@@ -161,6 +161,282 @@
       },
       "created": "2025-10-26T16:33:19.483934+00:00",
       "updated": "2025-10-26T16:33:19.484079+00:00"
+    },
+    "a39c5b38ba14f61b01eba899e1b953ea9b458838f5a94ce4bc0a059fd41b3337": {
+      "sha256": "a39c5b38ba14f61b01eba899e1b953ea9b458838f5a94ce4bc0a059fd41b3337",
+      "filename": "okay sun file.csv",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\a3\\okay sun file.csv",
+      "original_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\Sun\\okay sun file.csv",
+      "bytes": 23085394,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\Sun\\okay sun file.csv",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "absorbance"
+        }
+      },
+      "created": "2025-10-26T16:57:56.272849+00:00",
+      "updated": "2025-10-26T17:07:27.905122+00:00"
+    },
+    "283417d0db257f60e458765472c01550f5af2dfdfd2daf0f151c7e6710d7bf52": {
+      "sha256": "283417d0db257f60e458765472c01550f5af2dfdfd2daf0f151c7e6710d7bf52",
+      "filename": "Good Sun reading.txt",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\28\\Good Sun reading.txt",
+      "original_path": "C:\\Code\\spectra-app-v2\\samples\\other file types\\Good Sun reading.txt",
+      "bytes": 69934,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Code\\spectra-app-v2\\samples\\other file types\\Good Sun reading.txt",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "absorbance"
+        }
+      },
+      "created": "2025-10-26T16:58:03.536602+00:00",
+      "updated": "2025-10-26T16:58:03.536602+00:00"
+    },
+    "7cc3a528beb2b24bc84cb8991c4da78457f97f27005d4edc04fe16c4233738c5": {
+      "sha256": "7cc3a528beb2b24bc84cb8991c4da78457f97f27005d4edc04fe16c4233738c5",
+      "filename": "Helium_Lamp.csv",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\7c\\Helium_Lamp.csv",
+      "original_path": "C:\\Code\\spectra-app-v2\\samples\\lamp data\\Helium_Lamp.csv",
+      "bytes": 92332,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Code\\spectra-app-v2\\samples\\lamp data\\Helium_Lamp.csv",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "absorbance"
+        }
+      },
+      "created": "2025-10-26T17:00:56.584765+00:00",
+      "updated": "2025-10-26T17:01:03.237328+00:00"
+    },
+    "ae012b3bbc07bfb4364009579a3803dde935e941ad942a1cc803f64019aebcea": {
+      "sha256": "ae012b3bbc07bfb4364009579a3803dde935e941ad942a1cc803f64019aebcea",
+      "filename": "Hydrogen_Lamp.csv",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\ae\\Hydrogen_Lamp.csv",
+      "original_path": "C:\\Code\\spectra-app-v2\\samples\\lamp data\\Hydrogen_Lamp.csv",
+      "bytes": 89122,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Code\\spectra-app-v2\\samples\\lamp data\\Hydrogen_Lamp.csv",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "absorbance"
+        }
+      },
+      "created": "2025-10-26T17:01:11.886038+00:00",
+      "updated": "2025-10-26T17:01:11.886038+00:00"
+    },
+    "6d84b773de64e635225f8d73a859e91da53b84c43af27349bd7b9a218c3e169d": {
+      "sha256": "6d84b773de64e635225f8d73a859e91da53b84c43af27349bd7b9a218c3e169d",
+      "filename": "Star_Lamp.csv",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\6d\\Star_Lamp.csv",
+      "original_path": "C:\\Code\\spectra-app-v2\\samples\\lamp data\\Star_Lamp.csv",
+      "bytes": 77076,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Code\\spectra-app-v2\\samples\\lamp data\\Star_Lamp.csv",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "absorbance"
+        }
+      },
+      "created": "2025-10-26T17:01:30.688390+00:00",
+      "updated": "2025-10-26T17:01:30.688390+00:00"
+    },
+    "cd38c37cd0b1422563ef421083a2e545585922cb6b3bcdd7309ea375ef414020": {
+      "sha256": "cd38c37cd0b1422563ef421083a2e545585922cb6b3bcdd7309ea375ef414020",
+      "filename": "NO filter_Subt4__0__10-21-03-630.txt",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\cd\\NO filter_Subt4__0__10-21-03-630.txt",
+      "original_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\Sun\\oceanview\\10 7 25 overcast\\NO filter_Subt4__0__10-21-03-630.txt",
+      "bytes": 71276,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\Sun\\oceanview\\10 7 25 overcast\\NO filter_Subt4__0__10-21-03-630.txt",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "absorbance"
+        }
+      },
+      "created": "2025-10-26T17:05:15.551707+00:00",
+      "updated": "2025-10-26T17:05:15.551707+00:00"
+    },
+    "5c61f754e8b30dcccb862eeabb7764bbf0222518e1b451c65402eb6c657157ab": {
+      "sha256": "5c61f754e8b30dcccb862eeabb7764bbf0222518e1b451c65402eb6c657157ab",
+      "filename": "3_57 pm cloudy_Subt2__2__15-59-37-611.txt",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\5c\\3_57 pm cloudy_Subt2__2__15-59-37-611.txt",
+      "original_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\Sun\\oceanview\\10 7 25 at home\\3_57 pm cloudy_Subt2__2__15-59-37-611.txt",
+      "bytes": 72100,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\Sun\\oceanview\\10 7 25 at home\\3_57 pm cloudy_Subt2__2__15-59-37-611.txt",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "absorbance"
+        }
+      },
+      "created": "2025-10-26T17:05:34.505073+00:00",
+      "updated": "2025-10-26T17:05:34.505073+00:00"
+    },
+    "c940702e5e9941a183c5dd412f2c219c31d5463da527c9dad222f75f7a6d8f28": {
+      "sha256": "c940702e5e9941a183c5dd412f2c219c31d5463da527c9dad222f75f7a6d8f28",
+      "filename": "4_51 _Subt2__0__16-51-23-322.txt",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\c9\\4_51 _Subt2__0__16-51-23-322.txt",
+      "original_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\Sun\\oceanview\\10 7 25 at home\\4_51 _Subt2__0__16-51-23-322.txt",
+      "bytes": 70881,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\Sun\\oceanview\\10 7 25 at home\\4_51 _Subt2__0__16-51-23-322.txt",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "absorbance"
+        }
+      },
+      "created": "2025-10-26T17:05:45.713353+00:00",
+      "updated": "2025-10-26T17:05:45.713353+00:00"
+    },
+    "c998db896ea532303475aa14f5083786ddd6f187a7e9c610872a7476bc713f90": {
+      "sha256": "c998db896ea532303475aa14f5083786ddd6f187a7e9c610872a7476bc713f90",
+      "filename": "6_44 2.txt",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\c9\\6_44 2.txt",
+      "original_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\Sun\\oceanview\\10 7 25 at home\\6_44 2.txt",
+      "bytes": 70564,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\Sun\\oceanview\\10 7 25 at home\\6_44 2.txt",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "absorbance"
+        }
+      },
+      "created": "2025-10-26T17:05:59.122343+00:00",
+      "updated": "2025-10-26T17:05:59.123343+00:00"
+    },
+    "2d01d12ddd204f21e62b785e41203940b9461ea21144b4f90be15559f4b01983": {
+      "sha256": "2d01d12ddd204f21e62b785e41203940b9461ea21144b4f90be15559f4b01983",
+      "filename": "Subt4__0__10-20-14-245.txt",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\2d\\Subt4__0__10-20-14-245.txt",
+      "original_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\Sun\\oceanview\\10 7 25 overcast\\Subt4__0__10-20-14-245.txt",
+      "bytes": 72925,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\Sun\\oceanview\\10 7 25 overcast\\Subt4__0__10-20-14-245.txt",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "absorbance"
+        }
+      },
+      "created": "2025-10-26T17:06:18.054255+00:00",
+      "updated": "2025-10-26T17:06:18.054255+00:00"
+    },
+    "c2c401bb60aa4e3bc972f966690505987ee81a6fc0237c4467ac542231037371": {
+      "sha256": "c2c401bb60aa4e3bc972f966690505987ee81a6fc0237c4467ac542231037371",
+      "filename": "Subt4__1__10-20-14-272.txt",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\c2\\Subt4__1__10-20-14-272.txt",
+      "original_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\Sun\\oceanview\\10 7 25 overcast\\Subt4__1__10-20-14-272.txt",
+      "bytes": 72931,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\Sun\\oceanview\\10 7 25 overcast\\Subt4__1__10-20-14-272.txt",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "absorbance"
+        }
+      },
+      "created": "2025-10-26T17:06:28.665011+00:00",
+      "updated": "2025-10-26T17:06:28.665011+00:00"
+    },
+    "7f4e83faa0cbed365c55809fe18b7e1394a3d2166da8aace58f6a03add2c5c41": {
+      "sha256": "7f4e83faa0cbed365c55809fe18b7e1394a3d2166da8aace58f6a03add2c5c41",
+      "filename": "6_44.txt",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\7f\\6_44.txt",
+      "original_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\Sun\\oceanview\\10 7 25 at home\\6_44.txt",
+      "bytes": 70572,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\Sun\\oceanview\\10 7 25 at home\\6_44.txt",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "absorbance"
+        }
+      },
+      "created": "2025-10-26T17:07:01.883962+00:00",
+      "updated": "2025-10-26T17:07:01.884983+00:00"
     }
   }
 }
