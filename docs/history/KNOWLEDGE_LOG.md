@@ -3517,3 +3517,399 @@ Import/Remote Import entries remain after the cleanup.
 - jupiter__9408090029N_vo.fits
 
 ---
+## 2025-10-27 16:19 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file .880torr~ w low vol h2o vapor - Copy.csv
+
+**References**:
+- .880torr~ w low vol h2o vapor - Copy.csv
+
+---
+## 2025-10-27 16:19 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file 7ish torr w h2o vapor - Copy.csv
+
+**References**:
+- 7ish torr w h2o vapor - Copy.csv
+
+---
+## 2025-10-27 16:19 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file 100 torr h2o 4-1k - Copy.csv
+
+**References**:
+- 100 torr h2o 4-1k - Copy.csv
+
+---
+## 2025-10-27 16:19 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file goodo vapor run i think - Copy.csv
+
+**References**:
+- goodo vapor run i think - Copy.csv
+
+---
+## 2025-10-27 16:19 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file h2o run 3 good i think 10 27 - Copy.csv
+
+**References**:
+- h2o run 3 good i think 10 27 - Copy.csv
+
+---
+## 2025-10-27 16:19 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file h2o run 3 good i think 10 27.csv
+
+**References**:
+- h2o run 3 good i think 10 27.csv
+
+---
+## 2025-10-27 16:19 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file h2o v2 10 27.csv
+
+**References**:
+- h2o v2 10 27.csv
+
+---
+## 2025-10-27 16:19 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file h2o vapor test 1.csv
+
+**References**:
+- h2o vapor test 1.csv
+
+---
+## 2025-10-27 16:19 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file i froze h2o in the schlenk line oopsie.csv
+
+**References**:
+- i froze h2o in the schlenk line oopsie.csv
+
+---
+## 2025-10-27 16:19 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file low vapor for the road.csv
+
+**References**:
+- low vapor for the road.csv
+
+---
+## 2025-10-27 16:19 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file sketchy vapor test.csv
+
+**References**:
+- sketchy vapor test.csv
+
+---
+## 2025-10-27 16:24 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file h2o run 1 10 27.csv
+
+**References**:
+- h2o run 1 10 27.csv
+
+---
+## 2025-10-27 16:25 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file _880torr~ w low vol h2o vapor.csv
+
+**References**:
+- _880torr~ w low vol h2o vapor.csv
+
+---
+## 2025-10-27 16:25 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file 7ish torr w h2o vapor.csv
+
+**References**:
+- 7ish torr w h2o vapor.csv
+
+---
+## 2025-10-27 16:25 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file goodo vapor run i think.csv
+
+**References**:
+- goodo vapor run i think.csv
+
+---
+## 2025-10-27 16:25 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file low vapor for the road.csv
+
+**References**:
+- low vapor for the road.csv
+
+---
+## 2025-10-27 16:27 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Methanol Blank.csv
+
+**References**:
+- Methanol Blank.csv
+
+---
+## 2025-10-27 16:28 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file .880torr~ w low vol h2o vapor.csv
+
+**References**:
+- .880torr~ w low vol h2o vapor.csv
+
+---
+## 2025-10-27 16:28 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file 7ish torr w h2o vapor.csv
+
+**References**:
+- 7ish torr w h2o vapor.csv
+
+---
+## 2025-10-27 16:28 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file 10.8 Test 1.csv
+
+**References**:
+- 10.8 Test 1.csv
+
+---
+## 2025-10-27 16:28 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file 10.8 Test 2.csv
+
+**References**:
+- 10.8 Test 2.csv
+
+---
+## 2025-10-27 16:28 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file 100 torr cold water.csv
+
+**References**:
+- 100 torr cold water.csv
+
+---
+## 2025-10-27 16:28 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file 100 torr h2o 4-1k.csv
+
+**References**:
+- 100 torr h2o 4-1k.csv
+
+---
+## 2025-10-27 16:28 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file cold water test 1.csv
+
+**References**:
+- cold water test 1.csv
+
+---
+## 2025-10-27 16:28 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file goodo vapor run i think.csv
+
+**References**:
+- goodo vapor run i think.csv
+
+---
+## 2025-10-27 16:28 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file h2o run 1 10 27.csv
+
+**References**:
+- h2o run 1 10 27.csv
+
+---
+## 2025-10-27 16:28 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file h2o run 3 good i think 10 27.csv
+
+**References**:
+- h2o run 3 good i think 10 27.csv
+
+---
+## 2025-10-27 16:28 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file h2o v2 10 27.csv
+
+**References**:
+- h2o v2 10 27.csv
+
+---
+## 2025-10-27 16:28 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file h2o vapor test 1.csv
+
+**References**:
+- h2o vapor test 1.csv
+
+---
+## 2025-10-27 16:28 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file i froze h2o in the schlenk line oopsie.csv
+
+**References**:
+- i froze h2o in the schlenk line oopsie.csv
+
+---
+## 2025-10-27 16:28 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file low vapor for the road.csv
+
+**References**:
+- low vapor for the road.csv
+
+---
+## 2025-10-27 16:28 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file run2.csv
+
+**References**:
+- run2.csv
+
+---
+## 2025-10-27 16:28 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file run4.csv
+
+**References**:
+- run4.csv
+
+---

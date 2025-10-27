@@ -2856,6 +2856,420 @@
       },
       "created": "2025-10-26T23:45:35.528865+00:00",
       "updated": "2025-10-26T23:45:35.528865+00:00"
+    },
+    "9063b49153cc13c5b19d9a1b302ef31256cc1bf8d970f2724b7a204878afa95e": {
+      "sha256": "9063b49153cc13c5b19d9a1b302ef31256cc1bf8d970f2724b7a204878afa95e",
+      "filename": ".880torr~ w low vol h2o vapor.csv",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\90\\.880torr~ w low vol h2o vapor.csv",
+      "original_path": "C:\\Code\\spectra-app-v2\\samples\\IR data\\Lab\\.880torr~ w low vol h2o vapor.csv",
+      "bytes": 53085,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Code\\spectra-app-v2\\samples\\IR data\\Lab\\.880torr~ w low vol h2o vapor.csv",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "cm^-1",
+          "y": "percent_transmittance"
+        }
+      },
+      "created": "2025-10-27T20:19:15.580279+00:00",
+      "updated": "2025-10-27T20:28:06.993814+00:00"
+    },
+    "d842557e38f3791ea2d3ef6b56818f935ef9905e6fa12e7b031ef35877b935bd": {
+      "sha256": "d842557e38f3791ea2d3ef6b56818f935ef9905e6fa12e7b031ef35877b935bd",
+      "filename": "7ish torr w h2o vapor.csv",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\d8\\7ish torr w h2o vapor.csv",
+      "original_path": "C:\\Code\\spectra-app-v2\\samples\\IR data\\Lab\\7ish torr w h2o vapor.csv",
+      "bytes": 53374,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Code\\spectra-app-v2\\samples\\IR data\\Lab\\7ish torr w h2o vapor.csv",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "cm^-1",
+          "y": "percent_transmittance"
+        }
+      },
+      "created": "2025-10-27T20:19:15.758590+00:00",
+      "updated": "2025-10-27T20:28:07.120338+00:00"
+    },
+    "d696c32c732e9e129ff30472a9e9d79eafb9dea09023b1b838e3e97235aab507": {
+      "sha256": "d696c32c732e9e129ff30472a9e9d79eafb9dea09023b1b838e3e97235aab507",
+      "filename": "100 torr h2o 4-1k.csv",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\d6\\100 torr h2o 4-1k.csv",
+      "original_path": "C:\\Code\\spectra-app-v2\\samples\\IR data\\Lab\\100 torr h2o 4-1k.csv",
+      "bytes": 45124,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Code\\spectra-app-v2\\samples\\IR data\\Lab\\100 torr h2o 4-1k.csv",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "cm^-1",
+          "y": "percent_transmittance"
+        }
+      },
+      "created": "2025-10-27T20:19:15.916221+00:00",
+      "updated": "2025-10-27T20:28:08.052022+00:00"
+    },
+    "2ee82812af376d8b3333a00511afb32bc31f755382e3dc046f964929f6e00ac9": {
+      "sha256": "2ee82812af376d8b3333a00511afb32bc31f755382e3dc046f964929f6e00ac9",
+      "filename": "goodo vapor run i think.csv",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\2e\\goodo vapor run i think.csv",
+      "original_path": "C:\\Code\\spectra-app-v2\\samples\\IR data\\Lab\\goodo vapor run i think.csv",
+      "bytes": 53050,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Code\\spectra-app-v2\\samples\\IR data\\Lab\\goodo vapor run i think.csv",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "cm^-1",
+          "y": "percent_transmittance"
+        }
+      },
+      "created": "2025-10-27T20:19:16.075985+00:00",
+      "updated": "2025-10-27T20:28:08.347979+00:00"
+    },
+    "ca41eec26ca407af24960aaac1fe008f14d0885644dfcc6e6b191b11c68d1212": {
+      "sha256": "ca41eec26ca407af24960aaac1fe008f14d0885644dfcc6e6b191b11c68d1212",
+      "filename": "h2o run 3 good i think 10 27.csv",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\ca\\h2o run 3 good i think 10 27.csv",
+      "original_path": "C:\\Code\\spectra-app-v2\\samples\\IR data\\Lab\\h2o run 3 good i think 10 27.csv",
+      "bytes": 46453,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Code\\spectra-app-v2\\samples\\IR data\\Lab\\h2o run 3 good i think 10 27.csv",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "cm^-1",
+          "y": "percent_transmittance"
+        }
+      },
+      "created": "2025-10-27T20:19:16.260667+00:00",
+      "updated": "2025-10-27T20:28:08.646176+00:00"
+    },
+    "6af9cfcfa6ccb277b37d1d384f7ab3db0b51a1cdc87b226a3e09a625daa97cd6": {
+      "sha256": "6af9cfcfa6ccb277b37d1d384f7ab3db0b51a1cdc87b226a3e09a625daa97cd6",
+      "filename": "h2o v2 10 27.csv",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\6a\\h2o v2 10 27.csv",
+      "original_path": "C:\\Code\\spectra-app-v2\\samples\\IR data\\Lab\\h2o v2 10 27.csv",
+      "bytes": 48072,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Code\\spectra-app-v2\\samples\\IR data\\Lab\\h2o v2 10 27.csv",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "cm^-1",
+          "y": "percent_transmittance"
+        }
+      },
+      "created": "2025-10-27T20:19:16.630355+00:00",
+      "updated": "2025-10-27T20:28:08.747033+00:00"
+    },
+    "4d776a38ee453626cf12ee5df2e7c5f5faa7556fcbc442af14f8d5d9c2fd8d89": {
+      "sha256": "4d776a38ee453626cf12ee5df2e7c5f5faa7556fcbc442af14f8d5d9c2fd8d89",
+      "filename": "h2o vapor test 1.csv",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\4d\\h2o vapor test 1.csv",
+      "original_path": "C:\\Code\\spectra-app-v2\\samples\\IR data\\Lab\\h2o vapor test 1.csv",
+      "bytes": 53123,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Code\\spectra-app-v2\\samples\\IR data\\Lab\\h2o vapor test 1.csv",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "cm^-1",
+          "y": "percent_transmittance"
+        }
+      },
+      "created": "2025-10-27T20:19:16.808485+00:00",
+      "updated": "2025-10-27T20:28:08.861366+00:00"
+    },
+    "b08067c1ec6748f9b53d4f161d52e4d06d2badf568542fe1295dea521ea9dd42": {
+      "sha256": "b08067c1ec6748f9b53d4f161d52e4d06d2badf568542fe1295dea521ea9dd42",
+      "filename": "i froze h2o in the schlenk line oopsie.csv",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\b0\\i froze h2o in the schlenk line oopsie.csv",
+      "original_path": "C:\\Code\\spectra-app-v2\\samples\\IR data\\Lab\\i froze h2o in the schlenk line oopsie.csv",
+      "bytes": 53257,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Code\\spectra-app-v2\\samples\\IR data\\Lab\\i froze h2o in the schlenk line oopsie.csv",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "cm^-1",
+          "y": "percent_transmittance"
+        }
+      },
+      "created": "2025-10-27T20:19:16.998648+00:00",
+      "updated": "2025-10-27T20:28:08.964431+00:00"
+    },
+    "9c79b67b8fb610f94ac91a25da169f3f9fb98d9c7b601e23dd256f37c19ed39f": {
+      "sha256": "9c79b67b8fb610f94ac91a25da169f3f9fb98d9c7b601e23dd256f37c19ed39f",
+      "filename": "low vapor for the road.csv",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\9c\\low vapor for the road.csv",
+      "original_path": "C:\\Code\\spectra-app-v2\\samples\\IR data\\Lab\\low vapor for the road.csv",
+      "bytes": 52985,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Code\\spectra-app-v2\\samples\\IR data\\Lab\\low vapor for the road.csv",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "cm^-1",
+          "y": "percent_transmittance"
+        }
+      },
+      "created": "2025-10-27T20:19:17.214670+00:00",
+      "updated": "2025-10-27T20:28:09.066006+00:00"
+    },
+    "91dfb5f812ab30bc48495e2abf36a57b25b76a40592bd2ccb2550cd91eafa925": {
+      "sha256": "91dfb5f812ab30bc48495e2abf36a57b25b76a40592bd2ccb2550cd91eafa925",
+      "filename": "sketchy vapor test.csv",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\91\\sketchy vapor test.csv",
+      "original_path": "C:\\Code\\spectra-app-v2\\samples\\IR data\\Lab\\sketchy vapor test.csv",
+      "bytes": 55960,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Code\\spectra-app-v2\\samples\\IR data\\Lab\\sketchy vapor test.csv",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "cm^-1",
+          "y": "percent_transmittance"
+        }
+      },
+      "created": "2025-10-27T20:19:17.426789+00:00",
+      "updated": "2025-10-27T20:19:17.427038+00:00"
+    },
+    "7dec7408962bda833797966cc334ac6dc98fb05c9bf5e8458bfee03d627be62c": {
+      "sha256": "7dec7408962bda833797966cc334ac6dc98fb05c9bf5e8458bfee03d627be62c",
+      "filename": "h2o run 1 10 27.csv",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\7d\\h2o run 1 10 27.csv",
+      "original_path": "C:\\Code\\spectra-app-v2\\samples\\IR data\\Lab\\h2o run 1 10 27.csv",
+      "bytes": 45450,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Code\\spectra-app-v2\\samples\\IR data\\Lab\\h2o run 1 10 27.csv",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "cm^-1",
+          "y": "percent_transmittance"
+        }
+      },
+      "created": "2025-10-27T20:24:47.191946+00:00",
+      "updated": "2025-10-27T20:28:08.545297+00:00"
+    },
+    "9a30422e6aaa12da0e92c90368153259cdec969a343b77aa6da7cca834eface7": {
+      "sha256": "9a30422e6aaa12da0e92c90368153259cdec969a343b77aa6da7cca834eface7",
+      "filename": "Methanol Blank.csv",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\9a\\Methanol Blank.csv",
+      "original_path": "C:\\Code\\spectra-app-v2\\samples\\IR data\\Lab\\Methanol Blank.csv",
+      "bytes": 31474,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Code\\spectra-app-v2\\samples\\IR data\\Lab\\Methanol Blank.csv",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "absorbance"
+        }
+      },
+      "created": "2025-10-27T20:27:10.684690+00:00",
+      "updated": "2025-10-27T20:27:10.684971+00:00"
+    },
+    "cfc395d30fa942ad7635a5c86fe7a66cae623431f2030fe7ae9cadde7593df6a": {
+      "sha256": "cfc395d30fa942ad7635a5c86fe7a66cae623431f2030fe7ae9cadde7593df6a",
+      "filename": "10.8 Test 1.csv",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\cf\\10.8 Test 1.csv",
+      "original_path": "C:\\Code\\spectra-app-v2\\samples\\IR data\\Lab\\10.8 Test 1.csv",
+      "bytes": 423205,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Code\\spectra-app-v2\\samples\\IR data\\Lab\\10.8 Test 1.csv",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "cm^-1",
+          "y": "percent_transmittance"
+        }
+      },
+      "created": "2025-10-27T20:28:07.417270+00:00",
+      "updated": "2025-10-27T20:28:07.417464+00:00"
+    },
+    "902c970295e926b624a3c88e546522d98b332dd27c14247cd5005421e9caec19": {
+      "sha256": "902c970295e926b624a3c88e546522d98b332dd27c14247cd5005421e9caec19",
+      "filename": "10.8 Test 2.csv",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\90\\10.8 Test 2.csv",
+      "original_path": "C:\\Code\\spectra-app-v2\\samples\\IR data\\Lab\\10.8 Test 2.csv",
+      "bytes": 423594,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Code\\spectra-app-v2\\samples\\IR data\\Lab\\10.8 Test 2.csv",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "cm^-1",
+          "y": "percent_transmittance"
+        }
+      },
+      "created": "2025-10-27T20:28:07.721226+00:00",
+      "updated": "2025-10-27T20:28:07.721387+00:00"
+    },
+    "49ad667c4a4ef47d9db29b570b4a6fb9d7c4d75f4aa8a4c623cc32eef5280c18": {
+      "sha256": "49ad667c4a4ef47d9db29b570b4a6fb9d7c4d75f4aa8a4c623cc32eef5280c18",
+      "filename": "100 torr cold water.csv",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\49\\100 torr cold water.csv",
+      "original_path": "C:\\Code\\spectra-app-v2\\samples\\IR data\\Lab\\100 torr cold water.csv",
+      "bytes": 53208,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Code\\spectra-app-v2\\samples\\IR data\\Lab\\100 torr cold water.csv",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "cm^-1",
+          "y": "percent_transmittance"
+        }
+      },
+      "created": "2025-10-27T20:28:07.886095+00:00",
+      "updated": "2025-10-27T20:28:07.886327+00:00"
+    },
+    "b4791476d50571144ec22d58673b0f953f24edc2df5ab3c22ad705ea7c04d4a1": {
+      "sha256": "b4791476d50571144ec22d58673b0f953f24edc2df5ab3c22ad705ea7c04d4a1",
+      "filename": "cold water test 1.csv",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\b4\\cold water test 1.csv",
+      "original_path": "C:\\Code\\spectra-app-v2\\samples\\IR data\\Lab\\cold water test 1.csv",
+      "bytes": 52282,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Code\\spectra-app-v2\\samples\\IR data\\Lab\\cold water test 1.csv",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "cm^-1",
+          "y": "percent_transmittance"
+        }
+      },
+      "created": "2025-10-27T20:28:08.212390+00:00",
+      "updated": "2025-10-27T20:28:08.212626+00:00"
+    },
+    "169dbf5375303ef621a33643b74917d6ebdbf0236b253b4f70ed81cb4d743103": {
+      "sha256": "169dbf5375303ef621a33643b74917d6ebdbf0236b253b4f70ed81cb4d743103",
+      "filename": "run2.csv",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\16\\run2.csv",
+      "original_path": "C:\\Code\\spectra-app-v2\\samples\\IR data\\Lab\\run2.csv",
+      "bytes": 53161,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Code\\spectra-app-v2\\samples\\IR data\\Lab\\run2.csv",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "cm^-1",
+          "y": "percent_transmittance"
+        }
+      },
+      "created": "2025-10-27T20:28:09.221883+00:00",
+      "updated": "2025-10-27T20:28:09.222052+00:00"
+    },
+    "5068b4acfbcc9ef7ac3ea7585b1f56d3197b489a2c0968c01de2efcedb6f9395": {
+      "sha256": "5068b4acfbcc9ef7ac3ea7585b1f56d3197b489a2c0968c01de2efcedb6f9395",
+      "filename": "run4.csv",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\50\\run4.csv",
+      "original_path": "C:\\Code\\spectra-app-v2\\samples\\IR data\\Lab\\run4.csv",
+      "bytes": 55581,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Code\\spectra-app-v2\\samples\\IR data\\Lab\\run4.csv",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "cm^-1",
+          "y": "percent_transmittance"
+        }
+      },
+      "created": "2025-10-27T20:28:09.435312+00:00",
+      "updated": "2025-10-27T20:28:09.435540+00:00"
     }
   }
 }
