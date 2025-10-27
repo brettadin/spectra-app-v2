@@ -3517,3 +3517,171 @@ Import/Remote Import entries remain after the cleanup.
 - jupiter__9408090029N_vo.fits
 
 ---
+## 2025-10-26 19:47 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file sample_spectrum.csv
+
+**References**:
+- sample_spectrum.csv
+
+---
+## 2025-10-26 19:47 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file sample_transmittance.csv
+
+**References**:
+- sample_transmittance.csv
+
+---
+## 2025-10-26 19:47 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Air_Lamp.csv
+
+**References**:
+- Air_Lamp.csv
+
+---
+## 2025-10-26 19:47 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file CO2_Lamp.csv
+
+**References**:
+- CO2_Lamp.csv
+
+---
+## 2025-10-26 19:47 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file H2O AIR AND CO2 LAMP MERGED.csv
+
+**References**:
+- H2O AIR AND CO2 LAMP MERGED.csv
+
+---
+## 2025-10-26 19:47 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file H2O_Lamp.csv
+
+**References**:
+- H2O_Lamp.csv
+
+---
+## 2025-10-26 19:47 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Helium_Lamp.csv
+
+**References**:
+- Helium_Lamp.csv
+
+---
+## 2025-10-26 19:47 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Hydrogen_Lamp.csv
+
+**References**:
+- Hydrogen_Lamp.csv
+
+---
+## 2025-10-26 19:47 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Iodine_Lamp.csv
+
+**References**:
+- Iodine_Lamp.csv
+
+---
+## 2025-10-26 19:47 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Krypton_Lamp.csv
+
+**References**:
+- Krypton_Lamp.csv
+
+---
+## 2025-10-26 19:47 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Mercury_Lamp.csv
+
+**References**:
+- Mercury_Lamp.csv
+
+---
+## 2025-10-26 19:47 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Neon_Lamp.csv
+
+**References**:
+- Neon_Lamp.csv
+
+---
+## 2025-10-26 19:47 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Star_Lamp.csv
+
+**References**:
+- Star_Lamp.csv
+
+---
+## 2025-10-26 19:47 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Xenon_Lamp.csv
+
+**References**:
+- Xenon_Lamp.csv
+
+---

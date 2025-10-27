@@ -50,8 +50,8 @@
     "e65613f6310f7568b66f4fbbef236ef6090c604475f76d390ac92f3c4c560d87": {
       "sha256": "e65613f6310f7568b66f4fbbef236ef6090c604475f76d390ac92f3c4c560d87",
       "filename": "CO2_Lamp.csv",
-      "stored_path": "C:\\Code\\spectra-app-beta\\downloads\\files\\e6\\CO2_Lamp.csv",
-      "original_path": "C:\\Code\\spectra-app-beta\\samples\\lamp data\\CO2_Lamp.csv",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\e6\\CO2_Lamp.csv",
+      "original_path": "C:\\Code\\spectra-app-v2\\samples\\lamp data\\CO2_Lamp.csv",
       "bytes": 75846,
       "units": {
         "x": "nm",
@@ -59,7 +59,7 @@
       },
       "source": {
         "ingest": {
-          "source_path": "C:\\Code\\spectra-app-beta\\samples\\lamp data\\CO2_Lamp.csv",
+          "source_path": "C:\\Code\\spectra-app-v2\\samples\\lamp data\\CO2_Lamp.csv",
           "importer": "CsvImporter"
         },
         "source_units": {
@@ -68,7 +68,7 @@
         }
       },
       "created": "2025-10-26T16:30:48.814542+00:00",
-      "updated": "2025-10-26T16:30:48.814822+00:00"
+      "updated": "2025-10-26T23:47:32.308883+00:00"
     },
     "7ee9228c5b4561d33a03ce5469d0824905fa0f62354ee5e482eb42e86ea53e1d": {
       "sha256": "7ee9228c5b4561d33a03ce5469d0824905fa0f62354ee5e482eb42e86ea53e1d",
@@ -114,7 +114,7 @@
         }
       },
       "created": "2025-10-26T16:31:31.200301+00:00",
-      "updated": "2025-10-26T17:00:31.911830+00:00"
+      "updated": "2025-10-26T23:47:32.240921+00:00"
     },
     "4458173bc3fb86549be349e283060f14fb2e45876e3daa44efbed0407e43210f": {
       "sha256": "4458173bc3fb86549be349e283060f14fb2e45876e3daa44efbed0407e43210f",
@@ -137,13 +137,13 @@
         }
       },
       "created": "2025-10-26T16:31:39.023672+00:00",
-      "updated": "2025-10-26T19:42:34.826655+00:00"
+      "updated": "2025-10-26T23:47:32.488738+00:00"
     },
     "55b7ae12a6d1c48569a209547eabe7c796842f2b9e3808d18cf64318227b7c77": {
       "sha256": "55b7ae12a6d1c48569a209547eabe7c796842f2b9e3808d18cf64318227b7c77",
       "filename": "H2O AIR AND CO2 LAMP MERGED.csv",
-      "stored_path": "C:\\Code\\spectra-app-beta\\downloads\\files\\55\\H2O AIR AND CO2 LAMP MERGED.csv",
-      "original_path": "C:\\Code\\spectra-app-beta\\samples\\lamp data\\H2O AIR AND CO2 LAMP MERGED.csv",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\55\\H2O AIR AND CO2 LAMP MERGED.csv",
+      "original_path": "C:\\Code\\spectra-app-v2\\samples\\lamp data\\H2O AIR AND CO2 LAMP MERGED.csv",
       "bytes": 389190,
       "units": {
         "x": "nm",
@@ -151,7 +151,7 @@
       },
       "source": {
         "ingest": {
-          "source_path": "C:\\Code\\spectra-app-beta\\samples\\lamp data\\H2O AIR AND CO2 LAMP MERGED.csv",
+          "source_path": "C:\\Code\\spectra-app-v2\\samples\\lamp data\\H2O AIR AND CO2 LAMP MERGED.csv",
           "importer": "CsvImporter"
         },
         "source_units": {
@@ -160,7 +160,7 @@
         }
       },
       "created": "2025-10-26T16:33:19.483934+00:00",
-      "updated": "2025-10-26T16:33:19.484079+00:00"
+      "updated": "2025-10-26T23:47:32.438335+00:00"
     },
     "a39c5b38ba14f61b01eba899e1b953ea9b458838f5a94ce4bc0a059fd41b3337": {
       "sha256": "a39c5b38ba14f61b01eba899e1b953ea9b458838f5a94ce4bc0a059fd41b3337",
@@ -229,7 +229,7 @@
         }
       },
       "created": "2025-10-26T17:00:56.584765+00:00",
-      "updated": "2025-10-26T17:01:03.237328+00:00"
+      "updated": "2025-10-26T23:47:32.568807+00:00"
     },
     "ae012b3bbc07bfb4364009579a3803dde935e941ad942a1cc803f64019aebcea": {
       "sha256": "ae012b3bbc07bfb4364009579a3803dde935e941ad942a1cc803f64019aebcea",
@@ -252,7 +252,7 @@
         }
       },
       "created": "2025-10-26T17:01:11.886038+00:00",
-      "updated": "2025-10-26T17:01:11.886038+00:00"
+      "updated": "2025-10-26T23:47:32.638813+00:00"
     },
     "6d84b773de64e635225f8d73a859e91da53b84c43af27349bd7b9a218c3e169d": {
       "sha256": "6d84b773de64e635225f8d73a859e91da53b84c43af27349bd7b9a218c3e169d",
@@ -275,7 +275,7 @@
         }
       },
       "created": "2025-10-26T17:01:30.688390+00:00",
-      "updated": "2025-10-26T17:01:30.688390+00:00"
+      "updated": "2025-10-26T23:47:33.073655+00:00"
     },
     "cd38c37cd0b1422563ef421083a2e545585922cb6b3bcdd7309ea375ef414020": {
       "sha256": "cd38c37cd0b1422563ef421083a2e545585922cb6b3bcdd7309ea375ef414020",
@@ -1536,7 +1536,7 @@
         }
       },
       "created": "2025-10-26T19:08:59.566460+00:00",
-      "updated": "2025-10-26T20:39:19.350790+00:00"
+      "updated": "2025-10-26T23:47:11.083596+00:00"
     },
     "f9f924755a201e0153e91126cf349e4de592a8be080d9a964770714de18e6f00": {
       "sha256": "f9f924755a201e0153e91126cf349e4de592a8be080d9a964770714de18e6f00",
@@ -2856,6 +2856,144 @@
       },
       "created": "2025-10-26T23:45:35.528865+00:00",
       "updated": "2025-10-26T23:45:35.528865+00:00"
+    },
+    "ab36c7c0fa9cb1ef8d6748df03f956a8b3ac2eaa4980142ff7910ee4bdb4784b": {
+      "sha256": "ab36c7c0fa9cb1ef8d6748df03f956a8b3ac2eaa4980142ff7910ee4bdb4784b",
+      "filename": "sample_transmittance.csv",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\ab\\sample_transmittance.csv",
+      "original_path": "C:\\Code\\spectra-app-v2\\samples\\sample_transmittance.csv",
+      "bytes": 74,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Code\\spectra-app-v2\\samples\\sample_transmittance.csv",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "percent_transmittance"
+        }
+      },
+      "created": "2025-10-26T23:47:11.155080+00:00",
+      "updated": "2025-10-26T23:47:11.155080+00:00"
+    },
+    "5922130593e07ec1de33637465c1266a6caa07af68d122a9d01cc0f991beea91": {
+      "sha256": "5922130593e07ec1de33637465c1266a6caa07af68d122a9d01cc0f991beea91",
+      "filename": "Iodine_Lamp.csv",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\59\\Iodine_Lamp.csv",
+      "original_path": "C:\\Code\\spectra-app-v2\\samples\\lamp data\\Iodine_Lamp.csv",
+      "bytes": 67367,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Code\\spectra-app-v2\\samples\\lamp data\\Iodine_Lamp.csv",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "absorbance"
+        }
+      },
+      "created": "2025-10-26T23:47:32.708822+00:00",
+      "updated": "2025-10-26T23:47:32.708822+00:00"
+    },
+    "195071945f6f359dfcabd14c56c5e67638364fdb2945c0600a81de2995d03d86": {
+      "sha256": "195071945f6f359dfcabd14c56c5e67638364fdb2945c0600a81de2995d03d86",
+      "filename": "Krypton_Lamp.csv",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\19\\Krypton_Lamp.csv",
+      "original_path": "C:\\Code\\spectra-app-v2\\samples\\lamp data\\Krypton_Lamp.csv",
+      "bytes": 67731,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Code\\spectra-app-v2\\samples\\lamp data\\Krypton_Lamp.csv",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "absorbance"
+        }
+      },
+      "created": "2025-10-26T23:47:32.788756+00:00",
+      "updated": "2025-10-26T23:47:32.788756+00:00"
+    },
+    "7ca12f97de9b6694bbccd6e3e50045c285053f89352437e5e8c909b3ff509b26": {
+      "sha256": "7ca12f97de9b6694bbccd6e3e50045c285053f89352437e5e8c909b3ff509b26",
+      "filename": "Mercury_Lamp.csv",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\7c\\Mercury_Lamp.csv",
+      "original_path": "C:\\Code\\spectra-app-v2\\samples\\lamp data\\Mercury_Lamp.csv",
+      "bytes": 91204,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Code\\spectra-app-v2\\samples\\lamp data\\Mercury_Lamp.csv",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "absorbance"
+        }
+      },
+      "created": "2025-10-26T23:47:32.923213+00:00",
+      "updated": "2025-10-26T23:47:32.923213+00:00"
+    },
+    "b07c5ee983e6e10dee0e42f546a56c758c33986798b2703e852946ca8128e4ff": {
+      "sha256": "b07c5ee983e6e10dee0e42f546a56c758c33986798b2703e852946ca8128e4ff",
+      "filename": "Neon_Lamp.csv",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\b0\\Neon_Lamp.csv",
+      "original_path": "C:\\Code\\spectra-app-v2\\samples\\lamp data\\Neon_Lamp.csv",
+      "bytes": 91935,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Code\\spectra-app-v2\\samples\\lamp data\\Neon_Lamp.csv",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "absorbance"
+        }
+      },
+      "created": "2025-10-26T23:47:32.999073+00:00",
+      "updated": "2025-10-26T23:47:32.999073+00:00"
+    },
+    "2ad724c0c50e8e8e356fc4d88c39ce49042e537a4c70ae04f29d797b6824a7fc": {
+      "sha256": "2ad724c0c50e8e8e356fc4d88c39ce49042e537a4c70ae04f29d797b6824a7fc",
+      "filename": "Xenon_Lamp.csv",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\2a\\Xenon_Lamp.csv",
+      "original_path": "C:\\Code\\spectra-app-v2\\samples\\lamp data\\Xenon_Lamp.csv",
+      "bytes": 91245,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Code\\spectra-app-v2\\samples\\lamp data\\Xenon_Lamp.csv",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "absorbance"
+        }
+      },
+      "created": "2025-10-26T23:47:33.173236+00:00",
+      "updated": "2025-10-26T23:47:33.173236+00:00"
     }
   }
 }
