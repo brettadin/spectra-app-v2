@@ -289,8 +289,8 @@ class RemoteDataDialog(QtWidgets.QDialog):  # type: ignore[name-defined]
         self._control_enabled_state: dict[object, bool] = {}
         self._quick_pick_targets: list[Mapping[str, Any]] = []
         self._current_filter: str = "all"  # all, spectra, images, other
-    self.progress_bar: QtWidgets.QProgressBar | None = None
-    self._last_progress_record: RemoteRecord | None = None
+        self.progress_bar: QtWidgets.QProgressBar | None = None
+        self._last_progress_record: RemoteRecord | None = None
 
         # Build the UI once
         self._build_ui()
@@ -614,8 +614,8 @@ class RemoteDataDialog(QtWidgets.QDialog):  # type: ignore[name-defined]
         status = f"Imported {self._download_completed}/{self._download_total} record(s)…"
         self.status_label.setText(status)
         if hasattr(self, "progress_bar"):
-            self.progress_bar.setRange(0, 1)
-            self.progress_bar.setValue(1)
+            self.progress_bar.setRange(0, 0)
+            self.progress_bar.setValue(0)
 
     @staticmethod
     def _format_size(value: int) -> str:

@@ -36,6 +36,7 @@ from app.services import (
     KnowledgeLogEntry,
     KnowledgeLogService,
     RemoteDataService,
+    RemoteRecord,
 )
 from app.services import nist_asd_service
 from app.ui.plot_pane import PlotPane, TraceStyle
@@ -157,6 +158,7 @@ class _RemoteSearchWorker(QtCore.QObject):  # type: ignore[name-defined]
 
 class _RemoteDownloadWorker(QtCore.QObject):  # type: ignore[name-defined]
     started = Signal(int)  # type: ignore[misc]
+    record_progress = Signal(object, int, int)  # type: ignore[misc]
     record_ingested = Signal(object)  # type: ignore[misc]
     record_failed = Signal(object, str)  # type: ignore[misc]
     finished = Signal(list)  # type: ignore[misc]
@@ -179,7 +181,16 @@ class _RemoteDownloadWorker(QtCore.QObject):  # type: ignore[name-defined]
                     self.cancelled.emit()  # type: ignore[attr-defined]
                     return
                 try:
-                    download = self._remote_service.download(record)
+                    def _progress(rec: RemoteRecord, received: int, total: int | None) -> None:
+                        if self._cancel_requested:
+                            return
+                        self.record_progress.emit(
+                            rec,
+                            int(received),
+                            int(total) if total is not None else -1,
+                        )
+
+                    download = self._remote_service.download(record, progress=_progress)
                     # RemoteDownloadResult has a clean Path attribute; use it directly
                     file_path = download.path
                     non_spectral_extensions = {'.gif', '.png', '.jpg', '.jpeg', '.bmp', '.tif', '.tiff', '.svg', '.txt', '.log', '.xml', '.html', '.htm', '.json', '.md'}
@@ -600,7 +611,19 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.remote_status_label = QtWidgets.QLabel("")
         self.remote_status_label.setWordWrap(True)
         remote_layout.addWidget(self.remote_status_label)
-        
+
+        # Progress bar surfaced for streaming downloads
+        self.remote_progress_bar = QtWidgets.QProgressBar()
+        self.remote_progress_bar.setVisible(False)
+        self.remote_progress_bar.setMinimum(0)
+        self.remote_progress_bar.setMaximum(1)
+        self.remote_progress_bar.setValue(0)
+        remote_layout.addWidget(self.remote_progress_bar)
+
+        self._remote_download_total = 0
+        self._remote_download_completed = 0
+        self._remote_download_errors = []
+
         self.inspector_tabs.addTab(self.tab_remote, "Remote Data")
         
         # Merge/Average tab
@@ -1164,6 +1187,18 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             except Exception:
                 pass
         return last_payload
+
+    @staticmethod
+    def _format_bytes(value: int) -> str:
+        units = ["B", "KB", "MB", "GB", "TB"]
+        size = float(max(value, 0))
+        unit = 0
+        while size >= 1024 and unit < len(units) - 1:
+            size /= 1024.0
+            unit += 1
+        if unit == 0:
+            return f"{int(size)} {units[unit]}"
+        return f"{size:.1f} {units[unit]}"
 
     def _ingest_path(self, path: Path) -> None:
         try:
@@ -2141,24 +2176,44 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         thread.started.connect(lambda recs=records: worker.run(recs))
 
         def _on_started(total: int) -> None:
-            # Queue status update on the main thread
-            try:
-                QtCore.QMetaObject.invokeMethod(
-                    self.remote_status_label,
-                    "setText",
-                    getattr(QtCore.Qt, "ConnectionType", QtCore.Qt).QueuedConnection,
-                    f"Downloading {total} record(s)…",
-                )
-            except Exception:
-                pass
+            self._remote_download_total = total
+            self._remote_download_completed = 0
+            self._remote_download_errors = []
+            self.remote_progress_bar.setVisible(True)
+            self.remote_progress_bar.setRange(0, 0)
+            self.remote_progress_bar.setValue(0)
+            self.remote_status_label.setText(f"Downloading {total} record(s)…")
 
-        def _on_progress(_record: Any) -> None:
-            # Refresh plot and library gradually is expensive; update status only
-            pass
+        def _on_progress(record: RemoteRecord, received: int, total: int) -> None:
+            label = getattr(record, "title", getattr(record, "identifier", "Remote item"))
+            show_total = total >= 0
+            if show_total:
+                span = total or 1
+                self.remote_progress_bar.setRange(0, span)
+                self.remote_progress_bar.setValue(min(received, span))
+                message = f"Downloading {label}: {self._format_bytes(received)} / {self._format_bytes(total)}"
+            else:
+                self.remote_progress_bar.setRange(0, 0)
+                self.remote_progress_bar.setValue(0)
+                message = f"Downloading {label}: {self._format_bytes(received)} received"
+            self.remote_status_label.setText(message)
+
+        def _on_record_ingested(_record: RemoteRecord) -> None:
+            self._remote_download_completed += 1
+            self.remote_status_label.setText(
+                f"Imported {self._remote_download_completed}/{self._remote_download_total} record(s)…"
+            )
+            self.remote_progress_bar.setRange(0, 1)
+            self.remote_progress_bar.setValue(1)
 
         def _on_failure(record: Any, message: str) -> None:
             # Log on main thread via _log() internal marshalling
-            self._log("Remote Import", f"Failed to import {getattr(record, 'identifier', '')}: {message}")
+            identifier = getattr(record, "identifier", "")
+            self._remote_download_errors.append(f"{identifier}: {message}")
+            self.remote_status_label.setText(
+                f"{len(self._remote_download_errors)} failure(s) while importing. Continuing…"
+            )
+            self._log("Remote Import", f"Failed to import {identifier}: {message}")
 
         def _on_finished(ingested: list[Any]) -> None:
             # Merge spectra into overlay and UI
@@ -2184,7 +2239,16 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                         self._record_remote_history_event(all_spectra)
                 finally:
                     self._refresh_history_view()
-                self.remote_status_label.setText(f"Imported {count} dataset(s)")
+                if self._remote_download_errors:
+                    failures = len(self._remote_download_errors)
+                    self.remote_status_label.setText(
+                        f"Imported {count} dataset(s) with {failures} failure(s)"
+                    )
+                else:
+                    self.remote_status_label.setText(f"Imported {count} dataset(s)")
+                self.remote_progress_bar.setVisible(False)
+                self.remote_progress_bar.setRange(0, 1)
+                self.remote_progress_bar.setValue(0)
                 self.remote_import_button.setEnabled(True)
 
             # Ensure finalize runs on GUI thread
@@ -2216,6 +2280,12 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                     getattr(QtCore.Qt, "ConnectionType", QtCore.Qt).QueuedConnection,
                     True,
                 )
+                QtCore.QMetaObject.invokeMethod(
+                    self.remote_progress_bar,
+                    "setVisible",
+                    getattr(QtCore.Qt, "ConnectionType", QtCore.Qt).QueuedConnection,
+                    False,
+                )
             except Exception:
                 pass
 
@@ -2233,13 +2303,20 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                     getattr(QtCore.Qt, "ConnectionType", QtCore.Qt).QueuedConnection,
                     True,
                 )
+                QtCore.QMetaObject.invokeMethod(
+                    self.remote_progress_bar,
+                    "setVisible",
+                    getattr(QtCore.Qt, "ConnectionType", QtCore.Qt).QueuedConnection,
+                    False,
+                )
             except Exception:
                 pass
 
         # Force all signal connections to use queued connection to ensure slots run on GUI thread
         queued = getattr(QtCore.Qt, "ConnectionType", QtCore.Qt).QueuedConnection
         worker.started.connect(_on_started, queued)
-        worker.record_ingested.connect(_on_progress, queued)
+        worker.record_progress.connect(_on_progress, queued)
+        worker.record_ingested.connect(_on_record_ingested, queued)
         worker.record_failed.connect(_on_failure, queued)
         worker.finished.connect(_on_finished, queued)
         worker.failed.connect(_on_failed, queued)
