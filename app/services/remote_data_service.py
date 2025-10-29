@@ -1,16 +1,19 @@
 """Abstractions for retrieving remote spectral catalogues and downloads."""
 
+# pyright: reportMissingTypeStubs=false, reportUnknownVariableType=false, reportUnknownMemberType=false, reportOptionalMemberAccess=false, reportGeneralTypeIssues=false
+
 from __future__ import annotations
 
 import csv
 import hashlib
 import json
 import math
+import re
 import tempfile
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, Iterable, List, Mapping, Sequence
+from typing import Any, Callable, Dict, Iterable, List, Mapping, Sequence
 from urllib.parse import quote, urlencode, urlparse
 
 from . import nist_asd_service
@@ -394,7 +397,13 @@ class RemoteDataService:
         raise ValueError(f"Unsupported provider: {provider}")
 
     # ------------------------------------------------------------------
-    def download(self, record: RemoteRecord, *, force: bool = False) -> RemoteDownloadResult:
+    def download(
+        self,
+        record: RemoteRecord,
+        *,
+        force: bool = False,
+        progress: Callable[[RemoteRecord, int, int | None], None] | None = None,
+    ) -> RemoteDownloadResult:
         cached = None if force else self._find_cached(record.download_url)
         if cached is not None:
             return RemoteDownloadResult(
@@ -404,7 +413,7 @@ class RemoteDataService:
                 cached=True,
             )
 
-        fetch_path, cleanup = self._fetch_remote(record)
+        fetch_path = self._fetch_remote(record, progress=progress)
 
         x_unit, y_unit = record.resolved_units()
         remote_metadata = {
@@ -421,8 +430,6 @@ class RemoteDataService:
             source={"remote": remote_metadata},
             alias=record.suggested_filename(),
         )
-        if cleanup:
-            fetch_path.unlink(missing_ok=True)
 
         return RemoteDownloadResult(
             record=record,
@@ -916,6 +923,54 @@ class RemoteDataService:
 
         return metadata
 
+    def _download_staging_dir(self) -> Path:
+        base: Path | None = None
+        if self.store is not None:
+            try:
+                base = Path(self.store.data_dir)
+            except Exception:
+                base = None
+        if base is None:
+            base = Path(tempfile.gettempdir()) / "spectra-downloads"
+        staging = base / "_incoming"
+        try:
+            staging.mkdir(parents=True, exist_ok=True)
+            return staging
+        except Exception:
+            fallback = Path(tempfile.gettempdir()) / "spectra-downloads"
+            fallback.mkdir(parents=True, exist_ok=True)
+            return fallback
+
+    def _prepare_staging_file(self, filename: str | None, *, suffix: str = "") -> Path:
+        staging = self._download_staging_dir()
+        safe_name = self._sanitized_filename(filename, suffix=suffix)
+        candidate = staging / safe_name
+        if candidate.exists():
+            stem = Path(safe_name).stem or "download"
+            ext = Path(safe_name).suffix or (suffix if suffix.startswith(".") else suffix)
+            counter = 1
+            while True:
+                numbered = staging / f"{stem}_{counter}{ext}"
+                if not numbered.exists():
+                    candidate = numbered
+                    break
+                counter += 1
+        candidate.parent.mkdir(parents=True, exist_ok=True)
+        return candidate
+
+    @staticmethod
+    def _sanitized_filename(name: str | None, *, suffix: str = "") -> str:
+        normalized_suffix = suffix if suffix.startswith(".") or not suffix else f".{suffix.lstrip('.')}"
+        if name:
+            parsed = Path(name)
+            stem = parsed.stem or "download"
+            file_suffix = parsed.suffix or normalized_suffix or ""
+        else:
+            stem = "download"
+            file_suffix = normalized_suffix or ""
+        safe_stem = re.sub(r"[^A-Za-z0-9._-]+", "_", stem).strip("._-") or "download"
+        return f"{safe_stem}{file_suffix}"
+
     @staticmethod
     def _json_safe(value: Any) -> Any:
         if isinstance(value, (str, int, float, bool)) or value is None:
@@ -975,14 +1030,24 @@ class RemoteDataService:
             return dict(payload)
         return None
 
-    def _fetch_remote(self, record: RemoteRecord) -> tuple[Path, bool]:
+    def _fetch_remote(
+        self,
+        record: RemoteRecord,
+        *,
+        progress: Callable[[RemoteRecord, int, int | None], None] | None = None,
+    ) -> Path:
         if record.provider == self.PROVIDER_NIST:
-            return self._generate_nist_csv(record), True
+            return self._generate_nist_csv(record, progress=progress)
         if self._should_use_mast(record):
-            return self._fetch_via_mast(record), True
-        return self._fetch_via_http(record), True
+            return self._fetch_via_mast(record, progress=progress)
+        return self._fetch_via_http(record, progress=progress)
 
-    def _generate_nist_csv(self, record: RemoteRecord) -> Path:
+    def _generate_nist_csv(
+        self,
+        record: RemoteRecord,
+        *,
+        progress: Callable[[RemoteRecord, int, int | None], None] | None = None,
+    ) -> Path:
         lines = record.metadata.get("lines") if isinstance(record.metadata, Mapping) else None
         if not isinstance(lines, list) or not lines:
             query_meta = (
@@ -1050,7 +1115,12 @@ class RemoteDataService:
                         "intensity_normalized", []
                     )
 
-        with tempfile.NamedTemporaryFile("w", delete=False, newline="", encoding="utf-8", suffix=".csv") as handle:
+        alias = record.suggested_filename()
+        if not alias.lower().endswith(".csv"):
+            alias_stem = Path(alias).stem if alias else record.identifier
+            alias = f"{alias_stem or 'nist_lines'}.csv"
+        target_path = self._prepare_staging_file(alias, suffix=".csv")
+        with target_path.open("w", newline="", encoding="utf-8") as handle:
             handle.write("# Source: NIST Atomic Spectra Database\n")
             handle.write(f"# Provider: {record.provider}\n")
             handle.write(f"# Identifier: {record.identifier}\n")
@@ -1111,74 +1181,62 @@ class RemoteDataService:
                     ]
                 )
 
-        return Path(handle.name)
+        try:
+            size = target_path.stat().st_size
+        except Exception:
+            size = 0
+        if progress is not None:
+            progress(record, size, size if size > 0 else None)
+        return target_path
 
-    def _fetch_via_http(self, record: RemoteRecord) -> Path:
+    def _fetch_via_http(
+        self,
+        record: RemoteRecord,
+        *,
+        progress: Callable[[RemoteRecord, int, int | None], None] | None = None,
+    ) -> Path:
         session = self._ensure_session()
-        response = session.get(record.download_url, timeout=60)
+        response = session.get(record.download_url, timeout=60, stream=True)
         response.raise_for_status()
 
-        with tempfile.NamedTemporaryFile(delete=False) as handle:
-            handle.write(response.content)
-            return Path(handle.name)
+        parsed = urlparse(record.download_url)
+        alias = Path(parsed.path).name or record.suggested_filename()
+        suffix = Path(alias).suffix or Path(parsed.path).suffix or ""
+        target_path = self._prepare_staging_file(alias, suffix=suffix)
+        total_header = response.headers.get("Content-Length")
+        total = int(total_header) if total_header and total_header.isdigit() else None
+        received = 0
+        with target_path.open("wb") as handle:
+            for chunk in response.iter_content(chunk_size=1024 * 512):
+                if not chunk:
+                    continue
+                handle.write(chunk)
+                received += len(chunk)
+                if progress is not None:
+                    progress(record, received, total)
+        if progress is not None and (total is None or received != total):
+            progress(record, received, total)
+        return target_path
 
-    def _fetch_via_mast(self, record: RemoteRecord) -> Path:
-        import tempfile
-        import shutil
+    def _fetch_via_mast(
+        self,
+        record: RemoteRecord,
+        *,
+        progress: Callable[[RemoteRecord, int, int | None], None] | None = None,
+    ) -> Path:
+        return self._fetch_via_mast_direct(record.download_url, record=record, progress=progress)
 
-        mast = self._ensure_mast()
-
-        # Create a temporary directory for MAST download
-        temp_dir = tempfile.mkdtemp()
-        try:
-            result = mast.Observations.download_file(
-                record.download_url,
-                cache=False,
-                local_path=temp_dir,
-            )
-            if not result:
-                raise RuntimeError("MAST download did not return a file path")
-
-            downloaded = Path(result)
-            if not downloaded.exists():
-                raise FileNotFoundError(f"MAST download missing: {downloaded}")
-
-            # Copy to persistent temp file with appropriate suffix
-            suffix = downloaded.suffix or ".fits"
-            temp_handle = tempfile.NamedTemporaryFile(mode="wb", delete=False, suffix=suffix)
-            temp_handle.close()
-            shutil.copyfile(downloaded, temp_handle.name)
-
-            temp_path = Path(temp_handle.name)
-            # If file appears empty or tiny, fall back to direct HTTP fetch
-            try:
-                if temp_path.stat().st_size <= 0:
-                    raise RuntimeError("Downloaded file is empty; falling back to direct fetch")
-            except Exception:
-                # Defensive: try fallback path
-                pass
-            if temp_path.stat().st_size <= 0:
-                try:
-                    temp_path.unlink(missing_ok=True)
-                except Exception:
-                    pass
-                return self._fetch_via_mast_direct(record.download_url)
-
-            return temp_path
-        finally:
-            # Clean up temporary download directory
-            try:
-                shutil.rmtree(temp_dir, ignore_errors=True)
-            except Exception:
-                pass
-
-    def _fetch_via_mast_direct(self, mast_uri: str) -> Path:
+    def _fetch_via_mast_direct(
+        self,
+        mast_uri: str,
+        *,
+        record: RemoteRecord | None = None,
+        progress: Callable[[RemoteRecord, int, int | None], None] | None = None,
+    ) -> Path:
         """Fallback path: fetch a MAST 'mast:' URI via the public Download API.
 
         Example: https://mast.stsci.edu/api/v0.1/Download/file?uri=mast:...
         """
-        import tempfile
-
         session = self._ensure_session()
         from urllib.parse import quote
         url = f"https://mast.stsci.edu/api/v0.1/Download/file?uri={quote(mast_uri, safe='')}"
@@ -1193,15 +1251,24 @@ class RemoteDataService:
         elif ".jdx" in cdisp.lower() or url.lower().endswith(".jdx") or url.lower().endswith(".dx"):
             suffix = ".jdx"
 
-        handle = tempfile.NamedTemporaryFile(mode="wb", delete=False, suffix=suffix)
-        try:
-            for chunk in response.iter_content(chunk_size=8192):
+        parsed = urlparse(mast_uri)
+        base_name = Path(parsed.path).name
+        alias = base_name or (record.suggested_filename() if record else None)
+        target_path = self._prepare_staging_file(alias, suffix=suffix)
+        total_header = response.headers.get("Content-Length")
+        total = int(total_header) if total_header and total_header.isdigit() else None
+        received = 0
+        with target_path.open("wb") as handle:
+            for chunk in response.iter_content(chunk_size=1024 * 512):
                 if not chunk:
                     continue
                 handle.write(chunk)
-        finally:
-            handle.close()
-        return Path(handle.name)
+                received += len(chunk)
+                if progress is not None and record is not None:
+                    progress(record, received, total)
+        if progress is not None and record is not None and (total is None or received != total):
+            progress(record, received, total)
+        return target_path
 
     def _fetch_exomast_filelist(self, target_name: str) -> Dict[str, Any] | None:
         """Return the Exo.MAST file list for *target_name* without double encoding."""

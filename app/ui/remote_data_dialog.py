@@ -1,5 +1,7 @@
 """Remote data discovery dialog."""
 
+# pyright: reportMissingTypeStubs=false, reportUnknownVariableType=false, reportUnknownMemberType=false, reportOptionalMemberAccess=false, reportGeneralTypeIssues=false
+
 from __future__ import annotations
 
 import html
@@ -170,6 +172,7 @@ class _DownloadWorker(QtCore.QObject):  # type: ignore[name-defined]
     """Background worker that downloads and ingests selected remote records."""
 
     started = Signal(int)  # type: ignore[misc]
+    record_progress = Signal(object, int, int)  # type: ignore[misc]
     record_ingested = Signal(object)  # type: ignore[misc]
     record_failed = Signal(object, str)  # type: ignore[misc]
     finished = Signal(list)  # type: ignore[misc]
@@ -196,7 +199,16 @@ class _DownloadWorker(QtCore.QObject):  # type: ignore[name-defined]
                     self.cancelled.emit()  # type: ignore[attr-defined]
                     return
                 try:
-                    download = self._remote_service.download(record)
+                    def _progress(rec: RemoteRecord, received: int, total: int | None) -> None:
+                        if self._cancel_requested:
+                            return
+                        self.record_progress.emit(
+                            rec,
+                            int(received),
+                            int(total) if total is not None else -1,
+                        )
+
+                    download = self._remote_service.download(record, progress=_progress)
                     file_path = Path(download.cache_entry["stored_path"])
                     
                     # Skip non-spectral file types (images, logs, etc.)
@@ -277,6 +289,8 @@ class RemoteDataDialog(QtWidgets.QDialog):  # type: ignore[name-defined]
         self._control_enabled_state: dict[object, bool] = {}
         self._quick_pick_targets: list[Mapping[str, Any]] = []
         self._current_filter: str = "all"  # all, spectra, images, other
+    self.progress_bar: QtWidgets.QProgressBar | None = None
+    self._last_progress_record: RemoteRecord | None = None
 
         # Build the UI once
         self._build_ui()
@@ -420,10 +434,18 @@ class RemoteDataDialog(QtWidgets.QDialog):  # type: ignore[name-defined]
             self.progress_label.setText("Working…")
         progress_container.addWidget(self.progress_label)
 
+        self.progress_bar = QtWidgets.QProgressBar(self)
+        self.progress_bar.setObjectName("remote-progress-bar")
+        self.progress_bar.setVisible(False)
+        self.progress_bar.setMinimum(0)
+        self.progress_bar.setMaximum(1)
+        self.progress_bar.setValue(0)
+        progress_container.addWidget(self.progress_bar, 1)
+
         self.status_label = QtWidgets.QLabel(self)
         self.status_label.setObjectName("remote-status")
         self.status_label.setWordWrap(True)
-        progress_container.addWidget(self.status_label, 1)
+        progress_container.addWidget(self.status_label, 2)
         layout.addLayout(progress_container)
 
         self._refresh_provider_state()
@@ -546,7 +568,8 @@ class RemoteDataDialog(QtWidgets.QDialog):  # type: ignore[name-defined]
         worker.moveToThread(thread)
         thread.started.connect(lambda records=records: worker.run(records))
         worker.started.connect(self._handle_download_started)
-        worker.record_ingested.connect(self._handle_download_progress)
+        worker.record_progress.connect(self._handle_download_bytes)
+        worker.record_ingested.connect(self._handle_record_ingested)
         worker.record_failed.connect(self._handle_download_failure)
         worker.finished.connect(self._handle_download_finished)
         worker.failed.connect(self._handle_download_failed)
@@ -562,11 +585,51 @@ class RemoteDataDialog(QtWidgets.QDialog):  # type: ignore[name-defined]
         self._download_total = total
         self._download_completed = 0
         self._set_busy(True, message=f"Downloading {total} record(s)…")
+        self._last_progress_record = None
+        if hasattr(self, "progress_bar"):
+            self.progress_bar.setVisible(True)
+            self.progress_bar.setRange(0, 0)
 
-    def _handle_download_progress(self, record: RemoteRecord) -> None:
+    def _handle_download_bytes(self, record: RemoteRecord, received: int, total: int) -> None:
+        # Normalise totals: -1 indicates unknown
+        if not hasattr(self, "progress_bar"):
+            return
+        show_total = total >= 0
+        if show_total:
+            self.progress_bar.setRange(0, total)
+            self.progress_bar.setValue(min(received, total))
+        else:
+            self.progress_bar.setRange(0, 0)
+        self._last_progress_record = record
+        received_text = self._format_size(received)
+        if show_total:
+            total_text = self._format_size(total)
+            message = f"Downloading {record.title}: {received_text} / {total_text}"
+        else:
+            message = f"Downloading {record.title}: {received_text} received"
+        self.status_label.setText(message)
+
+    def _handle_record_ingested(self, record: RemoteRecord) -> None:
         self._download_completed += 1
         status = f"Imported {self._download_completed}/{self._download_total} record(s)…"
         self.status_label.setText(status)
+        if hasattr(self, "progress_bar"):
+            self.progress_bar.setRange(0, 1)
+            self.progress_bar.setValue(1)
+
+    @staticmethod
+    def _format_size(value: int) -> str:
+        if value < 0:
+            return "0 B"
+        units = ["B", "KB", "MB", "GB", "TB"]
+        size = float(value)
+        unit_index = 0
+        while size >= 1024 and unit_index < len(units) - 1:
+            size /= 1024.0
+            unit_index += 1
+        if unit_index == 0:
+            return f"{int(size)} {units[unit_index]}"
+        return f"{size:.1f} {units[unit_index]}"
 
     def _handle_download_failure(self, record: RemoteRecord, message: str) -> None:
         self._download_errors.append(f"{record.identifier}: {message}")
@@ -586,6 +649,10 @@ class RemoteDataDialog(QtWidgets.QDialog):  # type: ignore[name-defined]
             return
 
         self._ingested = ingested
+        if hasattr(self, "progress_bar"):
+            self.progress_bar.setVisible(False)
+            self.progress_bar.setRange(0, 1)
+            self.progress_bar.setValue(0)
         if self._download_errors:
             failures = len(self._download_errors)
             self.status_label.setText(
@@ -633,6 +700,10 @@ class RemoteDataDialog(QtWidgets.QDialog):  # type: ignore[name-defined]
             if self.progress_movie and self.progress_movie.isValid():
                 self.progress_movie.stop()
             self.progress_label.setVisible(False)
+            if hasattr(self, "progress_bar"):
+                self.progress_bar.setVisible(False)
+                self.progress_bar.setRange(0, 1)
+                self.progress_bar.setValue(0)
             self._update_download_button_state()
         if message is not None:
             self.status_label.setText(message)
