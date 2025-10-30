@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Dict, Iterable, List, Optional
+from typing import Any, Dict, Iterable, List, Optional, cast
 
 import numpy as np
 
@@ -12,13 +12,17 @@ from .units_service import UnitsService
 from .line_shapes import LineShapeModel
 
 
+def _blank_spectra() -> Dict[str, Spectrum]:
+    return {}
+
+
 @dataclass
 class OverlayService:
     """Store spectra and provide overlay-ready views."""
 
     units_service: UnitsService
     line_shape_model: LineShapeModel | None = None
-    _spectra: Dict[str, Spectrum] = field(default_factory=dict)
+    _spectra: Dict[str, Spectrum] = field(default_factory=_blank_spectra)
 
     def add(self, spectrum: Spectrum) -> None:
         self._spectra[spectrum.id] = spectrum
@@ -46,17 +50,32 @@ class OverlayService:
         views: List[Dict[str, object]] = []
         for sid in spectrum_ids:
             spectrum = self._spectra[sid]
-            canonical_y, norm_meta = self._apply_normalization(spectrum, normalization)
-            x_canonical = np.array(spectrum.x, dtype=np.float64, copy=True)
-            line_shape_specs = spectrum.metadata.get("line_shapes")
+            canonical_x, canonical_y, _ = self.units_service.to_canonical(
+                spectrum.x,
+                spectrum.y,
+                spectrum.x_unit,
+                spectrum.y_unit,
+                metadata=None,
+            )
+            working_y, norm_meta = self._apply_normalization(canonical_x, canonical_y, normalization)
+            working_x = np.array(canonical_x, dtype=np.float64, copy=True)
+            raw_line_shapes = spectrum.metadata.get("line_shapes")
+            line_shape_specs = cast(Optional[List[Dict[str, Any]]], raw_line_shapes if isinstance(raw_line_shapes, list) else None)
             line_shape_metadata: Optional[Dict[str, Any]] = None
-            if self.line_shape_model and isinstance(line_shape_specs, list):
-                outcome = self.line_shape_model.apply_sequence(x_canonical, canonical_y, line_shape_specs)
+            if self.line_shape_model and line_shape_specs is not None:
+                outcome = self.line_shape_model.apply_sequence(working_x, working_y, line_shape_specs)
                 if outcome is not None:
-                    x_canonical = outcome.x
-                    canonical_y = outcome.y
+                    working_x = outcome.x
+                    working_y = outcome.y
                     line_shape_metadata = outcome.metadata
-            x_display, y_display = self.units_service.from_canonical(x_canonical, canonical_y, x_unit, y_unit)
+            x_display, y_display, conversion_meta = self.units_service.convert_arrays(
+                working_x,
+                working_y,
+                "nm",
+                "absorbance",
+                x_unit,
+                y_unit,
+            )
             metadata: Dict[str, Any] = dict(spectrum.metadata)
             if norm_meta:
                 metadata = dict(metadata)  # shallow copy to avoid mutating cached metadata
@@ -64,9 +83,12 @@ class OverlayService:
             if line_shape_metadata is not None:
                 metadata = dict(metadata)
                 metadata["line_shapes"] = {
-                    "specifications": list(line_shape_specs) if isinstance(line_shape_specs, list) else [],
+                    "specifications": list(line_shape_specs) if line_shape_specs is not None else [],
                     "results": line_shape_metadata,
                 }
+            if conversion_meta:
+                metadata = dict(metadata)
+                metadata["display_conversions"] = dict(conversion_meta)
             view: Dict[str, object] = {
                 "id": spectrum.id,
                 "name": spectrum.name,
@@ -75,15 +97,20 @@ class OverlayService:
                 "x_unit": x_unit,
                 "y_unit": y_unit,
                 "metadata": metadata,
-                "x_canonical": np.array(x_canonical, copy=True),
-                "y_canonical": canonical_y,
+                "x_canonical": np.array(working_x, copy=True),
+                "y_canonical": working_y,
             }
             views.append(view)
         return views
 
-    def _apply_normalization(self, spectrum: Spectrum, mode: str) -> tuple[np.ndarray, Optional[Dict[str, object]]]:
-        data = np.asarray(spectrum.y, dtype=np.float64)
-        x = np.asarray(spectrum.x, dtype=np.float64)
+    def _apply_normalization(
+        self,
+        canonical_x: np.ndarray,
+        canonical_y: np.ndarray,
+        mode: str,
+    ) -> tuple[np.ndarray, Optional[Dict[str, object]]]:
+        data = np.asarray(canonical_y, dtype=np.float64)
+        x = np.asarray(canonical_x, dtype=np.float64)
         if mode.lower() in {"none", "", "identity"}:
             return data.copy(), None
 

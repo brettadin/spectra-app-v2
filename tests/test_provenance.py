@@ -13,7 +13,14 @@ from app.services.spectrum import Spectrum
 def dummy_spectrum(tmp_path: Path) -> Spectrum:
     data_path = tmp_path / 'dummy.csv'
     data_path.write_text('lambda,intensity\n1,2\n3,4\n', encoding='utf-8')
-    spec = Spectrum.create('dummy', np.array([1.0, 2.0]), np.array([0.1, 0.2]), source_path=data_path)
+    spec = Spectrum.create(
+        'dummy',
+        np.array([1.0, 2.0]),
+        np.array([0.1, 0.2]),
+        x_unit='nm',
+        y_unit='absorbance',
+        source_path=data_path,
+    )
     return spec
 
 
@@ -43,8 +50,8 @@ def test_transforms_receive_timestamp(tmp_path):
 
 def test_export_bundle_csv_round_trips(tmp_path: Path) -> None:
     service = ProvenanceService()
-    spec_a = Spectrum.create('lamp-a', np.array([345.0, 350.0]), np.array([1.0, 0.5]))
-    spec_b = Spectrum.create('lamp-b', np.array([400.0, 405.0, 410.0]), np.array([0.1, 0.2, 0.3]))
+    spec_a = Spectrum.create('lamp-a', np.array([345.0, 350.0]), np.array([1.0, 0.5]), x_unit='nm', y_unit='absorbance')
+    spec_b = Spectrum.create('lamp-b', np.array([400.0, 405.0, 410.0]), np.array([0.1, 0.2, 0.3]), x_unit='nm', y_unit='absorbance')
 
     manifest_path = tmp_path / 'bundle' / 'manifest.json'
     export = service.export_bundle([spec_a, spec_b], manifest_path)
@@ -74,8 +81,8 @@ def test_export_bundle_csv_round_trips(tmp_path: Path) -> None:
 
 def test_wide_csv_round_trip(tmp_path: Path) -> None:
     service = ProvenanceService()
-    spec_a = Spectrum.create('lamp-a', np.array([345.0, 350.0]), np.array([1.0, 0.5]))
-    spec_b = Spectrum.create('lamp-b', np.array([400.0, 405.0, 410.0]), np.array([0.1, 0.2, 0.3]))
+    spec_a = Spectrum.create('lamp-a', np.array([345.0, 350.0]), np.array([1.0, 0.5]), x_unit='nm', y_unit='absorbance')
+    spec_b = Spectrum.create('lamp-b', np.array([400.0, 405.0, 410.0]), np.array([0.1, 0.2, 0.3]), x_unit='nm', y_unit='absorbance')
 
     wide_path = tmp_path / 'bundle' / 'wide.csv'
     service.write_wide_csv(wide_path, [spec_a, spec_b])
@@ -93,8 +100,8 @@ def test_wide_csv_round_trip(tmp_path: Path) -> None:
 
 def test_composite_csv_mean(tmp_path: Path) -> None:
     service = ProvenanceService()
-    spec_a = Spectrum.create('lamp-a', np.array([500.0, 510.0, 520.0]), np.array([1.0, 2.0, 3.0]))
-    spec_b = Spectrum.create('lamp-b', np.array([500.0, 510.0, 520.0]), np.array([3.0, 2.0, 1.0]))
+    spec_a = Spectrum.create('lamp-a', np.array([500.0, 510.0, 520.0]), np.array([1.0, 2.0, 3.0]), x_unit='nm', y_unit='absorbance')
+    spec_b = Spectrum.create('lamp-b', np.array([500.0, 510.0, 520.0]), np.array([3.0, 2.0, 1.0]), x_unit='nm', y_unit='absorbance')
 
     composite_path = tmp_path / 'bundle' / 'composite.csv'
     service.write_composite_csv(composite_path, [spec_a, spec_b])

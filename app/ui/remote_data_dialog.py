@@ -1079,11 +1079,6 @@ class RemoteDataDialog(QtWidgets.QDialog):  # type: ignore[name-defined]
         - For regular http(s) links, return as-is.
         - Otherwise, fall back to the original string.
         """
-        try:
-            from urllib.parse import quote
-        except Exception:  # pragma: no cover - extremely defensive
-            quote = None  # type: ignore[assignment]
-
         if isinstance(url, str) and url.startswith("mast:"):
             # Return a human-readable, non-encoded URL for display and tests
             return f"https://mast.stsci.edu/api/v0.1/Download/file?uri={url}"

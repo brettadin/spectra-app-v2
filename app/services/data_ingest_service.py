@@ -6,7 +6,14 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Sequence, cast
 
+import numpy as np
+
+from .importers import CsvImporter, FitsImporter, JcampImporter, SupportsImport
 from .spectrum import Spectrum
+from .store import LocalStore
+from .units_service import UnitsService
+
+
 class OneOrMany(list):
     """List subclass that proxies attribute access to the sole element.
 
@@ -19,10 +26,6 @@ class OneOrMany(list):
         if len(self) == 1:
             return getattr(self[0], name)
         raise AttributeError(name)
-
-from .units_service import UnitsService
-from .importers import SupportsImport, CsvImporter, FitsImporter, JcampImporter
-from .store import LocalStore
 
 
 @dataclass
@@ -147,9 +150,13 @@ class DataIngestService:
         bundle_member: str | None = None,
         record_store: bool = True,
     ) -> Spectrum:
-        canonical_x, canonical_y, meta = self.units_service.to_canonical(
-            x, y, x_unit, y_unit, metadata=metadata
-        )
+        normalised_x_unit = self.units_service.normalise_x_unit(x_unit)
+        normalised_y_unit = self.units_service.normalise_y_unit(y_unit)
+        meta: Dict[str, Any] = dict(metadata or {})
+        source_units = dict(meta.get("source_units", {}))
+        source_units.setdefault("x", normalised_x_unit)
+        source_units.setdefault("y", normalised_y_unit)
+        meta["source_units"] = source_units
         meta.setdefault('ingest', {})
         meta['ingest'].update({
             'source_path': str(source_path),
@@ -164,8 +171,10 @@ class DataIngestService:
                 bundle_meta.setdefault('id', bundle_member)
         spectrum = Spectrum.create(
             name=name,
-            x=canonical_x,
-            y=canonical_y,
+            x=np.asarray(x, dtype=self.units_service.float_dtype),
+            y=np.asarray(y, dtype=self.units_service.float_dtype),
+            x_unit=normalised_x_unit,
+            y_unit=normalised_y_unit,
             metadata=meta,
             source_path=source_path,
         )

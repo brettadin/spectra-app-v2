@@ -39,11 +39,15 @@ def test_dataset_filter_hides_non_matching_entries() -> None:
             name="Alpha Lamp",
             x=np.linspace(400.0, 500.0, 3),
             y=np.array([0.1, 0.2, 0.3]),
+            x_unit="nm",
+            y_unit="absorbance",
         )
         spec_beta = Spectrum.create(
             name="Beta Lamp",
             x=np.linspace(500.0, 600.0, 3),
             y=np.array([0.3, 0.2, 0.1]),
+            x_unit="nm",
+            y_unit="absorbance",
         )
 
         window.overlay_service.add(spec_alpha)

@@ -33,7 +33,7 @@ def test_smoke_ingest_toggle_and_export(tmp_path: Path, mini_fits: Path) -> None
     if SpectraMainWindow is None or QtWidgets is None:
         pytest.skip(f"Qt stack unavailable: {_qt_import_error}")
 
-    pg = pytest.importorskip("pyqtgraph")
+    _ = pytest.importorskip("pyqtgraph")
 
     app = _ensure_app()
     log_service = KnowledgeLogService(log_path=tmp_path / "history.md", author="pytest")
@@ -184,7 +184,7 @@ def test_history_view_updates_on_import(tmp_path: Path) -> None:
     provenance = ProvenanceService(app_version="0.2-smoke")
 
     csv_specs = ingest.ingest(Path("samples/sample_spectrum.csv"))
-    fits_specs = ingest.ingest(mini_fits)
+    fits_specs = ingest.ingest(mini_fits)  # noqa: F821 - fixture provided by conftest
 
     assert len(csv_specs) == 1
     assert len(fits_specs) == 1

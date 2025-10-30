@@ -1,7 +1,6 @@
 from pathlib import Path
 
 import importlib.util
-from pathlib import Path
 
 import numpy as np
 import pytest
@@ -32,8 +31,10 @@ def test_percent_transmittance_conversion():
     sample_path = Path("samples/sample_transmittance.csv")
     spectra = service.ingest(sample_path)
     spectrum = spectra[0]
-    expected = -np.log10(np.array([0.9, 0.8, 0.7, 0.6, 0.5]))
+    expected = np.array([90.0, 80.0, 70.0, 60.0, 50.0])
     assert np.allclose(spectrum.y, expected)
+    assert spectrum.x_unit == "nm"
+    assert spectrum.y_unit == "percent_transmittance"
 
 
 def test_fits_ingest_fixture(mini_fits: Path):
@@ -59,6 +60,21 @@ def test_fits_importer_requires_astropy_when_missing(tmp_path: Path):
     importer = FitsImporter()
     with pytest.raises(RuntimeError):
         importer.read(tmp_path / "dummy.fits")
+
+
+def test_fits_importer_handles_tess_lightcurve():
+    if importlib.util.find_spec("astropy.io.fits") is None:
+        pytest.skip("astropy is required for FITS ingestion tests")
+
+    path = Path("samples/fits data/tess2019112060037-s0011-0000000388857263-0143-s_lc.fits")
+    importer = FitsImporter()
+    result = importer.read(path)
+
+    assert result.metadata.get("x_label") == "TIME"
+    assert result.metadata.get("y_label") == "PDCSAP_FLUX"
+    assert result.metadata.get("original_flux_unit") == "e-/s"
+    assert result.x_unit.startswith("bjd")
+    assert result.x.size == result.y.size
 
 
 def test_export_bundle_csv_roundtrip(tmp_path: Path):
