@@ -1,0 +1,50 @@
+PDS_VERSION_ID                 = "PDS3" 
+
+/*** FILE FORMAT ***/
+RECORD_TYPE                    = FIXED_LENGTH
+RECORD_BYTES                   = 36
+FILE_RECORDS                   = 1
+
+/*** GENERAL DATA DESCRIPTION PARAMETERS ***/
+PRODUCT_ID                     = "UMD_OB2_49_13044_010912_HDR_DAT"
+PRODUCT_VERSION_ID             = "V1 "
+PRODUCT_CREATION_TIME          = 2013-10-17T03:25:08
+PRODUCT_TYPE                   = "DDR"
+SOFTWARE_NAME                  = "PIPE-MASCS2DDR"
+SOFTWARE_VERSION_ID            = "1.0"
+INSTRUMENT_HOST_NAME           = "MESSENGER"
+INSTRUMENT_NAME                = "
+ MERCURY ATMOSPHERIC AND SURFACE COMPOSITION SPECTROMETER"
+INSTRUMENT_ID                  = "MASCS"
+DETECTOR_ID                    = "UVVS"
+DATA_SET_ID                    = "MESS-E/V/H-MASCS-4-UVVS-DDR-V1.0"
+STANDARD_DATA_PRODUCT_ID       = "UVVSDMUVHDR"
+MISSION_PHASE_NAME             = "MERCURY ORBIT YEAR 2"
+TARGET_NAME                    = "MERCURY"
+TARGET_DESC                    = "UVVS SURFACE OBSERVATION"
+START_TIME                     = 2013-02-13T01:09:14
+STOP_TIME                      = 2013-02-13T01:09:20
+SPACECRAFT_CLOCK_START_COUNT   = "2/3041754.412"
+SPACECRAFT_CLOCK_STOP_COUNT    = "2/3041760.293"
+^TABLE                         = "UMD_OB2_49_13044_010912_HDR.DAT"
+
+OBJECT                         = TABLE
+   COLUMNS                        = 16
+   INTERCHANGE_FORMAT             = BINARY
+   ROW_BYTES                      = 36
+   ROWS                           = 1
+   DESCRIPTION                    = "
+       This table contains instrument engineering data collected by the
+       MUV detector. Each record contains the values over a single UVVS
+       observation. A UVVS observation is defined as all the scan data
+       contained within one UVVS science packet.
+    
+       Detailed descriptions for the parameters defined below are contained
+       in the CDR-DDR SIS document.
+
+       The complete column definitions are contained in an external file
+      found in the LABEL directory of the archive volume.   
+   "
+   ^STRUCTURE = "UVVSHDRD_SUR.FMT" 
+END_OBJECT                     = TABLE
+END

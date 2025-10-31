@@ -1,0 +1,48 @@
+PDS_VERSION_ID                 = "PDS3" 
+
+/*** FILE FORMAT ***/
+RECORD_TYPE                    = FIXED_LENGTH
+RECORD_BYTES                   = 1102
+FILE_RECORDS                   = 20
+
+/*** GENERAL DATA DESCRIPTION PARAMETERS ***/
+PRODUCT_ID                     = "VIRSNE_OB5_15091_051606_DAT"
+PRODUCT_VERSION_ID             = "V1 "
+PRODUCT_CREATION_TIME          = 2015-04-17T06:48:28
+PRODUCT_TYPE                   = "EDR"
+SOFTWARE_NAME                  = "PIPE-MASCS2EDR"
+SOFTWARE_VERSION_ID            = "1.0"
+INSTRUMENT_HOST_NAME           = "MESSENGER"
+INSTRUMENT_NAME                = "
+ MERCURY ATMOSPHERIC AND SURFACE COMPOSITION SPECTROMETER"
+INSTRUMENT_ID                  = "MASCS"
+DETECTOR_ID                    = "VIRS"
+DATA_SET_ID                    = "MESS-E/V/H-MASCS-2-VIRS-EDR-V1.0"
+STANDARD_DATA_PRODUCT_ID       = "VIRSNIR"
+MISSION_PHASE_NAME             = "MERCURY ORBIT YEAR 5"
+TARGET_NAME                    = "MERCURY"
+START_TIME                     = 2015-04-01T05:16:06
+STOP_TIME                      = 2015-04-01T05:16:23
+SPACECRAFT_CLOCK_START_COUNT   = "2/70189362"
+SPACECRAFT_CLOCK_STOP_COUNT    = "2/70189379"
+^TABLE                         = "VIRSNE_OB5_15091_051606.DAT"
+
+OBJECT                         = TABLE
+COLUMNS                        = 24
+INTERCHANGE_FORMAT             = BINARY
+ROW_BYTES                      = 1102
+ROWS                           = 20
+DESCRIPTION                    = "
+    This table contains MESSENGER VIRS spectra collected in the near
+    infrared wavelength as well as instrument engineering data.
+    
+    Detailed descriptions for the parameters defined below are contained
+    in the EDR SIS.
+    
+    The complete column definitions are contained in an external file
+    found in the DATA directory of the archive volume.   
+"
+
+^STRUCTURE = "VIRS.FMT" 
+END_OBJECT                     = TABLE
+END

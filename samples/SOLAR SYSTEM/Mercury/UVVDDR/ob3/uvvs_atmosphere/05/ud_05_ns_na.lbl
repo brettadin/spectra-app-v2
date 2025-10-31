@@ -1,0 +1,49 @@
+PDS_VERSION_ID                 = "PDS3" 
+
+/*** FILE FORMAT ***/
+RECORD_TYPE                    = FIXED_LENGTH
+RECORD_BYTES                   = 910
+FILE_RECORDS                   = 8110
+
+/*** GENERAL DATA DESCRIPTION PARAMETERS ***/
+PRODUCT_ID                     = "UD_05_NS_NA_DAT"
+PRODUCT_VERSION_ID             = "V2 "
+PRODUCT_CREATION_TIME          = 2015-12-11T14:24:17
+PRODUCT_TYPE                   = "DDR"
+SOFTWARE_NAME                  = "PIPE-MASCS2DDR"
+SOFTWARE_VERSION_ID            = "1.0"
+INSTRUMENT_HOST_NAME           = "MESSENGER"
+INSTRUMENT_NAME                = "
+ MERCURY ATMOSPHERIC AND SURFACE COMPOSITION SPECTROMETER"
+INSTRUMENT_ID                  = "MASCS"
+DETECTOR_ID                    = "UVVS"
+DATA_SET_ID                    = "MESS-E/V/H-MASCS-4-UVVS-DDR-V1.0"
+STANDARD_DATA_PRODUCT_ID       = "UVVSNANS"
+MISSION_PHASE_NAME             = "MERCURY ORBIT YEAR 2"
+TARGET_NAME                    = "MERCURY"
+OBSERVATION_TYPE               = "NightSweep"
+START_TIME                     = 2012-04-25T11:02:09.70
+STOP_TIME                      = 2012-05-27T22:15:27.76
+SPACECRAFT_CLOCK_START_COUNT   = "1/243839194.897"
+SPACECRAFT_CLOCK_STOP_COUNT    = "1/246644392.897"
+^TABLE                         = "UD_05_NS_NA.DAT"
+
+OBJECT                         = TABLE
+   COLUMNS                        = 30
+   INTERCHANGE_FORMAT             = BINARY
+   ROW_BYTES                      = 910
+   ROWS                           = 8110
+   DESCRIPTION                    = "
+       This table contains dayside limb scan data collected
+       by the UVVS for a given Mercury year.
+       
+       Detailed descriptions for the parameters defined below are contained
+       in the CDR/DDR SIS document.
+
+       The complete column definitions are contained in an external file
+       found in the LABEL directory of the archive volume.   
+   "  
+
+   ^STRUCTURE = "UVVSSCID.FMT" 
+END_OBJECT                     = TABLE
+END
