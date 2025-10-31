@@ -1,6 +1,7 @@
 """Test multi-file upload and averaging functionality."""
 from pathlib import Path
 import os
+from typing import Any, Dict, cast
 
 import pytest
 import numpy as np
@@ -8,43 +9,46 @@ import numpy as np
 try:
     from app.main import SpectraMainWindow
     from app.qt_compat import get_qt
-    from app.services import MathService
 except ImportError as exc:
     SpectraMainWindow = None
-    MathService = None
     _qt_import_error = exc
-    QtCore = QtGui = QtWidgets = None
+    QtCore = cast(Any, None)
+    QtGui = cast(Any, None)
+    QtWidgets = cast(Any, None)
 else:
     _qt_import_error = None
     QtCore, QtGui, QtWidgets, _ = get_qt()
 
-from app.services import KnowledgeLogService
+QtCore = cast(Any, QtCore)
+QtGui = cast(Any, QtGui)
+QtWidgets = cast(Any, QtWidgets)
+
+from app.services import KnowledgeLogService, MathService, Spectrum, UnitsService
 
 
-def _ensure_app():
+def _make_spectrum(name: str, x: np.ndarray, y: np.ndarray, *, metadata: dict | None = None) -> Spectrum:
+    return Spectrum.create(name=name, x=x, y=y, x_unit="nm", y_unit="absorbance", metadata=metadata or {})
+
+
+def _ensure_app() -> Any:
     os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
     app = QtWidgets.QApplication.instance()
     if app is None:
         app = QtWidgets.QApplication([])
-    return app
+    return cast(Any, app)
 
 
 def test_math_service_average_two_spectra(tmp_path: Path) -> None:
     """Test averaging two spectra with same wavelength grid."""
-    if MathService is None:
-        pytest.skip(f"Services unavailable: {_qt_import_error}")
-    
-    from app.services import Spectrum
-    
     # Create two spectra with same x values
     x = np.array([400.0, 450.0, 500.0])
     y1 = np.array([1.0, 2.0, 3.0])
     y2 = np.array([3.0, 4.0, 5.0])
     
-    spec1 = Spectrum.create(name="test1", x=x, y=y1, metadata={})
-    spec2 = Spectrum.create(name="test2", x=x, y=y2, metadata={})
+    spec1 = _make_spectrum(name="test1", x=x, y=y1)
+    spec2 = _make_spectrum(name="test2", x=x, y=y2)
     
-    math_service = MathService()
+    math_service = MathService(UnitsService())
     result, metadata = math_service.average([spec1, spec2])
     
     # Average should be (y1 + y2) / 2
@@ -60,11 +64,6 @@ def test_math_service_average_two_spectra(tmp_path: Path) -> None:
 
 def test_math_service_average_different_grids(tmp_path: Path) -> None:
     """Test averaging spectra with different wavelength grids via interpolation."""
-    if MathService is None:
-        pytest.skip(f"Services unavailable: {_qt_import_error}")
-    
-    from app.services import Spectrum
-    
     # Spec1: coarse grid
     x1 = np.array([400.0, 500.0, 600.0])
     y1 = np.array([1.0, 2.0, 3.0])
@@ -73,10 +72,10 @@ def test_math_service_average_different_grids(tmp_path: Path) -> None:
     x2 = np.array([400.0, 425.0, 450.0, 475.0, 500.0, 525.0, 550.0, 575.0, 600.0])
     y2 = np.array([1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0])
     
-    spec1 = Spectrum.create(name="coarse", x=x1, y=y1, metadata={})
-    spec2 = Spectrum.create(name="fine", x=x2, y=y2, metadata={})
+    spec1 = _make_spectrum(name="coarse", x=x1, y=y1)
+    spec2 = _make_spectrum(name="fine", x=x2, y=y2)
     
-    math_service = MathService()
+    math_service = MathService(UnitsService())
     result, metadata = math_service.average([spec1, spec2])
     
     # Result should use the finer grid
@@ -87,11 +86,6 @@ def test_math_service_average_different_grids(tmp_path: Path) -> None:
 
 def test_math_service_average_partial_overlap(tmp_path: Path) -> None:
     """Test averaging spectra with only partial wavelength overlap."""
-    if MathService is None:
-        pytest.skip(f"Services unavailable: {_qt_import_error}")
-    
-    from app.services import Spectrum
-    
     # Spec1: 400-600 nm
     x1 = np.array([400.0, 450.0, 500.0, 550.0, 600.0])
     y1 = np.array([1.0, 2.0, 3.0, 4.0, 5.0])
@@ -100,10 +94,10 @@ def test_math_service_average_partial_overlap(tmp_path: Path) -> None:
     x2 = np.array([500.0, 550.0, 600.0, 650.0, 700.0])
     y2 = np.array([3.0, 4.0, 5.0, 6.0, 7.0])
     
-    spec1 = Spectrum.create(name="spec1", x=x1, y=y1, metadata={})
-    spec2 = Spectrum.create(name="spec2", x=x2, y=y2, metadata={})
+    spec1 = _make_spectrum(name="spec1", x=x1, y=y1)
+    spec2 = _make_spectrum(name="spec2", x=x2, y=y2)
     
-    math_service = MathService()
+    math_service = MathService(UnitsService())
     result, metadata = math_service.average([spec1, spec2])
     
     # Result should only cover overlapping range (500-600)
@@ -115,11 +109,6 @@ def test_math_service_average_partial_overlap(tmp_path: Path) -> None:
 
 def test_math_service_average_no_overlap_error(tmp_path: Path) -> None:
     """Test that averaging fails when spectra have no overlapping range."""
-    if MathService is None:
-        pytest.skip(f"Services unavailable: {_qt_import_error}")
-    
-    from app.services import Spectrum
-    
     # Spec1: 400-500 nm
     x1 = np.array([400.0, 450.0, 500.0])
     y1 = np.array([1.0, 2.0, 3.0])
@@ -128,10 +117,10 @@ def test_math_service_average_no_overlap_error(tmp_path: Path) -> None:
     x2 = np.array([600.0, 650.0, 700.0])
     y2 = np.array([1.0, 2.0, 3.0])
     
-    spec1 = Spectrum.create(name="spec1", x=x1, y=y1, metadata={})
-    spec2 = Spectrum.create(name="spec2", x=x2, y=y2, metadata={})
+    spec1 = _make_spectrum(name="spec1", x=x1, y=y1)
+    spec2 = _make_spectrum(name="spec2", x=x2, y=y2)
     
-    math_service = MathService()
+    math_service = MathService(UnitsService())
     
     with pytest.raises(ValueError, match="no overlapping wavelength range"):
         math_service.average([spec1, spec2])
@@ -139,19 +128,14 @@ def test_math_service_average_no_overlap_error(tmp_path: Path) -> None:
 
 def test_math_service_average_custom_name(tmp_path: Path) -> None:
     """Test averaging with custom result name."""
-    if MathService is None:
-        pytest.skip(f"Services unavailable: {_qt_import_error}")
-    
-    from app.services import Spectrum
-    
     x = np.array([400.0, 450.0, 500.0])
     y1 = np.array([1.0, 2.0, 3.0])
     y2 = np.array([3.0, 4.0, 5.0])
     
-    spec1 = Spectrum.create(name="test1", x=x, y=y1, metadata={})
-    spec2 = Spectrum.create(name="test2", x=x, y=y2, metadata={})
+    spec1 = _make_spectrum(name="test1", x=x, y=y1)
+    spec2 = _make_spectrum(name="test2", x=x, y=y2)
     
-    math_service = MathService()
+    math_service = MathService(UnitsService())
     result, _ = math_service.average([spec1, spec2], name="My Custom Average")
     
     assert result.name == "My Custom Average"

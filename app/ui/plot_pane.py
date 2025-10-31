@@ -6,7 +6,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, Sequence
+from typing import Any, Dict, Sequence, cast
 
 import numpy as np
 
@@ -117,29 +117,51 @@ class PlotPane(QtWidgets.QWidget):
         """Keep pyqtgraph's context menu but strip the built-in Export entry."""
         if pg is None:
             return
+        self.strip_export_from_plot_widget(self._plot)
+
+    @staticmethod
+    def strip_export_from_plot_widget(plot_widget: Any) -> None:
+        """Remove pyqtgraph's default export action from ``plot_widget`` if present."""
+
+        if pg is None or plot_widget is None:
+            return
         try:
-            plot_item = self._plot.getPlotItem()
-            vb = plot_item.getViewBox()
-            menu = vb.menu if hasattr(vb, "menu") else None
-            if menu is None:
-                return
+            plot_item = plot_widget.getPlotItem()
+        except Exception:
+            return
+        try:
+            view_box = plot_item.getViewBox()
+        except Exception:
+            return
 
-            def _prune_export() -> None:
-                try:
-                    for act in list(menu.actions()):
-                        text = (act.text() or "").strip().lower()
-                        if text.startswith("export"):
-                            menu.removeAction(act)
-                except Exception:
-                    pass
-
+        menu: QtWidgets.QMenu | None = getattr(view_box, "menu", None)
+        if menu is None and hasattr(view_box, "getMenu"):
             try:
-                menu.aboutToShow.disconnect(_prune_export)  # type: ignore[arg-type]
+                menu = cast(QtWidgets.QMenu, view_box.getMenu())
+            except Exception:
+                menu = None
+        if menu is None:
+            return
+
+        sentinel_owner = cast(Any, menu)
+        if getattr(sentinel_owner, "_spectra_export_stripped", False):
+            return
+
+        setattr(sentinel_owner, "_spectra_export_stripped", True)
+
+        def _prune_export() -> None:
+            try:
+                for action in list(menu.actions()):
+                    text = (action.text() or "").strip().lower()
+                    if text.startswith("export"):
+                        menu.removeAction(action)
             except Exception:
                 pass
+
+        try:
             menu.aboutToShow.connect(_prune_export)  # type: ignore[arg-type]
         except Exception:
-            pass
+            setattr(sentinel_owner, "_spectra_export_stripped", False)
 
     def view_range(self) -> tuple[tuple[float, float], tuple[float, float]]:
         """Return the current (x, y) view ranges."""
@@ -247,6 +269,10 @@ class PlotPane(QtWidgets.QWidget):
 
         self._plot.setLabel("bottom", "Wavelength", units=self._display_unit)
         self._plot.setLabel("left", self._y_label)
+        for axis in ("bottom", "left"):
+            axis_item = self._plot.getPlotItem().getAxis(axis)
+            if hasattr(axis_item, "enableAutoSIPrefix"):
+                axis_item.enableAutoSIPrefix(False)
 
     # ------------------------------------------------------------------
     def _on_plot_range_changed(self, _: pg.PlotItem, ranges: object) -> None:

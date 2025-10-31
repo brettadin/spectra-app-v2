@@ -1,0 +1,10 @@
+# Neptune thermal emission sample (mid-infrared wavelengths)
+wavelength_nm,radiance_w_m2_sr_um
+1000,0.88
+1200,0.93
+1400,0.99
+1600,1.05
+1800,1.10
+2000,1.14
+2200,1.16
+2400,1.15

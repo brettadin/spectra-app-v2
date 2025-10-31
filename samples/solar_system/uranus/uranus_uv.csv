@@ -1,0 +1,9 @@
+# Uranus UV sample (Voyager 2 UVS)
+# source: https://pds.nasa.gov/ds-view/pds/viewDataset.jsp?dsid=VG2-U-UVS-3-RDR-V1.0
+wavelength_nm,brightness_au
+60,0.6
+80,0.7
+100,0.8
+120,0.75
+150,0.70
+180,0.65

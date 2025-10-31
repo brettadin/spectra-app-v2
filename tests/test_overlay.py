@@ -4,7 +4,13 @@ from app.services import OverlayService, Spectrum, UnitsService
 
 
 def make_spectrum(name: str, base: float) -> Spectrum:
-    return Spectrum.create(name, np.array([base, base + 1]), np.array([0.1, 0.2]))
+    return Spectrum.create(
+        name,
+        np.array([base, base + 1]),
+        np.array([0.1, 0.2]),
+        x_unit="nm",
+        y_unit="absorbance",
+    )
 
 
 def test_add_and_prevent_duplicates():

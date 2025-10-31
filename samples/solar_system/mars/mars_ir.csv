@@ -1,0 +1,11 @@
+# Mars IR sample (EPOXI HRII)
+# source: https://pds-smallbodies.astro.umd.edu/holdings/dif-m-hrii-3_4-epoxi-mars-v1.0/dataset.shtml
+wavelength_nm,radiance_w_m2_sr_um
+1050,0.8
+1300,0.9
+1600,1.0
+2000,1.05
+2500,0.95
+3000,0.80
+3500,0.70
+4800,0.55

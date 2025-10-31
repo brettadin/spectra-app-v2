@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import tempfile
 from pathlib import Path
-from typing import Any, List
+from typing import Any, List, Mapping
 
 import pytest
 
@@ -48,7 +48,7 @@ class TrackingRemoteService(StubRemoteService):
     def search(
         self,
         provider: str,
-        query: dict[str, Any],
+        query: Mapping[str, Any],
         *,
         include_imaging: bool = False,
     ) -> List[RemoteRecord]:
@@ -103,6 +103,14 @@ def test_dialog_initialises_without_missing_slots(monkeypatch: Any) -> None:
         "Neptune",
         "Pluto",
     ]
+
+    earth_action = next((a for a in menu.actions() if a.text() == "Earth"), None)
+    assert earth_action is not None
+    earth_menu = earth_action.menu()
+    assert earth_menu is not None
+    earth_labels = [a.text() for a in earth_menu.actions() if a.text()]
+    assert any("Visible" in label for label in earth_labels), earth_labels
+    assert "Search remote catalog…" in earth_labels
 
     # Trigger provider refresh to ensure the slot updates hints/placeholder.
     dialog._on_provider_changed()
@@ -200,8 +208,12 @@ def test_quick_pick_triggers_solar_system_search(monkeypatch: Any) -> None:
     assert menu is not None
     action = next((a for a in menu.actions() if a.text() == "Earth"), None)
     assert action is not None
+    earth_menu = action.menu()
+    assert earth_menu is not None
+    search_action = next((a for a in earth_menu.actions() if a.text() == "Search remote catalog…"), None)
+    assert search_action is not None
 
-    action.trigger()
+    search_action.trigger()
 
     _spin_until(lambda: bool(service.calls), app)
     _spin_until(lambda: dialog._search_thread is None, app)
@@ -211,6 +223,39 @@ def test_quick_pick_triggers_solar_system_search(monkeypatch: Any) -> None:
     assert query == {"text": "Earth"}
     assert include_imaging is False
     assert dialog.search_edit.text() == "Earth"
+
+    dialog.deleteLater()
+    if QtWidgets.QApplication.instance() is app and not app.topLevelWidgets():
+        app.quit()
+
+
+def test_quick_pick_imports_local_sample() -> None:
+    app = _ensure_app()
+    service = TrackingRemoteService()
+    ingest = IngestServiceStub(allow_ingest=True)
+
+    dialog = RemoteDataDialog(
+        None,
+        remote_service=service,
+        ingest_service=ingest,
+    )
+
+    menu = dialog.quick_pick_button.menu()
+    assert menu is not None
+    earth_action = next((a for a in menu.actions() if a.text() == "Earth"), None)
+    assert earth_action is not None
+    earth_menu = earth_action.menu()
+    assert earth_menu is not None
+    sample_action = next((a for a in earth_menu.actions() if "Visible" in (a.text() or "")), None)
+    assert sample_action is not None
+
+    sample_action.trigger()
+
+    assert ingest.paths, "Local sample ingestion should invoke the ingest service"
+    assert ingest.paths[0].name == "earth_visible.csv"
+    spectra = dialog.ingested_spectra()
+    assert spectra
+    assert dialog.result() == QtWidgets.QDialog.DialogCode.Accepted
 
     dialog.deleteLater()
     if QtWidgets.QApplication.instance() is app and not app.topLevelWidgets():
@@ -436,5 +481,17 @@ def test_download_and_preview_cells_include_tooltips(monkeypatch: Any) -> None:
 class IngestServiceStub:
     """Minimal stub mimicking the ingest service used by the dialog."""
 
-    def ingest(self, path: Path) -> Any:  # pragma: no cover - not exercised in this smoke test
-        raise RuntimeError(f"ingest not expected in dialog smoke test for {path}")
+    def __init__(self, *, allow_ingest: bool = False, return_value: Any | None = None) -> None:
+        self.allow_ingest = allow_ingest
+        self.return_value = return_value
+        self.paths: list[Path] = []
+
+    def ingest(self, path: Path) -> Any:
+        if not self.allow_ingest:
+            raise RuntimeError(f"ingest not expected in dialog smoke test for {path}")
+        self.paths.append(path)
+        if self.return_value is None:
+            return [path]
+        if isinstance(self.return_value, list):
+            return list(self.return_value)
+        return self.return_value

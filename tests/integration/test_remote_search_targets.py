@@ -32,6 +32,17 @@ def test_curated_planets_cover_major_targets(store: LocalStore) -> None:
     ]
 
 
+def test_curated_planets_expose_local_samples(store: LocalStore) -> None:
+    service = RemoteDataService(store, session=None)
+
+    planets = service.curated_targets(category="solar_system")
+    earth = next(entry for entry in planets if entry.get("display_name") == "Earth")
+    samples = service.local_samples(earth)
+
+    assert samples, "Expected curated local samples for Earth"
+    assert all(sample.path.exists() for sample in samples)
+
+
 def test_solar_system_search_filters_science_products(
     store: LocalStore, monkeypatch: pytest.MonkeyPatch
 ) -> None:

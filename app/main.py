@@ -4,25 +4,24 @@ from __future__ import annotations
 
 import os
 import sys
-import tempfile
-from pathlib import Path
 from collections import OrderedDict
-from typing import Any, Dict, Iterable, List, Mapping, Optional, Sequence, Tuple, cast
+from pathlib import Path
+from typing import Any, Dict, List, Mapping, Optional, Sequence
 
 import numpy as np
 import pyqtgraph as pg
 
-# Ensure repository root is importable when run as a script OR when VS Code
-# launches as a hyphenated pseudo-package name (e.g., "spectra-app-v2.app.main").
-# In that case, __package__ is non-empty but contains a '-', which prevents
-# normal relative imports from resolving; we force-add the repo root to sys.path
-# so absolute imports like 'from app import ...' continue to work.
-_pkg = __package__ or ""
-if _pkg in (None, "") or ("-" in _pkg):
-    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+try:
+    from app.qt_compat import get_qt
+except ModuleNotFoundError as exc:
+    repo_root = Path(__file__).resolve().parents[1]
+    if str(repo_root) not in sys.path:
+        sys.path.insert(0, str(repo_root))
+    try:
+        from app.qt_compat import get_qt
+    except ModuleNotFoundError as second_exc:  # pragma: no cover - defensive fallback
+        raise exc from second_exc
 
-from app.qt_compat import get_qt
-from typing import Any
 from app.services import (
     UnitsService,
     ProvenanceService,
@@ -40,7 +39,6 @@ from app.services import (
 )
 from app.services import nist_asd_service
 from app.ui.plot_pane import PlotPane, TraceStyle
-from app.ui.remote_data_dialog import RemoteDataDialog
 from app.ui.export_center_dialog import ExportCenterDialog
 
 QtCore: Any
@@ -265,7 +263,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             # Fall back to app-local downloads directory even when persistence is toggled off
             remote_store = LocalStore(base_dir=self._default_store_dir)
         self.remote_data_service = RemoteDataService(remote_store)
-        self.math_service = MathService()
+        self.math_service = MathService(self.units_service)
         self.knowledge_log = knowledge_log_service or KnowledgeLogService(
             default_context="Spectra Desktop Session"
         )
@@ -386,13 +384,9 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
 
         # Plot pane
         self.plot = PlotPane(self, max_points=self._plot_max_points)
+        self.plot.remove_export_from_context_menu()
         self.central_split.addWidget(self.plot)
         self.plot.autoscale()
-        # Keep the right-click menu but remove only the Export entry
-        try:
-            self._remove_export_from_plot_context(self.plot._plot)  # type: ignore[attr-defined]
-        except Exception:
-            pass
 
         # Left dock: datasets and library
         self.dataset_dock = QtWidgets.QDockWidget("Data", self)
@@ -488,12 +482,8 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         import pyqtgraph as _pg  # local import to ensure pg is ready
         self.reference_plot: _pg.PlotWidget = _pg.PlotWidget()
         self.reference_plot.setLabel("bottom", "Wavelength (nm)")
+        PlotPane.strip_export_from_plot_widget(self.reference_plot)
         ref_layout.addWidget(self.reference_plot, 2)
-        # Keep right-click options here too, but strip Export
-        try:
-            self._remove_export_from_plot_context(self.reference_plot)
-        except Exception:
-            pass
 
         # Tabs within Reference
         self.reference_tabs = QtWidgets.QTabWidget()
@@ -589,6 +579,11 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.remote_search_button = QtWidgets.QPushButton("Search")
         self.remote_search_button.clicked.connect(self._on_remote_search)
         remote_controls.addWidget(self.remote_search_button)
+        # Quick load of curated local samples
+        self.remote_load_samples_button = QtWidgets.QPushButton("Load Solar System Samples")
+        self.remote_load_samples_button.setToolTip("Import all CSV spectra under samples/solar_system")
+        self.remote_load_samples_button.clicked.connect(self._on_load_solar_system_samples)
+        remote_controls.addWidget(self.remote_load_samples_button)
         remote_layout.addLayout(remote_controls)
         
         # Results table
@@ -922,26 +917,6 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             self.data_table.setItem(r, 1, yi)
         self.data_table.resizeColumnsToContents()
 
-    # ----------------------------- Plot context menu helpers -----------
-    def _remove_export_from_plot_context(self, plot_widget: object) -> None:
-        """Remove the 'Export…' action from a pyqtgraph PlotWidget context menu, keep the rest."""
-        try:
-            plot_item = plot_widget.getPlotItem()
-            vb = plot_item.getViewBox()
-            menu = vb.getMenu()
-        except Exception:
-            return
-        if menu is None:
-            return
-        try:
-            # Remove any top-level action labelled like Export (with '...' or ellipsis)
-            for act in list(menu.actions()):
-                text = (act.text() or "").strip().lower()
-                if text.startswith("export"):
-                    menu.removeAction(act)
-        except Exception:
-            pass
-
     def show_documentation(self) -> None:
         self._load_docs_if_needed()
         if self.docs_list is not None and self.docs_list.count() > 0:
@@ -1139,53 +1114,59 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
 
     def _record_remote_history_event(self, spectra: Spectrum | list[Spectrum]) -> Dict[str, str]:
         specs = spectra if isinstance(spectra, list) else [spectra]
-        summary_parts: list[str] = []
+        providers: dict[str, set[str]] = {}
+        references: set[str] = set()
         last_payload: Dict[str, str] = {}
+
         for spec in specs:
             rec = spec.metadata.get("cache_record", {}) if isinstance(spec.metadata, dict) else {}
             src = rec.get("source", {}) if isinstance(rec, dict) else {}
             remote = src.get("remote", {}) if isinstance(src, dict) else {}
-            if isinstance(remote, dict):
-                provider = str(remote.get("provider") or "Remote")
-                ident = str(remote.get("identifier") or remote.get("id") or "")
-                summary_parts.append(provider + (f" ({ident})" if ident else ""))
-                # Trim references to avoid long URLs in log entries
-                ref = str(remote.get("uri") or ident or provider)
-                if ref.startswith("http"):
-                    ref = ref.split("/")[-1][:55]
-                # Persist a history entry regardless of runtime-only defaults
-                try:
-                    from app.services.knowledge_log_service import KnowledgeLogService as _KLS
+            if not isinstance(remote, dict):
+                continue
 
-                    klog = _KLS(
-                        log_path=self.knowledge_log.log_path,  # type: ignore[attr-defined]
-                        runtime_only_components=(),
-                        author=self.knowledge_log.author if hasattr(self.knowledge_log, "author") else None,
-                        default_context=getattr(self.knowledge_log, "default_context", None),
-                    )
-                    klog.record_event(
-                        "Remote Import",
-                        f"Imported remote data from {provider}",
-                        references=[ref],
-                        persist=True,
-                    )
-                except Exception:
-                    # Best-effort logging; do not fail UI flows
-                    pass
-                last_payload = {"provider": provider, "identifier": ident}
-        if not summary_parts:
-            try:
-                from app.services.knowledge_log_service import KnowledgeLogService as _KLS
+            provider = str(remote.get("provider") or "Remote")
+            ident = str(remote.get("identifier") or remote.get("id") or "")
+            bucket = providers.setdefault(provider, set())
+            if ident:
+                bucket.add(ident)
 
-                klog = _KLS(
-                    log_path=self.knowledge_log.log_path,  # type: ignore[attr-defined]
-                    runtime_only_components=(),
-                    author=self.knowledge_log.author if hasattr(self.knowledge_log, "author") else None,
-                    default_context=getattr(self.knowledge_log, "default_context", None),
-                )
-                klog.record_event("Remote Import", "Imported remote data", persist=True)
-            except Exception:
-                pass
+            ref = str(remote.get("uri") or ident or provider)
+            if ref.startswith("http"):
+                ref = ref.rstrip("/").split("/")[-1][:55]
+            references.add(ref)
+            last_payload = {"provider": provider, "identifier": ident}
+
+        if providers:
+            descriptors: list[str] = []
+            for provider, identifiers in providers.items():
+                if identifiers:
+                    descriptor = f"{provider} ({', '.join(sorted(identifiers))})"
+                else:
+                    descriptor = provider
+                descriptors.append(descriptor)
+            descriptor_text = "; ".join(descriptors)
+            if len(specs) > 1:
+                summary = f"Imported {len(specs)} remote dataset(s) from {descriptor_text}"
+            else:
+                summary = f"Imported remote data from {descriptor_text}"
+            ref_list = sorted(references)
+        else:
+            summary = "Imported remote data"
+            ref_list = []
+
+        try:
+            self.knowledge_log.record_event(
+                "Remote Import",
+                summary,
+                references=ref_list,
+                persist=True,
+                force_persist=True,
+            )
+        except Exception:
+            # Best-effort logging; do not fail UI flows
+            pass
+
         return last_payload
 
     @staticmethod
@@ -1378,7 +1359,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         
         # Log the removal
         if len(spec_ids_to_remove) == 1:
-            self._log("Datasets", f"Removed 1 dataset")
+            self._log("Datasets", "Removed 1 dataset")
         else:
             self._log("Datasets", f"Removed {len(spec_ids_to_remove)} datasets")
 
@@ -1533,7 +1514,6 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                 self._preview_line_shape(model_id)
 
     def _populate_reference_table_ir(self, groups: Sequence[Mapping[str, Any]] | None) -> None:
-        from typing import Mapping, Sequence
         rows = list(groups or [])
         self._ir_rows = rows
         # Keep legacy reference_table populated for tests expecting rowCount()
@@ -1549,7 +1529,6 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                 self.ir_table.setItem(r, 2, QtWidgets.QTableWidgetItem(str(entry.get("wavenumber_cm_1_max", ""))))
 
     def _populate_reference_table_line_shapes(self, defs: Sequence[Mapping[str, Any]] | None) -> None:
-        from typing import Mapping, Sequence
         rows = list(defs or [])
         # Mirror row count into legacy reference_table for tests
         try:
@@ -2107,6 +2086,52 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             self.remote_status_label.setText("Search cancelled")
         QtCore.QTimer.singleShot(0, _cancel)
     
+    def _on_load_solar_system_samples(self) -> None:
+        """Import all local Solar System sample CSVs bundled with the app."""
+        try:
+            samples_root = Path(__file__).resolve().parents[1] / "samples" / "solar_system"
+        except Exception:
+            samples_root = Path.cwd() / "samples" / "solar_system"
+        if not samples_root.exists():
+            self.remote_status_label.setText("No local Solar System samples found")
+            return
+
+        # Find CSV files under planet subfolders
+        csv_paths = sorted(samples_root.glob("**/*.csv"))
+        if not csv_paths:
+            self.remote_status_label.setText("No CSV files found in samples/solar_system")
+            return
+        # Prune known duplicate naming variants to keep credible/sourced files
+        original_count = len(csv_paths)
+        csv_paths = [
+            p for p in csv_paths
+            if not (p.name.endswith("_infrared.csv") or p.name.endswith("_uvvis.csv"))
+        ]
+        skipped = original_count - len(csv_paths)
+
+        imported = 0
+        errors: list[str] = []
+        if skipped:
+            self.remote_status_label.setText(
+                f"Importing {len(csv_paths)} local sample(s)… (skipped {skipped} duplicate(s))"
+            )
+        else:
+            self.remote_status_label.setText(f"Importing {len(csv_paths)} local sample(s)…")
+        for path in csv_paths:
+            try:
+                self._ingest_path(path)
+                imported += 1
+            except Exception as exc:
+                errors.append(f"{path.name}: {exc}")
+                continue
+
+        if errors:
+            self.remote_status_label.setText(
+                f"Imported {imported} sample(s) with {len(errors)} error(s)."
+            )
+        else:
+            self.remote_status_label.setText(f"Imported {imported} local sample(s).")
+    
     def _populate_remote_results(self, records: List[Any]) -> None:
         """Populate the results table with records."""
         self.remote_results_table.setRowCount(len(records))
@@ -2476,10 +2501,18 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             self._add_spectrum(result)
             
             # Log the operation
-            self.knowledge_log.log(
-                "merge_average",
-                f"Averaged {len(spectra)} spectra into '{result.name}'",
-                metadata=metadata,
+            summary = f"Averaged {len(spectra)} spectra into '{result.name}'"
+            try:
+                extra = metadata.get("wavelength_range") if isinstance(metadata, dict) else None
+                if extra and isinstance(extra, (list, tuple)) and len(extra) == 2:
+                    summary += f" covering {extra[0]:.2f}-{extra[1]:.2f} nm"
+            except Exception:
+                # Metadata enrichment is optional; ignore formatting issues
+                pass
+            self.knowledge_log.record_event(
+                "Merge Average",
+                summary,
+                references=[result.name],
                 persist=True,
             )
             
@@ -2512,11 +2545,10 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         for spec in self.overlay_service.list():
             visible = self._visibility.get(spec.id, True)
             style = TraceStyle(color=self._spectrum_colors.get(spec.id, QtGui.QColor("#4F6D7A")))
-            # Convert canonical data back to the source intensity unit for display
-            src_y_unit = str(spec.metadata.get("source_units", {}).get("y", "absorbance"))
-            x_disp, y_disp = self.units_service.from_canonical(spec.x, spec.y, x_unit, src_y_unit)
-            y_label = "%T" if src_y_unit in {"%T", "percent_transmittance"} else "Intensity"
-            self.plot.set_y_label(y_label)
+            target_y_unit = spec.y_unit
+            x_disp, y_disp, _ = self.units_service.convert(spec, x_unit, target_y_unit)
+            y_label = "%T" if target_y_unit.lower() in {"%t", "percent_transmittance"} else target_y_unit
+            self.plot.set_y_label(y_label or "Intensity")
             self.plot.add_trace(spec.id, spec.name, x_disp, y_disp, style)
             self.plot.set_visible(spec.id, visible)
         self.plot.autoscale()

@@ -1,6 +1,6 @@
-from __future__ import annotations
-
 """Utilities for recording and reading the Spectra knowledge log."""
+
+from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -63,6 +63,7 @@ class KnowledgeLogService:
         context: str | None = None,
         timestamp: datetime | None = None,
         persist: bool = True,
+        force_persist: bool = False,
     ) -> KnowledgeLogEntry:
         """Create and optionally persist a structured knowledge-log entry.
 
@@ -74,6 +75,9 @@ class KnowledgeLogService:
             ``"Import"`` or ``"Remote Import"``).
             When ``False`` the entry is returned for in-memory history display
             without mutating the on-disk log.
+        force_persist:
+            When ``True`` the runtime-only safeguard is ignored and the entry
+            is always written to disk (provided ``persist`` is also ``True``).
         """
 
         moment = (timestamp or datetime.now(timezone.utc)).astimezone()
@@ -81,7 +85,9 @@ class KnowledgeLogService:
         entry_context = context or self.default_context
         references = tuple(ref for ref in references or () if ref)
         normalized_component = component.strip().lower()
-        should_persist = persist and normalized_component not in self._runtime_only_components
+        should_persist = persist and (
+            force_persist or normalized_component not in self._runtime_only_components
+        )
 
         blocks: List[str] = [f"## {stamp} – {component}", ""]
         if self.author:
@@ -146,7 +152,7 @@ class KnowledgeLogService:
             start = match.end()
             end = matches[index + 1].start() if index + 1 < len(matches) else len(text)
             body = text[start:end].strip()
-            summary = self._extract_section(body, "Summary")
+            summary = self._extract_section(body, "Summary") or ""
             references = tuple(self._extract_references(body))
             author = self._extract_section(body, "Author")
             context = self._extract_section(body, "Context")
@@ -216,7 +222,7 @@ class KnowledgeLogService:
             return []
 
         lines = [line.strip() for line in section.splitlines() if line.strip()]
-        cleaned = []
+        cleaned: list[str] = []
         for line in lines:
             cleaned.append(line[2:].strip() if line.startswith("- ") else line)
         return cleaned

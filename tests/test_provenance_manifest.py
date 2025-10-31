@@ -18,7 +18,14 @@ def build_spectrum(tmp_path: Path | None = None) -> Spectrum:
     if tmp_path is not None:
         source_path = tmp_path / "mini_source.csv"
         source_path.write_text("raw_flux\n", encoding="utf-8")
-    return Spectrum.create("mini", wavelengths, flux, source_path=source_path)
+    return Spectrum.create(
+        "mini",
+        wavelengths,
+        flux,
+        x_unit="nm",
+        y_unit="absorbance",
+        source_path=source_path,
+    )
 
 
 def test_export_bundle_writes_manifest_csv_and_png(tmp_path: Path):
@@ -30,7 +37,7 @@ def test_export_bundle_writes_manifest_csv_and_png(tmp_path: Path):
     export = service.export_bundle(
         [spectrum],
         manifest_path,
-        png_writer=lambda path: path.write_bytes(png_bytes),
+        png_writer=lambda path: (path.write_bytes(png_bytes), None)[1],
     )
 
     assert export["manifest_path"] == manifest_path

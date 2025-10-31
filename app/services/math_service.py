@@ -3,23 +3,25 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Dict, Tuple
+from typing import Any, Dict, List, Tuple
 
 import numpy as np
 
 from .spectrum import Spectrum
+from .units_service import UnitsService
 
 
 @dataclass
 class MathService:
     """Provide subtraction and ratio operations with provenance logging."""
 
+    units_service: UnitsService
     epsilon: float = 1e-9
 
     def subtract(self, a: Spectrum, b: Spectrum) -> Tuple[Spectrum | None, Dict[str, object]]:
         """Compute ``a - b`` if non-trivial, otherwise suppress result."""
-        self._ensure_aligned(a, b)
-        diff = a.y - b.y
+        x_canon, a_canon_y, b_canon_y = self._aligned_canonical(a, b)
+        diff = a_canon_y - b_canon_y
         if np.allclose(diff, 0.0, atol=self.epsilon):
             return None, {
                 'status': 'suppressed_trivial',
@@ -28,7 +30,7 @@ class MathService:
                 'parents': [a.id, b.id],
             }
 
-        metadata = {
+        metadata: Dict[str, Any] = {
             'operation': {
                 'name': 'subtract',
                 'parameters': {'epsilon': self.epsilon},
@@ -37,22 +39,32 @@ class MathService:
             'primary_metadata': dict(a.metadata),
             'secondary_metadata': dict(b.metadata),
         }
+        result_x, result_y, _ = self.units_service.convert_arrays(
+            x_canon,
+            diff,
+            'nm',
+            'absorbance',
+            a.x_unit,
+            a.y_unit,
+        )
         spectrum = Spectrum.create(
             name=f"{a.name} - {b.name}",
-            x=a.x,
-            y=diff,
+            x=result_x,
+            y=result_y,
+            x_unit=a.x_unit,
+            y_unit=a.y_unit,
             metadata=metadata,
         )
         return spectrum, {'status': 'ok', 'operation': 'subtract', 'result_id': spectrum.id}
 
     def ratio(self, a: Spectrum, b: Spectrum) -> Tuple[Spectrum, Dict[str, object]]:
         """Compute ``a / b`` with epsilon protection."""
-        self._ensure_aligned(a, b)
-        denom = b.y.copy()
+        x_canon, a_canon_y, b_canon_y = self._aligned_canonical(a, b)
+        denom = b_canon_y.copy()
         mask = np.abs(denom) < self.epsilon
         denom[mask] = np.nan  # mark invalid points
-        values = np.divide(a.y, denom)
-        metadata = {
+        values = np.divide(a_canon_y, denom)
+        metadata: Dict[str, Any] = {
             'operation': {
                 'name': 'ratio',
                 'parameters': {'epsilon': self.epsilon, 'masked_points': int(mask.sum())},
@@ -61,19 +73,39 @@ class MathService:
             'primary_metadata': dict(a.metadata),
             'secondary_metadata': dict(b.metadata),
         }
+        result_x, result_y, conversion_meta = self.units_service.convert_arrays(
+            x_canon,
+            values,
+            'nm',
+            'absorbance',
+            a.x_unit,
+            a.y_unit,
+        )
+        if conversion_meta:
+            metadata['unit_conversions'] = dict(conversion_meta)
         spectrum = Spectrum.create(
             name=f"{a.name} / {b.name}",
-            x=a.x,
-            y=values,
+            x=result_x,
+            y=result_y,
+            x_unit=a.x_unit,
+            y_unit=a.y_unit,
             metadata=metadata,
         )
-        return spectrum, {'status': 'ok', 'operation': 'ratio', 'result_id': spectrum.id, 'masked_points': int(mask.sum())}
+        return spectrum, {
+            'status': 'ok',
+            'operation': 'ratio',
+            'result_id': spectrum.id,
+            'masked_points': int(mask.sum()),
+        }
 
-    def _ensure_aligned(self, a: Spectrum, b: Spectrum) -> None:
-        if a.x.shape != b.x.shape or not np.allclose(a.x, b.x, atol=self.epsilon):
+    def _aligned_canonical(self, a: Spectrum, b: Spectrum) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+        ax, ay, _ = self.units_service.to_canonical(a.x, a.y, a.x_unit, a.y_unit)
+        bx, by, _ = self.units_service.to_canonical(b.x, b.y, b.x_unit, b.y_unit)
+        if ax.shape != bx.shape or not np.allclose(ax, bx, atol=self.epsilon):
             raise ValueError('Spectra must share the same wavelength grid for math operations.')
+        return ax, ay, by
 
-    def average(self, spectra: list[Spectrum], name: str | None = None) -> Tuple[Spectrum, Dict[str, object]]:
+    def average(self, spectra: List[Spectrum], name: str | None = None) -> Tuple[Spectrum, Dict[str, object]]:
         """Compute average of multiple spectra by interpolating to common wavelength grid.
         
         Args:
@@ -85,12 +117,11 @@ class MathService:
         """
         if not spectra:
             raise ValueError('Cannot average empty list of spectra')
-        
+
         if len(spectra) == 1:
-            # Single spectrum - just return a copy
             spec = spectra[0]
             result_name = name or f"Copy of {spec.name}"
-            metadata = {
+            metadata: Dict[str, Any] = {
                 'operation': {
                     'name': 'average',
                     'parameters': {'count': 1},
@@ -102,68 +133,81 @@ class MathService:
                 name=result_name,
                 x=spec.x.copy(),
                 y=spec.y.copy(),
+                x_unit=spec.x_unit,
+                y_unit=spec.y_unit,
                 metadata=metadata,
             )
             return result, {'status': 'ok', 'operation': 'average', 'result_id': result.id, 'count': 1}
-        
-        # Find common wavelength range (intersection of all spectra)
-        min_wl = max(spec.x.min() for spec in spectra)
-        max_wl = min(spec.x.max() for spec in spectra)
-        
+
+        canonical_sets: List[Tuple[Spectrum, np.ndarray, np.ndarray]] = []
+        for spec in spectra:
+            x_canon, y_canon, _ = self.units_service.to_canonical(spec.x, spec.y, spec.x_unit, spec.y_unit)
+            canonical_sets.append((spec, x_canon, y_canon))
+
+        min_wl = max(arr.min() for _, arr, _ in canonical_sets)
+        max_wl = min(arr.max() for _, arr, _ in canonical_sets)
+
         if min_wl >= max_wl:
             raise ValueError('Spectra have no overlapping wavelength range')
-        
-        # Use the finest wavelength grid among all spectra
-        # This preserves the best resolution
+
         target_x = None
         min_spacing = float('inf')
-        
-        for spec in spectra:
-            # Filter to common range
-            mask = (spec.x >= min_wl) & (spec.x <= max_wl)
-            x_range = spec.x[mask]
-            if len(x_range) > 1:
+
+        for spec, x_canon, _ in canonical_sets:
+            mask = (x_canon >= min_wl) & (x_canon <= max_wl)
+            x_range = x_canon[mask]
+            if x_range.size > 1:
                 spacing = np.median(np.diff(x_range))
                 if spacing < min_spacing:
                     min_spacing = spacing
                     target_x = x_range
-        
-        if target_x is None or len(target_x) < 2:
+
+        if target_x is None or target_x.size < 2:
             raise ValueError('Insufficient data in overlapping range')
-        
-        # Interpolate all spectra to the target wavelength grid
-        interpolated_y = []
-        for spec in spectra:
-            # Use linear interpolation
-            y_interp = np.interp(target_x, spec.x, spec.y)
-            interpolated_y.append(y_interp)
-        
-        # Compute average
+
+        interpolated_y: List[np.ndarray] = []
+        for _, x_canon, y_canon in canonical_sets:
+            mask = (x_canon >= min_wl) & (x_canon <= max_wl)
+            interpolated_y.append(np.interp(target_x, x_canon[mask], y_canon[mask]))
+
         y_avg = np.mean(interpolated_y, axis=0)
-        
-        # Build metadata
+
         result_name = name or f"Average of {len(spectra)} spectra"
         parent_ids = [spec.id for spec in spectra]
-        metadata = {
+        metadata: Dict[str, Any] = {
             'operation': {
                 'name': 'average',
                 'parameters': {
                     'count': len(spectra),
                     'wavelength_range': [float(min_wl), float(max_wl)],
-                    'points': len(target_x),
+                    'points': int(target_x.size),
                 },
                 'parents': parent_ids,
             },
             'source_spectra': [{'id': spec.id, 'name': spec.name} for spec in spectra],
         }
-        
+
+        baseline = spectra[0]
+        result_x, result_y, conversion_meta = self.units_service.convert_arrays(
+            target_x,
+            y_avg,
+            'nm',
+            'absorbance',
+            baseline.x_unit,
+            baseline.y_unit,
+        )
+        if conversion_meta:
+            metadata['unit_conversions'] = dict(conversion_meta)
+
         result = Spectrum.create(
             name=result_name,
-            x=target_x,
-            y=y_avg,
+            x=result_x,
+            y=result_y,
+            x_unit=baseline.x_unit,
+            y_unit=baseline.y_unit,
             metadata=metadata,
         )
-        
+
         return result, {
             'status': 'ok',
             'operation': 'average',

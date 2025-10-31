@@ -1,0 +1,9 @@
+# Saturn VIS sample (Cassini ISS)
+# source: https://pds-atmospheres.nmsu.edu/data_and_services/atmospheres_data/Cassini/sci-jupiter.html
+wavelength_nm,reflectance
+400,0.50
+500,0.53
+600,0.55
+700,0.57
+800,0.56
+1000,0.54

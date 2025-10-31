@@ -12,7 +12,7 @@ from pathlib import Path
 from typing import Any, List
 
 from app.qt_compat import get_qt
-from app.services import DataIngestService, RemoteDataService, RemoteRecord
+from app.services import DataIngestService, RemoteDataService, RemoteRecord, LocalSample
 
 QtCore, QtGui, QtWidgets, _ = get_qt()  # type: ignore[misc]
 
@@ -974,6 +974,28 @@ class RemoteDataDialog(QtWidgets.QDialog):  # type: ignore[name-defined]
         self.search_edit.setText(canonical)
         self._on_search()
 
+    def _on_quick_pick_sample(self, target: Mapping[str, Any], sample: LocalSample) -> None:
+        path = sample.path
+        if not path.exists():
+            QtWidgets.QMessageBox.warning(self, "Sample missing", f"The sample file {path} is not available.")
+            return
+        try:
+            ingested = self.ingest_service.ingest(path)
+        except Exception as exc:
+            QtWidgets.QMessageBox.warning(self, "Import failed", str(exc))
+            self.status_label.setText(f"Import failed: {exc}")
+            return
+
+        spectra = list(ingested) if isinstance(ingested, list) else [ingested]
+        if not spectra:
+            self.status_label.setText("Sample did not produce any spectra.")
+            return
+
+        self._ingested = spectra
+        display = str(target.get("display_name") or target.get("object_name") or sample.label)
+        self.status_label.setText(f"Imported {len(spectra)} dataset(s) for {display}: {sample.label}")
+        self.accept()
+
     def _on_example_selected(self, index: int) -> None:
         if index <= 0:
             return
@@ -1079,11 +1101,6 @@ class RemoteDataDialog(QtWidgets.QDialog):  # type: ignore[name-defined]
         - For regular http(s) links, return as-is.
         - Otherwise, fall back to the original string.
         """
-        try:
-            from urllib.parse import quote
-        except Exception:  # pragma: no cover - extremely defensive
-            quote = None  # type: ignore[assignment]
-
         if isinstance(url, str) and url.startswith("mast:"):
             # Return a human-readable, non-encoded URL for display and tests
             return f"https://mast.stsci.edu/api/v0.1/Download/file?uri={url}"
@@ -1244,37 +1261,58 @@ class RemoteDataDialog(QtWidgets.QDialog):  # type: ignore[name-defined]
         menu.clear()
         self._quick_pick_targets = []
 
-        available = RemoteDataService.PROVIDER_EXOSYSTEMS in providers
-        self.quick_pick_button.setEnabled(available)
-
-        if not available:
-            self.quick_pick_button.setToolTip(
-                "Solar System quick picks require the MAST ExoSystems provider."
-            )
-            return
-
         targets = self.remote_service.curated_targets(category="solar_system")
-        if not targets:
-            self.quick_pick_button.setToolTip(
-                "Solar System quick picks become available once curated targets are configured."
-            )
+        has_targets = bool(targets)
+
+        can_remote_search = RemoteDataService.PROVIDER_EXOSYSTEMS in providers
+        has_local_samples = any(self.remote_service.local_samples(target) for target in targets)
+
+        button_enabled = has_targets and (can_remote_search or has_local_samples)
+        self.quick_pick_button.setEnabled(button_enabled)
+
+        if not button_enabled:
+            if has_targets:
+                self.quick_pick_button.setToolTip(
+                    "Install optional providers or curate local samples to enable quick picks."
+                )
+            else:
+                self.quick_pick_button.setToolTip(
+                    "Solar System quick picks become available once curated targets are configured."
+                )
             return
 
-        tooltip = (
-            "Quick-pick Mercury, Venus, Earth, Mars, Jupiter, Saturn, Uranus, Neptune, Pluto."
-        )
-        self.quick_pick_button.setToolTip(tooltip)
+        tooltip_bits: list[str] = []
+        if has_local_samples:
+            tooltip_bits.append("Load curated Solar System samples")
+        if can_remote_search:
+            tooltip_bits.append("Run ExoSystems search")
+        self.quick_pick_button.setToolTip(" / ".join(tooltip_bits))
+
         for target in targets:
             label = str(target.get("display_name") or target.get("object_name") or "").strip()
             canonical = str(target.get("object_name") or label).strip()
             if not label or not canonical:
                 continue
-            action = menu.addAction(label)
-            action.setData(canonical)
-            action.triggered.connect(
-                lambda _checked=False, entry=target: self._on_quick_pick_selected(entry)
-            )
-            self._quick_pick_targets.append(target)
+
+            samples = self.remote_service.local_samples(target)
+            if samples or can_remote_search:
+                planet_menu = menu.addMenu(label)
+                for sample in samples:
+                    sample_action = planet_menu.addAction(sample.label)
+                    sample_action.triggered.connect(
+                        lambda _checked=False, entry=target, payload=sample: self._on_quick_pick_sample(entry, payload)
+                    )
+                if can_remote_search:
+                    if samples:
+                        planet_menu.addSeparator()
+                    search_action = planet_menu.addAction("Search remote catalog…")
+                    search_action.triggered.connect(
+                        lambda _checked=False, entry=target: self._on_quick_pick_selected(entry)
+                    )
+                    self._quick_pick_targets.append(target)
+            else:
+                action = menu.addAction(label)
+                action.setEnabled(False)
 
     # (removed unused worker bootstrap helpers; we wire workers inline where started)
 
