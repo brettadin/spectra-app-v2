@@ -20,57 +20,85 @@ except ImportError:
     print("Install with: pip install requests")
     sys.exit(1)
 
-# PDS dataset definitions
+# PDS dataset definitions - MASCS optical spectroscopy ONLY
 DATASETS = {
-    # MESSENGER MASCS - Mercury/Venus
+    # MESSENGER MASCS - Mercury/Venus OPTICAL SPECTROMETERS ONLY
     "uvvs_cdr": {
-        "url": "https://pds-geosciences.wustl.edu/messenger/mess-e_v_h-mascs-3-uvvs-cdr-caldata-v1/messmas_1001/data/",
-        "description": "UVVS calibrated radiance (FUV/MUV/VIS, per-step)",
+        "url": "https://pds-geosciences.wustl.edu/messenger/mess-e_v_h-mascs-3-uvvs-cdr-caldata-v1/messmas_1001/data/cdr/uvvs/",
+        "description": "UVVS calibrated radiance (FUV 115-190nm, MUV 160-320nm, VIS 250-600nm)",
         "size_est": "~2 GB",
         "file_types": [".DAT", ".LBL", ".FMT"],
+        "required_patterns": ["ufc_", "umc_", "uvc_"],  # UVVS CDR science files only
+        "exclude_patterns": ["_hdr.dat", "_eng.dat", "index", "catalog"],  # No headers/engineering
     },
     "virs_cdr": {
-        "url": "https://pds-geosciences.wustl.edu/messenger/mess-e_v_h-mascs-3-virs-cdr-caldata-v1/messmas_2001/data/",
-        "description": "VIRS calibrated radiance (VIS+NIR arrays)",
+        "url": "https://pds-geosciences.wustl.edu/messenger/mess-e_v_h-mascs-3-virs-cdr-caldata-v1/messmas_2001/data/cdr/",
+        "description": "VIRS calibrated radiance (VIS 300-1050nm, NIR 850-1450nm)",
         "size_est": "~5 GB",
         "file_types": [".DAT", ".LBL", ".FMT"],
+        "required_patterns": ["vnc_", "vvc_"],  # VIRS CDR science files only
+        "exclude_patterns": ["_hdr.dat", "_eng.dat", "index", "catalog"],
     },
-    "virs_edr": {
-        "url": "https://pds-geosciences.wustl.edu/messenger/mess-e_v_h-mascs-2-virs-edr-v1/messmas_0002/data/",
-        "description": "VIRS raw data (EDR level)",
-        "size_est": "~10 GB",
+    "uvvs_ddr": {
+        "url": "https://pds-geosciences.wustl.edu/messenger/mess-h-mascs-4-uvvs-ddr-v1/messmas_4001/data/ddr/",
+        "description": "UVVS derived surface reflectance (binned, high quality)",
+        "size_est": "~500 MB",
         "file_types": [".DAT", ".LBL", ".FMT"],
+        "required_patterns": ["uvs_", "uvd_"],  # UVVS DDR science files
+        "exclude_patterns": ["_eng.dat", "index", "catalog"],
     },
-    "uvvs_edr": {
-        "url": "https://pds-geosciences.wustl.edu/messenger/mess-e_v_h-mascs-2-uvvs-edr-v1/messmas_0001/data/",
-        "description": "UVVS raw data (EDR level)",
-        "size_est": "~1 GB",
+    "virs_ddr": {
+        "url": "https://pds-geosciences.wustl.edu/messenger/mess-h-mascs-4-virs-ddr-v1/messmas_4002/data/ddr/",
+        "description": "VIRS derived surface reflectance (high quality)",
+        "size_est": "~3 GB",
         "file_types": [".DAT", ".LBL", ".FMT"],
+        "required_patterns": ["vnd_", "vvd_"],  # VIRS DDR science files
+        "exclude_patterns": ["_eng.dat", "index", "catalog"],
     },
 }
 
 
 class PDSDownloader:
-    """Recursive PDS archive downloader using requests."""
+    """Recursive PDS archive downloader using requests - MASCS optical spectroscopy only."""
     
     def __init__(self, base_url: str, output_dir: Path, max_size_gb: float = None, 
-                 file_types: list = None, dry_run: bool = False):
+                 file_types: list = None, dry_run: bool = False,
+                 required_patterns: list = None, exclude_patterns: list = None):
         self.base_url = base_url.rstrip('/')
         self.output_dir = output_dir
         self.max_size_bytes = int(max_size_gb * 1024**3) if max_size_gb else None
         self.file_types = [ft.upper() for ft in file_types] if file_types else None
+        self.required_patterns = required_patterns or []
+        self.exclude_patterns = exclude_patterns or []
         self.dry_run = dry_run
         
         self.total_downloaded = 0
         self.file_count = 0
         self.skipped_count = 0
+        self.filtered_count = 0
         self.visited_urls = set()
-        
+    
     def should_download_file(self, filename: str) -> bool:
-        """Check if file matches our criteria."""
-        if not self.file_types:
-            return True
-        return any(filename.upper().endswith(ft) for ft in self.file_types)
+        """Check if file matches our STRICT criteria."""
+        fname_lower = filename.lower()
+        
+        # Must match file type
+        if self.file_types and not any(filename.upper().endswith(ft) for ft in self.file_types):
+            return False
+        
+        # Must match at least one required pattern (MASCS science files only)
+        if self.required_patterns:
+            if not any(pattern.lower() in fname_lower for pattern in self.required_patterns):
+                self.filtered_count += 1
+                return False
+        
+        # Must NOT match any exclude pattern (no engineering/header files)
+        if self.exclude_patterns:
+            if any(pattern.lower() in fname_lower for pattern in self.exclude_patterns):
+                self.filtered_count += 1
+                return False
+        
+        return True
     
     def parse_directory_listing(self, html: str, current_url: str) -> tuple[list[str], list[str]]:
         """Extract file and subdirectory links from Apache-style directory listing."""
@@ -214,6 +242,7 @@ class PDSDownloader:
         print("=" * 60)
         print(f"Files downloaded: {self.file_count}")
         print(f"Files skipped (existing): {self.skipped_count}")
+        print(f"Files filtered (non-MASCS/engineering): {self.filtered_count}")
         print(f"Total size: {self.total_downloaded / 1024**3:.2f} GB")
         print(f"Time elapsed: {elapsed / 60:.1f} minutes")
         print("=" * 60)
@@ -272,6 +301,8 @@ Available datasets: uvvs_cdr, virs_cdr, uvvs_edr, virs_edr
         output_dir=args.output_dir,
         max_size_gb=args.max_size,
         file_types=dataset_info.get('file_types'),
+        required_patterns=dataset_info.get('required_patterns'),
+        exclude_patterns=dataset_info.get('exclude_patterns'),
         dry_run=args.dry_run
     )
     
