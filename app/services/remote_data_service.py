@@ -79,6 +79,19 @@ class RemoteDownloadResult:
     cached: bool = False
 
 
+@dataclass(frozen=True)
+class LocalSample:
+    """Descriptor for a curated on-disk sample spectrum."""
+
+    sample_id: str
+    label: str
+    path: Path
+    description: str = ""
+    range_hint: str = ""
+    instrument: str = ""
+    credit: str = ""
+
+
 @dataclass
 class RemoteDataService:
     """Facade over remote catalogue searches and download persistence."""
@@ -96,6 +109,8 @@ class RemoteDataService:
     PROVIDER_EXOSYSTEMS = "MAST ExoSystems"
 
     _DEFAULT_REGION_RADIUS = "0.02 deg"
+    _SAMPLES_ROOT = Path(__file__).resolve().parents[2] / "samples"
+    _SOLAR_SYSTEM_ROOT = _SAMPLES_ROOT / "solar_system"
 
     _CURATED_TARGETS: tuple[Dict[str, Any], ...] = (
         {
@@ -104,6 +119,24 @@ class RemoteDataService:
             "object_name": "Mercury",
             "classification": "Solar System planet",
             "category": "solar_system",
+            "local_samples": [
+                {
+                    "id": "mercury-visible",
+                    "label": "Visible reflectance (350-700 nm)",
+                    "path": "solar_system/mercury/mercury_visible.csv",
+                    "description": "Simulated MASCS reflectance trace across the visible band.",
+                    "instrument": "MESSENGER MASCS",
+                    "range": "350-700 nm",
+                },
+                {
+                    "id": "mercury-infrared",
+                    "label": "Thermal emission (1000-2400 nm)",
+                    "path": "solar_system/mercury/mercury_infrared.csv",
+                    "description": "Thermal continuum sample representative of Mercury's dayside.",
+                    "instrument": "MESSENGER MASCS",
+                    "range": "1000-2400 nm",
+                },
+            ],
             "citations": [
                 {
                     "title": "MESSENGER MASCS reflectance spectra",
@@ -118,6 +151,24 @@ class RemoteDataService:
             "object_name": "Venus",
             "classification": "Solar System planet",
             "category": "solar_system",
+            "local_samples": [
+                {
+                    "id": "venus-visible",
+                    "label": "Cloud reflectance (350-700 nm)",
+                    "path": "solar_system/venus/venus_visible.csv",
+                    "description": "VIRTIS-style reflectance averaged across the visible band.",
+                    "instrument": "Venus Express VIRTIS",
+                    "range": "350-700 nm",
+                },
+                {
+                    "id": "venus-infrared",
+                    "label": "Thermal emission (1000-2400 nm)",
+                    "path": "solar_system/venus/venus_infrared.csv",
+                    "description": "Thermal signature of Venusian cloud tops in the near/mid infrared.",
+                    "instrument": "Venus Express VIRTIS",
+                    "range": "1000-2400 nm",
+                },
+            ],
             "citations": [
                 {
                     "title": "Venus Express VIRTIS spectral survey",
@@ -132,6 +183,24 @@ class RemoteDataService:
             "object_name": "Earth",
             "classification": "Solar System planet",
             "category": "solar_system",
+            "local_samples": [
+                {
+                    "id": "earth-visible",
+                    "label": "Disc reflectance (350-700 nm)",
+                    "path": "solar_system/earth/earth_visible.csv",
+                    "description": "EPOXI-inspired whole-Earth reflectance across the visible band.",
+                    "instrument": "EPOXI MRI",
+                    "range": "350-700 nm",
+                },
+                {
+                    "id": "earth-infrared",
+                    "label": "Thermal emission (1000-2400 nm)",
+                    "path": "solar_system/earth/earth_infrared.csv",
+                    "description": "Disc-averaged thermal emission sample used for benchmarking.",
+                    "instrument": "EPOXI HRI-IR",
+                    "range": "1000-2400 nm",
+                },
+            ],
             "citations": [
                 {
                     "title": "EPOXI Earth Observations",
@@ -146,6 +215,24 @@ class RemoteDataService:
             "object_name": "Mars",
             "classification": "Solar System planet",
             "category": "solar_system",
+            "local_samples": [
+                {
+                    "id": "mars-visible",
+                    "label": "Dust reflectance (350-700 nm)",
+                    "path": "solar_system/mars/mars_visible.csv",
+                    "description": "Representative visible reflectance of dusty equatorial regions.",
+                    "instrument": "JWST NIRSpec quick-look",
+                    "range": "350-700 nm",
+                },
+                {
+                    "id": "mars-infrared",
+                    "label": "Thermal emission (1000-2400 nm)",
+                    "path": "solar_system/mars/mars_infrared.csv",
+                    "description": "Thermal continuum sample highlighting CO2 absorption structure.",
+                    "instrument": "JWST NIRSpec",
+                    "range": "1000-2400 nm",
+                },
+            ],
             "citations": [
                 {
                     "title": "JWST/NIRSpec Mars observations",
@@ -160,6 +247,24 @@ class RemoteDataService:
             "object_name": "Jupiter",
             "classification": "Solar System planet",
             "category": "solar_system",
+            "local_samples": [
+                {
+                    "id": "jupiter-visible",
+                    "label": "Cloud reflectance (350-700 nm)",
+                    "path": "solar_system/jupiter/jupiter_visible.csv",
+                    "description": "Visible-band reflectance capturing ammonia cloud structure.",
+                    "instrument": "JWST ERS",
+                    "range": "350-700 nm",
+                },
+                {
+                    "id": "jupiter-infrared",
+                    "label": "Thermal emission (1000-2400 nm)",
+                    "path": "solar_system/jupiter/jupiter_infrared.csv",
+                    "description": "Thermal emission continuum with methane absorption features.",
+                    "instrument": "JWST ERS",
+                    "range": "1000-2400 nm",
+                },
+            ],
             "citations": [
                 {
                     "title": "JWST Early Release Observations",
@@ -174,6 +279,24 @@ class RemoteDataService:
             "object_name": "Saturn",
             "classification": "Solar System planet",
             "category": "solar_system",
+            "local_samples": [
+                {
+                    "id": "saturn-visible",
+                    "label": "Ring and cloud reflectance (350-700 nm)",
+                    "path": "solar_system/saturn/saturn_visible.csv",
+                    "description": "Composite reflectance for Saturn's disc and main rings.",
+                    "instrument": "Cassini VIMS",
+                    "range": "350-700 nm",
+                },
+                {
+                    "id": "saturn-infrared",
+                    "label": "Thermal emission (1000-2400 nm)",
+                    "path": "solar_system/saturn/saturn_infrared.csv",
+                    "description": "Thermal spectrum combining Cassini and JWST highlights.",
+                    "instrument": "Cassini VIMS",
+                    "range": "1000-2400 nm",
+                },
+            ],
             "citations": [
                 {
                     "title": "Cassini & JWST comparative spectra",
@@ -188,6 +311,24 @@ class RemoteDataService:
             "object_name": "Uranus",
             "classification": "Solar System planet",
             "category": "solar_system",
+            "local_samples": [
+                {
+                    "id": "uranus-visible",
+                    "label": "Methane-band reflectance (350-700 nm)",
+                    "path": "solar_system/uranus/uranus_visible.csv",
+                    "description": "HST-inspired reflectance capturing methane absorption in the visible.",
+                    "instrument": "HST/STIS",
+                    "range": "350-700 nm",
+                },
+                {
+                    "id": "uranus-infrared",
+                    "label": "Thermal emission (1000-2400 nm)",
+                    "path": "solar_system/uranus/uranus_infrared.csv",
+                    "description": "NICMOS-style thermal emission template for Uranus.",
+                    "instrument": "HST/NICMOS",
+                    "range": "1000-2400 nm",
+                },
+            ],
             "citations": [
                 {
                     "title": "HST/STIS Uranus atlas",
@@ -202,6 +343,24 @@ class RemoteDataService:
             "object_name": "Neptune",
             "classification": "Solar System planet",
             "category": "solar_system",
+            "local_samples": [
+                {
+                    "id": "neptune-visible",
+                    "label": "Methane-band reflectance (350-700 nm)",
+                    "path": "solar_system/neptune/neptune_visible.csv",
+                    "description": "NICMOS-inspired reflectance tracing methane absorption.",
+                    "instrument": "HST/NICMOS",
+                    "range": "350-700 nm",
+                },
+                {
+                    "id": "neptune-infrared",
+                    "label": "Thermal emission (1000-2400 nm)",
+                    "path": "solar_system/neptune/neptune_infrared.csv",
+                    "description": "Thermal continuum sample of Neptune's upper atmosphere.",
+                    "instrument": "HST/NICMOS",
+                    "range": "1000-2400 nm",
+                },
+            ],
             "citations": [
                 {
                     "title": "HST/NICMOS Neptune program",
@@ -216,6 +375,24 @@ class RemoteDataService:
             "object_name": "Pluto",
             "classification": "Solar System planet",
             "category": "solar_system",
+            "local_samples": [
+                {
+                    "id": "pluto-visible",
+                    "label": "Disc reflectance (350-700 nm)",
+                    "path": "solar_system/pluto/pluto_visible.csv",
+                    "description": "New Horizons LEISA-derived reflectance across visible wavelengths.",
+                    "instrument": "New Horizons LEISA",
+                    "range": "350-700 nm",
+                },
+                {
+                    "id": "pluto-infrared",
+                    "label": "Thermal emission (1000-2400 nm)",
+                    "path": "solar_system/pluto/pluto_infrared.csv",
+                    "description": "Thermal sample illustrating methane and nitrogen absorption bands.",
+                    "instrument": "New Horizons LEISA",
+                    "range": "1000-2400 nm",
+                },
+            ],
             "citations": [
                 {
                     "title": "New Horizons LEISA spectral maps",
@@ -344,8 +521,64 @@ class RemoteDataService:
 
             payload = dict(entry)
             payload["names"] = sorted(canonical_names)
+            if entry.get("local_samples"):
+                payload["local_samples"] = list(entry.get("local_samples") or [])
             targets.append(payload)
         return targets
+
+    def local_samples(self, target: Mapping[str, Any]) -> List[LocalSample]:
+        """Resolve curated local samples for the provided target entry."""
+
+        entries = target.get("local_samples")
+        if not isinstance(entries, Sequence):
+            return []
+
+        samples: List[LocalSample] = []
+        for entry in entries:
+            if not isinstance(entry, Mapping):
+                continue
+            path_str = str(entry.get("path") or "").strip()
+            label = str(entry.get("label") or "").strip()
+            if not path_str or not label:
+                continue
+            resolved = self._resolve_sample_path(path_str)
+            if resolved is None or not resolved.exists():
+                continue
+            sample_id = str(entry.get("id") or resolved.stem)
+            description = str(entry.get("description") or "").strip()
+            range_hint = str(
+                entry.get("range")
+                or entry.get("wavelength_range")
+                or entry.get("range_hint")
+                or ""
+            ).strip()
+            instrument = str(entry.get("instrument") or "").strip()
+            credit = str(entry.get("credit") or entry.get("citation") or "").strip()
+            samples.append(
+                LocalSample(
+                    sample_id=sample_id,
+                    label=label,
+                    path=resolved,
+                    description=description,
+                    range_hint=range_hint,
+                    instrument=instrument,
+                    credit=credit,
+                )
+            )
+        return samples
+
+    @classmethod
+    def _resolve_sample_path(cls, raw_path: str) -> Path | None:
+        if not raw_path:
+            return None
+        candidate = Path(raw_path)
+        if not candidate.is_absolute():
+            candidate = cls._SAMPLES_ROOT / candidate
+        try:
+            candidate.relative_to(cls._SAMPLES_ROOT)
+        except ValueError:
+            return None
+        return candidate
 
     def providers(self) -> List[str]:
         """Return the list of remote providers whose dependencies are satisfied."""

@@ -579,6 +579,11 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.remote_search_button = QtWidgets.QPushButton("Search")
         self.remote_search_button.clicked.connect(self._on_remote_search)
         remote_controls.addWidget(self.remote_search_button)
+        # Quick load of curated local samples
+        self.remote_load_samples_button = QtWidgets.QPushButton("Load Solar System Samples")
+        self.remote_load_samples_button.setToolTip("Import all CSV spectra under samples/solar_system")
+        self.remote_load_samples_button.clicked.connect(self._on_load_solar_system_samples)
+        remote_controls.addWidget(self.remote_load_samples_button)
         remote_layout.addLayout(remote_controls)
         
         # Results table
@@ -2080,6 +2085,52 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             self.remote_search_button.setEnabled(True)
             self.remote_status_label.setText("Search cancelled")
         QtCore.QTimer.singleShot(0, _cancel)
+    
+    def _on_load_solar_system_samples(self) -> None:
+        """Import all local Solar System sample CSVs bundled with the app."""
+        try:
+            samples_root = Path(__file__).resolve().parents[1] / "samples" / "solar_system"
+        except Exception:
+            samples_root = Path.cwd() / "samples" / "solar_system"
+        if not samples_root.exists():
+            self.remote_status_label.setText("No local Solar System samples found")
+            return
+
+        # Find CSV files under planet subfolders
+        csv_paths = sorted(samples_root.glob("**/*.csv"))
+        if not csv_paths:
+            self.remote_status_label.setText("No CSV files found in samples/solar_system")
+            return
+        # Prune known duplicate naming variants to keep credible/sourced files
+        original_count = len(csv_paths)
+        csv_paths = [
+            p for p in csv_paths
+            if not (p.name.endswith("_infrared.csv") or p.name.endswith("_uvvis.csv"))
+        ]
+        skipped = original_count - len(csv_paths)
+
+        imported = 0
+        errors: list[str] = []
+        if skipped:
+            self.remote_status_label.setText(
+                f"Importing {len(csv_paths)} local sample(s)… (skipped {skipped} duplicate(s))"
+            )
+        else:
+            self.remote_status_label.setText(f"Importing {len(csv_paths)} local sample(s)…")
+        for path in csv_paths:
+            try:
+                self._ingest_path(path)
+                imported += 1
+            except Exception as exc:
+                errors.append(f"{path.name}: {exc}")
+                continue
+
+        if errors:
+            self.remote_status_label.setText(
+                f"Imported {imported} sample(s) with {len(errors)} error(s)."
+            )
+        else:
+            self.remote_status_label.setText(f"Imported {imported} local sample(s).")
     
     def _populate_remote_results(self, records: List[Any]) -> None:
         """Populate the results table with records."""

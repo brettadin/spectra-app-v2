@@ -8,7 +8,7 @@ from .overlay_service import OverlayService
 from .math_service import MathService
 from .reference_library import ReferenceLibrary
 from .store import LocalStore
-from .remote_data_service import RemoteDataService, RemoteRecord, RemoteDownloadResult
+from .remote_data_service import RemoteDataService, RemoteRecord, RemoteDownloadResult, LocalSample
 from .line_shapes import LineShapeModel, LineShapeOutcome
 from .knowledge_log_service import KnowledgeLogEntry, KnowledgeLogService
 
@@ -25,6 +25,7 @@ __all__ = [
     "RemoteDataService",
     "RemoteRecord",
     "RemoteDownloadResult",
+    "LocalSample",
     "LineShapeModel",
     "LineShapeOutcome",
     "KnowledgeLogEntry",

@@ -1,0 +1,10 @@
+# Mercury MASCS reflectance sample (visible wavelengths)
+wavelength_nm,reflectance
+350,0.12
+400,0.14
+450,0.15
+500,0.16
+550,0.18
+600,0.19
+650,0.18
+700,0.16

@@ -1,0 +1,9 @@
+# Pluto UV sample (New Horizons ALICE)
+# source: https://pds-smallbodies.astro.umd.edu/holdings/pds4-nh_alice:pluto_cal-v1.0/SUPPORT/dataset.shtml
+wavelength_nm,brightness_au
+60,0.3
+80,0.35
+100,0.40
+120,0.38
+150,0.36
+180,0.33

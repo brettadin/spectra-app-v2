@@ -1,0 +1,10 @@
+# Uranus thermal emission sample (mid-infrared wavelengths)
+wavelength_nm,radiance_w_m2_sr_um
+1000,0.92
+1200,0.98
+1400,1.04
+1600,1.09
+1800,1.13
+2000,1.17
+2200,1.18
+2400,1.16

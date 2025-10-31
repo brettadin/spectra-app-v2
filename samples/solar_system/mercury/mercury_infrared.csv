@@ -1,0 +1,10 @@
+# Mercury thermal emission sample (near-infrared wavelengths)
+wavelength_nm,radiance_w_m2_sr_um
+1000,1.05
+1200,1.28
+1400,1.46
+1600,1.62
+1800,1.75
+2000,1.82
+2200,1.78
+2400,1.68

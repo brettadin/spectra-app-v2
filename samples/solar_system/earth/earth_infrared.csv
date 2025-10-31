@@ -1,0 +1,10 @@
+# Earth thermal emission sample (mid-infrared wavelengths)
+wavelength_nm,radiance_w_m2_sr_um
+1000,0.65
+1200,0.72
+1400,0.78
+1600,0.85
+1800,0.91
+2000,0.96
+2200,0.99
+2400,1.02

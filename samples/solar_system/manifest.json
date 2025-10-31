@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "destination": "samples/solar_system",
+  "entries": [
+    {"planet": "mercury", "band": "uv", "filename": "mercury_uv.csv", "url": "", "format": "csv", "citation": "", "license": ""},
+    {"planet": "mercury", "band": "ir", "filename": "mercury_ir.csv", "url": "", "format": "csv", "citation": "", "license": ""},
+
+    {"planet": "venus", "band": "uv", "filename": "venus_uv.csv", "url": "", "format": "csv", "citation": "", "license": ""},
+    {"planet": "venus", "band": "visible", "filename": "venus_visible.csv", "url": "", "format": "csv", "citation": "", "license": ""},
+    {"planet": "venus", "band": "ir", "filename": "venus_ir.csv", "url": "", "format": "csv", "citation": "", "license": ""},
+
+    {"planet": "earth", "band": "uv", "filename": "earth_uv.csv", "url": "", "format": "csv", "citation": "", "license": ""},
+    {"planet": "earth", "band": "visible", "filename": "earth_visible.csv", "url": "", "format": "csv", "citation": "", "license": ""},
+    {"planet": "earth", "band": "ir", "filename": "earth_ir.csv", "url": "", "format": "csv", "citation": "", "license": ""},
+
+    {"planet": "mars", "band": "uv", "filename": "mars_uv.csv", "url": "", "format": "csv", "citation": "", "license": ""},
+    {"planet": "mars", "band": "visible", "filename": "mars_visible.csv", "url": "", "format": "csv", "citation": "", "license": ""},
+    {"planet": "mars", "band": "ir", "filename": "mars_ir.csv", "url": "", "format": "csv", "citation": "", "license": ""},
+
+    {"planet": "jupiter", "band": "uv", "filename": "jupiter_uv.csv", "url": "", "format": "csv", "citation": "", "license": ""},
+    {"planet": "jupiter", "band": "visible", "filename": "jupiter_visible.csv", "url": "", "format": "csv", "citation": "", "license": ""},
+    {"planet": "jupiter", "band": "ir", "filename": "jupiter_ir.csv", "url": "", "format": "csv", "citation": "", "license": ""},
+
+    {"planet": "saturn", "band": "uv", "filename": "saturn_uv.csv", "url": "", "format": "csv", "citation": "", "license": ""},
+    {"planet": "saturn", "band": "visible", "filename": "saturn_visible.csv", "url": "", "format": "csv", "citation": "", "license": ""},
+    {"planet": "saturn", "band": "ir", "filename": "saturn_ir.csv", "url": "", "format": "csv", "citation": "", "license": ""},
+
+    {"planet": "uranus", "band": "uv", "filename": "uranus_uv.csv", "url": "", "format": "csv", "citation": "", "license": ""},
+    {"planet": "uranus", "band": "visible", "filename": "uranus_visible.csv", "url": "", "format": "csv", "citation": "", "license": ""},
+    {"planet": "uranus", "band": "ir", "filename": "uranus_ir.csv", "url": "", "format": "csv", "citation": "", "license": ""},
+
+    {"planet": "neptune", "band": "uv", "filename": "neptune_uv.csv", "url": "", "format": "csv", "citation": "", "license": ""},
+    {"planet": "neptune", "band": "visible", "filename": "neptune_visible.csv", "url": "", "format": "csv", "citation": "", "license": ""},
+    {"planet": "neptune", "band": "ir", "filename": "neptune_ir.csv", "url": "", "format": "csv", "citation": "", "license": ""},
+
+    {"planet": "pluto", "band": "uv", "filename": "pluto_uv.csv", "url": "", "format": "csv", "citation": "", "license": ""},
+    {"planet": "pluto", "band": "visible", "filename": "pluto_visible.csv", "url": "", "format": "csv", "citation": "", "license": ""},
+    {"planet": "pluto", "band": "ir", "filename": "pluto_ir.csv", "url": "", "format": "csv", "citation": "", "license": ""}
+  ]
+}

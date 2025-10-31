@@ -1,0 +1,10 @@
+# Pluto LEISA spectral sample (mid-infrared wavelengths)
+wavelength_nm,radiance_w_m2_sr_um
+1000,0.48
+1200,0.52
+1400,0.57
+1600,0.61
+1800,0.64
+2000,0.67
+2200,0.69
+2400,0.68
