@@ -20,31 +20,31 @@ except ImportError:
     print("Install with: pip install requests")
     sys.exit(1)
 
-# PDS dataset definitions (same as pds_wget_bulk.py)
+# PDS dataset definitions
 DATASETS = {
     # MESSENGER MASCS - Mercury/Venus
-    "uvvs_ddr_surface": {
-        "url": "https://pds-geosciences.wustl.edu/messenger/mess-h-mascs-4-uvvs-ddr/messmas_4001/data/ddr/uvvs_surface/",
-        "description": "UVVS Mercury surface reflectance (MUV, binned)",
-        "size_est": "~500 MB",
-        "file_types": [".DAT", ".LBL", ".FMT"],
-    },
-    "virs_ddr": {
-        "url": "https://pds-geosciences.wustl.edu/messenger/mess-h-mascs-4-virs-ddr/messmas_4002/data/ddr/",
-        "description": "VIRS Mercury surface reflectance (VIS+NIR arrays)",
-        "size_est": "~8 GB (recommend max-size limit)",
-        "file_types": [".DAT", ".LBL", ".FMT"],
-    },
     "uvvs_cdr": {
-        "url": "https://pds-geosciences.wustl.edu/messenger/mess-h-mascs-3-uvvs-cdr/messmas_3001/data/cdr/uvvs/",
+        "url": "https://pds-geosciences.wustl.edu/messenger/mess-e_v_h-mascs-3-uvvs-cdr-caldata-v1/messmas_1001/data/",
         "description": "UVVS calibrated radiance (FUV/MUV/VIS, per-step)",
-        "size_est": "~5 GB (recommend max-size limit)",
+        "size_est": "~2 GB",
         "file_types": [".DAT", ".LBL", ".FMT"],
     },
     "virs_cdr": {
-        "url": "https://pds-geosciences.wustl.edu/messenger/mess-h-mascs-3-virs-cdr/messmas_3002/data/cdr/",
+        "url": "https://pds-geosciences.wustl.edu/messenger/mess-e_v_h-mascs-3-virs-cdr-caldata-v1/messmas_2001/data/",
         "description": "VIRS calibrated radiance (VIS+NIR arrays)",
-        "size_est": "~15 GB (recommend max-size limit)",
+        "size_est": "~5 GB",
+        "file_types": [".DAT", ".LBL", ".FMT"],
+    },
+    "virs_edr": {
+        "url": "https://pds-geosciences.wustl.edu/messenger/mess-e_v_h-mascs-2-virs-edr-v1/messmas_0002/data/",
+        "description": "VIRS raw data (EDR level)",
+        "size_est": "~10 GB",
+        "file_types": [".DAT", ".LBL", ".FMT"],
+    },
+    "uvvs_edr": {
+        "url": "https://pds-geosciences.wustl.edu/messenger/mess-e_v_h-mascs-2-uvvs-edr-v1/messmas_0001/data/",
+        "description": "UVVS raw data (EDR level)",
+        "size_est": "~1 GB",
         "file_types": [".DAT", ".LBL", ".FMT"],
     },
 }
@@ -225,16 +225,16 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  # Download Mercury surface reflectance (limit 2GB)
-  python pds_downloader_native.py --dataset uvvs_ddr_surface --output-dir samples/SOLAR_SYSTEM/Mercury_bulk --max-size 2
+  # Download UVVS CDR (limit 2GB)
+  python pds_downloader_native.py --dataset uvvs_cdr --output-dir samples/SOLAR_SYSTEM/Mercury_bulk --max-size 2
 
-  # Download VIRS DDR (limit 5GB)
-  python pds_downloader_native.py --dataset virs_ddr --output-dir samples/SOLAR_SYSTEM/Mercury_bulk --max-size 5
+  # Download VIRS CDR (limit 5GB)
+  python pds_downloader_native.py --dataset virs_cdr --output-dir samples/SOLAR_SYSTEM/Mercury_bulk --max-size 5
 
   # Dry run to preview what would be downloaded
-  python pds_downloader_native.py --dataset uvvs_ddr_surface --output-dir test --dry-run
+  python pds_downloader_native.py --dataset uvvs_cdr --output-dir test --dry-run
 
-Available datasets: uvvs_ddr_surface, virs_ddr, uvvs_cdr, virs_cdr
+Available datasets: uvvs_cdr, virs_cdr, uvvs_edr, virs_edr
         """
     )
     

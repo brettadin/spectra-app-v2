@@ -113,7 +113,7 @@ def main(argv: list[str] | None = None) -> int:
     # Select best dataset for target
     if args.dataset == "auto":
         if args.target == "mercury":
-            datasets = ["uvvs_ddr_surface", "virs_ddr"]
+            datasets = ["uvvs_cdr", "virs_cdr"]
         else:  # venus
             datasets = ["virs_cdr"]
     else:

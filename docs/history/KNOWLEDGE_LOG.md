@@ -6181,3 +6181,279 @@ Import/Remote Import entries remain after the cleanup.
 - venus_visible.csv
 
 ---
+## 2025-10-31 18:29 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file earth_ir.csv
+
+**References**:
+- earth_ir.csv
+
+---
+## 2025-10-31 18:29 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file earth_visible.csv
+
+**References**:
+- earth_visible.csv
+
+---
+## 2025-10-31 18:29 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file jupiter_ir.csv
+
+**References**:
+- jupiter_ir.csv
+
+---
+## 2025-10-31 18:29 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file jupiter_uv.csv
+
+**References**:
+- jupiter_uv.csv
+
+---
+## 2025-10-31 18:29 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file jupiter_visible.csv
+
+**References**:
+- jupiter_visible.csv
+
+---
+## 2025-10-31 18:29 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file mars_ir.csv
+
+**References**:
+- mars_ir.csv
+
+---
+## 2025-10-31 18:29 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file mars_visible.csv
+
+**References**:
+- mars_visible.csv
+
+---
+## 2025-10-31 18:29 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file mercury_ir.csv
+
+**References**:
+- mercury_ir.csv
+
+---
+## 2025-10-31 18:29 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file mercury_uv.csv
+
+**References**:
+- mercury_uv.csv
+
+---
+## 2025-10-31 18:29 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file mercury_visible.csv
+
+**References**:
+- mercury_visible.csv
+
+---
+## 2025-10-31 18:29 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file neptune_ir.csv
+
+**References**:
+- neptune_ir.csv
+
+---
+## 2025-10-31 18:29 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file neptune_uv.csv
+
+**References**:
+- neptune_uv.csv
+
+---
+## 2025-10-31 18:29 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file neptune_visible.csv
+
+**References**:
+- neptune_visible.csv
+
+---
+## 2025-10-31 18:29 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file pluto_ir.csv
+
+**References**:
+- pluto_ir.csv
+
+---
+## 2025-10-31 18:29 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file pluto_uv.csv
+
+**References**:
+- pluto_uv.csv
+
+---
+## 2025-10-31 18:29 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file pluto_visible.csv
+
+**References**:
+- pluto_visible.csv
+
+---
+## 2025-10-31 18:29 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file saturn_ir.csv
+
+**References**:
+- saturn_ir.csv
+
+---
+## 2025-10-31 18:29 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file saturn_visible.csv
+
+**References**:
+- saturn_visible.csv
+
+---
+## 2025-10-31 18:29 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file uranus_ir.csv
+
+**References**:
+- uranus_ir.csv
+
+---
+## 2025-10-31 18:29 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file uranus_uv.csv
+
+**References**:
+- uranus_uv.csv
+
+---
+## 2025-10-31 18:29 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file uranus_visible.csv
+
+**References**:
+- uranus_visible.csv
+
+---
+## 2025-10-31 18:29 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file venus_ir.csv
+
+**References**:
+- venus_ir.csv
+
+---
+## 2025-10-31 18:29 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file venus_visible.csv
+
+**References**:
+- venus_visible.csv
+
+---
