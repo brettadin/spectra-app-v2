@@ -3776,6 +3776,650 @@
       },
       "created": "2025-10-30T03:40:51.838479+00:00",
       "updated": "2025-10-30T03:40:51.838479+00:00"
+    },
+    "2dc3fe51557f2e370c9351452eb1c098f2529c9a89d64269e19605e461b36d85": {
+      "sha256": "2dc3fe51557f2e370c9351452eb1c098f2529c9a89d64269e19605e461b36d85",
+      "filename": "mercury_visible.csv",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\2d\\mercury_visible.csv",
+      "original_path": "C:\\Code\\spectra-app-v2\\samples\\solar_system\\mercury\\mercury_visible.csv",
+      "bytes": 1293,
+      "units": {
+        "x": "nm",
+        "y": "transmittance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Code\\spectra-app-v2\\samples\\solar_system\\mercury\\mercury_visible.csv",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "transmittance"
+        }
+      },
+      "created": "2025-10-31T20:40:23.925171+00:00",
+      "updated": "2025-10-31T21:12:40.061707+00:00"
+    },
+    "aa43889ed758436e44f188b58640ee1369c9d1d6e6e91e0287dc0f27ab0e1afc": {
+      "sha256": "aa43889ed758436e44f188b58640ee1369c9d1d6e6e91e0287dc0f27ab0e1afc",
+      "filename": "umd_ob2_49_13044_010912_sci.csv",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\aa\\umd_ob2_49_13044_010912_sci.csv",
+      "original_path": "C:\\Code\\spectra-app-v2\\samples\\SOLAR SYSTEM\\Mercury\\UVVDDR\\ob3\\uvvs_surface\\mascs20130213\\umd_ob2_49_13044_010912_sci.csv",
+      "bytes": 1293,
+      "units": {
+        "x": "nm",
+        "y": "transmittance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Code\\spectra-app-v2\\samples\\SOLAR SYSTEM\\Mercury\\UVVDDR\\ob3\\uvvs_surface\\mascs20130213\\umd_ob2_49_13044_010912_sci.csv",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "transmittance"
+        }
+      },
+      "created": "2025-10-31T20:40:23.988581+00:00",
+      "updated": "2025-10-31T20:49:07.497463+00:00"
+    },
+    "8eef80cd793f7ef9fd140a52fba07c014993af489646c4616d88f115e50b7663": {
+      "sha256": "8eef80cd793f7ef9fd140a52fba07c014993af489646c4616d88f115e50b7663",
+      "filename": "ufc_ob5_29_15094_155425_sci.csv",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\8e\\ufc_ob5_29_15094_155425_sci.csv",
+      "original_path": "C:\\Code\\spectra-app-v2\\samples\\SOLAR SYSTEM\\Mercury\\UVVCDR\\ob2\\uvvs\\fuv\\ufc_ob5_29_15094_155425_sci.csv",
+      "bytes": 524,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Code\\spectra-app-v2\\samples\\SOLAR SYSTEM\\Mercury\\UVVCDR\\ob2\\uvvs\\fuv\\ufc_ob5_29_15094_155425_sci.csv",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "absorbance"
+        }
+      },
+      "created": "2025-10-31T20:40:34.599727+00:00",
+      "updated": "2025-10-31T20:48:48.394339+00:00"
+    },
+    "a15c0deaf524c04e77c457a6ad0d105f49fa105a63fea560e71febb708d6dfcd": {
+      "sha256": "a15c0deaf524c04e77c457a6ad0d105f49fa105a63fea560e71febb708d6dfcd",
+      "filename": "ufc_ob5_29_15094_181139_sci.csv",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\a1\\ufc_ob5_29_15094_181139_sci.csv",
+      "original_path": "C:\\Code\\spectra-app-v2\\samples\\SOLAR SYSTEM\\Mercury\\UVVCDR\\ob2\\uvvs\\fuv\\ufc_ob5_29_15094_181139_sci.csv",
+      "bytes": 524,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Code\\spectra-app-v2\\samples\\SOLAR SYSTEM\\Mercury\\UVVCDR\\ob2\\uvvs\\fuv\\ufc_ob5_29_15094_181139_sci.csv",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "absorbance"
+        }
+      },
+      "created": "2025-10-31T20:40:34.662071+00:00",
+      "updated": "2025-10-31T20:48:48.450992+00:00"
+    },
+    "e83a590d9da5e266038f3c386f2cfc57a4bd5b7012c172b109bf7236ec5218a3": {
+      "sha256": "e83a590d9da5e266038f3c386f2cfc57a4bd5b7012c172b109bf7236ec5218a3",
+      "filename": "umc_ob5_34_15094_004734_sci.csv",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\e8\\umc_ob5_34_15094_004734_sci.csv",
+      "original_path": "C:\\Code\\spectra-app-v2\\samples\\SOLAR SYSTEM\\Mercury\\UVVCDR\\ob2\\uvvs\\muv\\umc_ob5_34_15094_004734_sci.csv",
+      "bytes": 754,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Code\\spectra-app-v2\\samples\\SOLAR SYSTEM\\Mercury\\UVVCDR\\ob2\\uvvs\\muv\\umc_ob5_34_15094_004734_sci.csv",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "absorbance"
+        }
+      },
+      "created": "2025-10-31T20:40:51.935691+00:00",
+      "updated": "2025-10-31T20:40:51.935691+00:00"
+    },
+    "9c7f960afea18dbda19019e95ad3edd6f87f36900a0b1c7f4e1c25d63c118864": {
+      "sha256": "9c7f960afea18dbda19019e95ad3edd6f87f36900a0b1c7f4e1c25d63c118864",
+      "filename": "umc_ob5_65_15094_211347_sci.csv",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\9c\\umc_ob5_65_15094_211347_sci.csv",
+      "original_path": "C:\\Code\\spectra-app-v2\\samples\\SOLAR SYSTEM\\Mercury\\UVVCDR\\ob2\\uvvs\\muv\\umc_ob5_65_15094_211347_sci.csv",
+      "bytes": 3330,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Code\\spectra-app-v2\\samples\\SOLAR SYSTEM\\Mercury\\UVVCDR\\ob2\\uvvs\\muv\\umc_ob5_65_15094_211347_sci.csv",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "absorbance"
+        }
+      },
+      "created": "2025-10-31T20:40:52.014976+00:00",
+      "updated": "2025-10-31T20:40:52.014976+00:00"
+    },
+    "586e55cf2dc6f79b33f0c8316ef3c1df1be7a3067b9ed56fe2829b9b0262d321": {
+      "sha256": "586e55cf2dc6f79b33f0c8316ef3c1df1be7a3067b9ed56fe2829b9b0262d321",
+      "filename": "earth_ir.csv",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\58\\earth_ir.csv",
+      "original_path": "C:\\Code\\spectra-app-v2\\samples\\solar_system\\earth\\earth_ir.csv",
+      "bytes": 260,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Code\\spectra-app-v2\\samples\\solar_system\\earth\\earth_ir.csv",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "absorbance"
+        }
+      },
+      "created": "2025-10-31T20:43:53.073185+00:00",
+      "updated": "2025-10-31T21:12:39.501193+00:00"
+    },
+    "624a6dac2842f0a2f222ff8a648c254231e74bc1f18225798b89d5f151e55e50": {
+      "sha256": "624a6dac2842f0a2f222ff8a648c254231e74bc1f18225798b89d5f151e55e50",
+      "filename": "earth_visible.csv",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\62\\earth_visible.csv",
+      "original_path": "C:\\Code\\spectra-app-v2\\samples\\solar_system\\earth\\earth_visible.csv",
+      "bytes": 173,
+      "units": {
+        "x": "nm",
+        "y": "transmittance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Code\\spectra-app-v2\\samples\\solar_system\\earth\\earth_visible.csv",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "transmittance"
+        }
+      },
+      "created": "2025-10-31T20:43:53.146748+00:00",
+      "updated": "2025-10-31T21:12:39.561736+00:00"
+    },
+    "d79eac9e8372d2d60651d9715a33742fdd353c37b89c47cacbdb9dd3f444ce85": {
+      "sha256": "d79eac9e8372d2d60651d9715a33742fdd353c37b89c47cacbdb9dd3f444ce85",
+      "filename": "jupiter_ir.csv",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\d7\\jupiter_ir.csv",
+      "original_path": "C:\\Code\\spectra-app-v2\\samples\\solar_system\\jupiter\\jupiter_ir.csv",
+      "bytes": 227,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Code\\spectra-app-v2\\samples\\solar_system\\jupiter\\jupiter_ir.csv",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "absorbance"
+        }
+      },
+      "created": "2025-10-31T20:43:53.215083+00:00",
+      "updated": "2025-10-31T21:12:39.621256+00:00"
+    },
+    "1fe13742dda4fbbab24c0c33789ae20a733d579b233e7c28757ca616a9e1e89c": {
+      "sha256": "1fe13742dda4fbbab24c0c33789ae20a733d579b233e7c28757ca616a9e1e89c",
+      "filename": "jupiter_uv.csv",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\1f\\jupiter_uv.csv",
+      "original_path": "C:\\Code\\spectra-app-v2\\samples\\solar_system\\jupiter\\jupiter_uv.csv",
+      "bytes": 221,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Code\\spectra-app-v2\\samples\\solar_system\\jupiter\\jupiter_uv.csv",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "absorbance"
+        }
+      },
+      "created": "2025-10-31T20:43:53.297491+00:00",
+      "updated": "2025-10-31T21:12:39.680442+00:00"
+    },
+    "b63712bc9adac1280cfae2a7ec8c501d40d7c17e71c1f0c1ea17364d35367a2f": {
+      "sha256": "b63712bc9adac1280cfae2a7ec8c501d40d7c17e71c1f0c1ea17364d35367a2f",
+      "filename": "jupiter_visible.csv",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\b6\\jupiter_visible.csv",
+      "original_path": "C:\\Code\\spectra-app-v2\\samples\\solar_system\\jupiter\\jupiter_visible.csv",
+      "bytes": 163,
+      "units": {
+        "x": "nm",
+        "y": "transmittance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Code\\spectra-app-v2\\samples\\solar_system\\jupiter\\jupiter_visible.csv",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "transmittance"
+        }
+      },
+      "created": "2025-10-31T20:43:53.362596+00:00",
+      "updated": "2025-10-31T21:12:39.738799+00:00"
+    },
+    "50a1ce99fa5c79fab7466aa3e23495302014b545084b15012b38012d6016bdf5": {
+      "sha256": "50a1ce99fa5c79fab7466aa3e23495302014b545084b15012b38012d6016bdf5",
+      "filename": "mars_ir.csv",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\50\\mars_ir.csv",
+      "original_path": "C:\\Code\\spectra-app-v2\\samples\\solar_system\\mars\\mars_ir.csv",
+      "bytes": 254,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Code\\spectra-app-v2\\samples\\solar_system\\mars\\mars_ir.csv",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "absorbance"
+        }
+      },
+      "created": "2025-10-31T20:43:53.461203+00:00",
+      "updated": "2025-10-31T21:12:39.800278+00:00"
+    },
+    "f7a9b3e5f8dafd64b4c7576800d9e758b98caa7d5a75e92de98ed46c70782ad0": {
+      "sha256": "f7a9b3e5f8dafd64b4c7576800d9e758b98caa7d5a75e92de98ed46c70782ad0",
+      "filename": "mars_visible.csv",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\f7\\mars_visible.csv",
+      "original_path": "C:\\Code\\spectra-app-v2\\samples\\solar_system\\mars\\mars_visible.csv",
+      "bytes": 156,
+      "units": {
+        "x": "nm",
+        "y": "transmittance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Code\\spectra-app-v2\\samples\\solar_system\\mars\\mars_visible.csv",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "transmittance"
+        }
+      },
+      "created": "2025-10-31T20:43:53.548468+00:00",
+      "updated": "2025-10-31T21:12:39.860347+00:00"
+    },
+    "9782caa0b6d2f06f804f9fc4bce16f143fd83f72f395cfe0b1bc3813f58ef935": {
+      "sha256": "9782caa0b6d2f06f804f9fc4bce16f143fd83f72f395cfe0b1bc3813f58ef935",
+      "filename": "mercury_ir.csv",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\97\\mercury_ir.csv",
+      "original_path": "C:\\Code\\spectra-app-v2\\samples\\solar_system\\mercury\\mercury_ir.csv",
+      "bytes": 6219,
+      "units": {
+        "x": "nm",
+        "y": "transmittance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Code\\spectra-app-v2\\samples\\solar_system\\mercury\\mercury_ir.csv",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "transmittance"
+        }
+      },
+      "created": "2025-10-31T20:43:53.617165+00:00",
+      "updated": "2025-10-31T21:12:39.933164+00:00"
+    },
+    "f1f94f9db17cba012a144653b8a51d7aac523074c77ff4b1392b12d0c15bc76a": {
+      "sha256": "f1f94f9db17cba012a144653b8a51d7aac523074c77ff4b1392b12d0c15bc76a",
+      "filename": "mercury_uv.csv",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\f1\\mercury_uv.csv",
+      "original_path": "C:\\Code\\spectra-app-v2\\samples\\solar_system\\mercury\\mercury_uv.csv",
+      "bytes": 685,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Code\\spectra-app-v2\\samples\\solar_system\\mercury\\mercury_uv.csv",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "absorbance"
+        }
+      },
+      "created": "2025-10-31T20:43:53.711249+00:00",
+      "updated": "2025-10-31T21:12:39.999302+00:00"
+    },
+    "a7d5bc28963d14bb30e569e114912c6f85c132b537bb0053f35de92f9de7208c": {
+      "sha256": "a7d5bc28963d14bb30e569e114912c6f85c132b537bb0053f35de92f9de7208c",
+      "filename": "neptune_ir.csv",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\a7\\neptune_ir.csv",
+      "original_path": "C:\\Code\\spectra-app-v2\\samples\\solar_system\\neptune\\neptune_ir.csv",
+      "bytes": 197,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Code\\spectra-app-v2\\samples\\solar_system\\neptune\\neptune_ir.csv",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "absorbance"
+        }
+      },
+      "created": "2025-10-31T20:43:53.870790+00:00",
+      "updated": "2025-10-31T21:12:40.124281+00:00"
+    },
+    "48045a239c0f1e504fe45605c912c56977382eab14c3be38787a2c0617485f36": {
+      "sha256": "48045a239c0f1e504fe45605c912c56977382eab14c3be38787a2c0617485f36",
+      "filename": "neptune_uv.csv",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\48\\neptune_uv.csv",
+      "original_path": "C:\\Code\\spectra-app-v2\\samples\\solar_system\\neptune\\neptune_uv.csv",
+      "bytes": 212,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Code\\spectra-app-v2\\samples\\solar_system\\neptune\\neptune_uv.csv",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "absorbance"
+        }
+      },
+      "created": "2025-10-31T20:43:53.950323+00:00",
+      "updated": "2025-10-31T21:12:40.196105+00:00"
+    },
+    "233b8413bed3da8f67752812dda70ab5a3f56b0a41e1d7c5fb3d908dcb7b1900": {
+      "sha256": "233b8413bed3da8f67752812dda70ab5a3f56b0a41e1d7c5fb3d908dcb7b1900",
+      "filename": "neptune_visible.csv",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\23\\neptune_visible.csv",
+      "original_path": "C:\\Code\\spectra-app-v2\\samples\\solar_system\\neptune\\neptune_visible.csv",
+      "bytes": 163,
+      "units": {
+        "x": "nm",
+        "y": "transmittance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Code\\spectra-app-v2\\samples\\solar_system\\neptune\\neptune_visible.csv",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "transmittance"
+        }
+      },
+      "created": "2025-10-31T20:43:54.042063+00:00",
+      "updated": "2025-10-31T21:12:40.260086+00:00"
+    },
+    "430cbbc0f251a668530a2de7acad35e05f4fad30538533c1655ba4aedd4c5752": {
+      "sha256": "430cbbc0f251a668530a2de7acad35e05f4fad30538533c1655ba4aedd4c5752",
+      "filename": "pluto_ir.csv",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\43\\pluto_ir.csv",
+      "original_path": "C:\\Code\\spectra-app-v2\\samples\\solar_system\\pluto\\pluto_ir.csv",
+      "bytes": 242,
+      "units": {
+        "x": "nm",
+        "y": "transmittance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Code\\spectra-app-v2\\samples\\solar_system\\pluto\\pluto_ir.csv",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "transmittance"
+        }
+      },
+      "created": "2025-10-31T20:43:54.128817+00:00",
+      "updated": "2025-10-31T21:12:40.325739+00:00"
+    },
+    "d4dea7c6d8bd828ecd345e00f35cd2e0e00ed3870e6f5d962187c87a781509e0": {
+      "sha256": "d4dea7c6d8bd828ecd345e00f35cd2e0e00ed3870e6f5d962187c87a781509e0",
+      "filename": "pluto_uv.csv",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\d4\\pluto_uv.csv",
+      "original_path": "C:\\Code\\spectra-app-v2\\samples\\solar_system\\pluto\\pluto_uv.csv",
+      "bytes": 235,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Code\\spectra-app-v2\\samples\\solar_system\\pluto\\pluto_uv.csv",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "absorbance"
+        }
+      },
+      "created": "2025-10-31T20:43:54.213138+00:00",
+      "updated": "2025-10-31T21:12:40.396512+00:00"
+    },
+    "aae5ebbee50fabb738742457d699ae0872721510104e01d1e8bf54ccd900abd6": {
+      "sha256": "aae5ebbee50fabb738742457d699ae0872721510104e01d1e8bf54ccd900abd6",
+      "filename": "pluto_visible.csv",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\aa\\pluto_visible.csv",
+      "original_path": "C:\\Code\\spectra-app-v2\\samples\\solar_system\\pluto\\pluto_visible.csv",
+      "bytes": 163,
+      "units": {
+        "x": "nm",
+        "y": "transmittance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Code\\spectra-app-v2\\samples\\solar_system\\pluto\\pluto_visible.csv",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "transmittance"
+        }
+      },
+      "created": "2025-10-31T20:43:54.294492+00:00",
+      "updated": "2025-10-31T21:12:40.464534+00:00"
+    },
+    "ba8991899775a064f22984dba8166160a373597f3c6d0a5cb15e20c6db408fa6": {
+      "sha256": "ba8991899775a064f22984dba8166160a373597f3c6d0a5cb15e20c6db408fa6",
+      "filename": "saturn_ir.csv",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\ba\\saturn_ir.csv",
+      "original_path": "C:\\Code\\spectra-app-v2\\samples\\solar_system\\saturn\\saturn_ir.csv",
+      "bytes": 226,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Code\\spectra-app-v2\\samples\\solar_system\\saturn\\saturn_ir.csv",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "absorbance"
+        }
+      },
+      "created": "2025-10-31T20:43:54.372055+00:00",
+      "updated": "2025-10-31T21:12:40.541046+00:00"
+    },
+    "90712bdf1de0de8db3037f13b3eb7ecb9416043db2064c7ea4d020b5de1b028b": {
+      "sha256": "90712bdf1de0de8db3037f13b3eb7ecb9416043db2064c7ea4d020b5de1b028b",
+      "filename": "saturn_visible.csv",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\90\\saturn_visible.csv",
+      "original_path": "C:\\Code\\spectra-app-v2\\samples\\solar_system\\saturn\\saturn_visible.csv",
+      "bytes": 162,
+      "units": {
+        "x": "nm",
+        "y": "transmittance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Code\\spectra-app-v2\\samples\\solar_system\\saturn\\saturn_visible.csv",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "transmittance"
+        }
+      },
+      "created": "2025-10-31T20:43:54.462185+00:00",
+      "updated": "2025-10-31T21:12:40.624368+00:00"
+    },
+    "069e50dc816e22e4d811c5916319303ce417b2a480923f8de6c5352ded08d36c": {
+      "sha256": "069e50dc816e22e4d811c5916319303ce417b2a480923f8de6c5352ded08d36c",
+      "filename": "uranus_ir.csv",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\06\\uranus_ir.csv",
+      "original_path": "C:\\Code\\spectra-app-v2\\samples\\solar_system\\uranus\\uranus_ir.csv",
+      "bytes": 196,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Code\\spectra-app-v2\\samples\\solar_system\\uranus\\uranus_ir.csv",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "absorbance"
+        }
+      },
+      "created": "2025-10-31T20:43:54.547513+00:00",
+      "updated": "2025-10-31T21:12:40.700785+00:00"
+    },
+    "8f5af04d496ad7b9228de2c070131ca4d3ea24d2616e1239a93c04bac9c9ae15": {
+      "sha256": "8f5af04d496ad7b9228de2c070131ca4d3ea24d2616e1239a93c04bac9c9ae15",
+      "filename": "uranus_uv.csv",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\8f\\uranus_uv.csv",
+      "original_path": "C:\\Code\\spectra-app-v2\\samples\\solar_system\\uranus\\uranus_uv.csv",
+      "bytes": 206,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Code\\spectra-app-v2\\samples\\solar_system\\uranus\\uranus_uv.csv",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "absorbance"
+        }
+      },
+      "created": "2025-10-31T20:43:54.643791+00:00",
+      "updated": "2025-10-31T21:12:40.777293+00:00"
+    },
+    "a0d03be79bce90f2f96994a06018ab069b8fe7638e619ce19ffa9de24fc393b9": {
+      "sha256": "a0d03be79bce90f2f96994a06018ab069b8fe7638e619ce19ffa9de24fc393b9",
+      "filename": "uranus_visible.csv",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\a0\\uranus_visible.csv",
+      "original_path": "C:\\Code\\spectra-app-v2\\samples\\solar_system\\uranus\\uranus_visible.csv",
+      "bytes": 162,
+      "units": {
+        "x": "nm",
+        "y": "transmittance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Code\\spectra-app-v2\\samples\\solar_system\\uranus\\uranus_visible.csv",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "transmittance"
+        }
+      },
+      "created": "2025-10-31T20:43:54.733526+00:00",
+      "updated": "2025-10-31T21:12:40.853831+00:00"
+    },
+    "11b567099169eac3fcab8681b64b764388706dc4c335d507e2e533aafb20dd7f": {
+      "sha256": "11b567099169eac3fcab8681b64b764388706dc4c335d507e2e533aafb20dd7f",
+      "filename": "venus_ir.csv",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\11\\venus_ir.csv",
+      "original_path": "C:\\Code\\spectra-app-v2\\samples\\solar_system\\venus\\venus_ir.csv",
+      "bytes": 240,
+      "units": {
+        "x": "nm",
+        "y": "transmittance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Code\\spectra-app-v2\\samples\\solar_system\\venus\\venus_ir.csv",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "transmittance"
+        }
+      },
+      "created": "2025-10-31T20:43:54.838507+00:00",
+      "updated": "2025-10-31T21:12:40.931728+00:00"
+    },
+    "2120f433680af0539aaeeb93967fd19baf259190ae7ce47322700b6a1ba8bbfb": {
+      "sha256": "2120f433680af0539aaeeb93967fd19baf259190ae7ce47322700b6a1ba8bbfb",
+      "filename": "venus_visible.csv",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\21\\venus_visible.csv",
+      "original_path": "C:\\Code\\spectra-app-v2\\samples\\solar_system\\venus\\venus_visible.csv",
+      "bytes": 164,
+      "units": {
+        "x": "nm",
+        "y": "transmittance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Code\\spectra-app-v2\\samples\\solar_system\\venus\\venus_visible.csv",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "transmittance"
+        }
+      },
+      "created": "2025-10-31T20:43:54.923025+00:00",
+      "updated": "2025-10-31T21:12:41.013625+00:00"
     }
   }
 }

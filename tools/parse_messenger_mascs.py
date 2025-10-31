@@ -303,6 +303,94 @@ def parse_uvvcdr_sci(dat_path: Path, label: PDSLabel, debug: bool = False) -> Tu
     return np.array(unique_wls), np.array(unique_rads)
 
 
+def parse_virs_ddr(dat_path: Path, label: PDSLabel) -> Tuple[np.ndarray, np.ndarray]:
+    """
+    Parse VIRS DDR data (NIR or VIS reflectance spectra).
+    
+    VIRS captures full spectra as arrays:
+    - NIR: 256 pixels covering ~300-1450 nm  
+    - VIS: 512 pixels covering ~300-1050 nm
+    
+    Returns: (wavelength_nm, reflectance)
+    """
+    data = dat_path.read_bytes()
+    
+    # Determine if NIR or VIS based on product ID
+    is_nir = 'NIR' in label.product_id.upper() or 'ND' in label.product_id.upper()
+    num_pixels = 256 if is_nir else 512
+    
+    # VIRS wavelength calibration (from MASCS documentation)
+    if is_nir:
+        # NIR: ~300-1450 nm, 256 pixels
+        # Approximate linear wavelength scale
+        wavelengths = np.linspace(300, 1450, num_pixels)
+    else:
+        # VIS: ~300-1050 nm, 512 pixels  
+        wavelengths = np.linspace(300, 1050, num_pixels)
+    
+    # Try to parse format file to get exact offsets
+    fmt_columns = None
+    if label.format_file:
+        for parent in [dat_path.parent, dat_path.parent.parent, dat_path.parent.parent.parent, dat_path.parent.parent.parent.parent]:
+            fmt_path = parent / label.format_file
+            if fmt_path.exists():
+                try:
+                    fmt_columns = parse_fmt_file(fmt_path)
+                    print(f"  Using format file: {fmt_path.name}")
+                    break
+                except Exception as e:
+                    print(f"  Warning: Could not parse format file: {e}")
+    
+    # Find IOF spectrum data offset
+    iof_offset = 48  # Default from VIRSND.FMT
+    if fmt_columns:
+        for name, (offset, size, dtype) in fmt_columns.items():
+            if 'PHOTOM_IOF_SPECTRUM_DATA' in name:
+                iof_offset = offset
+                print(f"  Photometric I/F array at byte {iof_offset}")
+                break
+            elif 'IOF_SPECTRUM_DATA' in name:
+                iof_offset = offset
+                print(f"  I/F array at byte {iof_offset}")
+    
+    # Average multiple spectra from all rows
+    all_spectra = []
+    
+    for i in range(label.rows):
+        row_offset = i * label.row_bytes
+        spectrum_offset = row_offset + iof_offset
+        
+        try:
+            # Read array of floats
+            spectrum = np.zeros(num_pixels)
+            for j in range(num_pixels):
+                byte_off = spectrum_offset + (j * 4)
+                if byte_off + 4 <= len(data):
+                    val = struct.unpack('>f', data[byte_off:byte_off+4])[0]
+                    # Filter invalid/saturated pixels (1e32 = invalid)
+                    if 0 < val < 1 and not np.isnan(val):
+                        spectrum[j] = val
+            
+            # Only keep spectra with valid data
+            if np.sum(spectrum > 0) > num_pixels * 0.1:  # At least 10% valid
+                all_spectra.append(spectrum)
+        except Exception:
+            continue
+    
+    if not all_spectra:
+        raise ValueError(f"No valid VIRS spectra found in {dat_path}")
+    
+    # Average all spectra
+    avg_spectrum = np.mean(all_spectra, axis=0)
+    
+    # Filter out zero/invalid pixels
+    valid_mask = avg_spectrum > 0
+    valid_wl = wavelengths[valid_mask]
+    valid_refl = avg_spectrum[valid_mask]
+    
+    return valid_wl, valid_refl
+
+
 def parse_uvvddr_surface(dat_path: Path, label: PDSLabel) -> Tuple[np.ndarray, np.ndarray]:
     """
     Parse UVVDDR surface reflectance data.
@@ -437,15 +525,18 @@ def process_file(lbl_path: Path, output_path: Path | None = None) -> Path:
     print(f"  Detector: {label.detector_id}")
     print(f"  Rows: {label.rows}")
     
-    # Parse based on product type
-    if label.product_type == "CDR":
+    # Parse based on product type and detector
+    if label.detector_id == "VIRS" and label.product_type == "DDR":
+        wavelengths, values = parse_virs_ddr(dat_path, label)
+        value_type = "reflectance"
+    elif label.product_type == "CDR" and label.detector_id == "UVVS":
         wavelengths, values = parse_uvvcdr_sci(dat_path, label)
         value_type = "radiance"
     elif label.product_type == "DDR" and "UVVSSCID_SUR" in (label.format_file or ""):
         wavelengths, values = parse_uvvddr_surface(dat_path, label)
         value_type = "reflectance"
     else:
-        raise ValueError(f"Unsupported product type: {label.product_type}")
+        raise ValueError(f"Unsupported product: {label.product_type} {label.detector_id}")
     
     # Write CSV
     write_csv(output_path, wavelengths, values, label, value_type)

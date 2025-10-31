@@ -1,0 +1,10 @@
+# Saturn reflected-light sample (visible wavelengths)
+wavelength_nm,reflectance
+350,0.38
+400,0.40
+450,0.42
+500,0.44
+550,0.46
+600,0.48
+650,0.47
+700,0.45

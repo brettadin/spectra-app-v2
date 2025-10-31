@@ -1,0 +1,10 @@
+# Venus VIRTIS reflectance sample (visible wavelengths)
+wavelength_nm,reflectance
+350,0.65
+400,0.68
+450,0.71
+500,0.74
+550,0.76
+600,0.79
+650,0.81
+700,0.83
