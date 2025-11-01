@@ -165,6 +165,8 @@ class UnitsService:
         u = unit.strip().lower()
         # Normalise common Unicode minus signs (⁻, −) to ASCII '-'.
         u = u.replace("⁻", "-").replace("−", "-").replace("¹", "1")
+        # Normalise micro sign µ to ascii 'u'
+        u = u.replace("µ", "u").replace("μ", "u")
         mappings = {
             "nanometre": "nm",
             "nanometer": "nm",

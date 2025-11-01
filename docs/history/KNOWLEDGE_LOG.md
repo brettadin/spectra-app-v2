@@ -6514,3 +6514,747 @@ Import/Remote Import entries remain after the cleanup.
 - venus_visible.csv
 
 ---
+## 2025-11-01 14:41 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file table_WASP-178-b-Lothringer-et-al.-2022.csv
+
+**References**:
+- table_WASP-178-b-Lothringer-et-al.-2022.csv
+
+---
+## 2025-11-01 14:41 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file table_HAT-P-18-b-Fournier-Tondreau-et-al.-2024.csv
+
+**References**:
+- table_HAT-P-18-b-Fournier-Tondreau-et-al.-2024.csv
+
+---
+## 2025-11-01 14:41 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file table_Luhman-16-b-Biller-et-al.-2024.csv
+
+**References**:
+- table_Luhman-16-b-Biller-et-al.-2024.csv
+
+---
+## 2025-11-01 14:41 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file table_WASP-17-b-Louie-et-al.-2025.csv
+
+**References**:
+- table_WASP-17-b-Louie-et-al.-2025.csv
+
+---
+## 2025-11-01 14:41 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file table_WASP-96-b-Radica-et-al.-2023.csv
+
+**References**:
+- table_WASP-96-b-Radica-et-al.-2023.csv
+
+---
+## 2025-11-01 14:42 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file jupiter__9408090029N_vo.fits
+
+**References**:
+- jupiter__9408090029N_vo.fits
+
+---
+## 2025-11-01 14:42 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file plnt_Jupiter.fits
+
+**References**:
+- plnt_Jupiter.fits
+
+---
+## 2025-11-01 14:42 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file plnt_Neptune.fits
+
+**References**:
+- plnt_Neptune.fits
+
+---
+## 2025-11-01 14:42 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file plnt_Saturn.fits
+
+**References**:
+- plnt_Saturn.fits
+
+---
+## 2025-11-01 14:42 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file plnt_Uranus.fits
+
+**References**:
+- plnt_Uranus.fits
+
+---
+## 2025-11-01 14:43 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file C7,6e(N4)_HD31996.fits
+
+**References**:
+- C7,6e(N4)_HD31996.fits
+
+---
+## 2025-11-01 14:43 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file C-J4.5IIIa_C26j6_HD70138.fits
+
+**References**:
+- C-J4.5IIIa_C26j6_HD70138.fits
+
+---
+## 2025-11-01 14:43 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file C-J5-C25-j4_HD57160.fits
+
+**References**:
+- C-J5-C25-j4_HD57160.fits
+
+---
+## 2025-11-01 14:43 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file C-N4.5C24.5_HD92055.fits
+
+**References**:
+- C-N4.5C24.5_HD92055.fits
+
+---
+## 2025-11-01 14:43 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file C-N4.5C25.5MS3_HD76221.fits
+
+**References**:
+- C-N4.5C25.5MS3_HD76221.fits
+
+---
+## 2025-11-01 14:43 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file C-N4C23.5_HD44984.fits
+
+**References**:
+- C-N4C23.5_HD44984.fits
+
+---
+## 2025-11-01 14:43 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file C-N5C26-_HD48664.fits
+
+**References**:
+- C-N5C26-_HD48664.fits
+
+---
+## 2025-11-01 14:43 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file C-R2+IIIa_C22.5_HD76846.fits
+
+**References**:
+- C-R2+IIIa_C22.5_HD76846.fits
+
+---
+## 2025-11-01 14:43 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file F0Ia_HD7927.fits
+
+**References**:
+- F0Ia_HD7927.fits
+
+---
+## 2025-11-01 14:43 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file F0Ia_HD7927_ext.fits
+
+**References**:
+- F0Ia_HD7927_ext.fits
+
+---
+## 2025-11-01 14:43 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file F0Ib-II_HD135153.fits
+
+**References**:
+- F0Ib-II_HD135153.fits
+
+---
+## 2025-11-01 14:43 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file F0Ib-II_HD135153_ext.fits
+
+**References**:
+- F0Ib-II_HD135153_ext.fits
+
+---
+## 2025-11-01 14:43 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file F0II_HD6130.fits
+
+**References**:
+- F0II_HD6130.fits
+
+---
+## 2025-11-01 14:43 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file F0II_HD6130_ext.fits
+
+**References**:
+- F0II_HD6130_ext.fits
+
+---
+## 2025-11-01 14:43 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file F0IIIa_HD89025.fits
+
+**References**:
+- F0IIIa_HD89025.fits
+
+---
+## 2025-11-01 14:43 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file F0III-IVn_HD13174.fits
+
+**References**:
+- F0III-IVn_HD13174.fits
+
+---
+## 2025-11-01 14:43 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file F0IV_HD27397.fits
+
+**References**:
+- F0IV_HD27397.fits
+
+---
+## 2025-11-01 14:43 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file F0V(n)_HD108519.fits
+
+**References**:
+- F0V(n)_HD108519.fits
+
+---
+## 2025-11-01 14:43 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file F1II_HD173638.fits
+
+**References**:
+- F1II_HD173638.fits
+
+---
+## 2025-11-01 14:43 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file F1II_HD173638_ext.fits
+
+**References**:
+- F1II_HD173638_ext.fits
+
+---
+## 2025-11-01 14:43 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file F1V_HD213135.fits
+
+**References**:
+- F1V_HD213135.fits
+
+---
+## 2025-11-01 14:43 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file F2-F5Ib_BD+38_2803.fits
+
+**References**:
+- F2-F5Ib_BD+38_2803.fits
+
+---
+## 2025-11-01 14:43 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file F2Ib_HD182835.fits
+
+**References**:
+- F2Ib_HD182835.fits
+
+---
+## 2025-11-01 14:43 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file F2Ib_HD182835_ext.fits
+
+**References**:
+- F2Ib_HD182835_ext.fits
+
+---
+## 2025-11-01 14:43 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file F2III-IV_HD40535.fits
+
+**References**:
+- F2III-IV_HD40535.fits
+
+---
+## 2025-11-01 14:43 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file F2V_HD113139.fits
+
+**References**:
+- F2V_HD113139.fits
+
+---
+## 2025-11-01 14:43 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file F3V_HD26015.fits
+
+**References**:
+- F3V_HD26015.fits
+
+---
+## 2025-11-01 14:43 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file F4III_HD21770.fits
+
+**References**:
+- F4III_HD21770.fits
+
+---
+## 2025-11-01 14:43 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file F4V_HD16232.fits
+
+**References**:
+- F4V_HD16232.fits
+
+---
+## 2025-11-01 14:43 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file F4V_HD87822.fits
+
+**References**:
+- F4V_HD87822.fits
+
+---
+## 2025-11-01 14:43 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file F5.5III-IV_HD75555.fits
+
+**References**:
+- F5.5III-IV_HD75555.fits
+
+---
+## 2025-11-01 14:43 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file F5Ib-G1Ib_HD213306.fits
+
+**References**:
+- F5Ib-G1Ib_HD213306.fits
+
+---
+## 2025-11-01 14:43 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file F5Ib-G1Ib_HD213306_ext.fits
+
+**References**:
+- F5Ib-G1Ib_HD213306_ext.fits
+
+---
+## 2025-11-01 14:43 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file F5III_HD17918.fits
+
+**References**:
+- F5III_HD17918.fits
+
+---
+## 2025-11-01 14:43 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file F5II-III_HD186155.fits
+
+**References**:
+- F5II-III_HD186155.fits
+
+---
+## 2025-11-01 14:43 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file F5V_HD27524.fits
+
+**References**:
+- F5V_HD27524.fits
+
+---
+## 2025-11-01 14:43 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file F5V_HD218804.fits
+
+**References**:
+- F5V_HD218804.fits
+
+---
+## 2025-11-01 14:43 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file F6III-IV_HD160365.fits
+
+**References**:
+- F6III-IV_HD160365.fits
+
+---
+## 2025-11-01 14:43 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file F6IV_HD11443.fits
+
+**References**:
+- F6IV_HD11443.fits
+
+---
+## 2025-11-01 14:43 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file F6V_HD215648.fits
+
+**References**:
+- F6V_HD215648.fits
+
+---
+## 2025-11-01 14:43 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file F7II-_HD201078.fits
+
+**References**:
+- F7II-_HD201078.fits
+
+---
+## 2025-11-01 14:43 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file F7III_HD124850.fits
+
+**References**:
+- F7III_HD124850.fits
+
+---
+## 2025-11-01 14:46 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file C7,6e(N4)_HD31996.fits
+
+**References**:
+- C7,6e(N4)_HD31996.fits
+
+---
+## 2025-11-01 14:46 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file C-J4.5IIIa_C26j6_HD70138.fits
+
+**References**:
+- C-J4.5IIIa_C26j6_HD70138.fits
+
+---
+## 2025-11-01 14:46 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file C-J5-C25-j4_HD57160.fits
+
+**References**:
+- C-J5-C25-j4_HD57160.fits
+
+---
+## 2025-11-01 14:46 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file C-N4.5C24.5_HD92055.fits
+
+**References**:
+- C-N4.5C24.5_HD92055.fits
+
+---
+## 2025-11-01 14:46 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file C-N4.5C25.5MS3_HD76221.fits
+
+**References**:
+- C-N4.5C25.5MS3_HD76221.fits
+
+---
+## 2025-11-01 14:46 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file C-N4C23.5_HD44984.fits
+
+**References**:
+- C-N4C23.5_HD44984.fits
+
+---
+## 2025-11-01 14:46 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file C-N5C26-_HD48664.fits
+
+**References**:
+- C-N5C26-_HD48664.fits
+
+---
+## 2025-11-01 14:46 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file C-R2+IIIa_C22.5_HD76846.fits
+
+**References**:
+- C-R2+IIIa_C22.5_HD76846.fits
+
+---
+## 2025-11-01 14:48 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file C7,6e(N4)_HD31996.fits
+
+**References**:
+- C7,6e(N4)_HD31996.fits
+
+---
+## 2025-11-01 14:51 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file 7ish torr w h2o vapor - Copy.csv
+
+**References**:
+- 7ish torr w h2o vapor - Copy.csv
+
+---
