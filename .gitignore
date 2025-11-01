@@ -3,16 +3,4 @@ __pycache__/
 .pytest_cache/
 .venv/
 *.egg-info/
-downloads/index.json
-downloads/files/19/Krypton_Lamp.csv
-downloads/files/2a/Xenon_Lamp.csv
-downloads/files/55/H2O AIR AND CO2 LAMP MERGED.csv
-downloads/files/59/Iodine_Lamp.csv
-downloads/files/6d/Star_Lamp.csv
-downloads/files/7c/Helium_Lamp.csv
-downloads/files/7c/Mercury_Lamp.csv
-downloads/files/ab/sample_transmittance.csv
-downloads/files/ae/Hydrogen_Lamp.csv
-downloads/files/b0/Neon_Lamp.csv
-downloads/files/b4/Air_Lamp.csv
-downloads/files/e6/CO2_Lamp.csv
+downloads/

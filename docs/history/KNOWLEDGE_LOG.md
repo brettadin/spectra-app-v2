@@ -7258,3 +7258,15 @@ Import/Remote Import entries remain after the cleanup.
 - 7ish torr w h2o vapor - Copy.csv
 
 ---
+## 2025-11-01 14:55 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file C7,6e(N4)_HD31996.fits
+
+**References**:
+- C7,6e(N4)_HD31996.fits
+
+---

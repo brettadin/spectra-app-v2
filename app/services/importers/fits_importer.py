@@ -106,8 +106,9 @@ class FitsImporter:
                 x, y, img_meta = self._extract_from_image_hdu(hdu)
                 # Units from header keywords
                 # Prefer axis 1 unit for x, BUNIT for y
-                x_unit_raw = hdu.header.get("CUNIT1") or hdu.header.get("WAVEUNIT") or ""
-                flux_unit_raw = hdu.header.get("BUNIT", "")
+                # Also check XUNITS (used by SpeX) and YUNITS
+                x_unit_raw = hdu.header.get("CUNIT1") or hdu.header.get("WAVEUNIT") or hdu.header.get("XUNITS") or ""
+                flux_unit_raw = hdu.header.get("BUNIT") or hdu.header.get("YUNITS") or ""
                 x_unit = self._normalise_wavelength_unit(x_unit_raw)
                 flux_unit = self._normalise_flux_unit(flux_unit_raw)
                 name = hdu.header.get("OBJECT", path.stem)

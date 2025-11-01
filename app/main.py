@@ -901,8 +901,15 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                 spec.y_unit,
             )
         except Exception:
-            x_nm = np.asarray(spec.x, dtype=float)
-            y_converted = np.asarray(spec.y, dtype=float)
+            # Fallback for unknown Y units
+            try:
+                x_nm = self.units_service._to_canonical_wavelength(
+                    np.asarray(spec.x, dtype=float), spec.x_unit
+                )
+                y_converted = np.asarray(spec.y, dtype=float)
+            except Exception:
+                x_nm = np.asarray(spec.x, dtype=float)
+                y_converted = np.asarray(spec.y, dtype=float)
         # Convert nm to display unit
         if unit == "nm":
             x_disp = x_nm
@@ -1233,9 +1240,18 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                 spectrum.y_unit,
             )
         except Exception:
-            # Fallback: assume x is already in nm
-            x_nm = np.asarray(spectrum.x, dtype=float)
-            y_converted = np.asarray(spectrum.y, dtype=float)
+            # Fallback: if conversion fails (e.g., unknown Y unit like flux density),
+            # just convert X and pass Y through unchanged
+            try:
+                from app.services.units_service import UnitError
+                x_nm = self.units_service._to_canonical_wavelength(
+                    np.asarray(spectrum.x, dtype=float), spectrum.x_unit
+                )
+                y_converted = np.asarray(spectrum.y, dtype=float)
+            except Exception:
+                # Ultimate fallback: assume x is already in nm
+                x_nm = np.asarray(spectrum.x, dtype=float)
+                y_converted = np.asarray(spectrum.y, dtype=float)
         
         # Apply current normalization mode
         norm_mode = self.norm_combo.currentText()
@@ -1462,14 +1478,21 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         for spec in self.overlay_service.list():
             try:
                 # Convert X to nm for plotting
-                x_nm, y_converted, _ = self.units_service.convert_arrays(
-                    np.asarray(spec.x, dtype=float),
-                    np.asarray(spec.y, dtype=float),
-                    spec.x_unit,
-                    spec.y_unit,
-                    "nm",
-                    spec.y_unit,
-                )
+                try:
+                    x_nm, y_converted, _ = self.units_service.convert_arrays(
+                        np.asarray(spec.x, dtype=float),
+                        np.asarray(spec.y, dtype=float),
+                        spec.x_unit,
+                        spec.y_unit,
+                        "nm",
+                        spec.y_unit,
+                    )
+                except Exception:
+                    # Fallback for unknown Y units
+                    x_nm = self.units_service._to_canonical_wavelength(
+                        np.asarray(spec.x, dtype=float), spec.x_unit
+                    )
+                    y_converted = np.asarray(spec.y, dtype=float)
                 self.plot.update_alias(spec.id, spec.name)
                 # Apply normalization
                 y_data = self._apply_normalization(y_converted, norm_mode)
