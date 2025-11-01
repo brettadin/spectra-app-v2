@@ -8,7 +8,7 @@ from typing import Any, Dict, Iterable, List, Sequence, cast
 
 import numpy as np
 
-from .importers import CsvImporter, FitsImporter, JcampImporter, SupportsImport
+from .importers import CsvImporter, ExoplanetCsvImporter, FitsImporter, JcampImporter, SupportsImport
 from .spectrum import Spectrum
 from .store import LocalStore
 from .units_service import UnitsService
@@ -41,15 +41,22 @@ class DataIngestService:
             self.register_importer({'.csv', '.txt'}, CsvImporter())
             self.register_importer({'.fits', '.fit', '.fts'}, FitsImporter())
             self.register_importer({'.jdx', '.dx', '.jcamp'}, JcampImporter())
+        
+        # Keep a reference to specialized importers for format detection
+        self._exoplanet_csv_importer = ExoplanetCsvImporter()
 
     # ------------------------------------------------------------------
     def register_importer(self, extensions: Iterable[str], importer: SupportsImport) -> None:
         """Register an importer for the provided file extensions."""
         for ext in extensions:
             key = ext.lower()
-            if not key.startswith('.'):  # normalise to .ext format
+            if not key.startswith('.'):
                 key = f'.{key}'
             self._registry[key] = importer
+
+    # Historical note: We previously attempted to gate storing by origin path.
+    # That caused local imports to skip caching and broke tests expecting
+    # LocalStore.record to be invoked. We now always record when a store exists.
 
     def ingest(self, path: Path) -> List[Spectrum]:
         """Read a file from disk and return canonical :class:`Spectrum` objects."""
@@ -57,13 +64,19 @@ class DataIngestService:
         importer = self._registry.get(ext)
         if importer is None:
             raise ValueError(f"No importer registered for extension {ext!r}")
+        
+        # For CSV files, try specialized importers first
+        if ext in {'.csv', '.txt'}:
+            # Try exoplanet CSV format
+            if self._exoplanet_csv_importer.can_read(path):
+                importer = self._exoplanet_csv_importer
 
         raw = importer.read(path)
         bundle_meta = raw.metadata.get("bundle") if isinstance(raw.metadata, dict) else None
         if isinstance(bundle_meta, dict) and bundle_meta.get("format") == "spectra-export-v1":
             members = bundle_meta.get("members", [])
             return self._ingest_bundle(path, importer, members)
-
+        
         spectrum = self._build_spectrum(
             raw.name,
             raw.x,
@@ -74,6 +87,9 @@ class DataIngestService:
             importer,
             raw.source_path or path,
         )
+        # Always record into LocalStore when available; this retains provenance
+        # and enables cache index lookups, regardless of file origin.
+        # (record_store is handled by _build_spectrum)
         return OneOrMany([spectrum])
 
     def ingest_bytes(

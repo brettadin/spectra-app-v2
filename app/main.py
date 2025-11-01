@@ -1180,8 +1180,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                 "Remote Import",
                 summary,
                 references=ref_list,
-                persist=True,
-                force_persist=True,
+                persist=False,
             )
         except Exception:
             # Best-effort logging; do not fail UI flows
@@ -1218,7 +1217,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                 "Ingest",
                 f"Ingested file {path.name}",
                 references=[path.name],
-                persist=True,
+                persist=False,
             )
         finally:
             self._refresh_history_view()
@@ -2589,7 +2588,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                 "Merge Average",
                 summary,
                 references=[result.name],
-                persist=True,
+                persist=False,
             )
             
             # Update status
