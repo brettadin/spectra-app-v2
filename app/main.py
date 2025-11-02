@@ -888,9 +888,29 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             self.data_table.clearContents()
             self.data_table.setRowCount(0)
             return
-        # Build display arrays (match plot: current X unit + current normalization)
+        # Build display arrays: convert X to nm first, then to the current display unit
         unit = self.unit_combo.currentText() if self.unit_combo is not None else "nm"
-        x_nm = np.asarray(spec.x, dtype=float)
+        # Convert from original x_unit to nm
+        try:
+            x_nm, y_converted, _ = self.units_service.convert_arrays(
+                np.asarray(spec.x, dtype=float),
+                np.asarray(spec.y, dtype=float),
+                spec.x_unit,
+                spec.y_unit,
+                "nm",
+                spec.y_unit,
+            )
+        except Exception:
+            # Fallback for unknown Y units
+            try:
+                x_nm = self.units_service._to_canonical_wavelength(
+                    np.asarray(spec.x, dtype=float), spec.x_unit
+                )
+                y_converted = np.asarray(spec.y, dtype=float)
+            except Exception:
+                x_nm = np.asarray(spec.x, dtype=float)
+                y_converted = np.asarray(spec.y, dtype=float)
+        # Convert nm to display unit
         if unit == "nm":
             x_disp = x_nm
         elif unit == "Å":
@@ -902,7 +922,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                 x_disp = 1e7 / x_nm
         else:
             x_disp = x_nm
-        y = self._apply_normalization(np.asarray(spec.y, dtype=float), self.norm_combo.currentText() if self.norm_combo is not None else "None")
+        y = self._apply_normalization(y_converted, self.norm_combo.currentText() if self.norm_combo is not None else "None")
         # Populate table (cap for very large datasets to keep UI responsive)
         cap = 20000
         n = int(min(len(x_disp), len(y), cap))
@@ -1160,8 +1180,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                 "Remote Import",
                 summary,
                 references=ref_list,
-                persist=True,
-                force_persist=True,
+                persist=False,
             )
         except Exception:
             # Best-effort logging; do not fail UI flows
@@ -1198,7 +1217,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                 "Ingest",
                 f"Ingested file {path.name}",
                 references=[path.name],
-                persist=True,
+                persist=False,
             )
         finally:
             self._refresh_history_view()
@@ -1209,14 +1228,54 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self._spectrum_colors[spectrum.id] = color
         style = TraceStyle(color=color, width=1.5, show_in_legend=True)
         
+        # Convert X to canonical nm for plotting (plot expects x_nm in nanometers)
+        try:
+            x_nm, y_converted, _ = self.units_service.convert_arrays(
+                np.asarray(spectrum.x, dtype=float),
+                np.asarray(spectrum.y, dtype=float),
+                spectrum.x_unit,
+                spectrum.y_unit,
+                "nm",
+                spectrum.y_unit,
+            )
+        except Exception:
+            # Fallback: if conversion fails (e.g., unknown Y unit like flux density),
+            # just convert X and pass Y through unchanged
+            try:
+                from app.services.units_service import UnitError
+                x_nm = self.units_service._to_canonical_wavelength(
+                    np.asarray(spectrum.x, dtype=float), spectrum.x_unit
+                )
+                y_converted = np.asarray(spectrum.y, dtype=float)
+            except Exception:
+                # Ultimate fallback: assume x is already in nm
+                x_nm = np.asarray(spectrum.x, dtype=float)
+                y_converted = np.asarray(spectrum.y, dtype=float)
+        
         # Apply current normalization mode
         norm_mode = self.norm_combo.currentText()
-        y_data = self._apply_normalization(spectrum.y, norm_mode)
-        
+        y_data = self._apply_normalization(y_converted, norm_mode)
+        # If this is the first dataset and the original x-unit was microns, switch display to µm
+        try:
+            is_first_dataset = (len(self._dataset_items) == 0)
+        except Exception:
+            is_first_dataset = False
+        if is_first_dataset and self.unit_combo is not None:
+            try:
+                src_units = {}
+                if isinstance(spectrum.metadata, dict):
+                    src_units = spectrum.metadata.get("source_units", {}) or {}
+                orig_x = str(src_units.get("x") or spectrum.x_unit or "").strip().lower()
+                if any(tok in orig_x for tok in ("um", "micron", "micrometer", "micrometre")):
+                    # Use the UI label with micro sign
+                    self.unit_combo.setCurrentText("µm")
+            except Exception:
+                pass
+
         self.plot.add_trace(
             key=spectrum.id,
             alias=spectrum.name,
-            x_nm=spectrum.x,
+            x_nm=x_nm,
             y=y_data,
             style=style,
         )
@@ -1417,15 +1476,31 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         
         for spec in self.overlay_service.list():
             try:
+                # Convert X to nm for plotting
+                try:
+                    x_nm, y_converted, _ = self.units_service.convert_arrays(
+                        np.asarray(spec.x, dtype=float),
+                        np.asarray(spec.y, dtype=float),
+                        spec.x_unit,
+                        spec.y_unit,
+                        "nm",
+                        spec.y_unit,
+                    )
+                except Exception:
+                    # Fallback for unknown Y units
+                    x_nm = self.units_service._to_canonical_wavelength(
+                        np.asarray(spec.x, dtype=float), spec.x_unit
+                    )
+                    y_converted = np.asarray(spec.y, dtype=float)
                 self.plot.update_alias(spec.id, spec.name)
                 # Apply normalization
-                y_data = self._apply_normalization(spec.y, norm_mode)
+                y_data = self._apply_normalization(y_converted, norm_mode)
                 color = self._spectrum_colors.get(spec.id, QtGui.QColor("white"))
                 style = TraceStyle(color=color, width=1.5, show_in_legend=True)
                 self.plot.add_trace(
                     key=spec.id,
                     alias=spec.name,
-                    x_nm=spec.x,
+                    x_nm=x_nm,
                     y=y_data,
                     style=style,
                 )
@@ -2513,7 +2588,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                 "Merge Average",
                 summary,
                 references=[result.name],
-                persist=True,
+                persist=False,
             )
             
             # Update status

@@ -1,0 +1,10 @@
+# Mars reflectance sample (visible wavelengths)
+wavelength_nm,reflectance
+350,0.20
+400,0.22
+450,0.24
+500,0.27
+550,0.29
+600,0.31
+650,0.30
+700,0.28

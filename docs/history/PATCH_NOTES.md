@@ -1,5 +1,44 @@
 # Patch Notes
 
+## 2025-10-31 (PDS Downloader Refinement for MESSENGER MASCS Data) (19:38 EDT / 23:38 UTC)
+
+**Tightened Download Criteria for Mercury Spectroscopy**
+- Refined PDS downloader (`tools/pds_downloader_native.py`) to filter MESSENGER MASCS optical spectroscopy data more precisely
+- Updated dataset URLs to point directly to specific data product directories (CDR/DDR subdirectories)
+- Switched from EDR (raw) to DDR (derived surface reflectance) datasets for better quality and smaller file sizes:
+  - `uvvs_ddr`: ~500 MB (was `uvvs_edr`: ~1 GB)
+  - `virs_ddr`: ~3 GB (was `virs_edr`: ~10 GB)
+
+**File Pattern Filtering**
+- Added `required_patterns` to download only MASCS science files:
+  - UVVS CDR: `ufc_`, `umc_`, `uvc_` (FUV/MUV/VIS channels)
+  - VIRS CDR: `vnc_`, `vvc_` (NIR/VIS channels)
+  - UVVS DDR: `uvs_`, `uvd_` (derived products)
+  - VIRS DDR: `vnd_`, `vvd_` (derived products)
+- Added `exclude_patterns` to skip non-science files:
+  - `_hdr.dat` (headers), `_eng.dat` (engineering), `index`, `catalog` (metadata)
+- Implemented three-stage filtering: file type → required patterns → exclude patterns
+- Added `filtered_count` to summary report showing how many files were excluded
+
+**Enhanced Dataset Descriptions**
+- Added specific wavelength ranges to dataset descriptions:
+  - UVVS: FUV 115-190nm, MUV 160-320nm, VIS 250-600nm
+  - VIRS: VIS 300-1050nm, NIR 850-1450nm
+- Clarified that downloader targets optical spectroscopy only (no engineering/housekeeping data)
+
+**Issues Documented**
+- Encountered 404 error when accessing updated UVVS CDR URL during dry run
+- Created detailed worklog (`docs/dev/worklog/2025-10-31_pds_downloader_refinement.md`) documenting:
+  - What was changed and why
+  - File naming conventions for MASCS data
+  - Issues encountered (404 error on new URL)
+  - Recommendations for future investigation and improvements
+  - Technical details about filter implementation
+
+**Next Steps**
+- Need to verify correct PDS archive URL structure (manual browsing of PDS website)
+- Consider testing alternative URL paths or using broader directory paths
+- May need to update parser (`tools/parse_messenger_mascs.py`) to handle DDR format
 
 ## 2025-10-25 (Re-authored IR functional group expansion provenance) (10:30 EDT / 14:30 UTC)
 
