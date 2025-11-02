@@ -40,6 +40,8 @@ from app.services import (
 from app.services import nist_asd_service
 from app.ui.plot_pane import PlotPane, TraceStyle
 from app.ui.export_center_dialog import ExportCenterDialog
+from app.logging_config import setup_logging
+from app.utils.error_handling import ui_action
 
 QtCore: Any
 QtGui: Any
@@ -937,6 +939,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             self.data_table.setItem(r, 1, yi)
         self.data_table.resizeColumnsToContents()
 
+    @ui_action("Failed to show documentation")
     def show_documentation(self) -> None:
         self._load_docs_if_needed()
         if self.docs_list is not None and self.docs_list.count() > 0:
@@ -944,6 +947,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             self._on_doc_selected(0)
         # If no docs, silently succeed
 
+    @ui_action("Failed to open Remote Data tab")
     def show_remote_data_tab(self) -> None:
         # Switch to the Remote Data tab in Inspector dock
         self.inspector_dock.raise_()
@@ -954,6 +958,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         except Exception:
             pass
 
+    @ui_action("Failed to open file(s)")
     def open_file(self) -> None:
         path_strs, _ = QtWidgets.QFileDialog.getOpenFileNames(
             self,
@@ -966,6 +971,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         for path_str in path_strs:
             self._ingest_path(Path(path_str))
 
+    @ui_action("Failed to load sample")
     def load_sample_via_menu(self) -> None:
         if not SAMPLES_DIR.exists():
             QtWidgets.QMessageBox.information(self, "Samples", "No samples available.")
@@ -980,6 +986,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             return
         self._ingest_path(Path(path_str))
 
+    @ui_action("Export failed")
     def export_center(self) -> None:
         """Unified export entry-point to write manifest, CSVs, and plot artifacts."""
         spectra = [spec for spec in self.overlay_service.list() if self._visibility.get(spec.id, True)]
@@ -2659,6 +2666,12 @@ def main(argv: list[str] | None = None) -> int:
 
     Returns an OS exit code (0 for normal shutdown).
     """
+    # Initialize baseline logging early so startup issues are captured
+    logger = setup_logging()
+    try:
+        logger.info("Starting Spectra App desktop session")
+    except Exception:
+        pass
     _install_exception_handler()
 
     # High-DPI scaling is automatic in Qt6; no need for deprecated attributes

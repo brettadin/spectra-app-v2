@@ -185,11 +185,18 @@ class DataIngestService:
             bundle_meta = meta['bundle_member']
             if isinstance(bundle_meta, dict):
                 bundle_meta.setdefault('id', bundle_member)
+        # Canonicalise wavelength axis to nm but preserve original intensity
+        x_arr = np.asarray(x, dtype=self.units_service.float_dtype)
+        y_arr = np.asarray(y, dtype=self.units_service.float_dtype)
+        x_nm = self.units_service._to_canonical_wavelength(x_arr, normalised_x_unit)  # type: ignore[attr-defined]
+        if normalised_x_unit != "nm":
+            meta["x_conversion"] = f"{normalised_x_unit}→nm"
+
         spectrum = Spectrum.create(
             name=name,
-            x=np.asarray(x, dtype=self.units_service.float_dtype),
-            y=np.asarray(y, dtype=self.units_service.float_dtype),
-            x_unit=normalised_x_unit,
+            x=x_nm,
+            y=y_arr,
+            x_unit="nm",
             y_unit=normalised_y_unit,
             metadata=meta,
             source_path=source_path,

@@ -64,14 +64,26 @@ class UnitsService:
         converted_y = self._from_canonical_intensity(canonical_y, dst_y)
 
         metadata: Dict[str, Any] = {}
+        # Always include source units for traceability, even when no numeric conversion occurs
+        metadata["source_units"] = {"x": src_x, "y": src_y}
         if src_x != dst_x:
             metadata["x_conversion"] = f"{src_x}→{dst_x}"
-        if src_y != dst_y:
-            metadata["y_conversion"] = f"{src_y}→{dst_y}"
+        # Compose y_conversion metadata according to expectations:
+        # - When the caller requested the alias "%T" and the source is already
+        #   percent_transmittance, record the alias normalization.
+        # - When the destination differs from canonical absorbance, include a
+        #   canonical→display mapping except for the transmittance no-op case
+        #   (src==dst==transmittance).
+        raw_dst = (dst_y_unit or "").strip()
+        if raw_dst == "%T" and src_y == "%t" and dst_y == "%t":
+            metadata["y_conversion"] = "percent_transmittance→%t"
+        elif dst_y != _CANONICAL_Y_UNIT:
+            if not (dst_y == "transmittance" and src_y == "transmittance"):
+                metadata["y_conversion"] = f"{_CANONICAL_Y_UNIT}→{dst_y}"
+
         if intensity_meta:
             metadata.update(intensity_meta)
-        if metadata:
-            metadata.setdefault("source_units", {"x": src_x, "y": src_y})
+
         return converted_x, converted_y, metadata
 
     def from_canonical(
@@ -201,6 +213,9 @@ class UnitsService:
                 meta.setdefault("intensity_conversion", {})
                 meta["intensity_conversion"].setdefault("transformation", "Ae→A10")
             return data / 2.303
+        # Unknown or unsupported intensity units should raise so callers can
+        # detect invalid labels. Data ingestion avoids this by preserving
+        # original intensity units rather than canonicalising to absorbance.
         raise UnitError(f"Unsupported source y unit: {src}")
 
     def _from_canonical_intensity(self, data: np.ndarray, dst: str) -> np.ndarray:
@@ -216,4 +231,21 @@ class UnitsService:
         raise UnitError(f"Unsupported destination y unit: {dst}")
 
     def _normalise_y_unit(self, unit: str) -> str:
-        return unit.strip().lower()
+        # Normalise common aliases and symbols for robustness
+        u = unit.strip().lower()
+        # Normalise unicode micro to ascii 'u'
+        u = u.replace("µ", "u").replace("μ", "u")
+        # Replace various separators with canonical ones for simple patterns
+        u = u.replace(" ", "")
+        # Collapse some known verbose labels
+        if u in {"%t", "%T".lower()}:  # handle literal "%T" becoming "%t"
+            return "%t"
+        if u in {"percent t", "percent_t", "percent-transmittance", "percenttransmittance"}:
+            return "percent_transmittance"
+        if u in {"t", "trans"}:
+            return "transmittance"
+        if u in {"a10", "a", "abs"}:
+            return "absorbance"
+        if u in {"ae", "a_e", "absorbance(e)", "absorbancee"}:
+            return "absorbance_e"
+        return u
