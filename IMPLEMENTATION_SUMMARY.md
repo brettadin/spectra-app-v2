@@ -1,5 +1,10 @@
 # Implementation Summary: Comprehensive Enhancement Plan Review
 
+> Archived notice (2025-11-02): This document has been archived to
+> `docs/history/archive/2025-11-02-pre-cleanup/IMPLEMENTATION_SUMMARY.md`.
+> For current docs, start at `docs/INDEX.md` and see
+> `docs/dev/CLEANUP_MASTER_PLAN.md` for the living roadmap.
+
 **Date**: 2025-10-23T00:49:35-04:00 / 2025-10-23T04:49:35+00:00  
 **Branch**: `copilot/enhance-data-retrieval-display`  
 **Status**: ✅ Ready for Review

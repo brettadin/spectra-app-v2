@@ -1,5 +1,9 @@
 # Repository Inventory and Status
 
+> Archived notice (2025-11-02): This inventory has been archived to
+> `docs/history/archive/2025-11-02-pre-cleanup/repo_inventory.md`.
+> For a current overview, see `docs/INDEX.md` and browse the repository tree.
+
 **Generated**: 2025-11-02T10:27:35-05:00 (America/New_York) / 2025-11-02T15:27:32+00:00 (UTC)
 
 This document surveys the Spectra desktop preview repository, catalogues every tracked path, and summarises the functional status

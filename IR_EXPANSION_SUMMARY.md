@@ -1,5 +1,10 @@
 # IR Functional Group Database Expansion - Summary
 
+> Archived notice (2025-11-02): This document has been archived to
+> `docs/history/archive/2025-11-02-pre-cleanup/IR_EXPANSION_SUMMARY.md`.
+> For current docs, start at `docs/INDEX.md`. IR user guidance lives in
+> `docs/user/reference_data.md`; the ML spec is at `docs/specs/ml_functional_group_prediction.md`.
+
 **Last Updated**: 2025-10-25  
 **Status**: Extended database ✅ complete and fully documented; ML integration 📋 planned
 

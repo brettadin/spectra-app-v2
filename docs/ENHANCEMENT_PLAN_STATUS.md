@@ -1,5 +1,10 @@
 # Enhancement Plan Implementation Status
 
+> Archived notice (2025-11-02): This status page has been archived to
+> `docs/history/archive/2025-11-02-pre-cleanup/ENHANCEMENT_PLAN_STATUS.md`.
+> For the current view, see `docs/INDEX.md`, the cleanup plan at
+> `docs/dev/CLEANUP_MASTER_PLAN.md`, and the matrices in `reports/feature_parity_matrix.md`.
+
 **Date**: 2025-10-23T00:49:35-04:00 / 2025-10-23T04:49:35+00:00  
 **Reference**: `docs/Comprehensive Enhancement Plan for Spectra App.md`
 

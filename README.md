@@ -7,6 +7,8 @@
 
 A modern, modular **Windows desktop application** for spectroscopic analysis of stellar, planetary, and exoplanet data. Built with PySide6/Qt for performance and reliability, featuring clean UI, robust provenance tracking, and offline-first caching.
 
+> Documentation Hub: For all docs, start at `docs/INDEX.md`. It’s the canonical map linking user guides, developer specs, history, and packaging.
+
 ## 🎯 Project Overview
 
 This repository represents the complete rewrite of the Spectra-App into a modern, modular desktop application. The redesign addresses legacy limitations while preserving all existing functionality:
@@ -221,6 +223,8 @@ python -m PyInstaller spectra_app.spec
 ```
 
 ## 📚 Documentation Index
+
+Primary entry point: `docs/INDEX.md` (canonical documentation map)
 
 ### User Documentation
 - `docs/user/quickstart.md` - Getting started walkthrough from launch to export
