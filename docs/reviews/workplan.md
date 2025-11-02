@@ -7,6 +7,7 @@ This document tracks feature batches, validation status, and outstanding backlog
 ### Recently Completed (2025-11-02)
 
 - [x] Documented the repository inventory (features, library usage, backlog alignment) in `docs/repo_inventory.md`, updated patch notes, and refreshed the knowledge log for provenance.
+- [x] Authored `docs/app_capabilities.md` as a comprehensive capability atlas detailing active features, dormant gaps, and cleanup targets, with provenance updates logged in patch notes, knowledge log, and worklog.
 
 - [ ] Land the calibration service (`app/services/calibration_service.py`) and
       calibration dock with non-dismissable banner, FWHM targets, frame/RV

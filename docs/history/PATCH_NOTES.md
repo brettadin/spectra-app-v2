@@ -1,5 +1,12 @@
 # Patch Notes
 
+## 2025-11-02 (Capability atlas & cleanup audit) (10:43 EST / 15:43 UTC)
+
+**Mapped active features & cleanup targets**
+- Authored `docs/app_capabilities.md` to describe current UI surfaces, services, datasets, and data flows in a single long-form atlas.
+- Highlighted dormant features (calibration manager, identification stack) and repository hygiene tasks so cleanup work can be scoped accurately.
+- Updated the workplan, knowledge log, and worklog to keep provenance aligned with the new documentation.
+
 ## 2025-11-02 (Repository inventory audit) (10:28 EST / 15:28 UTC)
 
 **Documented repository state**
