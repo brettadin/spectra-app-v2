@@ -39,6 +39,20 @@ This is the concise, human‑curated history for Spectra App. Routine automation
 
 ---
 
+## 2025-11-02 10:28 – Repository documentation audit
+
+**Author**: agent (GitHub Copilot)
+
+**Context**: Documentation inventory and provenance alignment.
+
+**Summary**: Compiled `docs/repo_inventory.md` to catalogue every tracked path, describe service layers, and record working vs. 
+incomplete features alongside library usage. Updated patch notes and workplan references so the backlog (calibration, identification 
+stack, remote provider expansion) stays visible to future contributors.
+
+**References**: `docs/repo_inventory.md`, `docs/history/PATCH_NOTES.md`, `docs/reviews/workplan.md`.
+
+---
+
 ## 2025-11-01 15:00 – Knowledge log pruning and policy reset
 
 **Author**: agent (GitHub Copilot)
@@ -1248,6 +1262,22 @@ Import/Remote Import entries remain after the cleanup.
 - `docs/developer_notes.md`
 - `tests/test_remote_data_dialog.py`
 - `tests/integration/test_remote_search_targets.py`
+## 2025-11-02 10:43 – Documentation
+
+**Author**: agent
+
+**Context**: Capability atlas and cleanup audit
+
+**Summary**: Captured a repository-wide capability atlas outlining active features, dormant gaps, and cleanup targets so follow-on work
+remains grounded in the current implementation reality and user pain points.
+
+**References**:
+- `docs/app_capabilities.md`
+- `docs/reviews/workplan.md`
+- `docs/history/PATCH_NOTES.md`
+- `docs/dev/worklog/2025-11-02_capability_atlas.md`
+
+---
 ## 2025-10-22 17:00 – Overlay
 
 **Author**: automation

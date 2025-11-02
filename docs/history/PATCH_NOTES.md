@@ -1,5 +1,19 @@
 # Patch Notes
 
+## 2025-11-02 (Capability atlas & cleanup audit) (10:43 EST / 15:43 UTC)
+
+**Mapped active features & cleanup targets**
+- Authored `docs/app_capabilities.md` to describe current UI surfaces, services, datasets, and data flows in a single long-form atlas.
+- Highlighted dormant features (calibration manager, identification stack) and repository hygiene tasks so cleanup work can be scoped accurately.
+- Updated the workplan, knowledge log, and worklog to keep provenance aligned with the new documentation.
+
+## 2025-11-02 (Repository inventory audit) (10:28 EST / 15:28 UTC)
+
+**Documented repository state**
+- Authored `docs/repo_inventory.md` detailing features, library usage, and status snapshots across the app.
+- Added a complete tracked-path index to aid provenance reviews and onboarding.
+- Summarised outstanding backlog items (calibration, identification stack, remote providers) to align with the workplan.
+
 ## 2025-10-31 (PDS Downloader Refinement for MESSENGER MASCS Data) (19:38 EDT / 23:38 UTC)
 
 **Tightened Download Criteria for Mercury Spectroscopy**
