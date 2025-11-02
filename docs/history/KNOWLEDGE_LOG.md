@@ -39,6 +39,20 @@ This is the concise, human‑curated history for Spectra App. Routine automation
 
 ---
 
+## 2025-11-02 10:28 – Repository documentation audit
+
+**Author**: agent (GitHub Copilot)
+
+**Context**: Documentation inventory and provenance alignment.
+
+**Summary**: Compiled `docs/repo_inventory.md` to catalogue every tracked path, describe service layers, and record working vs. 
+incomplete features alongside library usage. Updated patch notes and workplan references so the backlog (calibration, identification 
+stack, remote provider expansion) stays visible to future contributors.
+
+**References**: `docs/repo_inventory.md`, `docs/history/PATCH_NOTES.md`, `docs/reviews/workplan.md`.
+
+---
+
 ## 2025-11-01 15:00 – Knowledge log pruning and policy reset
 
 **Author**: agent (GitHub Copilot)
