@@ -33,6 +33,10 @@ from app.services import (
 )
 from app.ui.plot_pane import PlotPane, TraceStyle
 from app.ui.remote_data_panel import RemoteDataPanel
+from app.ui.dataset_panel import DatasetPanel
+from app.ui.reference_panel import ReferencePanel
+from app.ui.merge_panel import MergePanel
+from app.ui.history_panel import HistoryPanel
 from app import main as main_module  # for monkeypatchable proxies (ExportCenterDialog, nist_asd_service, SAMPLES_DIR)
 from app.utils.error_handling import ui_action
 
@@ -224,45 +228,27 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.dataset_dock = QtWidgets.QDockWidget("Data", self)
         self.dataset_dock.setObjectName("dock-datasets")
         self.data_tabs = QtWidgets.QTabWidget()
-        # Datasets tab content
-        datasets_container = QtWidgets.QWidget()
-        datasets_layout = QtWidgets.QVBoxLayout(datasets_container)
-        datasets_layout.setContentsMargins(4, 4, 4, 4)
-        # Optional filter line edit (future use)
-        self.dataset_filter = QtWidgets.QLineEdit()
-        self.dataset_filter.setPlaceholderText("Filter datasets…")
-        self.dataset_filter.setClearButtonEnabled(True)
-        self.dataset_filter.textChanged.connect(self._on_dataset_filter_changed)
-        datasets_layout.addWidget(self.dataset_filter)
-        # Dataset view
-        self.dataset_view = QtWidgets.QTreeView()
-        self.dataset_view.setRootIsDecorated(True)
+        # Datasets tab content (moved into DatasetPanel)
+        self.dataset_panel = DatasetPanel(self)
+        # Hand off internal widgets to preserve existing attribute names/behavior
+        self.dataset_filter = self.dataset_panel.dataset_filter
+        self.dataset_view = self.dataset_panel.dataset_view
         self.dataset_tree = self.dataset_view  # compatibility alias for tests
-        self.dataset_view.setAlternatingRowColors(True)
-        self.dataset_view.setSelectionMode(QtWidgets.QAbstractItemView.SelectionMode.ExtendedSelection)
-        self.dataset_view.setContextMenuPolicy(QtCore.Qt.ContextMenuPolicy.CustomContextMenu)
+        self.dataset_model = self.dataset_panel.dataset_model
+        self._originals_item = self.dataset_panel._originals_item
+
+        # Wire existing handlers
+        self.dataset_filter.textChanged.connect(self._on_dataset_filter_changed)
         self.dataset_view.customContextMenuRequested.connect(self._on_dataset_context_menu)
-        
         # Add keyboard shortcut for deletion
         delete_shortcut = QtGui.QShortcut(QtGui.QKeySequence.StandardKey.Delete, self.dataset_view)
         delete_shortcut.activated.connect(self._remove_selected_datasets_shortcut)
-        
-        self.dataset_model = QtGui.QStandardItemModel(0, 2, self)
-        self.dataset_model.setHorizontalHeaderLabels(["Dataset", "Visible"])
-        # Create a root group "Originals" to hold imported spectra
-        self._originals_item = QtGui.QStandardItem("Originals")
-        self._originals_item.setEditable(False)
-        self.dataset_model.appendRow([self._originals_item, QtGui.QStandardItem("")])
-        self.dataset_view.setModel(self.dataset_model)
-        if hasattr(self.dataset_view.header(), "setStretchLastSection"):
-            self.dataset_view.header().setStretchLastSection(False)
-            self.dataset_view.header().setSectionResizeMode(0, QtWidgets.QHeaderView.ResizeMode.Stretch)
-            self.dataset_view.header().setSectionResizeMode(1, QtWidgets.QHeaderView.ResizeMode.ResizeToContents)
+        # Existing signals
         self.dataset_model.itemChanged.connect(self._on_dataset_item_changed)
-        # Connect selection changes to update merge preview
-        self.dataset_view.selectionModel().selectionChanged.connect(self._update_merge_preview)
-        datasets_layout.addWidget(self.dataset_view)
-        self.data_tabs.addTab(datasets_container, "Datasets")
+        if self.dataset_view.selectionModel() is not None:
+            self.dataset_view.selectionModel().selectionChanged.connect(self._update_merge_preview)
+
+        self.data_tabs.addTab(self.dataset_panel, "Datasets")
 
         # Library tab placeholder (built on demand)
         library_container = QtWidgets.QWidget()
@@ -294,104 +280,35 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.tab_docs = docs_container
         self.inspector_tabs.addTab(docs_container, "Docs")
 
-        # Reference tab (NIST, IR, Line shapes)
-        self.tab_reference = QtWidgets.QWidget()
-        ref_layout = QtWidgets.QVBoxLayout(self.tab_reference)
-        ref_layout.setContentsMargins(4, 4, 4, 4)
+        # Reference tab (moved into ReferencePanel)
+        self.reference_panel = ReferencePanel(self)
+        # Hand off internal widgets to preserve existing attribute names/behavior
+        self.tab_reference = self.reference_panel  # for backward compat if needed
+        self.reference_overlay_checkbox = self.reference_panel.reference_overlay_checkbox
+        self.reference_status_label = self.reference_panel.reference_status_label
+        self.reference_plot = self.reference_panel.reference_plot
+        self.reference_tabs = self.reference_panel.reference_tabs
+        self.nist_element_edit = self.reference_panel.nist_element_edit
+        self.nist_lower_spin = self.reference_panel.nist_lower_spin
+        self.nist_upper_spin = self.reference_panel.nist_upper_spin
+        self.nist_fetch_button = self.reference_panel.nist_fetch_button
+        self.nist_collections_list = self.reference_panel.nist_collections_list
+        self.reference_table = self.reference_panel.reference_table
+        self.reference_filter = self.reference_panel.reference_filter
+        self.ir_table = self.reference_panel.ir_table
+        self.ls_table = self.reference_panel.ls_table
 
-        # Top row: overlay toggle + status
-        top_row = QtWidgets.QHBoxLayout()
-        self.reference_overlay_checkbox = QtWidgets.QCheckBox("Show on plot")
-        self.reference_overlay_checkbox.setEnabled(False)
+        # Wire existing handlers
         self.reference_overlay_checkbox.toggled.connect(self._on_reference_overlay_toggled)
-        self.reference_status_label = QtWidgets.QLabel("")
-        top_row.addWidget(self.reference_overlay_checkbox)
-        top_row.addStretch(1)
-        top_row.addWidget(self.reference_status_label)
-        ref_layout.addLayout(top_row)
-
-        # Shared preview plot
-        import pyqtgraph as _pg  # local import to ensure pg is ready
-        self.reference_plot: _pg.PlotWidget = _pg.PlotWidget()
-        self.reference_plot.setLabel("bottom", "Wavelength (nm)")
-        PlotPane.strip_export_from_plot_widget(self.reference_plot)
-        ref_layout.addWidget(self.reference_plot, 2)
-
-        # Tabs within Reference
-        self.reference_tabs = QtWidgets.QTabWidget()
-        ref_layout.addWidget(self.reference_tabs, 3)
-
-        # --- NIST tab
-        nist_tab = QtWidgets.QWidget()
-        nist_layout = QtWidgets.QVBoxLayout(nist_tab)
-        nist_controls = QtWidgets.QHBoxLayout()
-        self.nist_element_edit = QtWidgets.QLineEdit()
-        self.nist_element_edit.setPlaceholderText("Element symbol (e.g., H, He, Fe)")
-        self.nist_lower_spin = QtWidgets.QDoubleSpinBox()
-        self.nist_lower_spin.setRange(1.0, 1e7)
-        self.nist_lower_spin.setDecimals(3)
-        self.nist_lower_spin.setValue(400.0)
-        self.nist_upper_spin = QtWidgets.QDoubleSpinBox()
-        self.nist_upper_spin.setRange(1.0, 1e7)
-        self.nist_upper_spin.setDecimals(3)
-        self.nist_upper_spin.setValue(700.0)
-        self.nist_fetch_button = QtWidgets.QPushButton("Fetch")
         self.nist_fetch_button.clicked.connect(self._on_nist_fetch_clicked)
-        for w in (
-            QtWidgets.QLabel("Element:"),
-            self.nist_element_edit,
-            QtWidgets.QLabel("Range:"),
-            self.nist_lower_spin,
-            QtWidgets.QLabel("–"),
-            self.nist_upper_spin,
-            self.nist_fetch_button,
-        ):
-            nist_controls.addWidget(w)
-        nist_controls.addStretch(1)
-        nist_layout.addLayout(nist_controls)
-        self.nist_collections_list = QtWidgets.QListWidget()
-        nist_layout.addWidget(self.nist_collections_list, 1)
-        self.reference_table = QtWidgets.QTableWidget(0, 5)
-        self.reference_table.setHorizontalHeaderLabels(
-            ["λ (nm)", "Ritz λ (nm)", "Intensity", "Lower", "Upper"]
-        )
-        self.reference_table.horizontalHeader().setStretchLastSection(True)
-        nist_layout.addWidget(self.reference_table, 3)
-        self.reference_tabs.addTab(nist_tab, "NIST ASD")
-
-        # --- IR functional groups tab
-        ir_tab = QtWidgets.QWidget()
-        ir_layout = QtWidgets.QVBoxLayout(ir_tab)
-        self.reference_filter = QtWidgets.QLineEdit()
-        self.reference_filter.setPlaceholderText("Filter IR groups…")
         self.reference_filter.textChanged.connect(self._on_reference_filter_changed)
-        ir_layout.addWidget(self.reference_filter)
-        # Table dedicated to IR
-        self.ir_table = QtWidgets.QTableWidget(0, 3)
-        self.ir_table.setHorizontalHeaderLabels(["Group", "min (cm⁻¹)", "max (cm⁻¹)"])
-        self.ir_table.horizontalHeader().setStretchLastSection(True)
         self.ir_table.itemSelectionChanged.connect(self._on_ir_row_selected)
-        ir_layout.addWidget(self.ir_table, 1)
-        self.reference_tabs.addTab(ir_tab, "IR Functional Groups")
-
-        # --- Line shapes tab
-        ls_tab = QtWidgets.QWidget()
-        ls_layout = QtWidgets.QVBoxLayout(ls_tab)
-        # Table dedicated to Line Shapes
-        self.ls_table = QtWidgets.QTableWidget(0, 2)
-        self.ls_table.setHorizontalHeaderLabels(["Model", "Notes"])
-        self.ls_table.horizontalHeader().setStretchLastSection(True)
         self.ls_table.itemSelectionChanged.connect(self._on_line_shape_row_selected)
-        ls_layout.addWidget(self.ls_table, 1)
-        self.reference_tabs.addTab(ls_tab, "Line Shapes")
-
-        # When the tab changes, refresh the view
         self.reference_tabs.currentChanged.connect(lambda _: self._refresh_reference_view())
-        # Also update preview axis unit when the global unit changes
         if self.unit_combo is not None:
             self.unit_combo.currentTextChanged.connect(self._update_reference_axis)
 
-        self.inspector_tabs.addTab(self.tab_reference, "Reference")
+        self.inspector_tabs.addTab(self.reference_panel, "Reference")
 
         # Remote Data tab
         self.remote_data_panel = RemoteDataPanel(
@@ -403,59 +320,21 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.remote_data_panel.status_message.connect(self._log)
         self.inspector_tabs.addTab(self.remote_data_panel, "Remote Data")
         
-        # Merge/Average tab
-        self.tab_merge = QtWidgets.QWidget()
-        merge_layout = QtWidgets.QVBoxLayout(self.tab_merge)
-        merge_layout.setContentsMargins(4, 4, 4, 4)
-        
-        # Instructions
-        merge_info = QtWidgets.QLabel(
-            "Select multiple datasets from the Datasets panel, then merge or average them into a single spectrum."
-        )
-        merge_info.setWordWrap(True)
-        merge_layout.addWidget(merge_info)
-        
-        # Options
-        merge_options_group = QtWidgets.QGroupBox("Options")
-        merge_options_layout = QtWidgets.QVBoxLayout(merge_options_group)
-        
-        self.merge_only_visible = QtWidgets.QCheckBox("Only include visible (checked) datasets")
-        self.merge_only_visible.setChecked(True)
+        # Merge/Average tab (moved into MergePanel)
+        self.merge_panel = MergePanel(self)
+        # Hand off internal widgets to preserve existing attribute names/behavior
+        self.tab_merge = self.merge_panel  # for backward compat
+        self.merge_only_visible = self.merge_panel.merge_only_visible
+        self.merge_name_edit = self.merge_panel.merge_name_edit
+        self.merge_preview_label = self.merge_panel.merge_preview_label
+        self.merge_average_button = self.merge_panel.merge_average_button
+        self.merge_status_label = self.merge_panel.merge_status_label
+
+        # Wire existing handlers
         self.merge_only_visible.toggled.connect(lambda _: self._update_merge_preview())
-        merge_options_layout.addWidget(self.merge_only_visible)
-        
-        merge_layout.addWidget(merge_options_group)
-        
-        # Name for result
-        merge_name_layout = QtWidgets.QHBoxLayout()
-        merge_name_layout.addWidget(QtWidgets.QLabel("Result name:"))
-        self.merge_name_edit = QtWidgets.QLineEdit()
-        self.merge_name_edit.setPlaceholderText("(auto-generated)")
-        merge_name_layout.addWidget(self.merge_name_edit, 1)
-        merge_layout.addLayout(merge_name_layout)
-        
-        # Preview info
-        self.merge_preview_label = QtWidgets.QLabel("No datasets selected")
-        self.merge_preview_label.setWordWrap(True)
-        self.merge_preview_label.setStyleSheet("QLabel { padding: 8px; background: #2b2b2b; border-radius: 4px; }")
-        merge_layout.addWidget(self.merge_preview_label)
-        
-        # Action buttons
-        merge_buttons_layout = QtWidgets.QHBoxLayout()
-        self.merge_average_button = QtWidgets.QPushButton("Average Selected")
-        self.merge_average_button.setEnabled(False)
         self.merge_average_button.clicked.connect(self._on_merge_average)
-        merge_buttons_layout.addWidget(self.merge_average_button)
-        merge_layout.addLayout(merge_buttons_layout)
-        
-        # Status
-        self.merge_status_label = QtWidgets.QLabel("")
-        self.merge_status_label.setWordWrap(True)
-        merge_layout.addWidget(self.merge_status_label)
-        
-        merge_layout.addStretch()
-        
-        self.inspector_tabs.addTab(self.tab_merge, "Merge/Average")
+
+        self.inspector_tabs.addTab(self.merge_panel, "Merge/Average")
         
         self.inspector_dock.setWidget(self.inspector_tabs)
         self.addDockWidget(QtCore.Qt.DockWidgetArea.RightDockWidgetArea, self.inspector_dock)
@@ -469,18 +348,14 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.log_dock.setWidget(self.log_view)
         self.addDockWidget(QtCore.Qt.DockWidgetArea.BottomDockWidgetArea, self.log_dock)
 
-        # History dock (table + detail)
+        # History dock (moved into HistoryPanel)
         self.history_dock = QtWidgets.QDockWidget("History", self)
         self.history_dock.setObjectName("dock-history")
-        history_container = QtWidgets.QWidget()
-        history_layout = QtWidgets.QVBoxLayout(history_container)
-        self.history_table = QtWidgets.QTableWidget(0, 3)
-        self.history_table.setHorizontalHeaderLabels(["When", "Component", "Summary"])
-        self.history_table.horizontalHeader().setStretchLastSection(True)
-        self.history_detail = QtWidgets.QPlainTextEdit(readOnly=True)
-        history_layout.addWidget(self.history_table)
-        history_layout.addWidget(self.history_detail, 1)
-        self.history_dock.setWidget(history_container)
+        self.history_panel = HistoryPanel(self)
+        # Hand off internal widgets to preserve existing attribute names/behavior
+        self.history_table = self.history_panel.history_table
+        self.history_detail = self.history_panel.history_detail
+        self.history_dock.setWidget(self.history_panel)
         self.addDockWidget(QtCore.Qt.DockWidgetArea.RightDockWidgetArea, self.history_dock)
         # Don't auto-show History dock - let users open it via View menu when needed
         self.history_table.itemSelectionChanged.connect(self._on_history_row_selected)
