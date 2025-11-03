@@ -237,16 +237,12 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.dataset_model = self.dataset_panel.dataset_model
         self._originals_item = self.dataset_panel._originals_item
 
-        # Wire existing handlers
-        self.dataset_filter.textChanged.connect(self._on_dataset_filter_changed)
-        self.dataset_view.customContextMenuRequested.connect(self._on_dataset_context_menu)
-        # Add keyboard shortcut for deletion
-        delete_shortcut = QtGui.QShortcut(QtGui.QKeySequence.StandardKey.Delete, self.dataset_view)
-        delete_shortcut.activated.connect(self._remove_selected_datasets_shortcut)
-        # Existing signals
+        # Wire panel signals instead of direct widget connections
+        self.dataset_panel.filterTextChanged.connect(self._on_dataset_filter_changed)
+        self.dataset_panel.removeRequested.connect(self._remove_selected_datasets)
+        self.dataset_panel.selectionChanged.connect(self._update_merge_preview)
+        # Existing model signal (still needed for visibility checkbox changes)
         self.dataset_model.itemChanged.connect(self._on_dataset_item_changed)
-        if self.dataset_view.selectionModel() is not None:
-            self.dataset_view.selectionModel().selectionChanged.connect(self._update_merge_preview)
 
         self.data_tabs.addTab(self.dataset_panel, "Datasets")
 
@@ -298,13 +294,17 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.ir_table = self.reference_panel.ir_table
         self.ls_table = self.reference_panel.ls_table
 
-        # Wire existing handlers
-        self.reference_overlay_checkbox.toggled.connect(self._on_reference_overlay_toggled)
-        self.nist_fetch_button.clicked.connect(self._on_nist_fetch_clicked)
-        self.reference_filter.textChanged.connect(self._on_reference_filter_changed)
+        # Wire panel signals instead of direct widget connections
+        self.reference_panel.overlayToggled.connect(self._on_reference_overlay_toggled)
+        self.reference_panel.nistFetchRequested.connect(
+            lambda element, lower, upper: self._on_nist_fetch_clicked()
+        )
+        self.reference_panel.irFilterChanged.connect(self._on_reference_filter_changed)
+        self.reference_panel.tabChanged.connect(lambda _: self._refresh_reference_view())
+        # Table selection changes still wired directly (more complex to decouple without rewriting handlers)
         self.ir_table.itemSelectionChanged.connect(self._on_ir_row_selected)
         self.ls_table.itemSelectionChanged.connect(self._on_line_shape_row_selected)
-        self.reference_tabs.currentChanged.connect(lambda _: self._refresh_reference_view())
+        # Unit combo connection
         if self.unit_combo is not None:
             self.unit_combo.currentTextChanged.connect(self._update_reference_axis)
 
@@ -986,6 +986,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self._update_merge_preview()
 
     def _on_dataset_filter_changed(self, text: str) -> None:
+        """Apply dataset filter to tree view (called via panel signal)."""
         if self.dataset_model is None or getattr(self, "_originals_item", None) is None:
             return
         needle = (text or "").strip().lower()
@@ -997,40 +998,8 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             # Hide or show the child row relative to the parent
             self.dataset_tree.setRowHidden(row, parent_index, not match)
 
-    def _on_dataset_context_menu(self, position: QtCore.QPoint) -> None:
-        """Show context menu for dataset tree view."""
-        if self.dataset_view is None or self.dataset_model is None:
-            return
-        
-        # Get the item at the position
-        index = self.dataset_view.indexAt(position)
-        if not index.isValid():
-            return
-        
-        # Don't show menu for the root "Originals" item
-        if index.parent() == QtCore.QModelIndex():
-            return
-        
-        # Get selected rows (support multi-selection)
-        selected_indexes = self.dataset_view.selectionModel().selectedRows()
-        if not selected_indexes:
-            return
-        
-        # Build context menu
-        menu = QtWidgets.QMenu(self.dataset_view)
-        
-        if len(selected_indexes) == 1:
-            remove_action = menu.addAction("Remove Dataset")
-        else:
-            remove_action = menu.addAction(f"Remove {len(selected_indexes)} Datasets")
-        
-        remove_action.triggered.connect(lambda: self._remove_selected_datasets(selected_indexes))
-        
-        # Show menu at cursor position
-        menu.exec(self.dataset_view.viewport().mapToGlobal(position))
-
     def _remove_selected_datasets(self, indexes: list[QtCore.QModelIndex]) -> None:
-        """Remove selected datasets from the overlay and UI."""
+        """Remove selected datasets from the overlay and UI (called via panel signal)."""
         if not indexes:
             return
         
@@ -1085,20 +1054,6 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             self._log("Datasets", "Removed 1 dataset")
         else:
             self._log("Datasets", f"Removed {len(spec_ids_to_remove)} datasets")
-
-    def _remove_selected_datasets_shortcut(self) -> None:
-        """Handle Delete key press to remove selected datasets."""
-        if self.dataset_view is None:
-            return
-        
-        selected_indexes = self.dataset_view.selectionModel().selectedRows()
-        if not selected_indexes:
-            return
-        
-        # Filter out the root "Originals" item
-        valid_indexes = [idx for idx in selected_indexes if idx.parent().isValid()]
-        if valid_indexes:
-            self._remove_selected_datasets(valid_indexes)
 
     def _on_doc_selected(self, row: int) -> None:
         if self.docs_list is None or self.doc_viewer is None:

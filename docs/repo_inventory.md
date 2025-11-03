@@ -83,7 +83,6 @@ Each table lists immediate children for the given scope with concise description
 | `exports/` | dir | Sample export manifests and data products. |
 | `goals.txt` | file | High-level product goals. |
 | `packaging/` | dir | Packaging metadata and installer assets. |
-| `patch.patch` | file | Historical patch sample. |
 | `pyproject.toml` | file | Project metadata and dependencies. |
 | `pyrightconfig.json` | file | Pyright static type checker settings. |
 | `reports/` | dir | Research and audit reports. |
@@ -195,8 +194,8 @@ Each table lists immediate children for the given scope with concise description
 | `tests/data/` | dir | Test assets supporting importer/remote tests. |
 | `tests/fixtures/` | dir | Pytest fixtures. |
 | `tests/integration/` | dir | Higher-level regression tests. |
-| `test_exoplanet_manual.py` | file | Manual script for exoplanet importer verification. |
-| `test_spex_manual.py` | file | Manual SpeX FITS regression script. |
+| `tests/manual/manual_exoplanet.py` | file | Manual exoplanet CSV loader verification script. |
+| `tests/manual/manual_spex.py` | file | Manual SpeX FITS regression script. |
 | `tools/` | dir | Utility scripts (PDS downloader, manifest builders, reference packaging). |
 | `tools/reference_build/` | dir | Reference dataset build scripts and metadata. |
 
@@ -551,7 +550,6 @@ goals.txt
 packaging/msix-template.xml
 packaging/spectra_app.spec
 packaging/windows_build.md
-patch.patch
 pyproject.toml
 pyrightconfig.json
 reports/bugs_and_issues.md

@@ -1,7 +1,7 @@
 """Reference panel: NIST ASD, IR Functional Groups, and Line Shapes tabs.
 
 This panel provides three reference data sources with a shared preview plot
-and overlay toggle.
+and overlay toggle. Emits signals for user interactions.
 """
 from __future__ import annotations
 
@@ -13,12 +13,22 @@ from app.ui.plot_pane import PlotPane
 
 QtCore, QtGui, QtWidgets, _ = get_qt()
 
+# Get Signal compatible with both PySide6 and PyQt6
+Signal = getattr(QtCore, "Signal", None)  # type: ignore[attr-defined]
+if Signal is None:
+    Signal = getattr(QtCore, "pyqtSignal")  # type: ignore[attr-defined]
+
 
 class ReferencePanel(QtWidgets.QWidget):
     """Standalone panel for reference data (NIST, IR, Line Shapes).
 
-    Exposes public attributes to allow main window to wire handlers without
-    refactoring behavior yet:
+    Signals:
+      - overlayToggled(bool): Emitted when overlay checkbox is toggled
+      - nistFetchRequested(str, float, float): Emitted when NIST fetch is clicked
+      - tabChanged(int): Emitted when reference tab changes
+      - irFilterChanged(str): Emitted when IR filter text changes
+    
+    Public attributes:
       - reference_overlay_checkbox
       - reference_status_label
       - reference_plot (PlotWidget)
@@ -30,6 +40,11 @@ class ReferencePanel(QtWidgets.QWidget):
       - ir_table
       - ls_table (Line Shapes)
     """
+
+    overlayToggled = Signal(bool)
+    nistFetchRequested = Signal(str, float, float)  # element, lower, upper
+    tabChanged = Signal(int)
+    irFilterChanged = Signal(str)
 
     def __init__(self, parent: Optional[QtWidgets.QWidget] = None) -> None:
         super().__init__(parent)
@@ -59,6 +74,9 @@ class ReferencePanel(QtWidgets.QWidget):
         top_row = QtWidgets.QHBoxLayout()
         self.reference_overlay_checkbox = QtWidgets.QCheckBox("Show on plot")
         self.reference_overlay_checkbox.setEnabled(False)
+        # Wire overlay toggle signal
+        self.reference_overlay_checkbox.toggled.connect(self.overlayToggled.emit)
+        
         self.reference_status_label = QtWidgets.QLabel("")
         top_row.addWidget(self.reference_overlay_checkbox)
         top_row.addStretch(1)
@@ -73,6 +91,8 @@ class ReferencePanel(QtWidgets.QWidget):
 
         # Tabs within Reference
         self.reference_tabs = QtWidgets.QTabWidget()
+        # Wire tab change signal
+        self.reference_tabs.currentChanged.connect(self.tabChanged.emit)
         layout.addWidget(self.reference_tabs, 3)
 
         # --- NIST tab
@@ -90,6 +110,9 @@ class ReferencePanel(QtWidgets.QWidget):
         self.nist_upper_spin.setDecimals(3)
         self.nist_upper_spin.setValue(700.0)
         self.nist_fetch_button = QtWidgets.QPushButton("Fetch")
+        # Wire fetch button
+        self.nist_fetch_button.clicked.connect(self._on_nist_fetch_clicked)
+        
         for w in (
             QtWidgets.QLabel("Element:"),
             self.nist_element_edit,
@@ -117,6 +140,8 @@ class ReferencePanel(QtWidgets.QWidget):
         ir_layout = QtWidgets.QVBoxLayout(ir_tab)
         self.reference_filter = QtWidgets.QLineEdit()
         self.reference_filter.setPlaceholderText("Filter IR groups…")
+        # Wire IR filter signal
+        self.reference_filter.textChanged.connect(self.irFilterChanged.emit)
         ir_layout.addWidget(self.reference_filter)
         self.ir_table = QtWidgets.QTableWidget(0, 3)
         self.ir_table.setHorizontalHeaderLabels(["Group", "min (cm⁻¹)", "max (cm⁻¹)"])
@@ -132,3 +157,10 @@ class ReferencePanel(QtWidgets.QWidget):
         self.ls_table.horizontalHeader().setStretchLastSection(True)
         ls_layout.addWidget(self.ls_table, 1)
         self.reference_tabs.addTab(ls_tab, "Line Shapes")
+
+    def _on_nist_fetch_clicked(self) -> None:
+        """Emit signal when NIST fetch is requested."""
+        element = self.nist_element_edit.text().strip()
+        lower = self.nist_lower_spin.value()
+        upper = self.nist_upper_spin.value()
+        self.nistFetchRequested.emit(element, lower, upper)
