@@ -64,7 +64,7 @@ class DatasetPanel(QtWidgets.QWidget):
         toolbar.setIconSize(QtCore.QSize(16, 16))
 
         # Remove Selected action
-        self.remove_action = QtWidgets.QAction(self)
+        self.remove_action = QtGui.QAction(self)
         self.remove_action.setText("Remove Selected")
         try:
             self.remove_action.setIcon(self.style().standardIcon(QtWidgets.QStyle.StandardPixmap.SP_TrashIcon))
@@ -76,7 +76,7 @@ class DatasetPanel(QtWidgets.QWidget):
         toolbar.addAction(self.remove_action)
 
         # Clear All action
-        self.clear_all_action = QtWidgets.QAction(self)
+        self.clear_all_action = QtGui.QAction(self)
         self.clear_all_action.setText("Clear All")
         try:
             self.clear_all_action.setIcon(self.style().standardIcon(QtWidgets.QStyle.StandardPixmap.SP_DialogDiscardButton))

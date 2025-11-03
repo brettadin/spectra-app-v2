@@ -34,17 +34,18 @@ class HistoryPanel(QtWidgets.QWidget):
       - exportRequested(list[int]): Emitted with selected row indices
     """
 
+    # Class-level signal definitions
+    filterTextChanged = Signal(str)  # type: ignore[misc]
+    refreshRequested = Signal()  # type: ignore[misc]
+    copyRequested = Signal(list)  # type: ignore[misc]
+    exportRequested = Signal(list)  # type: ignore[misc]
+
     def __init__(self, parent: Optional[QtWidgets.QWidget] = None) -> None:
         super().__init__(parent)
         self.history_table: QtWidgets.QTableWidget
         self.history_detail: QtWidgets.QPlainTextEdit
         self.history_filter: QtWidgets.QLineEdit
         self.toolbar: QtWidgets.QToolBar
-        # Signals
-        self.filterTextChanged = Signal(str)
-        self.refreshRequested = Signal()
-        self.copyRequested = Signal(list)    # list of row indices
-        self.exportRequested = Signal(list)  # list of row indices
         self._build_ui()
 
     def _build_ui(self) -> None:
@@ -62,7 +63,7 @@ class HistoryPanel(QtWidgets.QWidget):
         self.toolbar = QtWidgets.QToolBar()
         self.toolbar.setIconSize(QtCore.QSize(16, 16))
 
-        refresh_action = QtWidgets.QAction(self)
+        refresh_action = QtGui.QAction(self)
         refresh_action.setText("Refresh")
         try:
             refresh_action.setIcon(self.style().standardIcon(QtWidgets.QStyle.StandardPixmap.SP_BrowserReload))
@@ -72,7 +73,7 @@ class HistoryPanel(QtWidgets.QWidget):
         refresh_action.triggered.connect(self.refreshRequested.emit)
         self.toolbar.addAction(refresh_action)
 
-        copy_action = QtWidgets.QAction(self)
+        copy_action = QtGui.QAction(self)
         copy_action.setText("Copy")
         try:
             copy_action.setIcon(self.style().standardIcon(QtWidgets.QStyle.StandardPixmap.SP_DialogOpenButton))
@@ -82,7 +83,7 @@ class HistoryPanel(QtWidgets.QWidget):
         copy_action.triggered.connect(self._emit_copy_requested)
         self.toolbar.addAction(copy_action)
 
-        export_action = QtWidgets.QAction(self)
+        export_action = QtGui.QAction(self)
         export_action.setText("Export…")
         try:
             export_action.setIcon(self.style().standardIcon(QtWidgets.QStyle.StandardPixmap.SP_DialogSaveButton))

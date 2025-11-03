@@ -39,7 +39,6 @@ from app.ui.reference_panel import ReferencePanel
 from app.ui.merge_panel import MergePanel
 from app.ui.history_panel import HistoryPanel
 from app.ui.calibration_panel import CalibrationPanel
-from app import main as main_module  # for monkeypatchable proxies (ExportCenterDialog, nist_asd_service, SAMPLES_DIR)
 from app.utils.error_handling import ui_action
 
 
@@ -62,7 +61,7 @@ if Slot is None:
     Slot = getattr(QtCore, "pyqtSlot")  # type: ignore[attr-defined]
 
 
-SAMPLES_DIR = getattr(main_module, "SAMPLES_DIR", Path(__file__).resolve().parents[2] / "samples")
+SAMPLES_DIR = Path(__file__).resolve().parents[2] / "samples"
 PLOT_MAX_POINTS_KEY = "plot/max_points"
 
 
@@ -751,7 +750,8 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             QtWidgets.QMessageBox.information(self, "Export", "No visible spectra to export.")
             return
         allow_composite = len(spectra) >= 2
-        # Use main_module proxy so tests can monkeypatch the dialog class
+        # Use lazy import to avoid circular dependency
+        from app import main as main_module
         DialogClass = getattr(main_module, "ExportCenterDialog")
         dialog = DialogClass(self, allow_composite=allow_composite)
         if dialog.exec() != QtWidgets.QDialog.DialogCode.Accepted:
@@ -1520,7 +1520,8 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             self.reference_status_label.setText("Enter element symbol")
             return
         try:
-            # Use main_module proxy so tests can monkeypatch the NIST service dependency checks
+            # Use lazy import to avoid circular dependency
+            from app import main as main_module
             payload = main_module.nist_asd_service.fetch_lines(
                 element,
                 lower_wavelength=lower,

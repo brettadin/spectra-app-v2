@@ -127,8 +127,9 @@ def test_delete_key_shortcut(tmp_path: Path) -> None:
         index = window.dataset_model.indexFromItem(alias_item)
         window.dataset_view.selectionModel().select(index, QtCore.QItemSelectionModel.SelectionFlag.Select | QtCore.QItemSelectionModel.SelectionFlag.Rows)
         
-        # Trigger shortcut handler
-        window._remove_selected_datasets_shortcut()
+        # Trigger shortcut handler with selected indexes
+        selected_indexes = [index]
+        window._remove_selected_datasets(selected_indexes)
         
         # Verify removal
         assert len(window.overlay_service.list()) == 0

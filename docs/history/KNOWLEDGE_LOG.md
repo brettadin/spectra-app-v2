@@ -1304,3 +1304,135 @@ remains grounded in the current implementation reality and user pain points.
 - {'source_type': 'reference', 'archive': 'NIST ASD', 'label': 'H I (NIST ASD)', 'element_symbol': 'H', 'element_name': 'Hydrogen', 'atomic_number': 1, 'ion_stage': 'I', 'ion_stage_number': 1, 'query': {'linename': 'H I', 'identifier': 'H', 'lower_wavelength': 380.0, 'upper_wavelength': 750.0, 'wavelength_unit': 'nm', 'wavelength_type': 'vacuum', 'use_ritz': True}, 'fetched_at_utc': '2025-10-22T21:33:00.753620+00:00', 'citation': 'Kramida, A. et al. (NIST ASD), https://physics.nist.gov/asd', 'retrieved_via': 'astroquery.nist'}
 
 ---
+## 2025-11-03 00:26 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file table_HAT-P-18-b-Fournier-Tondreau-et-al.-2024.csv
+
+**References**:
+- table_HAT-P-18-b-Fournier-Tondreau-et-al.-2024.csv
+
+---
+## 2025-11-03 00:26 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file table_Luhman-16-b-Biller-et-al.-2024.csv
+
+**References**:
+- table_Luhman-16-b-Biller-et-al.-2024.csv
+
+---
+## 2025-11-03 00:26 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file table_TRAPPIST-1-b-Rathcke-et-al.-2025.csv
+
+**References**:
+- table_TRAPPIST-1-b-Rathcke-et-al.-2025.csv
+
+---
+## 2025-11-03 00:26 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file table_WASP-17-b-Louie-et-al.-2025.csv
+
+**References**:
+- table_WASP-17-b-Louie-et-al.-2025.csv
+
+---
+## 2025-11-03 00:26 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file table_WASP-39-b-Rustamkulov-et-al.-2023.csv
+
+**References**:
+- table_WASP-39-b-Rustamkulov-et-al.-2023.csv
+
+---
+## 2025-11-03 00:26 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file table_WASP-96-b-Radica-et-al.-2023.csv
+
+**References**:
+- table_WASP-96-b-Radica-et-al.-2023.csv
+
+---
+## 2025-11-03 00:26 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file table_WASP-178-b-Lothringer-et-al.-2022.csv
+
+**References**:
+- table_WASP-178-b-Lothringer-et-al.-2022.csv
+
+---
+## 2025-11-03 00:26 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file plnt_Jupiter.fits
+
+**References**:
+- plnt_Jupiter.fits
+
+---
+## 2025-11-03 00:26 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file plnt_Neptune.fits
+
+**References**:
+- plnt_Neptune.fits
+
+---
+## 2025-11-03 00:26 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file plnt_Saturn.fits
+
+**References**:
+- plnt_Saturn.fits
+
+---
+## 2025-11-03 00:26 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file plnt_Uranus.fits
+
+**References**:
+- plnt_Uranus.fits
+
+---
