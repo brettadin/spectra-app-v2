@@ -1436,3 +1436,255 @@ remains grounded in the current implementation reality and user pain points.
 - plnt_Uranus.fits
 
 ---
+## 2025-11-03 17:44 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file C7,6e(N4)_HD31996.fits
+
+**References**:
+- C7,6e(N4)_HD31996.fits
+
+---
+## 2025-11-03 17:44 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file C-J4.5IIIa_C26j6_HD70138.fits
+
+**References**:
+- C-J4.5IIIa_C26j6_HD70138.fits
+
+---
+## 2025-11-03 17:44 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file C-J5-C25-j4_HD57160.fits
+
+**References**:
+- C-J5-C25-j4_HD57160.fits
+
+---
+## 2025-11-03 17:44 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file C-N4.5C24.5_HD92055.fits
+
+**References**:
+- C-N4.5C24.5_HD92055.fits
+
+---
+## 2025-11-03 17:44 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file C-N4.5C25.5MS3_HD76221.fits
+
+**References**:
+- C-N4.5C25.5MS3_HD76221.fits
+
+---
+## 2025-11-03 17:44 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file C-N4C23.5_HD44984.fits
+
+**References**:
+- C-N4C23.5_HD44984.fits
+
+---
+## 2025-11-03 17:44 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file C-N5C26-_HD48664.fits
+
+**References**:
+- C-N5C26-_HD48664.fits
+
+---
+## 2025-11-03 17:44 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Air_Lamp.csv
+
+**References**:
+- Air_Lamp.csv
+
+---
+## 2025-11-03 17:51 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file table_HAT-P-18-b-Fournier-Tondreau-et-al.-2024.csv
+
+**References**:
+- table_HAT-P-18-b-Fournier-Tondreau-et-al.-2024.csv
+
+---
+## 2025-11-03 17:51 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file C-J4.5IIIa_C26j6_HD70138.fits
+
+**References**:
+- C-J4.5IIIa_C26j6_HD70138.fits
+
+---
+## 2025-11-03 17:52 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file jupiter__9408090029N_vo.fits
+
+**References**:
+- jupiter__9408090029N_vo.fits
+
+---
+## 2025-11-03 17:53 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file CO2_Lamp.csv
+
+**References**:
+- CO2_Lamp.csv
+
+---
+## 2025-11-03 17:53 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file C-J4.5IIIa_C26j6_HD70138.fits
+
+**References**:
+- C-J4.5IIIa_C26j6_HD70138.fits
+
+---
+## 2025-11-03 18:01 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file C7,6e(N4)_HD31996.fits
+
+**References**:
+- C7,6e(N4)_HD31996.fits
+
+---
+## 2025-11-03 18:01 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file CO2_Lamp.csv
+
+**References**:
+- CO2_Lamp.csv
+
+---
+## 2025-11-03 18:15 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file C7,6e(N4)_HD31996.fits
+
+**References**:
+- C7,6e(N4)_HD31996.fits
+
+---
+## 2025-11-03 18:15 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file H2O_Lamp.csv
+
+**References**:
+- H2O_Lamp.csv
+
+---
+## 2025-11-03 18:16 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file table_HAT-P-18-b-Fournier-Tondreau-et-al.-2024.csv
+
+**References**:
+- table_HAT-P-18-b-Fournier-Tondreau-et-al.-2024.csv
+
+---
+## 2025-11-03 18:17 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file h2o run 3 good i think 10 27.csv
+
+**References**:
+- h2o run 3 good i think 10 27.csv
+
+---
+## 2025-11-03 18:17 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file CO2 - 500 torr.csv
+
+**References**:
+- CO2 - 500 torr.csv
+
+---
+## 2025-11-03 18:18 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file CO2 - 300 torr.csv
+
+**References**:
+- CO2 - 300 torr.csv
+
+---

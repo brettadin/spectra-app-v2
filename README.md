@@ -48,12 +48,16 @@ This repository represents the complete rewrite of the Spectra-App into a modern
 - **Reference Overlays**: NIST atomic line lists with interactive redshift controls
 - **IR Functional Groups**: 50+ comprehensive functional groups (hydroxyl, carbonyl, amine, aromatic, aliphatic, nitrogen, sulfur, halogen) with wavenumber ranges, intensity profiles, and vibrational modes for FTIR/ATR analysis
 - **ML Roadmap**: Hybrid system planned for automated functional group identification combining rule-based peak detection (80% precision target) with neural network predictions (90% precision target) trained on ~52K spectra from NIST and SDBS databases
+ - **Calibration & Display‑time Transforms**: Apply FWHM blurring and radial‑velocity shifts in nm‑space at display time via the Calibration tab; transforms are non‑destructive and precede normalisation.
+ - **Normalisation Modes + Global Toggle**: None, Max, Area, with an optional Global checkbox to compute a single scale across all visible spectra.
+ - **Y‑scale Controls**: Linear, Log10 (signed), Asinh transforms applied after normalisation to enhance visibility across wide dynamic ranges.
 
 ### User Experience
 - **High-Performance Plotting**: PyQtGraph with LOD optimization for 1M+ point datasets
 - **Clean, Intuitive UI**: Logical control grouping with progressive disclosure
 - **Comprehensive Inspector**: Spectrum metadata, math operations, style controls, provenance viewer
 - **Export Capabilities**: PNG, CSV with complete manifest.json provenance
+ - **Robust FITS Handling**: Normalisation ignores NaNs/Infs when computing scales, ensuring FITS masked values don’t collapse visibility.
 
 ## 📁 Repository Structure
 
@@ -213,6 +217,7 @@ The Spectra App is designed for rigorous spectroscopic analysis with particular 
 
 ### Documentation roadmap
 - Track planned and in-progress documentation work in the [Documentation Inventory](docs/reviews/doc_inventory_2025-10-14.md).
+ - See Normalisation details and validation in [NORMALIZATION_VERIFICATION.md](NORMALIZATION_VERIFICATION.md) and user controls in [docs/user/plot_tools.md](docs/user/plot_tools.md).
 
 ### Building Distributables
 

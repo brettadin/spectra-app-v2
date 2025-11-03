@@ -1,8 +1,22 @@
 """Main application window for the Spectra desktop preview.
 
+Display pipeline contract (view-only, non-destructive):
+
+- Convert X to canonical nanometres (nm) for plotting.
+- Apply Calibration (display-time): FWHM blur and RV shift operate in nm-space.
+- Apply normalisation: None | Max | Area. If the toolbar's Global toggle is
+    enabled, compute a single scale across all visible spectra; otherwise compute
+    per-spectrum scales. Scale calculations are NaN/Inf-robust (finite-only).
+- Apply Y-scale transform: Linear | Log10 (signed) | Asinh, to improve visibility
+    across dynamic ranges. Transforms apply after normalisation.
+
+The Data Table uses the same calibration→normalisation pipeline so tabular values
+match the plotted view (before the Y-scale transform). Underlying data and exports
+remain in source units unless the user opts into normalisation during export.
+
 This module contains the SpectraMainWindow class and closely related UI/worker
 code. It is extracted from app/main.py to keep the entry point slim while
-preserving behavior. No functionality changes are intended in this phase.
+preserving behavior.
 """
 
 from __future__ import annotations
@@ -394,7 +408,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.unit_combo.currentTextChanged.connect(self.plot.set_display_unit)
         self.plot_toolbar.addWidget(QtWidgets.QLabel(" X: "))
         self.plot_toolbar.addWidget(self.unit_combo)
-        # Normalization combo
+    # Normalization combo
         self.norm_combo = QtWidgets.QComboBox()
         self.norm_combo.addItems(["None", "Max", "Area"])
         self.norm_combo.setCurrentText("None")
@@ -402,6 +416,20 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.plot_toolbar.addSeparator()
         self.plot_toolbar.addWidget(QtWidgets.QLabel(" Normalize: "))
         self.plot_toolbar.addWidget(self.norm_combo)
+        # Y scale combo (to improve visibility across dynamic ranges)
+        self.y_scale_combo = QtWidgets.QComboBox()
+        self.y_scale_combo.addItems(["Linear", "Log10", "Asinh"])  # Safe scales; Log10 uses signed-log
+        self.y_scale_combo.setCurrentText("Linear")
+        self.y_scale_combo.setToolTip("Apply Y scaling after normalization.\nLog10: sign(y)*log10(1+|y|)\nAsinh: arcsinh(y) for wider dynamic range including negatives")
+        self.y_scale_combo.currentTextChanged.connect(lambda _: self._refresh_plot())
+        self.plot_toolbar.addWidget(QtWidgets.QLabel(" Y-scale: "))
+        self.plot_toolbar.addWidget(self.y_scale_combo)
+        # Global normalization checkbox
+        self.norm_global_checkbox = QtWidgets.QCheckBox("Global")
+        self.norm_global_checkbox.setChecked(False)  # Default to per-spectrum normalization
+        self.norm_global_checkbox.setToolTip("When checked, normalize all spectra together.\nWhen unchecked, normalize each spectrum independently.")
+        self.norm_global_checkbox.stateChanged.connect(lambda _: self._refresh_plot())
+        self.plot_toolbar.addWidget(self.norm_global_checkbox)
         # Max points control
         self.plot_toolbar.addSeparator()
         self.plot_toolbar.addWidget(QtWidgets.QLabel(" Points: "))
@@ -443,6 +471,34 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             return np.asarray(x_c, dtype=float), np.asarray(y_c, dtype=float)
         except Exception:
             return x_nm, y
+
+    # ----------------------------- Y-Scale -----------------------------
+    def _apply_y_scale(self, y: np.ndarray) -> np.ndarray:
+        """Apply Y-axis scaling to improve visibility across dynamic ranges.
+
+        Scales are applied after normalization and before plotting.
+
+        - Linear: identity.
+        - Log10: signed logarithm, ``sign(y)*log10(1+|y|)``, safe for zeros/negatives.
+        - Asinh: ``arcsinh(y)``, behaves like linear near 0 and ~log for large |y|.
+        """
+        try:
+            mode = self.y_scale_combo.currentText() if hasattr(self, "y_scale_combo") else "Linear"
+        except Exception:
+            mode = "Linear"
+        if y.size == 0:
+            return y
+        if mode == "Linear":
+            return y
+        # Use numpy operations for performance and safety
+        y_abs = np.abs(y)
+        if mode == "Log10":
+            # signed-log to keep negatives: log10(1 + |y|)
+            return np.sign(y) * np.log10(1.0 + y_abs)
+        if mode == "Asinh":
+            # asinh handles signed values naturally
+            return np.arcsinh(y)
+        return y
 
     def _setup_menu(self) -> None:
         menu = self.menuBar()
@@ -680,7 +736,16 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                 x_disp = 1e7 / x_nm
         else:
             x_disp = x_nm
-        y = self._apply_normalization(y_converted, self.norm_combo.currentText() if self.norm_combo is not None else "None")
+        # Apply normalization (robust to NaNs/Infs). Use nm-space for area calculations.
+        norm_mode = self.norm_combo.currentText() if self.norm_combo is not None else "None"
+        use_global = self.norm_global_checkbox.isChecked() if hasattr(self, 'norm_global_checkbox') else False
+        global_val = None
+        if norm_mode != "None" and use_global:
+            try:
+                global_val = self._compute_global_normalization_value(norm_mode)
+            except Exception:
+                global_val = None
+        y = self._apply_normalization(y_converted, norm_mode, global_val, x_nm)
         # Populate table (cap for very large datasets to keep UI responsive)
         cap = 20000
         n = int(min(len(x_disp), len(y), cap))
@@ -1020,8 +1085,19 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         
         # Apply calibration then current normalization mode
         norm_mode = self.norm_combo.currentText()
+        use_global = self.norm_global_checkbox.isChecked() if hasattr(self, 'norm_global_checkbox') else False
         x_nm, y_cal = self._apply_calibration_nm(x_nm, y_converted)
-        y_data = self._apply_normalization(y_cal, norm_mode)
+        
+        # If global normalization is enabled and there are existing spectra, we need to refresh all
+        if use_global and norm_mode != "None" and len(self.overlay_service.list()) > 0:
+            # Add the spectrum to the plot with temporary normalization, then refresh all
+            y_data = self._apply_normalization(y_cal, norm_mode, None, x_nm)  # Temporary per-spectrum norm
+            y_data = self._apply_y_scale(y_data)
+        else:
+            # Per-spectrum normalization or first spectrum
+            y_data = self._apply_normalization(y_cal, norm_mode, None, x_nm)
+            y_data = self._apply_y_scale(y_data)
+        
         # If this is the first dataset and the original x-unit was microns, switch display to µm
         try:
             is_first_dataset = (len(self._dataset_items) == 0)
@@ -1048,6 +1124,13 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         )
         self._visibility[spectrum.id] = True
         self._append_dataset_row(spectrum)
+        
+        # If global normalization is enabled, refresh all spectra to apply global norm
+        if use_global and norm_mode != "None":
+            try:
+                self._refresh_plot()
+            except Exception:
+                pass
 
     def _append_dataset_row(self, spectrum: Spectrum) -> None:
         if self.dataset_model is None or getattr(self, "_originals_item", None) is None:
@@ -1230,6 +1313,12 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
     def _refresh_plot(self) -> None:
         """Refresh plot with current normalization mode."""
         norm_mode = self.norm_combo.currentText()
+        use_global = self.norm_global_checkbox.isChecked() if hasattr(self, 'norm_global_checkbox') else False
+        
+        # If global normalization, compute the global max/area first
+        global_norm_value = None
+        if norm_mode != "None" and use_global:
+            global_norm_value = self._compute_global_normalization_value(norm_mode)
         
         for spec in self.overlay_service.list():
             try:
@@ -1252,7 +1341,15 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                 self.plot.update_alias(spec.id, spec.name)
                 # Apply calibration then normalization
                 x_nm, y_cal = self._apply_calibration_nm(x_nm, y_converted)
-                y_data = self._apply_normalization(y_cal, norm_mode)
+                y_data = self._apply_normalization(y_cal, norm_mode, global_norm_value, x_nm)
+                y_data = self._apply_y_scale(y_data)
+                
+                # Debug: Log normalization results
+                import logging
+                logger = logging.getLogger("spectra")
+                if norm_mode != "None":
+                    logger.debug(f"Normalization {norm_mode} ({'global' if use_global else 'per-spectrum'}): y_cal range [{np.min(y_cal):.3e}, {np.max(y_cal):.3e}] -> y_data range [{np.min(y_data):.3e}, {np.max(y_data):.3e}]")
+                
                 color = self._spectrum_colors.get(spec.id, QtGui.QColor("white"))
                 style = TraceStyle(color=color, width=1.5, show_in_legend=True)
                 self.plot.add_trace(
@@ -1262,25 +1359,117 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                     y=y_data,
                     style=style,
                 )
-            except Exception:
-                pass
+            except Exception as e:
+                import logging
+                logger = logging.getLogger("spectra")
+                logger.error(f"Error refreshing plot for spectrum {spec.id}: {e}", exc_info=True)
         self.plot.autoscale()
     
-    def _apply_normalization(self, y: np.ndarray, mode: str) -> np.ndarray:
-        """Apply normalization to y-data based on mode."""
+    def _compute_global_normalization_value(self, mode: str) -> float | None:
+        """Compute global normalization value across all spectra."""
+        if mode == "None":
+            return None
+
+        all_values = []
+        for spec in self.overlay_service.list():
+            try:
+                # Convert to nm space and apply calibration (same as in _refresh_plot)
+                try:
+                    x_nm, y_converted, _ = self.units_service.convert_arrays(
+                        np.asarray(spec.x, dtype=float),
+                        np.asarray(spec.y, dtype=float),
+                        spec.x_unit,
+                        spec.y_unit,
+                        "nm",
+                        spec.y_unit,
+                    )
+                except Exception:
+                    x_nm = self.units_service._to_canonical_wavelength(
+                        np.asarray(spec.x, dtype=float), spec.x_unit
+                    )
+                    y_converted = np.asarray(spec.y, dtype=float)
+                
+                x_nm, y_cal = self._apply_calibration_nm(x_nm, y_converted)
+                all_values.append(y_cal)
+            except Exception:
+                pass
+        
+        if not all_values:
+            return None
+
+        # Concatenate all Y values
+        all_y = np.concatenate(all_values)
+        
+        if mode == "Max":
+            # Robust to NaNs/Infs
+            finite = np.isfinite(all_y)
+            if not np.any(finite):
+                return None
+            return float(np.nanmax(np.abs(all_y[finite])))
+        elif mode == "Area":
+            # Index-based area (matches existing test expectations): sum per-curve |y| areas
+            total_area = 0.0
+            for yv in all_values:
+                finite = np.isfinite(yv)
+                if np.count_nonzero(finite) < 2:
+                    continue
+                total_area += float(np.trapz(np.abs(yv[finite])))
+            return total_area if total_area > 0 else None
+        
+        return None
+    
+    def _apply_normalization(self, y: np.ndarray, mode: str, global_value: float | None = None, x: np.ndarray | None = None) -> np.ndarray:
+        """Apply normalization to y-data based on mode.
+        
+        Args:
+            y: Y-data array to normalize.
+            mode: Normalization mode ("None", "Max", or "Area").
+            global_value: If provided, use this value instead of computing from ``y``.
+            x: Optional x-array (nm). Reserved for potential x-weighted area; currently
+               not used, as Area uses index-based integration to match tests.
+
+        Notes:
+            - Scale calculations ignore non-finite samples (NaN/Inf) so FITS masked
+              values do not corrupt Max/Area factors. Non-finite samples are preserved
+              in the output array.
+        """
+        import logging
+        logger = logging.getLogger("spectra")
+        
         if mode == "None" or len(y) == 0:
             return y
         
+        # Compute scales on finite values only (FITS often carries NaNs/masked samples)
+        finite_y = np.isfinite(y)
+        
         if mode == "Max":
-            max_val = np.max(np.abs(y))
-            if max_val > 0:
-                return y / max_val
+            if global_value is not None and np.isfinite(global_value):
+                norm_val = float(global_value)
+            else:
+                if not np.any(finite_y):
+                    return y
+                norm_val = float(np.nanmax(np.abs(y[finite_y])))
+            logger.info(f"Max normalization: norm_val={norm_val:.6f}")
+            if norm_val > 0:
+                result = y / norm_val
+                logger.info(f"  Result range: [{np.nanmin(result):.6f}, {np.nanmax(result):.6f}]")
+                return result
             return y
         
         if mode == "Area":
-            area = np.trapz(np.abs(y))
-            if area > 0:
-                return y / area
+            if global_value is not None and np.isfinite(global_value):
+                norm_val = float(global_value)
+            else:
+                if not np.any(finite_y):
+                    return y
+                # Index-based area to match existing behavior/tests
+                norm_val = float(np.trapz(np.abs(y[finite_y])))
+
+            logger.info(f"Area normalization: norm_val={norm_val:.6f}")
+            if norm_val > 0:
+                result = y / norm_val
+                logger.info(f"  Result range: [{np.nanmin(result):.6f}, {np.nanmax(result):.6f}]")
+                return result
             return y
         
         return y

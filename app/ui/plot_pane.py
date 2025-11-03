@@ -211,7 +211,12 @@ class PlotPane(QtWidgets.QWidget):
         self._rebuild_legend()
 
     def autoscale(self) -> None:
-        self._plot.enableAutoRange(axis=pg.ViewBox.XYAxes, enable=True)
+        """Autoscale the plot to fit all visible data."""
+        try:
+            self._plot.enableAutoRange(axis=pg.ViewBox.XYAxes, enable=True)
+            self._plot.autoRange()  # Force immediate autoscale
+        except Exception:
+            pass
 
     def export_png(self, path: str | Path, width: int = 1600) -> None:
         """Export the current plot view as a PNG image."""

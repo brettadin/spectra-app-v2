@@ -1,5 +1,28 @@
 # Patch Notes
 
+## 2025-11-03 (Calibration UI, Global normalisation, Y‑scale, NaN‑robust scales)
+
+Display‑time calibration and visibility improvements
+
+- Added a lightweight Calibration tab (Inspector) that applies FWHM blurring and radial‑velocity (RV km/s) shifts at display time in nm‑space. The transform precedes normalisation and plotting; underlying data remains unchanged.
+- Introduced a Global checkbox next to the Normalize control. When enabled, a single factor is computed across all visible spectra:
+  - Max: finite‑only max(|y|) across traces
+  - Area: sum of per‑trace absolute areas (index‑based integration to match tests)
+- Added Y‑scale transforms applied after normalisation to improve dynamic‑range visibility: Linear (identity), Log10 (signed log: sign(y)*log10(1+|y|)), and Asinh.
+- Hardened normalisation scale calculations to ignore NaNs/Infs so FITS masked values don’t collapse visibility. NaNs remain in arrays for provenance but are excluded from scale computation.
+- Plot autoscale path updated to force re‑range on refresh so changes from calibration/normalisation/Y‑scale are immediately visible.
+
+Docs & tests
+
+- Updated `docs/user/plot_tools.md` to document Global normalisation, Y‑scale transforms, and FITS/NaN robustness.
+- Refreshed `README.md` feature list to call out Calibration, Global normalisation, Y‑scale, and FITS scale robustness.
+- Extended `NORMALIZATION_VERIFICATION.md` with Y‑scale notes and NaN behaviour and confirmed existing tests remain green.
+
+Notes
+
+- Area scaling continues to use index‑based integration to preserve current unit tests; x‑weighted integration can be revisited with adjusted expectations.
+- Global factors recompute automatically on add/remove/visibility changes.
+
 ## 2025-11-02 (Capability atlas & cleanup audit) (10:43 EST / 15:43 UTC)
 
 **Mapped active features & cleanup targets**

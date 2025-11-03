@@ -52,6 +52,29 @@ Use the control to adjust every visible trace without mutating the underlying da
 
 The data table and provenance metadata mirror the active normalisation, and the plot toolbar’s left-axis label calls out both the unit (e.g. `%T`) and the selected normalisation mode for downstream auditing.
 
+### Global normalisation
+
+When comparing traces with very different magnitudes, enable the toolbar checkbox labeled **Global** next to the Normalize control:
+
+- Unchecked: Each spectrum is normalised independently (per‑spectrum).
+- Checked: A single factor is computed across all visible spectra and applied to each (global). For Max, this is the finite‑only max(|y|) across all traces; for Area, it’s the sum of per‑trace absolute areas. This keeps small signals visible while preserving relative intensities.
+
+Global mode is applied live to the plot and to the Data Table values. Adding or removing spectra will recompute the shared factor automatically.
+
+### Y‑scale transforms
+
+To improve visibility across wide dynamic ranges after normalisation, adjust the **Y‑scale** control on the toolbar:
+
+- **Linear**: identity
+- **Log10**: signed logarithm, sign(y)*log10(1+|y|), safe for zeros and negatives
+- **Asinh**: arcsinh(y), linear near zero and ~logarithmic for large |y|
+
+These transforms are view‑only and are applied after normalisation. They do not modify the underlying data or exported CSVs.
+
+### FITS/NaN robustness
+
+Some FITS imports can contain NaNs or masked samples. The normalisation pipeline automatically ignores non‑finite values when computing scales so a few bad points don’t collapse your factors. NaNs remain in the plotted/output arrays (so you can still identify gaps) but are excluded from Max/Area calculations.
+
 ## Trace colouring modes
 
 Heavy overlay sessions can get visually noisy when every spectrum shares the same palette. The Inspector’s **Style** tab now ships
