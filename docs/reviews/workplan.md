@@ -2,12 +2,30 @@
 
 This document tracks feature batches, validation status, and outstanding backlog items for the Spectra app.
 
-## Batch 14 (2025-10-17) — In Progress
+## Batch 15 (2025-11-02) — In Progress
+
+### Scope
+
+- [ ] Documentation pass: update Remote Data (tab in Inspector), Quickstart, Plot tools (dataset removal toolbar), and shortcut summary
+- [ ] History panel UX: add filter + toolbar (Refresh, Copy, Export) and wire actions
+- [ ] Calibration service: clarify goals, add minimal spec and service scaffold
+- [ ] Shortcut audit: add logical, non-intrusive defaults and document them
+ - [ ] Entity previews (backlog): optional image/metadata card for the focused library entity (planet/star/molecule) when a single item is selected, gated to avoid clutter; persisted in Library metadata
+
+### QA Log
+
+- 2025-11-02: ✅ `pytest -q` (94 passed, 29 skipped)
+
+---
+
+## Batch 14 (2025-10-17) Completed 25-11-02 (restructure uncompleted tasks in new batches going forward. dont keep adding endlessly to the same one please :))
 
 ### Recently Completed (2025-11-02)
 
 - [x] Documented the repository inventory (features, library usage, backlog alignment) in `docs/repo_inventory.md`, updated patch notes, and refreshed the knowledge log for provenance.
 - [x] Authored `docs/app_capabilities.md` as a comprehensive capability atlas detailing active features, dormant gaps, and cleanup targets, with provenance updates logged in patch notes, knowledge log, and worklog.
+- [x] Decoupled DatasetPanel and ReferencePanel from main_window using signal-based communication, moved UI interaction logic (context menus, keyboard shortcuts) into panels, simplified main_window wiring, and validated with full test suite (94 passed, 29 skipped).
+- [x] Added dataset removal toolbar to Data dock with "Remove Selected" (Del) and "Clear All" (Ctrl+Shift+C) buttons, implemented confirmation dialog for bulk removal, wired clearAllRequested signal to new _clear_all_datasets handler, and validated with regression tests.
 
 - [ ] Land the calibration service (`app/services/calibration_service.py`) and
       calibration dock with non-dismissable banner, FWHM targets, frame/RV

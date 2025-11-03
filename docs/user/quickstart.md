@@ -48,7 +48,7 @@ This mirrors the automated smoke workflow in `tests/test_smoke_workflow.py`. Run
 
 The bundled samples are excellent for testing, but for scientific analysis you'll want real calibrated observations from space telescopes.
 
-1. Choose **File → Fetch Remote Data…** (or press `Ctrl+Shift+R`).
+1. Press `Ctrl+Shift+R` (or choose **File → Show Remote Data Tab…**). This switches to the **Remote Data** tab in the Inspector dock.
 2. Select **MAST ExoSystems** from the Catalogue dropdown.
 3. Try searching for real targets:
    - **Solar system**: Type "Jupiter" or "Mars" to find JWST observations
@@ -60,6 +60,11 @@ The bundled samples are excellent for testing, but for scientific analysis you'l
 > **Note**: This requires an internet connection and may take a minute for large JWST observations. All data comes from credible sources (NASA MAST archives) and spans UV to mid-IR wavelengths (0.1–30 µm depending on the instrument).
 
 For more details on remote data, see [docs/user/remote_data.md](remote_data.md).
+
+## 8. Managing datasets quickly
+
+- Remove selected datasets with the toolbar button in the **Data → Datasets** tab or press `Del`.
+- Clear all datasets with the toolbar button (`Ctrl+Shift+C`). A confirmation dialog shows how many items will be removed.
 
 ## 7. Next steps
 

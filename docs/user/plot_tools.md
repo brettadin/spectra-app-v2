@@ -31,6 +31,15 @@ Every trace that remains visible has a matching entry in the floating legend anc
 
 > **Remote catalogue tip**: Imports triggered from **File → Fetch Remote Data…** behave just like local files. The spectra land in the Data dock’s Datasets tab with their remote provenance already cached, so you can toggle overlays, rename aliases, and compute ratios without any manual copying.
 
+### Removing datasets quickly
+
+The **Data → Datasets** tab includes a small toolbar above the tree:
+
+- **Remove Selected** removes the highlighted datasets (or press `Del`).
+- **Clear All** removes every dataset from the session (or press `Ctrl+Shift+C`). A confirmation dialog displays the total before proceeding.
+
+These actions only affect the current workspace; cached source files stay intact in the Library.
+
 ## Normalisation toolbar modes
 
 The top-of-window plot toolbar hosts the **Normalize** combo box alongside the unit selector. If the toolbar is hidden, restore it via **View → Plot Toolbar**—Spectra now draws every trace in the source intensity units reported by the importer (for example `%T` for percent transmittance). The y-axis label and data table adapt to those units so you see raw amplitudes first, then optionally apply scaling.

@@ -23,6 +23,7 @@ class DatasetPanel(QtWidgets.QWidget):
       - filterTextChanged(str): Emitted when the filter text changes
       - removeRequested(list): Emitted when user requests dataset removal (indexes)
       - selectionChanged(): Emitted when the selection changes
+      - clearAllRequested(): Emitted when user confirms clearing all datasets
     
     Public attributes:
       - dataset_filter: QLineEdit
@@ -34,6 +35,7 @@ class DatasetPanel(QtWidgets.QWidget):
     filterTextChanged = Signal(str)
     removeRequested = Signal(list)  # list of QModelIndex
     selectionChanged = Signal()
+    clearAllRequested = Signal()  # Request to clear all datasets
 
     def __init__(self, parent: Optional[QtWidgets.QWidget] = None) -> None:
         super().__init__(parent)
@@ -55,6 +57,37 @@ class DatasetPanel(QtWidgets.QWidget):
 
         # Wire filter to emit signal
         self.dataset_filter.textChanged.connect(self.filterTextChanged.emit)
+
+        # Toolbar with dataset actions
+        toolbar = QtWidgets.QToolBar()
+        toolbar.setToolButtonStyle(QtCore.Qt.ToolButtonStyle.ToolButtonTextBesideIcon)
+        toolbar.setIconSize(QtCore.QSize(16, 16))
+
+        # Remove Selected action
+        self.remove_action = QtWidgets.QAction(self)
+        self.remove_action.setText("Remove Selected")
+        try:
+            self.remove_action.setIcon(self.style().standardIcon(QtWidgets.QStyle.StandardPixmap.SP_TrashIcon))
+        except Exception:
+            pass
+        self.remove_action.setShortcut(QtGui.QKeySequence.StandardKey.Delete)
+        self.remove_action.setToolTip("Remove selected datasets (Del)")
+        self.remove_action.triggered.connect(self._on_remove_selected_clicked)
+        toolbar.addAction(self.remove_action)
+
+        # Clear All action
+        self.clear_all_action = QtWidgets.QAction(self)
+        self.clear_all_action.setText("Clear All")
+        try:
+            self.clear_all_action.setIcon(self.style().standardIcon(QtWidgets.QStyle.StandardPixmap.SP_DialogDiscardButton))
+        except Exception:
+            pass
+        self.clear_all_action.setShortcut(QtGui.QKeySequence("Ctrl+Shift+C"))
+        self.clear_all_action.setToolTip("Remove all datasets (Ctrl+Shift+C)")
+        self.clear_all_action.triggered.connect(self._on_clear_all_clicked)
+        toolbar.addAction(self.clear_all_action)
+
+        layout.addWidget(toolbar)
 
         # Tree view + model
         self.dataset_view = QtWidgets.QTreeView()
@@ -144,3 +177,38 @@ class DatasetPanel(QtWidgets.QWidget):
         valid_indexes = [idx for idx in selected_indexes if idx.parent().isValid()]
         if valid_indexes:
             self.removeRequested.emit(valid_indexes)
+
+    def _on_remove_selected_clicked(self) -> None:
+        """Handle 'Remove Selected' toolbar button click."""
+        if self.dataset_view is None:
+            return
+
+        selected_indexes = self.dataset_view.selectionModel().selectedRows()
+        if not selected_indexes:
+            return
+
+        # Filter out the root "Originals" item
+        valid_indexes = [idx for idx in selected_indexes if idx.parent().isValid()]
+        if valid_indexes:
+            self.removeRequested.emit(valid_indexes)
+
+    def _on_clear_all_clicked(self) -> None:
+        """Handle 'Clear All' toolbar button click with confirmation."""
+        if self.dataset_model is None or self._originals_item is None:
+            return
+
+        # Check if there are any datasets to remove
+        if self._originals_item.rowCount() == 0:
+            return
+
+        # Show confirmation dialog
+        reply = QtWidgets.QMessageBox.question(
+            self,
+            "Clear All Datasets",
+            f"Remove all {self._originals_item.rowCount()} dataset(s)?\n\nThis cannot be undone.",
+            QtWidgets.QMessageBox.StandardButton.Yes | QtWidgets.QMessageBox.StandardButton.No,
+            QtWidgets.QMessageBox.StandardButton.No,
+        )
+
+        if reply == QtWidgets.QMessageBox.StandardButton.Yes:
+            self.clearAllRequested.emit()

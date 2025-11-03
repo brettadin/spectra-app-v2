@@ -29,7 +29,8 @@ from app.services import (
     KnowledgeLogEntry,
     KnowledgeLogService,
     RemoteDataService,
-    RemoteRecord,
+        RemoteRecord,
+        CalibrationService,
 )
 from app.ui.plot_pane import PlotPane, TraceStyle
 from app.ui.remote_data_panel import RemoteDataPanel
@@ -37,6 +38,7 @@ from app.ui.dataset_panel import DatasetPanel
 from app.ui.reference_panel import ReferencePanel
 from app.ui.merge_panel import MergePanel
 from app.ui.history_panel import HistoryPanel
+from app.ui.calibration_panel import CalibrationPanel
 from app import main as main_module  # for monkeypatchable proxies (ExportCenterDialog, nist_asd_service, SAMPLES_DIR)
 from app.utils.error_handling import ui_action
 
@@ -108,6 +110,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             remote_store = LocalStore(base_dir=self._default_store_dir)
         self.remote_data_service = RemoteDataService(remote_store)
         self.math_service = MathService(self.units_service)
+        self.calibration_service = CalibrationService()
         self.knowledge_log = knowledge_log_service or KnowledgeLogService(
             default_context="Spectra Desktop Session"
         )
@@ -241,6 +244,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.dataset_panel.filterTextChanged.connect(self._on_dataset_filter_changed)
         self.dataset_panel.removeRequested.connect(self._remove_selected_datasets)
         self.dataset_panel.selectionChanged.connect(self._update_merge_preview)
+        self.dataset_panel.clearAllRequested.connect(self._clear_all_datasets)
         # Existing model signal (still needed for visibility checkbox changes)
         self.dataset_model.itemChanged.connect(self._on_dataset_item_changed)
 
@@ -310,6 +314,11 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
 
         self.inspector_tabs.addTab(self.reference_panel, "Reference")
 
+        # Calibration tab (lightweight controls applied at display-time)
+        self.calibration_panel = CalibrationPanel(self)
+        self.calibration_panel.configChanged.connect(self._on_calibration_changed)
+        self.inspector_tabs.addTab(self.calibration_panel, "Calibration")
+
         # Remote Data tab
         self.remote_data_panel = RemoteDataPanel(
             self.remote_data_service,
@@ -359,6 +368,17 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.addDockWidget(QtCore.Qt.DockWidgetArea.RightDockWidgetArea, self.history_dock)
         # Don't auto-show History dock - let users open it via View menu when needed
         self.history_table.itemSelectionChanged.connect(self._on_history_row_selected)
+        # Wire HistoryPanel signals
+        if hasattr(self.history_panel, "filterTextChanged"):
+            self.history_panel.filterTextChanged.connect(self._on_history_filter_changed)
+        if hasattr(self.history_panel, "refreshRequested"):
+            self.history_panel.refreshRequested.connect(self._refresh_history_view)
+        if hasattr(self.history_panel, "copyRequested"):
+            self.history_panel.copyRequested.connect(self._copy_history_entries)
+        if hasattr(self.history_panel, "exportRequested"):
+            self.history_panel.exportRequested.connect(self._export_history_entries)
+        # Initialize search state and populate view
+        self._history_search = ""
         self._refresh_history_view()
 
         # Plot toolbar
@@ -394,6 +414,36 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
 
         # Status bar
         self.statusBar().showMessage("Ready")
+
+    # ----------------------------- Calibration -------------------------
+    def _on_calibration_changed(self, payload: Mapping[str, Any]) -> None:
+        try:
+            self.calibration_service.set_target_fwhm(payload.get("target_fwhm"))
+            self.calibration_service.set_rv_kms(float(payload.get("rv_kms", 0.0) or 0.0))
+            frame = str(payload.get("frame") or "observer")
+            if frame in ("observer", "rest"):
+                self.calibration_service.set_frame(frame)  # currently informational
+        except Exception:
+            pass
+        # Refresh plot and data table to reflect new calibration settings
+        try:
+            self._refresh_plot()
+            self._refresh_data_table()
+        except Exception:
+            pass
+
+    def _apply_calibration_nm(self, x_nm: np.ndarray, y: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+        """Apply calibration in nm-space and return transformed arrays.
+
+        The CalibrationService operates in the current x-units; we interpret the
+        configured FWHM as matching the current display axis. For simplicity and
+        stability, we apply in nanometers here, which aligns with PlotPane data.
+        """
+        try:
+            x_c, y_c, _s, _meta = self.calibration_service.apply(x_nm, y, None)
+            return np.asarray(x_c, dtype=float), np.asarray(y_c, dtype=float)
+        except Exception:
+            return x_nm, y
 
     def _setup_menu(self) -> None:
         menu = self.menuBar()
@@ -463,7 +513,56 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
 
     def _wire_shortcuts(self) -> None:
         # Keep minimal; menu items already provide the primary access paths.
-        pass
+        # Focus dataset filter (Ctrl+L)
+        try:
+            focus_filter = QtGui.QShortcut(QtGui.QKeySequence("Ctrl+L"), self)
+            focus_filter.setContext(QtCore.Qt.ShortcutContext.ApplicationShortcut)
+            focus_filter.activated.connect(lambda: self._focus_dataset_filter())
+        except Exception:
+            pass
+
+        # Show/Raise History dock (Ctrl+Shift+H)
+        try:
+            show_history = QtGui.QShortcut(QtGui.QKeySequence("Ctrl+Shift+H"), self)
+            show_history.setContext(QtCore.Qt.ShortcutContext.ApplicationShortcut)
+            show_history.activated.connect(lambda: self._show_history_dock())
+        except Exception:
+            pass
+
+        # Switch to Merge/Average tab (Ctrl+M)
+        try:
+            go_merge = QtGui.QShortcut(QtGui.QKeySequence("Ctrl+M"), self)
+            go_merge.setContext(QtCore.Qt.ShortcutContext.ApplicationShortcut)
+            go_merge.activated.connect(lambda: self._show_merge_tab())
+        except Exception:
+            pass
+
+    def _focus_dataset_filter(self) -> None:
+        try:
+            self.dataset_dock.raise_()
+            self.data_tabs.setCurrentIndex(0)  # Datasets tab
+            if hasattr(self, "dataset_filter") and self.dataset_filter is not None:
+                self.dataset_filter.setFocus(QtCore.Qt.FocusReason.ShortcutFocusReason)
+                self.dataset_filter.selectAll()
+        except Exception:
+            pass
+
+    def _show_history_dock(self) -> None:
+        try:
+            self.history_dock.show()
+            self.history_dock.raise_()
+        except Exception:
+            pass
+
+    def _show_merge_tab(self) -> None:
+        try:
+            self.inspector_dock.show()
+            self.inspector_dock.raise_()
+            index = self.inspector_tabs.indexOf(self.merge_panel)
+            if index != -1:
+                self.inspector_tabs.setCurrentIndex(index)
+        except Exception:
+            pass
 
     def _build_library_tab(self) -> None:
         # Ensure library tab header is correct and has a placeholder
@@ -567,6 +666,9 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             except Exception:
                 x_nm = np.asarray(spec.x, dtype=float)
                 y_converted = np.asarray(spec.y, dtype=float)
+        # Apply calibration in nm space
+        x_nm, y_converted = self._apply_calibration_nm(x_nm, y_converted)
+
         # Convert nm to display unit
         if unit == "nm":
             x_disp = x_nm
@@ -916,9 +1018,10 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                 x_nm = np.asarray(spectrum.x, dtype=float)
                 y_converted = np.asarray(spectrum.y, dtype=float)
         
-        # Apply current normalization mode
+        # Apply calibration then current normalization mode
         norm_mode = self.norm_combo.currentText()
-        y_data = self._apply_normalization(y_converted, norm_mode)
+        x_nm, y_cal = self._apply_calibration_nm(x_nm, y_converted)
+        y_data = self._apply_normalization(y_cal, norm_mode)
         # If this is the first dataset and the original x-unit was microns, switch display to µm
         try:
             is_first_dataset = (len(self._dataset_items) == 0)
@@ -1055,6 +1158,41 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         else:
             self._log("Datasets", f"Removed {len(spec_ids_to_remove)} datasets")
 
+    def _clear_all_datasets(self) -> None:
+        """Remove all datasets from the overlay and UI (called after confirmation)."""
+        if self._originals_item is None or self._originals_item.rowCount() == 0:
+            return
+
+        # Collect all spectrum IDs
+        spec_ids_to_remove = list(self._dataset_items.keys())
+
+        # Remove from overlay service and plot
+        for spec_id in spec_ids_to_remove:
+            try:
+                self.overlay_service.remove(spec_id)
+            except Exception:
+                pass
+
+            try:
+                self.plot.remove_trace(spec_id)
+            except Exception:
+                pass
+
+        # Clear internal tracking dictionaries
+        self._dataset_items.clear()
+        self._spectrum_colors.clear()
+        self._visibility.clear()
+        self._display_y_units.clear()
+
+        # Remove all rows from the model
+        self._originals_item.removeRows(0, self._originals_item.rowCount())
+
+        # Update math selectors
+        self._update_math_selectors()
+
+        # Log the removal
+        self._log("Datasets", f"Cleared all {len(spec_ids_to_remove)} dataset(s)")
+
     def _on_doc_selected(self, row: int) -> None:
         if self.docs_list is None or self.doc_viewer is None:
             return
@@ -1112,8 +1250,9 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                     )
                     y_converted = np.asarray(spec.y, dtype=float)
                 self.plot.update_alias(spec.id, spec.name)
-                # Apply normalization
-                y_data = self._apply_normalization(y_converted, norm_mode)
+                # Apply calibration then normalization
+                x_nm, y_cal = self._apply_calibration_nm(x_nm, y_converted)
+                y_data = self._apply_normalization(y_cal, norm_mode)
                 color = self._spectrum_colors.get(spec.id, QtGui.QColor("white"))
                 style = TraceStyle(color=color, width=1.5, show_in_legend=True)
                 self.plot.add_trace(
@@ -1669,7 +1808,9 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
     def _refresh_history_view(self) -> None:
         entries = []
         try:
-            entries = self.knowledge_log.load_entries()
+            # Apply active search text if available
+            search = getattr(self, "_history_search", "") or None
+            entries = self.knowledge_log.load_entries(search=search)
         except Exception:
             entries = []
         self._history_entries = list(entries)
@@ -1690,6 +1831,49 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             return
         entry = self._history_entries[row]
         self.history_detail.setPlainText(entry.raw)
+
+    def _on_history_filter_changed(self, text: str) -> None:
+        # Persist search text on the instance and refresh the table
+        self._history_search = text
+        self._refresh_history_view()
+
+    def _copy_history_entries(self, rows: list[int]) -> None:
+        if not rows:
+            return
+        rows = [r for r in rows if 0 <= r < len(self._history_entries)]
+        if not rows:
+            return
+        payload = "\n\n".join(self._history_entries[r].raw.strip() for r in rows)
+        cb = QtWidgets.QApplication.clipboard() if hasattr(QtWidgets, "QApplication") else None
+        try:
+            if cb is not None:
+                cb.setText(payload)
+            self._log("History", f"Copied {len(rows)} entr{'y' if len(rows)==1 else 'ies'} to clipboard")
+        except Exception:
+            pass
+
+    def _export_history_entries(self, rows: list[int]) -> None:
+        if not rows:
+            return
+        rows = [r for r in rows if 0 <= r < len(self._history_entries)]
+        if not rows:
+            return
+        # Prompt for destination
+        path_str, _ = QtWidgets.QFileDialog.getSaveFileName(
+            self,
+            "Export History Entries",
+            str(Path.home() / "history_export.md"),
+            "Markdown (*.md);;All files (*.*)",
+        )
+        if not path_str:
+            return
+        try:
+            selected = [self._history_entries[r] for r in rows]
+            dest = Path(path_str)
+            self.knowledge_log.export_entries(dest, selected)
+            self._log("History", f"Exported {len(selected)} entr{'y' if len(selected)==1 else 'ies'} → {dest.name}")
+        except Exception as exc:
+            self._log("History", f"Failed to export entries: {exc}")
 
     # ----------------------------- Merge/Average helpers ----------------
     def _update_merge_preview(self) -> None:

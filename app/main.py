@@ -22,6 +22,7 @@ from app.logging_config import setup_logging
 from app.ui.main_window import SpectraMainWindow
 from app.ui.export_center_dialog import ExportCenterDialog  # re-export for tests monkeypatch
 from app.services import nist_asd_service  # re-export for tests monkeypatch
+from app.ui.styles import get_app_stylesheet, apply_pyqtgraph_theme
 
 QtCore: Any
 QtGui: Any
@@ -78,6 +79,12 @@ def main(argv: list[str] | None = None) -> int:
     app = QtWidgets.QApplication.instance() or QtWidgets.QApplication(argv or sys.argv)
     app.setApplicationName("Spectra App")
     app.setOrganizationName("Spectra")
+    # Apply modern dark stylesheet and matching plot theme
+    try:
+        app.setStyleSheet(get_app_stylesheet())
+        apply_pyqtgraph_theme()
+    except Exception:
+        pass
 
     window: SpectraMainWindow = SpectraMainWindow()
     window.show()

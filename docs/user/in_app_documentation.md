@@ -24,6 +24,11 @@ application so you can reference workflows without leaving the workspace.
   line-shape placeholders, and JWST quick-look spectra described in `docs/user/reference_data.md`. Use the filter bar to
   slice the tables by wavelength, functional group, or citation keyword while keeping the metadata panel visible.
 
+> Patch notes
+>
+> The Docs tab includes **Patch Notes** with high-level changes for each release (e.g., 0.1.0). Open it from the list to
+> see what changed without leaving the app.
+
 ## Troubleshooting
 
 - If the Docs tab reports that no topics were found, confirm the application
@@ -32,3 +37,14 @@ application so you can reference workflows without leaving the workspace.
 - The viewer is read-only. To edit the guides, continue working with the files
   on disk and refresh the viewer (Help → View Documentation) to pick up the
   latest version.
+
+## Keyboard shortcuts (quick list)
+
+- F1 – View Documentation (opens this viewer)
+- Ctrl+Shift+R – Show Remote Data tab (Inspector)
+- Ctrl+Shift+A – Reset Plot
+- Del – Remove selected datasets (Data → Datasets)
+- Ctrl+Shift+C – Clear all datasets (with confirmation)
+- Ctrl+L – Focus the datasets filter (type to search)
+- Ctrl+Shift+H – Show History dock
+- Ctrl+M – Switch to Merge/Average tab

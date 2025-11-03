@@ -1,6 +1,6 @@
 # Remote data catalogue workflow
 
-The **Remote Data** dialog lets you browse curated catalogues without leaving the
+The **Remote Data** tab (inside the Inspector dock) lets you browse curated catalogues without leaving the
 desktop preview. Searches are routed through provider-specific adapters and the
 downloads are cached in your local Spectra data directory so you can re-open
 them even when offline. The workflow prioritises calibrated spectroscopic data
@@ -22,9 +22,9 @@ directly against laboratory references.
 > is missing the dialog lists the provider as unavailable and disables the
 > corresponding search controls until installation is complete.
 
-## Opening the dialog
+## Opening the tab
 
-1. Choose **File → Fetch Remote Data…** (or press `Ctrl+Shift+R`).
+1. Press `Ctrl+Shift+R` (or choose **File → Show Remote Data Tab…**). The Inspector will raise and switch to **Remote Data**.
 2. Pick a catalogue from the *Catalogue* selector. The current build focuses on:
    - **MAST ExoSystems** – Chains NASA’s Exoplanet Archive (PS/PSCompPars), curated solar-system targets, and Exo.MAST spectra before querying MAST for calibrated products.
    - **MAST** – Direct access to the Mikulski Archive observations catalogue via `astroquery.mast`.
@@ -39,7 +39,7 @@ directly against laboratory references.
 
 - **MAST ExoSystems** – Accepts planet, host-star, and solar-system names. Use the **Solar System** quick-pick to launch canonical queries for Mercury, Venus, Earth, Mars, Jupiter, Saturn, Uranus, Neptune, and Pluto with a single click. Manual queries should stay short—just the target or system name—so the adapter can resolve coordinates via the Exoplanet Archive, merge curated fallbacks (Vega, Tau Ceti, HD 189733), fetch Exo.MAST file lists, and finally query MAST for calibrated (`dataproduct_type="spectrum"`, `calib_level=[2, 3]`, `intentType="SCIENCE"`) products. Expect enriched metadata (host parameters, discovery method, curated citations) alongside each spectrum. The **Examples…** menu now highlights HD 189733 b, HD 189733, TRAPPIST‑1, Vega, and Tau Ceti. Enable **Include imaging** to surface calibrated preview images in addition to spectra. Names with spaces (for example `WASP-39 b`) are handled automatically; no manual encoding is required.
 
-  Planet previews omit the discovery year when the archive reports it as unknown so incomplete metadata no longer interrupts the dialog.
+  Planet previews omit the discovery year when the archive reports it as unknown so incomplete metadata no longer interrupts the panel.
 
 - **MAST** – Free-text input is rewritten to `target_name` before invoking `astroquery.mast.Observations.query_criteria`, and the adapter injects `dataproduct_type="spectrum"`, `intentType="SCIENCE"`, and `calib_level=[2, 3]` filters automatically. Supply JWST target names or instrument identifiers (e.g. `NGC 7023`, `NIRSpec grism`). Tick **Include imaging** to relax the product filter so calibrated imaging results appear alongside spectra.
 
