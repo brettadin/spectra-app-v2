@@ -239,6 +239,11 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.plot.remove_export_from_context_menu()
         self.central_split.addWidget(self.plot)
         self.plot.autoscale()
+        # Live cursor readout in status bar
+        try:
+            self.plot.pointHovered.connect(self._on_plot_point_hovered)
+        except Exception:
+            pass
         # Keep reference overlays in sync with view changes (zoom/pan)
         try:
             self.plot.rangeChanged.connect(lambda *_: self._refresh_reference_overlay_geometry())
@@ -462,6 +467,48 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
 
         # Status bar
         self.statusBar().showMessage("Ready")
+
+    # ----------------------------- Status readout ----------------------
+    def _on_plot_point_hovered(self, x: float, y: float) -> None:
+        """Update the status bar with live cursor coordinates.
+
+        - x is already in the current display unit from PlotPane; just label it.
+        - y reflects normalized + Y-scale transformed values shown on the canvas.
+        """
+        try:
+            unit = self.unit_combo.currentText() if hasattr(self, "unit_combo") and self.unit_combo is not None else "nm"
+        except Exception:
+            unit = "nm"
+        # Build a compact formatting with graceful handling of NaNs
+        def _fmt(val: float) -> str:
+            try:
+                if val is None or not np.isfinite(val):
+                    return "—"
+                # Use 6 significant digits for x, 6 for y
+                return f"{float(val):.6g}"
+            except Exception:
+                return "—"
+
+        try:
+            scale = self.y_scale_combo.currentText() if hasattr(self, "y_scale_combo") and self.y_scale_combo is not None else "Linear"
+        except Exception:
+            scale = "Linear"
+        scale_suffix = "" if scale == "Linear" else f" [{scale}]"
+        # Normalization badges (mode + Global toggle)
+        try:
+            norm_mode = self.norm_combo.currentText() if hasattr(self, "norm_combo") and self.norm_combo is not None else "None"
+        except Exception:
+            norm_mode = "None"
+        try:
+            is_global = bool(self.norm_global_checkbox.isChecked()) if hasattr(self, "norm_global_checkbox") else False
+        except Exception:
+            is_global = False
+        norm_suffix = "" if norm_mode == "None" else f" [{norm_mode}{'•Global' if is_global else ''}]"
+        try:
+            # Keep it short; include units and any non-linear scale indicator
+            self.statusBar().showMessage(f"x: {_fmt(x)} {unit} | y: {_fmt(y)}{scale_suffix}{norm_suffix}")
+        except Exception:
+            pass
 
     # ----------------------------- Calibration -------------------------
     def _on_calibration_changed(self, payload: Mapping[str, Any]) -> None:

@@ -1,13 +1,28 @@
 # Repository Inventory and Status
 
-> Archived notice (2025-11-02): This inventory has been archived to
-> `docs/history/archive/2025-11-02-pre-cleanup/repo_inventory.md`.
-> For a current overview, see `docs/INDEX.md` and browse the repository tree.
+Status: Active (Cleanup branch). The original pre-cleanup snapshot lives under
+`docs/history/archive/2025-11-02-pre-cleanup/repo_inventory.md`. This file is now
+the canonical, live catalog during consolidation. See `docs/INDEX.md` for the
+global map.
 
-**Generated**: 2025-11-02T10:27:35-05:00 (America/New_York) / 2025-11-02T15:27:32+00:00 (UTC)
+**Generated (initial)**: 2025-11-02T10:27:35-05:00 (America/New_York) / 2025-11-02T15:27:32+00:00 (UTC)
+**Updated**: 2025-11-04T00:00:00-05:00 (America/New_York) / 2025-11-04T05:00:00+00:00 (UTC)
 
 This document surveys the Spectra desktop preview repository, catalogues every tracked path, and summarises the functional status
 of major features, libraries, and outstanding follow-up work.
+
+## Path aliases and invariants (modular locations)
+
+To keep docs and code resilient to the storage migration, we refer to logical aliases rather than hard paths. See
+`docs/specs/path_aliases.md` for full details. Summary:
+
+- storage://cache → storage for fetched/derived blobs (was downloads/)
+- storage://exports → exported manifests, spectra CSVs, images (was exports/)
+- storage://curated → large curated demo/regression datasets (moved from samples/)
+- samples:// → tiny quick-start files kept in repo (subset of samples/)
+
+In code, these map via LocalStore/Export centers; in docs, prefer these aliases in prose and diagrams. Acceptance: no doc or code
+relies on downloads/ or exports/ directly after migration.
 
 ## Project Overview
 
@@ -80,7 +95,7 @@ Each table lists immediate children for the given scope with concise description
 | `app/` | dir | Application source code (services, UI, data). |
 | `docs/` | dir | Comprehensive documentation library. |
 | `downloads/` | dir | Placeholder tree for retrieved remote datasets. |
-| `exports/` | dir | Sample export manifests and data products. |
+| `exports/` | dir | Sample export manifests and data products. (Target → storage/exports/) |
 | `goals.txt` | file | High-level product goals. |
 | `packaging/` | dir | Packaging metadata and installer assets. |
 | `pyproject.toml` | file | Project metadata and dependencies. |
@@ -173,8 +188,8 @@ Each table lists immediate children for the given scope with concise description
 ### Data and Sample Trees
 | Path | Type | Description |
 | --- | --- | --- |
-| `downloads/` | dir | Empty staging directories for remote downloads (`_incoming`, `files/`). |
-| `exports/` | dir | Example export outputs (CSV bundles under `spectra/` and manifests in `sources/`). |
+| `downloads/` | dir | Empty staging directories for remote downloads (`_incoming`, `files/`). (Target → storage/cache/) |
+| `exports/` | dir | Example export outputs (CSV bundles under `spectra/` and manifests in `sources/`). (Target → storage/exports/) |
 | `samples/IR data/` | dir | Laboratory IR CSV/JCAMP datasets for CO₂/H₂O experiments. |
 | `samples/SOLAR SYSTEM/` | dir | Mercury MASCS sample packages with PDS metadata. |
 | `samples/SUN AND MOON/` | dir | Solar/lunar reference spectra. |
@@ -186,6 +201,9 @@ Each table lists immediate children for the given scope with concise description
 
 > **Note**: Each sample subdirectory retains raw datasets for demonstrations; see the [Complete Path Index](#complete-path-index)
 > for an exhaustive list of individual files.
+
+Migration note: Heavy subtrees under `samples/` are scheduled to move to `storage/curated/` per the Cleanup Plan. Keep only tiny
+quick-start examples in `samples/`.
 
 ### Testing and Tooling
 | Path | Type | Description |
@@ -1199,4 +1217,25 @@ tools/validate_manifest.py
 ui_screenshot.png
 ui_screenshot_datasets.png
 ```
+
+---
+
+## Module/service contracts (high-level)
+
+The following modules constitute stable contracts used throughout the app. Their purposes are summarized here; see inline
+docstrings and `docs/specs/*` for deeper details.
+
+- `app/services/units_service.py` (UnitsService): Canonical unit conversions to/from nm; guards for Å/µm/cm⁻¹; invariant: internal nm.
+- `app/services/store.py` (LocalStore): Persistence and index for ingested files and remote downloads; default base path will pivot to
+  storage://cache during consolidation.
+- `app/services/remote_data_service.py` (RemoteDataService): Provider registry and fetch/search orchestration; invariant: validate inputs;
+  do not hit network on empty queries.
+- `app/services/nist_asd_service.py`: NIST ASD queries with disk cache. Cache subpath: storage://cache/_cache/line_lists (configurable).
+- `app/services/data_ingest_service.py`: Ingest orchestrator dispatching to importers; provenance attribution; emits Spectrum objects.
+- `app/services/provenance_service.py`: Export manifest assembly; view-state capture goals defined in `docs/specs/provenance_schema.json`.
+- `app/ui/plot_pane.py` (PlotPane): PyQtGraph plot widget; hover signals; crosshair; LOD behavior.
+- `app/ui/main_window.py` (SpectraMainWindow): Display-time calibration, normalization (per/global), Y-scale transforms, status readout.
+
+Testing invariants: unit conversions are round-trippable; normalization ignores NaN/Inf when computing scales; cm⁻¹ display remains
+monotonic; cache reads never mutate source arrays; exports include sufficient provenance to replay views (see backlog).
 

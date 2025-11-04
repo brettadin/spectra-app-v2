@@ -16,6 +16,26 @@ below—future agents rely on these conventions to maintain continuity.
 - `START_HERE.md` – Session primer. Confirms tooling setup, branch workflow,
   and how to use this manual in practice.
 
+### Consolidation rules (Cleanup branch)
+
+When adding or moving files, follow the Cleanup & Consolidation Master Plan:
+
+- Read `docs/reviews/cleanup_consolidation_plan.md` before touching storage paths or documentation families.
+- Prefer the `storage/` tree for data at rest:
+  - `storage/cache/` (was `downloads/`)
+  - `storage/exports/` (was `exports/`)
+  - `storage/curated/` for large demo/fixture datasets (trim `samples/`)
+- Keep user guides in `docs/user/`, stable contracts in `docs/specs/`, orchestration in `docs/reviews/`.
+- Update `docs/INDEX.md` and add temporary redirect stubs when relocating content.
+- Record changes with ET/UTC timestamps in worklogs and patch notes.
+
+Path aliases (modular storage)
+- Use logical aliases in code and docs to avoid hardcoding moving folders. See `docs/specs/path_aliases.md`.
+- Code MUST resolve `storage://cache` and `storage://exports` via a central helper; docs SHOULD reference aliases parenthetically during the soak window.
+
+Commenting & docstrings
+- Follow `docs/dev/COMMENTING_GUIDE.md` when adding or touching code. Prioritize module headers and public API docstrings.
+
 ### Per-change checklist (log as you go)
 
 Every time you land a change (even small ones), update these:

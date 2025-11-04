@@ -24,11 +24,14 @@ Note: If a specific guide is missing, check `docs/user/` for additional topics.
 - Plugin development guide: [specs/plugin_dev_guide.md](../specs/plugin_dev_guide.md)
 - Testing: [specs/testing.md](../specs/testing.md)
 - Units and conversions: [specs/units_and_conversions.md](../specs/units_and_conversions.md)
+ - Cleanup & consolidation plan: [reviews/cleanup_consolidation_plan.md](./reviews/cleanup_consolidation_plan.md)
+ - Path aliases (modular storage): [specs/path_aliases.md](./specs/path_aliases.md)
+ - Commenting & docstrings guide: [dev/COMMENTING_GUIDE.md](./dev/COMMENTING_GUIDE.md)
 
 ### Cleanup Branch (Nov 2025)
 - Patch notes (latest changes): [docs/history/PATCH_NOTES.md](./history/PATCH_NOTES.md)
 - Enhancement plan status (stub + archive link): [docs/ENHANCEMENT_PLAN_STATUS.md](./ENHANCEMENT_PLAN_STATUS.md)
-- Repository inventory (archived snapshot): [docs/repo_inventory.md](./repo_inventory.md)
+- Repository inventory (active annotated catalog): [docs/repo_inventory.md](./repo_inventory.md)
 - Capability atlas (archived snapshot): [docs/app_capabilities.md](./app_capabilities.md)
 - Roadmap: [reports/roadmap.md](../reports/roadmap.md)
 
@@ -37,6 +40,7 @@ Note: If a specific guide is missing, check `docs/user/` for additional topics.
 - Provenance schema: [specs/provenance_schema.md](../specs/provenance_schema.md)
 - UI contract: [specs/ui_contract.md](../specs/ui_contract.md)
 - Docs inventory and links: [docs/link_collection.md](./link_collection.md)
+- Spectral analysis toolkit plan: [specs/analysis_toolkit.md](./specs/analysis_toolkit.md)
 
 ## History & Decisions
 - Knowledge log (curated): [docs/history/KNOWLEDGE_LOG.md](./history/KNOWLEDGE_LOG.md)

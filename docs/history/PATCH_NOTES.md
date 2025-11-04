@@ -1,5 +1,11 @@
 # Patch Notes
 
+## 2025-11-04 (Live cursor readout, NIST caching) — 15:40 ET / 20:40Z UTC
+- Live cursor coordinate readout in the status bar: shows x in the active unit (nm/Å/µm/cm⁻¹) and y as displayed post‑normalization. When a non‑linear Y‑scale is active, a short suffix (e.g., `[Log10]`, `[Asinh]`) is appended.
+- Status readout now also shows normalization badges when enabled (e.g., `[Max]`, `[Area]`, plus `[•Global]` when global normalization is active).
+- Updated `docs/user/plot_tools.md` to describe the readout and note planned peak‑finding helpers.
+- Added a design doc for the upcoming analysis toolkit (peak picker, centroid/FWHM/EW, alignment, comparison tools): `docs/specs/analysis_toolkit.md` and linked it from the docs index.
+
 ## 2025-11-04 (NIST line list caching) — 14:25 ET / 19:25Z UTC
 - **Line list caching**: NIST spectral line queries are now automatically cached on disk after the first fetch. Repeated queries for the same element, ion stage, and wavelength range return instantly from cache without network access.
   - Cache location: `downloads/_cache/line_lists/`

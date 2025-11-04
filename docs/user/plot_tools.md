@@ -21,9 +21,13 @@ When dozens of spectra are loaded, use the search field at the top of the **Data
 
 ## Reading the status bar and inspector
 
-Moving the mouse over the plot updates the status bar with the current cursor coordinates in the active display units. When the Inspector dock is visible, the **Info** tab also highlights the selected trace's sample count, value range, and original units so you can confirm whether a spike is physical or an artefact.
+Moving the mouse over the plot updates the status bar with live cursor coordinates. The x value uses the current display unit (nm/Å/µm/cm⁻¹). The y value reflects what you see on the canvas (post‑normalization). When a non‑linear Y‑scale is active, the status bar appends a short suffix (e.g., `[Log10]`, `[Asinh]`). If normalization is enabled, the readout also shows `[Max]` or `[Area]` and tags `[•Global]` when global normalization is active.
+
+When the Inspector dock is visible, the **Info** tab also highlights the selected trace's sample count, value range, and original units so you can confirm whether a spike is physical or an artefact.
 
 The **Cursor** toolbar toggle controls whether the crosshair guides are visible. Leave it enabled when measuring peaks; turn it off if you need an unobstructed screenshot.
+
+> Note: Planned enhancement — show the pre‑scale y value alongside the transformed value when a non‑linear Y‑scale is active, and surface quick “Find peak near cursor” and “Jump to max” actions near the plot and in the Data Table.
 
 ## Legend & trace management
 
