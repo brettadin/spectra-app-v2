@@ -24,6 +24,11 @@ spectroscopy-focused resources that align with the app’s analytical goals.
   screen using distinct palette colours (or the uniform colour, when enabled). When you toggle **Overlay on plot**, all pinned
   sets are projected into the main workspace in the current unit system so you can compare multiple laboratory references
   against imported spectra without re-parsing JSON manifests.
+- **Caching**: NIST line lists are automatically cached on disk (in `downloads/_cache/line_lists/`) after the first fetch. Subsequent
+  queries for the same element, ion stage, and wavelength range return instantly from the cache without hitting the network. Cache
+  entries expire after 365 days (spectral lines are stable reference data). Cached fetches show a `[cached]` indicator in the status
+  message. Use the **Clear Cache** button to remove all cached line lists (e.g., to force fresh downloads or free disk space). The cache
+  can be disabled entirely by setting the `SPECTRA_DISABLE_LINE_CACHE=1` environment variable before launching the app.
 
 ## Infrared functional groups
 

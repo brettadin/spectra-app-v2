@@ -1,5 +1,16 @@
 # Patch Notes
 
+## 2025-11-04 (NIST line list caching) — 14:25 ET / 19:25Z UTC
+- **Line list caching**: NIST spectral line queries are now automatically cached on disk after the first fetch. Repeated queries for the same element, ion stage, and wavelength range return instantly from cache without network access.
+  - Cache location: `downloads/_cache/line_lists/`
+  - Cache entries expire after 365 days (spectral lines are stable reference data)
+  - Cached results show a `[cached]` indicator in the Reference tab status message
+  - Added **Clear Cache** button to the Reference tab (NIST ASD section) to remove all cached line lists
+  - Cache can be disabled via `SPECTRA_DISABLE_LINE_CACHE=1` environment variable
+  - Cache statistics (hits/misses/stores/evictions) available via `nist_asd_service.cache_stats()`
+- Updated `docs/user/reference_data.md` with caching behavior documentation
+- Added comprehensive test coverage: 12 unit tests for cache service, 7 integration tests for NIST flow
+
 ## 2025-11-04 (Worklog helper and logging docs)
 - Added `tools/worklog_helper.py`, a zero-dependency helper that prints:
   - Today’s ET-based worklog filename suggestion (`docs/dev/worklog/YYYY-MM-DD.md`)

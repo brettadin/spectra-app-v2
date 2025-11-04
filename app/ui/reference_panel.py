@@ -112,9 +112,11 @@ class ReferencePanel(QtWidgets.QWidget):
         self.nist_fetch_button = QtWidgets.QPushButton("Fetch")
         # Wire fetch button
         self.nist_fetch_button.clicked.connect(self._on_nist_fetch_clicked)
-        # Extra controls: show selected only, clear pins
+        # Extra controls: show selected only, clear pins, cache management
         self.nist_show_selected_only = QtWidgets.QCheckBox("Show selected only")
         self.nist_clear_button = QtWidgets.QPushButton("Clear Pins")
+        self.nist_cache_button = QtWidgets.QPushButton("Clear Cache")
+        self.nist_cache_button.setToolTip("Clear all cached NIST line lists")
         
         for w in (
             QtWidgets.QLabel("Element:"),
@@ -126,6 +128,7 @@ class ReferencePanel(QtWidgets.QWidget):
             self.nist_fetch_button,
             self.nist_show_selected_only,
             self.nist_clear_button,
+            self.nist_cache_button,
         ):
             nist_controls.addWidget(w)
         nist_controls.addStretch(1)

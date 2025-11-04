@@ -39,6 +39,22 @@ This is the concise, human‑curated history for Spectra App. Routine automation
 
 ---
 
+## 2025-11-04 14:25 (America/New_York) / 19:25Z (UTC) — NIST line list caching
+
+**Author**: GitHub Copilot
+
+**Context**: Reference data, NIST ASD integration, performance optimization
+
+**Summary**: Implemented disk-backed caching for NIST spectral line queries to enable instant offline lookups and avoid repeated network requests. Cache entries are stored as JSON in `downloads/_cache/line_lists/` with 365-day expiry (spectral lines are stable reference data). Cache keys deterministically combine element symbol, ion stage, and wavelength bounds. UI shows `[cached]` indicators for cache hits. Added "Clear Cache" button to Reference tab for manual cache management. Cache can be disabled via `SPECTRA_DISABLE_LINE_CACHE=1` environment variable. Comprehensive test coverage: 12 unit tests (cache service) + 7 integration tests (NIST flow).
+
+**References**:
+- Code: `app/services/line_list_cache.py` (new), `app/services/nist_asd_service.py` (cache integration), `app/ui/main_window.py` (UI wiring)
+- Tests: `tests/test_line_list_cache.py`, `tests/test_nist_cache_integration.py`
+- Docs: `docs/user/reference_data.md` (caching section), `docs/dev/worklog/2025-11-04.md`
+- Patch Notes: `docs/history/PATCH_NOTES.md` (2025-11-04 entry)
+
+---
+
 ## 2025-11-02 10:28 – Repository documentation audit
 
 **Author**: agent (GitHub Copilot)
@@ -2024,3 +2040,111 @@ AND DELETE ALL THE UPLOADED STUFF
 THE KNOWLEDGE LOG IS JUST FOR AGENTS TO WRITE IMPORTANT SHIT INTO
 
 
+## 2025-11-04 14:32 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Air Lamp.csv
+
+**References**:
+- Air Lamp.csv
+
+---
+## 2025-11-04 14:32 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file CO2 Lamp.csv
+
+**References**:
+- CO2 Lamp.csv
+
+---
+## 2025-11-04 14:32 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file H2O Lamp.csv
+
+**References**:
+- H2O Lamp.csv
+
+---
+## 2025-11-04 14:32 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Helium Lamp.csv
+
+**References**:
+- Helium Lamp.csv
+
+---
+## 2025-11-04 14:32 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Hydrogen Lamp.csv
+
+**References**:
+- Hydrogen Lamp.csv
+
+---
+## 2025-11-04 14:32 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Mercury Lamp.csv
+
+**References**:
+- Mercury Lamp.csv
+
+---
+## 2025-11-04 14:32 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Neon Lamp.csv
+
+**References**:
+- Neon Lamp.csv
+
+---
+## 2025-11-04 14:32 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Star Lamp.csv
+
+**References**:
+- Star Lamp.csv
+
+---
+## 2025-11-04 14:32 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Xenon Lamp.csv
+
+**References**:
+- Xenon Lamp.csv
+
+---

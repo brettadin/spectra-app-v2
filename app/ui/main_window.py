@@ -330,6 +330,8 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         )
         self.reference_panel.irFilterChanged.connect(self._on_reference_filter_changed)
         self.reference_panel.tabChanged.connect(lambda _: self._refresh_reference_view())
+        # Cache management
+        self.reference_panel.nist_cache_button.clicked.connect(self._on_nist_cache_clear_clicked)
         # Allow double-click to remove a pinned NIST set
         try:
             self.nist_collections_list.itemDoubleClicked.connect(lambda *_: self._remove_selected_nist_collection())
@@ -1909,6 +1911,9 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                 wavelength_unit="nm",
                 wavelength_type="vacuum",
             )
+            # Show cache status in UI
+            cache_hit = payload.get("meta", {}).get("cache_hit", False)
+            cache_indicator = " [cached]" if cache_hit else ""
         except Exception as exc:
             self.reference_status_label.setText(f"NIST fetch failed: {exc}")
             return
@@ -1961,15 +1966,27 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self._nist_collection_counter += 1
         pin_key = f"set-{self._nist_collection_counter}"
         self._nist_collections[pin_key] = {"payload": single, "label": label}
-        self.nist_collections_list.addItem(f"{label} – pinned")
+        self.nist_collections_list.addItem(f"{label}{cache_indicator} – pinned")
         multi = {"kind": "nist-multi", "payloads": {k: v["payload"] for k, v in self._nist_collections.items()}}
         self._update_reference_overlay_state(multi)
         self.reference_overlay_checkbox.setEnabled(True)
         count = len(self._nist_collections)
         suffix = "set" if count == 1 else "sets"
-        self.reference_status_label.setText(f"{count} pinned {suffix}")
+        stats_msg = f"{count} pinned {suffix}{cache_indicator}"
+        self.reference_status_label.setText(stats_msg)
         # Preview the most recent fetch as bars
         self._preview_reference_payload(single)
+
+    def _on_nist_cache_clear_clicked(self) -> None:
+        """Clear all cached NIST line lists."""
+        try:
+            from app import main as main_module
+            count = main_module.nist_asd_service.clear_cache()
+            stats = main_module.nist_asd_service.cache_stats()
+            msg = f"Cleared {count} cached entries (stats: {stats['hits']} hits, {stats['misses']} misses)"
+            self.reference_status_label.setText(msg)
+        except Exception as exc:
+            self.reference_status_label.setText(f"Cache clear failed: {exc}")
 
     def _remove_selected_nist_collection(self) -> None:
         """Remove the currently selected pinned NIST set (double-click)."""

@@ -8,6 +8,8 @@ import math
 import re
 from typing import Any, Dict, Iterable, List, Mapping, Optional, Tuple
 
+from app.services.line_list_cache import LineListCache
+
 try:  # Optional dependency wired through requirements.txt but guarded for tests
     import astropy.units as u
     from astroquery.nist import Nist
@@ -17,6 +19,10 @@ except Exception as exc:  # pragma: no cover - import guard exercised in negativ
 else:  # pragma: no cover - simple flag assignment
     ASTROQUERY_AVAILABLE = True
     _IMPORT_ERROR = None
+
+
+# Global cache instance shared across all NIST queries
+_CACHE: Optional[LineListCache] = None
 
 
 class NistUnavailableError(RuntimeError):
@@ -177,6 +183,31 @@ def dependencies_available() -> bool:
     """Return True when astroquery is importable and ready for use."""
 
     return ASTROQUERY_AVAILABLE
+
+
+def get_cache() -> LineListCache:
+    """
+    Return the global line list cache instance.
+    
+    Lazily initializes the cache on first access. Cache can be disabled
+    via the SPECTRA_DISABLE_LINE_CACHE environment variable.
+    """
+    global _CACHE
+    if _CACHE is None:
+        import os
+        enabled = os.environ.get("SPECTRA_DISABLE_LINE_CACHE", "").lower() not in {"1", "true", "yes"}
+        _CACHE = LineListCache(enabled=enabled)
+    return _CACHE
+
+
+def clear_cache() -> int:
+    """Clear all cached line lists. Returns the number of entries removed."""
+    return get_cache().clear()
+
+
+def cache_stats() -> Dict[str, int]:
+    """Return cache statistics (hits, misses, stores, evictions)."""
+    return get_cache().stats
 
 
 def _lookup_element(token: str) -> ElementRecord:
@@ -390,8 +421,26 @@ def fetch_lines(
     wavelength_unit: str = "nm",
     use_ritz: bool = True,
     wavelength_type: str = "vacuum",
+    use_cache: bool = True,
 ) -> Dict[str, Any]:
-    """Return spectral line data for the requested element/ion combination."""
+    """
+    Return spectral line data for the requested element/ion combination.
+    
+    Args:
+        identifier: Element identifier (symbol, name, or combined with ion stage)
+        element: Optional separate element identifier
+        ion_stage: Ion stage (I, II, III, 1, 2, 3, or +, ++, etc.)
+        lower_wavelength: Lower wavelength bound for query
+        upper_wavelength: Upper wavelength bound for query
+        wavelength_unit: Unit for wavelength bounds (nm, angstrom, um, etc.)
+        use_ritz: Prefer Ritz wavelengths over observed when available
+        wavelength_type: Wavelength type ('vacuum' or 'air')
+        use_cache: Whether to use cached results (default: True)
+    
+    Returns:
+        Dictionary with wavelength_nm, intensity, intensity_normalized, lines, and meta keys.
+        Meta includes cache_hit boolean indicating whether data came from cache.
+    """
 
     if not dependencies_available():
         raise NistUnavailableError(
@@ -411,6 +460,23 @@ def fetch_lines(
     if lower > upper:
         lower, upper = upper, lower
 
+    # Try cache first if enabled
+    cache_hit = False
+    if use_cache:
+        cache = get_cache()
+        if cache.enabled:
+            cached_data = cache.get(
+                element_record.symbol,
+                stage_value,
+                lower,
+                upper,
+            )
+            if cached_data is not None:
+                # Restore and return cached result
+                cached_data["meta"]["cache_hit"] = True
+                return cached_data
+
+    # Cache miss or disabled - fetch from NIST
     min_wavelength = u.Quantity(lower, unit)
     max_wavelength = u.Quantity(upper, unit)
 
@@ -511,18 +577,33 @@ def fetch_lines(
         "fetched_at_utc": datetime.now(timezone.utc).isoformat(),
         "citation": "Kramida, A. et al. (NIST ASD), https://physics.nist.gov/asd",
         "retrieved_via": "astroquery.nist",
+        "cache_hit": cache_hit,
     }
 
     if not lines:
         meta["note"] = "No spectral lines returned for requested range."
 
-    return {
+    result = {
         "wavelength_nm": wavelength_series,
         "intensity": intensities,
         "intensity_normalized": normalized_series,
         "lines": lines,
         "meta": meta,
     }
+
+    # Store in cache for future use
+    if use_cache:
+        cache = get_cache()
+        if cache.enabled:
+            cache.set(
+                element_record.symbol,
+                stage_value,
+                lower,
+                upper,
+                result,
+            )
+
+    return result
 
 
 def _split_energy(value: Any) -> Tuple[Optional[float], Optional[float]]:
