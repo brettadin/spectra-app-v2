@@ -1,11 +1,30 @@
 # Patch Notes
 
+## 2025-11-04 (Worklog helper and logging docs)
+- Added `tools/worklog_helper.py`, a zero-dependency helper that prints:
+  - Today’s ET-based worklog filename suggestion (`docs/dev/worklog/YYYY-MM-DD.md`)
+  - Current Local ET and UTC times
+  - A ready-to-copy entry header stub
+- Linked the helper from `docs/dev/worklog/README.md` and `TEMPLATE.md` so agents can stamp real ET/UTC times quickly.
+
 ## 2025-11-03 (Calibration UI, Global normalisation, Y‑scale, NaN‑robust scales)
 - Reference overlays
   - NIST bars now rescale when zooming or after normalization changes and draw behind traces (reduced clutter).
   - Bars anchor to y=0 when visible to avoid negative offsets.
   - Each pinned set receives a distinct colour; double‑click a pin in the list to remove it.
   - Library view gained a “Samples” section listing files for one‑click ingest.
+
+- Trace colouring and readability
+  - Expanded the high‑contrast palette to 20+ distinct colours and applied it to datasets as well as line overlays.
+  - The Datasets list now shows a small colour chip next to each alias that matches the plot trace.
+  - Improved dark‑mode checked states for toolbar buttons and checkboxes for better visibility.
+
+- Docs panel polish
+  - The Docs tab now groups entries under bold headers (User, Developer, History, Other) with alphabetical sorting inside each group.
+  - The viewer renders Markdown where supported (Qt setMarkdown), falling back to plain text if unavailable.
+
+- Colour management stability
+  - NIST pinned overlays now draw colours from a dedicated iterator so adding/removing line sets no longer shifts dataset colours mid‑session.
 
 
 Display‑time calibration and visibility improvements

@@ -25,6 +25,13 @@ Note: If a specific guide is missing, check `docs/user/` for additional topics.
 - Testing: [specs/testing.md](../specs/testing.md)
 - Units and conversions: [specs/units_and_conversions.md](../specs/units_and_conversions.md)
 
+### Cleanup Branch (Nov 2025)
+- Patch notes (latest changes): [docs/history/PATCH_NOTES.md](./history/PATCH_NOTES.md)
+- Enhancement plan status (stub + archive link): [docs/ENHANCEMENT_PLAN_STATUS.md](./ENHANCEMENT_PLAN_STATUS.md)
+- Repository inventory (archived snapshot): [docs/repo_inventory.md](./repo_inventory.md)
+- Capability atlas (archived snapshot): [docs/app_capabilities.md](./app_capabilities.md)
+- Roadmap: [reports/roadmap.md](../reports/roadmap.md)
+
 ## Project Specs & References
 - Packaging: [specs/packaging.md](../specs/packaging.md)
 - Provenance schema: [specs/provenance_schema.md](../specs/provenance_schema.md)

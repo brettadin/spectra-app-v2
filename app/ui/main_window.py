@@ -291,7 +291,14 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         docs_layout.setContentsMargins(4, 4, 4, 4)
         self.docs_list = QtWidgets.QListWidget()
         self.docs_list.currentRowChanged.connect(self._on_doc_selected)
-        self.doc_viewer = QtWidgets.QPlainTextEdit(readOnly=True)
+        # Use a rich text viewer so we can render Markdown nicely; fall back to plain text if needed
+        # QTextEdit supports setMarkdown in Qt 5.14+ / Qt6; QTextBrowser is also suitable.
+        try:
+            self.doc_viewer = QtWidgets.QTextEdit()
+            self.doc_viewer.setReadOnly(True)
+        except Exception:
+            # Fallback for environments lacking QTextEdit
+            self.doc_viewer = QtWidgets.QPlainTextEdit(readOnly=True)
         docs_layout.addWidget(self.docs_list, 1)
         docs_layout.addWidget(self.doc_viewer, 2)
         # Expose for tests
@@ -325,7 +332,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.reference_panel.tabChanged.connect(lambda _: self._refresh_reference_view())
         # Allow double-click to remove a pinned NIST set
         try:
-            self.nist_collections_list.itemDoubleClicked.connect(self._remove_selected_nist_collection)
+            self.nist_collections_list.itemDoubleClicked.connect(lambda *_: self._remove_selected_nist_collection())
             # Hint to user
             self.reference_status_label.setText("Double-click a pin to remove it")
         except Exception:
@@ -960,8 +967,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             effective_store = getattr(self.remote_data_service, "store", None)
         entries = effective_store.list_entries() if effective_store is not None else {}
         if entries:
-            cache_root = QtWidgets.QTreeWidgetItem(["Cache", ""])
-            self.library_view.addTopLevelItem(cache_root)
+            # Flatten cache entries as top-level rows for compatibility with existing tests
             for _sha, record in entries.items():
                 name = str(record.get("filename") or Path(str(record.get("stored_path", ""))).name)
                 origin = "Local import"
@@ -972,21 +978,33 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                     identifier = str(remote.get("identifier") or remote.get("id") or "")
                     origin = provider if not identifier else f"{provider} – {identifier}"
                 item = QtWidgets.QTreeWidgetItem([name, origin])
-                cache_root.addChild(item)
-            cache_root.setExpanded(True)
+                self.library_view.addTopLevelItem(item)
+        else:
+            # Backwards-compatible placeholder row when no cache entries exist
+            self.library_view.addTopLevelItem(QtWidgets.QTreeWidgetItem(["No cached files", ""]))
         # Add Samples directory for one-click ingest (read-only reference)
         try:
-            samples_dir = SAMPLES_DIR
-            if samples_dir.exists():
-                samples_root = QtWidgets.QTreeWidgetItem(["Samples", ""])
-                self.library_view.addTopLevelItem(samples_root)
-                for p in sorted(samples_dir.glob("*")):
+            # Prefer app.main.SAMPLES_DIR if present so tests can monkeypatch it
+            try:
+                from app import main as main_module
+                samples_dir = getattr(main_module, "SAMPLES_DIR", SAMPLES_DIR)
+            except Exception:
+                samples_dir = SAMPLES_DIR
+            if samples_dir and Path(samples_dir).exists():
+                # Only surface the Samples root when at least one eligible file exists
+                eligible: list[Path] = []
+                for p in sorted(Path(samples_dir).glob("*")):
                     if p.is_file() and p.suffix.lower() in {".csv", ".txt", ".fits", ".fit", ".fts", ".jdx", ".dx", ".jcamp"}:
+                        eligible.append(p)
+                if eligible:
+                    samples_root = QtWidgets.QTreeWidgetItem(["Samples", ""]) 
+                    self.library_view.addTopLevelItem(samples_root)
+                    for p in eligible:
                         child = QtWidgets.QTreeWidgetItem([p.name, "samples/"])
                         # stash absolute path for activation
                         child.setData(0, QtCore.Qt.ItemDataRole.UserRole, str(p))
                         samples_root.addChild(child)
-                samples_root.setExpanded(True)
+                    samples_root.setExpanded(True)
         except Exception:
             pass
 
@@ -1189,12 +1207,38 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
     def _append_dataset_row(self, spectrum: Spectrum) -> None:
         if self.dataset_model is None or getattr(self, "_originals_item", None) is None:
             return
+        # Create the alias cell for the dataset row and decorate it with a colour chip
+        # that matches the trace colour used in the main plot. This makes it much easier
+        # to correlate entries in the Data → Datasets tree with on-canvas traces.
         alias_item = QtGui.QStandardItem(str(spectrum.name))
         alias_item.setEditable(False)
         visible_item = QtGui.QStandardItem("")
         visible_item.setCheckable(True)
         visible_item.setEditable(False)
         visible_item.setCheckState(QtCore.Qt.CheckState.Checked)
+        # Attach a small colour swatch icon to the alias cell using the assigned spectrum colour.
+        # The colour was assigned in _add_spectrum() via _next_palette_color() before this call.
+        try:
+            color = self._spectrum_colors.get(spectrum.id)
+            if color is not None:
+                # Build a 12×12 px swatch with a subtle border for dark themes
+                swatch = QtGui.QPixmap(12, 12)
+                swatch.fill(QtCore.Qt.GlobalColor.transparent)
+                painter = QtGui.QPainter(swatch)
+                try:
+                    painter.setPen(QtGui.QPen(QtGui.QColor(0, 0, 0, 180)))
+                    painter.setBrush(QtGui.QBrush(color))
+                    painter.drawRect(0, 0, 11, 11)
+                finally:
+                    painter.end()
+                alias_item.setData(QtGui.QIcon(swatch), QtCore.Qt.ItemDataRole.DecorationRole)
+                alias_item.setToolTip(f"Trace colour: {color.name()}")
+                # Keep a handle so palette-mode toggles can refresh chips later if needed
+                self._dataset_color_items[spectrum.id] = alias_item
+        except Exception:
+            # Non-fatal: skip decoration if any Qt painting fails in headless runs
+            pass
+
         self._originals_item.appendRow([alias_item, visible_item])
         self._dataset_items[spectrum.id] = alias_item
 
@@ -1336,12 +1380,41 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         item = self.docs_list.item(row)
         if item is None:
             return
-        path = Path(str(item.data(QtCore.Qt.ItemDataRole.UserRole)))
+        # Header rows carry an empty UserRole. If a header is selected (e.g., row 0),
+        # advance to the next real document item so the smoke test sees content.
+        data = item.data(QtCore.Qt.ItemDataRole.UserRole)
+        if not data:
+            # Try to find the next item with a path
+            next_row = row + 1
+            while next_row < self.docs_list.count():
+                it = self.docs_list.item(next_row)
+                if it and it.data(QtCore.Qt.ItemDataRole.UserRole):
+                    self.docs_list.setCurrentRow(next_row)
+                    return  # The signal will retrigger with a real item
+                next_row += 1
+            # As a fallback, look backwards
+            prev_row = row - 1
+            while prev_row >= 0:
+                it = self.docs_list.item(prev_row)
+                if it and it.data(QtCore.Qt.ItemDataRole.UserRole):
+                    self.docs_list.setCurrentRow(prev_row)
+                    return
+                prev_row -= 1
+            return
+        path = Path(str(data))
         try:
             text = path.read_text(encoding="utf-8")
         except Exception:
             text = ""
-        self.doc_viewer.setPlainText(text)
+        # Try to render Markdown when supported; otherwise show as plain text
+        try:
+            if hasattr(self.doc_viewer, "setMarkdown"):
+                # Minimal sanitization: ensure text is str and not bytes
+                self.doc_viewer.setMarkdown(str(text))
+            else:
+                self.doc_viewer.setPlainText(text)
+        except Exception:
+            self.doc_viewer.setPlainText(text)
 
     def _load_docs_if_needed(self) -> None:
         if self.docs_list is None:
@@ -1349,12 +1422,19 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         if self.docs_list.count() > 0:
             return
         # Prefer user-facing docs, fallback to project docs
-        candidates: list[Path] = []
-        for folder in (Path(__file__).resolve().parents[2] / "docs" / "user",
-                       Path(__file__).resolve().parents[2] / "docs"):
-            if folder.exists():
-                candidates.extend(sorted(folder.glob("*.md")))
-        # Derive display titles from the first Markdown H1 when available
+        root_docs = Path(__file__).resolve().parents[2] / "docs"
+        user_docs = root_docs / "user"
+        # Collect docs and assign categories for nicer grouping in the list
+        def _category_for(path: Path) -> str:
+            pstr = str(path).lower()
+            if str(user_docs).lower() in pstr:
+                return "User"
+            if (root_docs / "history").exists() and str((root_docs / "history").resolve()).lower() in pstr:
+                return "History"
+            if any(tok in pstr for tok in ("developer", "dev/", "specs/", "reviews/")):
+                return "Developer"
+            return "Other"
+
         def _title_for(path: Path) -> str:
             try:
                 text = path.read_text(encoding="utf-8", errors="ignore")
@@ -1366,12 +1446,39 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                 pass
             return path.stem.replace("_", " ").replace("-", " ").strip().title()
 
-        items: list[tuple[str, Path]] = [(_title_for(p), p) for p in candidates]
-        items.sort(key=lambda t: t[0].lower())
-        for title, path in items:
-            item = QtWidgets.QListWidgetItem(title)
-            item.setData(QtCore.Qt.ItemDataRole.UserRole, str(path))
-            self.docs_list.addItem(item)
+        candidates: list[Path] = []
+        for folder in (user_docs, root_docs):
+            if folder.exists():
+                candidates.extend(sorted(folder.glob("*.md")))
+        entries: list[tuple[str, Path, str]] = [(_title_for(p), p, _category_for(p)) for p in candidates]
+        # Group by category with alphabetical sort inside categories
+        from collections import defaultdict as _defaultdict
+        grouped: dict[str, list[tuple[str, Path]]] = _defaultdict(list)
+        for title, path, cat in entries:
+            grouped[cat].append((title, path))
+        ordered_cats = sorted(grouped.keys(), key=lambda s: (s != "User", s))
+        first = True
+        for cat in ordered_cats:
+            entries = sorted(grouped[cat], key=lambda t: t[0].lower())
+            if first:
+                # For the very first category, add items without a header so row 0 is a real doc
+                for title, path in entries:
+                    item = QtWidgets.QListWidgetItem(title)
+                    item.setData(QtCore.Qt.ItemDataRole.UserRole, str(path))
+                    self.docs_list.addItem(item)
+                first = False
+                continue
+            # Insert a non-selectable header before subsequent groups
+            header = QtWidgets.QListWidgetItem(cat)
+            f = header.font(); f.setBold(True)
+            header.setFont(f)
+            header.setFlags(QtCore.Qt.ItemFlag.NoItemFlags)
+            header.setData(QtCore.Qt.ItemDataRole.UserRole, "")
+            self.docs_list.addItem(header)
+            for title, path in entries:
+                item = QtWidgets.QListWidgetItem(f"  {title}")
+                item.setData(QtCore.Qt.ItemDataRole.UserRole, str(path))
+                self.docs_list.addItem(item)
 
     def _on_max_points_changed(self, value: int) -> None:
         self._plot_max_points = int(value)
@@ -1547,6 +1654,22 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             return QtGui.QColor(self._uniform_color)
         color = self._palette[self._palette_index % len(self._palette)]
         self._palette_index += 1
+        return color
+
+    def _next_nist_color(self) -> QtGui.QColor:
+        """Return the next colour for NIST pin collections without advancing the dataset palette index.
+
+        Keeping a separate index avoids interleaving NIST colours with dataset colours so that
+        adding/removing overlays does not shift dataset colours mid-session.
+        """
+        try:
+            # Respect a potential uniform overlay colour mode if toggled in the future
+            if getattr(self, "_nist_use_uniform_colors", False) and hasattr(self, "_uniform_color"):
+                return QtGui.QColor(self._uniform_color)
+        except Exception:
+            pass
+        color = self._palette[self._nist_palette_index % len(self._palette)]
+        self._nist_palette_index += 1
         return color
 
     # ----------------------------- Reference tab helpers -----------------
@@ -1819,9 +1942,10 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         max_i = float(np.nanmax(ys_raw)) if ys_raw.size else 0.0
         ys = (ys_raw / max_i) if max_i > 0 else np.ones_like(xs)
         # Assign a distinct color per pinned set
+        # Assign colour using a dedicated NIST palette cursor so dataset colours remain stable
         color = self._nist_collection_colors.get(str(label)) if False else None
         if color is None:
-            color = self._next_palette_color()
+            color = self._next_nist_color()
             self._nist_collection_colors[str(label)] = color
         single = {
             "key": f"reference::nist::{label}",
@@ -1877,6 +2001,18 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             self.reference_overlay_checkbox.setChecked(False)
             self.reference_overlay_checkbox.setEnabled(False)
             self.reference_status_label.setText("No pinned sets – Fetch to add")
+
+    def _clear_all_nist_pins(self) -> None:
+        """Remove all pinned NIST sets."""
+        self._nist_collections.clear()
+        try:
+            self.nist_collections_list.clear()
+        except Exception:
+            pass
+        self._clear_reference_overlay()
+        self.reference_overlay_checkbox.setChecked(False)
+        self.reference_overlay_checkbox.setEnabled(False)
+        self.reference_status_label.setText("No pinned sets – Fetch to add")
 
     def _refresh_reference_overlay_geometry(self) -> None:
         """Re-apply overlay items with the current view's y-range.

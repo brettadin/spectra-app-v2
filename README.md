@@ -9,6 +9,13 @@ A modern, modular **Windows desktop application** for spectroscopic analysis of 
 
 > Documentation Hub: For all docs, start at `docs/INDEX.md`. It’s the canonical map linking user guides, developer specs, history, and packaging.
 
+> Cleanup Dashboard (Nov 2025):
+> - Where we are now: [docs/history/2025-11-03_cleanup_branch_summary.md](docs/history/2025-11-03_cleanup_branch_summary.md)
+> - Master plan & progress log: [docs/dev/CLEANUP_MASTER_PLAN.md](docs/dev/CLEANUP_MASTER_PLAN.md)
+> - Latest changes: [docs/history/PATCH_NOTES.md](docs/history/PATCH_NOTES.md)
+> - Docs index (start here): [docs/INDEX.md](docs/INDEX.md)
+> - Roadmap: [reports/roadmap.md](reports/roadmap.md)
+
 ## 🎯 Project Overview
 
 This repository represents the complete rewrite of the Spectra-App into a modern, modular desktop application. The redesign addresses legacy limitations while preserving all existing functionality:

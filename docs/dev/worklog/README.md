@@ -1,13 +1,45 @@
-# Worklog index
+# Daily Worklog Policy
 
-Daily worklogs live here as `YYYY-MM-DD.md`. These are narrative session logs that complement the tactical **workplan** (`docs/reviews/workplan.md`).
+We maintain one worklog file per real calendar day in America/New_York (Eastern Time). If you work multiple times in a day, append additional entries to the same file and increment the entry number.
 
-Each entry should include:
+- Timezone for day boundaries: America/New_York (ET)
+- Filename: `docs/dev/worklog/YYYY-MM-DD.md`
+- Multiple sessions/day: add `Entry #2`, `Entry #3`, etc.
+- Each entry header includes local and UTC times and the agent name/handle.
+- Use the template: `docs/dev/worklog/TEMPLATE.md`
+
+These narrative logs complement the tactical **workplan** (`docs/reviews/workplan.md`). Each entry should include:
 - Summary of changes (what/why/how)
 - User-visible effects and validation steps
 - Known issues and next steps
 - Links to `docs/brains/*` neurons and `docs/atlas/*` maps
 - Cross-reference to workplan batch items when applicable
+
+## Example
+
+`docs/dev/worklog/2025-11-03.md`:
+
+```
+## [Entry #1] 09:42 (Local ET) / 14:42Z (UTC) — Agent: alice
+...entry content...
+
+## [Entry #2] 16:18 (Local ET) / 21:18Z (UTC) — Agent: bob
+...entry content...
+```
+
+## Helper tool
+
+To get the correct ET date, current ET/UTC times, and a ready-to-copy header stub, run:
+
+- Python (any platform): `python tools/worklog_helper.py`
+
+It prints the suggested filename (based on America/New_York) and an entry header like:
+
+```
+## [Entry #N] HH:MM (Local ET) / HH:MMZ (UTC) — Agent: <name>
+```
+
+## Recent Worklogs
 
 ## Recent Worklogs
 

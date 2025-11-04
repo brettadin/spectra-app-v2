@@ -112,6 +112,9 @@ class ReferencePanel(QtWidgets.QWidget):
         self.nist_fetch_button = QtWidgets.QPushButton("Fetch")
         # Wire fetch button
         self.nist_fetch_button.clicked.connect(self._on_nist_fetch_clicked)
+        # Extra controls: show selected only, clear pins
+        self.nist_show_selected_only = QtWidgets.QCheckBox("Show selected only")
+        self.nist_clear_button = QtWidgets.QPushButton("Clear Pins")
         
         for w in (
             QtWidgets.QLabel("Element:"),
@@ -121,6 +124,8 @@ class ReferencePanel(QtWidgets.QWidget):
             QtWidgets.QLabel("–"),
             self.nist_upper_spin,
             self.nist_fetch_button,
+            self.nist_show_selected_only,
+            self.nist_clear_button,
         ):
             nist_controls.addWidget(w)
         nist_controls.addStretch(1)

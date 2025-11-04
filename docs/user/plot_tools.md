@@ -88,6 +88,10 @@ with a *Trace colouring* combo box:
 Switching modes updates both the plot and the Data dock icons immediately without mutating provenance metadata. Rename traces
 or toggle visibility as usual—returning to the palette restores each spectrum’s original colour assignment.
 
+The default high‑contrast palette now includes 20+ distinct colours before cycling, so large sessions reuse hues less often. The
+Data → Datasets list shows a small colour chip next to each alias that matches the plotted trace, making it easier to correlate
+legend entries, list rows, and on‑canvas lines at a glance.
+
 ## Overlay alignment and troubleshooting
 
 Reference overlays adopt the scaling of the active plot so annotations land where you expect them. The IR functional-group lanes, for example, now anchor their filled band to the visible y-axis span and assign each label to its own vertical slot. When you normalise a trace or zoom the view, the overlay recalculates those slots to keep the stacked annotations readable. If labels ever drift out of band after switching datasets:

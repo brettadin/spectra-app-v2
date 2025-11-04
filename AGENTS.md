@@ -6,8 +6,37 @@ below—future agents rely on these conventions to maintain continuity.
 
 ## 0. Mandatory reading
 
+> Start here first (Cleanup Branch – Nov 2025):
+> - Cleanup Dashboard in README: quick links to current status and plan
+> - Where we are now: `docs/history/2025-11-03_cleanup_branch_summary.md`
+> - Master plan & progress log: `docs/dev/CLEANUP_MASTER_PLAN.md`
+> - Latest changes: `docs/history/PATCH_NOTES.md`
+> - Docs index (canonical map): `docs/INDEX.md`
+
 - `START_HERE.md` – Session primer. Confirms tooling setup, branch workflow,
   and how to use this manual in practice.
+
+### Per-change checklist (log as you go)
+
+Every time you land a change (even small ones), update these:
+
+- [ ] Patch Notes: add a concise bullet to `docs/history/PATCH_NOTES.md` (date-stamped)
+- [ ] Knowledge Log: add an entry to `docs/history/KNOWLEDGE_LOG.md` (use the template below)
+- [ ] Daily Worklog: append to `docs/dev/worklog/YYYY-MM-DD.md` (or create it from TEMPLATE.md)
+- [ ] User/Dev Docs: update affected guides/specs, if behavior changed
+
+Templates:
+- Knowledge Log: `docs/history/KNOWLEDGE_LOG_TEMPLATE.md`
+- Worklog: `docs/dev/worklog/TEMPLATE.md`
+
+PR gate:
+- The PR template enforces links to Patch Notes, Knowledge Log, and the daily worklog. Keep them in sync before requesting review.
+
+### Day boundaries and timestamps
+
+- Treat a “day” as a real calendar day in America/New_York. If you make multiple changes that day, append `Entry #2`, `Entry #3`, etc., to the same `docs/dev/worklog/YYYY-MM-DD.md` file.
+- Include Local ET and UTC times in both Knowledge Log and Worklog entries. Use the helper commands in §2 or run the helper script below.
+- Helper: `python tools/worklog_helper.py` prints the suggested worklog path for today (ET), the entry header stub, and both timestamps.
 - `docs/history/MASTER PROMPT.md` & `docs/history/RUNNER_PROMPT.md` – Core
   product charter and iteration loop. Keep them aligned with any behavioural
   changes you introduce.
