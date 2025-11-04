@@ -102,6 +102,13 @@ clears until you load a different dataset or regenerate the payload from the ins
 
 Automated coverage in `tests/test_reference_ui.py::test_ir_overlay_labels_stack_inside_band` protects the label-spacing logic, so overlap usually signals that the active axis is extremely compressed. Widening the y-range or temporarily disabling normalisation restores the expected layout.
 
+### Working with NIST line overlays
+
+- Each fetched result is “pinned” to the session; multiple pins draw together with distinct colours.
+- Double‑click a pinned item in the list to remove it; the status label shows how many sets are pinned.
+- Bars rescale automatically when you zoom or change normalization so they remain legible. When 0 is in view, the bar baseline is anchored at y=0.
+- Line overlays render behind spectra to reduce clutter; zooming in around a feature typically reveals the bars clearly without obscuring peaks.
+
 ## Level-of-detail safeguards
 
 High-resolution spectra can contain millions of samples. Rendering every point would make panning and zooming sluggish, so the plot pane automatically enforces a peak-envelope LOD cap. The default budget renders up to **120,000** points per trace exactly as provided, but you can tailor the threshold under **Inspector → Style → LOD point budget**. The spinner ranges from 1,000 to 1,000,000 samples so dense imports stay interactive on modest GPUs.

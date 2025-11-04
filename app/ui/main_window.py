@@ -149,15 +149,15 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self._display_y_units: Dict[str, str] = {}
         self._line_shape_rows: List[Mapping[str, Any]] = []
         self._ir_rows: List[Mapping[str, Any]] = []
+        # Expanded high-contrast palette (16+ colours) to reduce reuse in large sessions
         self._palette: List[QtGui.QColor] = [
-            QtGui.QColor("#4F6D7A"),
-            QtGui.QColor("#C0D6DF"),
-            QtGui.QColor("#C72C41"),
-            QtGui.QColor("#2F4858"),
-            QtGui.QColor("#33658A"),
-            QtGui.QColor("#758E4F"),
-            QtGui.QColor("#6D597A"),
-            QtGui.QColor("#EE964B"),
+            QtGui.QColor("#4F6D7A"), QtGui.QColor("#C0D6DF"), QtGui.QColor("#C72C41"), QtGui.QColor("#2F4858"),
+            QtGui.QColor("#33658A"), QtGui.QColor("#758E4F"), QtGui.QColor("#6D597A"), QtGui.QColor("#EE964B"),
+            # Okabe–Ito additions
+            QtGui.QColor("#0072B2"), QtGui.QColor("#E69F00"), QtGui.QColor("#009E73"), QtGui.QColor("#D55E00"),
+            QtGui.QColor("#CC79A7"), QtGui.QColor("#56B4E9"), QtGui.QColor("#F0E442"), QtGui.QColor("#999999"),
+            # Bright accents suitable for dark backgrounds
+            QtGui.QColor("#F07167"), QtGui.QColor("#00AFB9"), QtGui.QColor("#06D6A0"), QtGui.QColor("#C77DFF"),
         ]
         self._palette_index = 0
         self._nist_collections: "OrderedDict[str, Dict[str, Any]]" = OrderedDict()
@@ -239,6 +239,11 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.plot.remove_export_from_context_menu()
         self.central_split.addWidget(self.plot)
         self.plot.autoscale()
+        # Keep reference overlays in sync with view changes (zoom/pan)
+        try:
+            self.plot.rangeChanged.connect(lambda *_: self._refresh_reference_overlay_geometry())
+        except Exception:
+            pass
 
         # Left dock: datasets and library
         self.dataset_dock = QtWidgets.QDockWidget("Data", self)
@@ -318,6 +323,13 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         )
         self.reference_panel.irFilterChanged.connect(self._on_reference_filter_changed)
         self.reference_panel.tabChanged.connect(lambda _: self._refresh_reference_view())
+        # Allow double-click to remove a pinned NIST set
+        try:
+            self.nist_collections_list.itemDoubleClicked.connect(self._remove_selected_nist_collection)
+            # Hint to user
+            self.reference_status_label.setText("Double-click a pin to remove it")
+        except Exception:
+            pass
         # Table selection changes still wired directly (more complex to decouple without rewriting handlers)
         self.ir_table.itemSelectionChanged.connect(self._on_ir_row_selected)
         self.ls_table.itemSelectionChanged.connect(self._on_line_shape_row_selected)
@@ -947,21 +959,58 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         if effective_store is None and hasattr(self, "remote_data_service"):
             effective_store = getattr(self.remote_data_service, "store", None)
         entries = effective_store.list_entries() if effective_store is not None else {}
-        if not entries:
-            placeholder = QtWidgets.QTreeWidgetItem(["No cached files", ""])
-            self.library_view.addTopLevelItem(placeholder)
+        if entries:
+            cache_root = QtWidgets.QTreeWidgetItem(["Cache", ""])
+            self.library_view.addTopLevelItem(cache_root)
+            for _sha, record in entries.items():
+                name = str(record.get("filename") or Path(str(record.get("stored_path", ""))).name)
+                origin = "Local import"
+                src = record.get("source", {})
+                if isinstance(src, dict) and isinstance(src.get("remote"), dict):
+                    remote = src.get("remote") or {}
+                    provider = str(remote.get("provider") or "Remote")
+                    identifier = str(remote.get("identifier") or remote.get("id") or "")
+                    origin = provider if not identifier else f"{provider} – {identifier}"
+                item = QtWidgets.QTreeWidgetItem([name, origin])
+                cache_root.addChild(item)
+            cache_root.setExpanded(True)
+        # Add Samples directory for one-click ingest (read-only reference)
+        try:
+            samples_dir = SAMPLES_DIR
+            if samples_dir.exists():
+                samples_root = QtWidgets.QTreeWidgetItem(["Samples", ""])
+                self.library_view.addTopLevelItem(samples_root)
+                for p in sorted(samples_dir.glob("*")):
+                    if p.is_file() and p.suffix.lower() in {".csv", ".txt", ".fits", ".fit", ".fts", ".jdx", ".dx", ".jcamp"}:
+                        child = QtWidgets.QTreeWidgetItem([p.name, "samples/"])
+                        # stash absolute path for activation
+                        child.setData(0, QtCore.Qt.ItemDataRole.UserRole, str(p))
+                        samples_root.addChild(child)
+                samples_root.setExpanded(True)
+        except Exception:
+            pass
+
+        # Double-click to ingest sample files
+        try:
+            self.library_view.itemActivated.disconnect()
+        except Exception:
+            pass
+        try:
+            self.library_view.itemActivated.connect(self._on_library_item_activated)
+        except Exception:
+            pass
+
+    def _on_library_item_activated(self, item: QtWidgets.QTreeWidgetItem, _col: int) -> None:
+        try:
+            path_str = item.data(0, QtCore.Qt.ItemDataRole.UserRole)
+        except Exception:
+            path_str = None
+        if not path_str:
             return
-        for _sha, record in entries.items():
-            name = str(record.get("filename") or Path(str(record.get("stored_path", ""))).name)
-            origin = "Local import"
-            src = record.get("source", {})
-            if isinstance(src, dict) and isinstance(src.get("remote"), dict):
-                remote = src.get("remote") or {}
-                provider = str(remote.get("provider") or "Remote")
-                identifier = str(remote.get("identifier") or remote.get("id") or "")
-                origin = provider if not identifier else f"{provider} – {identifier}"
-            item = QtWidgets.QTreeWidgetItem([name, origin])
-            self.library_view.addTopLevelItem(item)
+        try:
+            self._ingest_path(Path(str(path_str)))
+        except Exception:
+            pass
 
     def _record_remote_history_event(self, spectra: Spectrum | list[Spectrum]) -> Dict[str, str]:
         specs = spectra if isinstance(spectra, list) else [spectra]
@@ -1042,6 +1091,11 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             self.overlay_service.add(spectrum)
             self._add_spectrum(spectrum)
         self.plot.autoscale()
+        # Reflow overlays against the new y-range
+        try:
+            self._refresh_reference_overlay_geometry()
+        except Exception:
+            pass
         self._refresh_library_view()
         # Record in knowledge log and update history
         try:
@@ -1300,8 +1354,22 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                        Path(__file__).resolve().parents[2] / "docs"):
             if folder.exists():
                 candidates.extend(sorted(folder.glob("*.md")))
-        for path in candidates:
-            item = QtWidgets.QListWidgetItem(path.stem)
+        # Derive display titles from the first Markdown H1 when available
+        def _title_for(path: Path) -> str:
+            try:
+                text = path.read_text(encoding="utf-8", errors="ignore")
+                for line in text.splitlines():
+                    l = line.strip()
+                    if l.startswith("# "):
+                        return l.lstrip("# ").strip()
+            except Exception:
+                pass
+            return path.stem.replace("_", " ").replace("-", " ").strip().title()
+
+        items: list[tuple[str, Path]] = [(_title_for(p), p) for p in candidates]
+        items.sort(key=lambda t: t[0].lower())
+        for title, path in items:
+            item = QtWidgets.QListWidgetItem(title)
             item.setData(QtCore.Qt.ItemDataRole.UserRole, str(path))
             self.docs_list.addItem(item)
 
@@ -1750,12 +1818,17 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         ys_raw = np.array(intensities, dtype=float)
         max_i = float(np.nanmax(ys_raw)) if ys_raw.size else 0.0
         ys = (ys_raw / max_i) if max_i > 0 else np.ones_like(xs)
+        # Assign a distinct color per pinned set
+        color = self._nist_collection_colors.get(str(label)) if False else None
+        if color is None:
+            color = self._next_palette_color()
+            self._nist_collection_colors[str(label)] = color
         single = {
             "key": f"reference::nist::{label}",
             "alias": alias,
             "x_nm": xs,
             "y": ys,
-            "color": "#6D597A",
+            "color": color.name() if hasattr(color, "name") else "#6D597A",
             "width": 1.2,
             "mode": "bars",
             "labels": [],
@@ -1773,6 +1846,48 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.reference_status_label.setText(f"{count} pinned {suffix}")
         # Preview the most recent fetch as bars
         self._preview_reference_payload(single)
+
+    def _remove_selected_nist_collection(self) -> None:
+        """Remove the currently selected pinned NIST set (double-click)."""
+        try:
+            row = self.nist_collections_list.currentRow()
+        except Exception:
+            row = -1
+        if row < 0:
+            return
+        keys = list(self._nist_collections.keys())
+        if not (0 <= row < len(keys)):
+            return
+        pin_key = keys[row]
+        # Remove from state and UI
+        self._nist_collections.pop(pin_key, None)
+        try:
+            self.nist_collections_list.takeItem(row)
+        except Exception:
+            pass
+        # Update overlay payload
+        if self._nist_collections:
+            multi = {"kind": "nist-multi", "payloads": {k: v["payload"] for k, v in self._nist_collections.items()}}
+            self._update_reference_overlay_state(multi)
+            if self.reference_overlay_checkbox.isChecked():
+                self._apply_reference_overlay()
+            self.reference_status_label.setText(f"{len(self._nist_collections)} pinned set(s)")
+        else:
+            self._clear_reference_overlay()
+            self.reference_overlay_checkbox.setChecked(False)
+            self.reference_overlay_checkbox.setEnabled(False)
+            self.reference_status_label.setText("No pinned sets – Fetch to add")
+
+    def _refresh_reference_overlay_geometry(self) -> None:
+        """Re-apply overlay items with the current view's y-range.
+
+        Keeps NIST bars sized sensibly when zooming or after normalization.
+        """
+        try:
+            if self.reference_overlay_checkbox.isChecked() and self._reference_overlay_payload:
+                self._apply_reference_overlay()
+        except Exception:
+            pass
 
     # Build IR overlay payload used by tests
     def _build_overlay_for_ir(self, entries: Sequence[Mapping[str, Any]]) -> Dict[str, Any]:
@@ -1899,8 +2014,13 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             y_min, y_max = float(y_range[0]), float(y_range[1])
         except Exception:
             y_min, y_max = -1.0, 1.0
-        band_bottom = y_min + (y_max - y_min) * 0.05
-        band_top = y_max - (y_max - y_min) * 0.05
+        # Anchor bars to zero when 0 is within the current view; otherwise use a small margin above the bottom.
+        if y_min < 0 < y_max:
+            band_bottom = 0.0
+            band_top = y_max - (y_max - max(0.0, y_min)) * 0.05
+        else:
+            band_bottom = y_min + (y_max - y_min) * 0.05
+            band_top = y_max - (y_max - y_min) * 0.05
         span = max(1e-9, band_top - band_bottom)
 
         # NIST multi: draw one set of bars per pinned collection
@@ -1923,6 +2043,10 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                         ys_plot.extend([band_bottom, band_bottom + float(yi) * span, np.nan])
                     pen = pg.mkPen(color=p.get("color", "#6D597A"), width=float(p.get("width", 1.2)))
                     item = pg.PlotDataItem(np.array(xs, dtype=float), np.array(ys_plot, dtype=float), pen=pen, connect="finite")
+                    try:
+                        item.setZValue(-10)  # draw behind spectra to reduce clutter
+                    except Exception:
+                        pass
                     self.plot.add_graphics_item(item)
                     self._reference_items.append(item)
             return
@@ -1938,6 +2062,10 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             xs_disp = _convert_x_nm(xs_nm)
             pen = pg.mkPen(color=payload.get("color", "#6D597A"), width=float(payload.get("width", 1.2)))
             item = pg.PlotDataItem(xs_disp, ys, pen=pen, connect="finite")
+            try:
+                item.setZValue(-10)
+            except Exception:
+                pass
             # Fill if specified
             fill_color = payload.get("fill_color")
             if fill_color is not None and hasattr(item, "setBrush"):

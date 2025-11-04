@@ -53,6 +53,11 @@ def get_app_stylesheet(accent: str = "#4FC3F7") -> str:
         background: {accent};
         color: #000;
     }}
+    QToolButton:checked {
+        background: {accent};
+        color: #000;
+        border: 1px solid #000;
+    }
 
     QLineEdit {{
         background: {bg2};
@@ -72,6 +77,20 @@ def get_app_stylesheet(accent: str = "#4FC3F7") -> str:
         padding: 2px 6px;
         color: {fg0};
     }}
+
+    /* High-contrast checkboxes */
+    QCheckBox::indicator {
+        width: 14px; height: 14px;
+        border: 1px solid {border};
+        background: {bg2};
+    }
+    QCheckBox::indicator:checked {
+        background: {accent};
+        border: 1px solid #000;
+    }
+    QCheckBox::indicator:unchecked:hover {
+        border: 1px solid {accent};
+    }
 
     QTreeView, QTableWidget, QTableView {{
         background: {bg1};

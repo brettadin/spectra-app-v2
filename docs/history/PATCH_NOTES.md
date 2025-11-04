@@ -1,6 +1,12 @@
 # Patch Notes
 
 ## 2025-11-03 (Calibration UI, Global normalisation, Y‑scale, NaN‑robust scales)
+- Reference overlays
+  - NIST bars now rescale when zooming or after normalization changes and draw behind traces (reduced clutter).
+  - Bars anchor to y=0 when visible to avoid negative offsets.
+  - Each pinned set receives a distinct colour; double‑click a pin in the list to remove it.
+  - Library view gained a “Samples” section listing files for one‑click ingest.
+
 
 Display‑time calibration and visibility improvements
 
