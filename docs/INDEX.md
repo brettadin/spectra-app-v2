@@ -54,6 +54,8 @@ Note: If a specific guide is missing, check `docs/user/` for additional topics.
 ## Data Guides
 - Planet data playbook: [spectra-data/Planet Data Playbook What to get, where, and how much.md](../spectra-data/Planet Data Playbook What to get, where, and how much.md)
 - Planetary data overview: [spectra-data/Planetary Data.md](../spectra-data/Planetary Data.md)
+- Telescope-based planetary datasets (UV–VIS and IR): [docs/user/Telescope-Based Planetary Datasets (UV-VIS and IR).md](./user/Telescope-Based Planetary Datasets (UV-VIS and IR).md)
+- Relating lab spectra to astronomical data: [docs/user/Relating Lab Spectra to Astronomical Data.md](./user/Relating Lab Spectra to Astronomical Data.md)
 
 ## Packaging & Distribution
 - Windows build notes: [packaging/windows_build.md](../packaging/windows_build.md)

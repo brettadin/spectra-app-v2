@@ -30,6 +30,7 @@ import numpy as np
 import pyqtgraph as pg
 
 from app.qt_compat import get_qt
+from app.utils.analysis import peak_near
 from app.services import (
     UnitsService,
     ProvenanceService,
@@ -244,6 +245,8 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             self.plot.pointHovered.connect(self._on_plot_point_hovered)
         except Exception:
             pass
+        # Track last cursor x (display units) for peak-near-cursor action
+        self._last_cursor_x_display: float | None = None
         # Keep reference overlays in sync with view changes (zoom/pan)
         try:
             self.plot.rangeChanged.connect(lambda *_: self._refresh_reference_overlay_geometry())
@@ -434,7 +437,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.unit_combo.currentTextChanged.connect(self.plot.set_display_unit)
         self.plot_toolbar.addWidget(QtWidgets.QLabel(" X: "))
         self.plot_toolbar.addWidget(self.unit_combo)
-    # Normalization combo
+        # Normalization combo
         self.norm_combo = QtWidgets.QComboBox()
         self.norm_combo.addItems(["None", "Max", "Area"])
         self.norm_combo.setCurrentText("None")
@@ -464,6 +467,18 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.plot_max_points_control.setValue(self._plot_max_points)
         self.plot_max_points_control.valueChanged.connect(self._on_max_points_changed)
         self.plot_toolbar.addWidget(self.plot_max_points_control)
+
+        # Analysis helpers
+        self.plot_toolbar.addSeparator()
+    self.action_jump_max = QtGui.QAction("Jump to max", self)
+        self.action_jump_max.setToolTip("Center view on the maximum of the selected spectrum (post-normalization)")
+        self.action_jump_max.triggered.connect(self._on_jump_to_max)
+        self.plot_toolbar.addAction(self.action_jump_max)
+
+    self.action_find_peak = QtGui.QAction("Find peak near cursor", self)
+        self.action_find_peak.setToolTip("Find a peak near the cursor in the selected spectrum and center the view")
+        self.action_find_peak.triggered.connect(self._on_find_peak_near_cursor)
+        self.plot_toolbar.addAction(self.action_find_peak)
 
         # Status bar
         self.statusBar().showMessage("Ready")
@@ -507,8 +522,156 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         try:
             # Keep it short; include units and any non-linear scale indicator
             self.statusBar().showMessage(f"x: {_fmt(x)} {unit} | y: {_fmt(y)}{scale_suffix}{norm_suffix}")
+            # Record last cursor x for analysis helpers
+            try:
+                self._last_cursor_x_display = float(x) if np.isfinite(x) else None
+            except Exception:
+                self._last_cursor_x_display = None
         except Exception:
             pass
+
+    # ----------------------------- Analysis helpers -------------------
+    def _get_selected_spec_and_display_arrays(self) -> tuple[str | None, np.ndarray, np.ndarray, str]:
+        """Return (spec_id, x_disp, y_disp, unit) for the single selected spectrum.
+
+        y_disp includes calibration+normalization; x_disp in current display units.
+        Returns (None, empty, empty, unit) when no selection.
+        """
+        unit = self.unit_combo.currentText() if self.unit_combo is not None else "nm"
+        if self.dataset_view is None or self.dataset_model is None:
+            return None, np.array([], dtype=float), np.array([], dtype=float), unit
+        sel_model = self.dataset_view.selectionModel()
+        rows = sel_model.selectedRows() if sel_model else []
+        rows = [idx for idx in rows if idx.parent().isValid()]
+        if len(rows) != 1:
+            return None, np.array([], dtype=float), np.array([], dtype=float), unit
+        index = rows[0]
+        alias_item = self.dataset_model.itemFromIndex(self.dataset_model.index(index.row(), 0, index.parent()))
+        spec_id = None
+        for sid, item in self._dataset_items.items():
+            if item is alias_item:
+                spec_id = sid
+                break
+        if not spec_id:
+            return None, np.array([], dtype=float), np.array([], dtype=float), unit
+        try:
+            spec = self.overlay_service.get(spec_id)
+        except Exception:
+            return None, np.array([], dtype=float), np.array([], dtype=float), unit
+        # Build display arrays mirroring _refresh_data_table
+        try:
+            x_nm, y_conv, _ = self.units_service.convert_arrays(
+                np.asarray(spec.x, dtype=float),
+                np.asarray(spec.y, dtype=float),
+                spec.x_unit, spec.y_unit,
+                "nm", spec.y_unit,
+            )
+        except Exception:
+            try:
+                x_nm = self.units_service._to_canonical_wavelength(np.asarray(spec.x, dtype=float), spec.x_unit)
+                y_conv = np.asarray(spec.y, dtype=float)
+            except Exception:
+                x_nm = np.asarray(spec.x, dtype=float)
+                y_conv = np.asarray(spec.y, dtype=float)
+        x_nm, y_conv = self._apply_calibration_nm(x_nm, y_conv)
+        # Unit conversion for display
+        if unit == "nm":
+            x_disp = x_nm
+        elif unit == "Å":
+            x_disp = x_nm * 10.0
+        elif unit == "µm":
+            x_disp = x_nm / 1000.0
+        elif unit == "cm⁻¹":
+            with np.errstate(divide="ignore"):
+                x_disp = 1e7 / x_nm
+        else:
+            x_disp = x_nm
+        # Normalization (support global)
+        norm_mode = self.norm_combo.currentText() if self.norm_combo is not None else "None"
+        use_global = self.norm_global_checkbox.isChecked() if hasattr(self, 'norm_global_checkbox') else False
+        global_val = None
+        if norm_mode != "None" and use_global:
+            try:
+                global_val = self._compute_global_normalization_value(norm_mode)
+            except Exception:
+                global_val = None
+        y_disp = self._apply_normalization(y_conv, norm_mode, global_val, x_nm)
+        # Ensure monotonic x for cm⁻¹ display
+        try:
+            if x_disp.size >= 2 and x_disp[-1] < x_disp[0]:
+                x_disp = x_disp[::-1]
+                y_disp = y_disp[::-1]
+        except Exception:
+            pass
+        return spec_id, np.asarray(x_disp, dtype=float), np.asarray(y_disp, dtype=float), unit
+
+    @ui_action("Failed to jump to max")
+    def _on_jump_to_max(self) -> None:
+        _sid, x, y, unit = self._get_selected_spec_and_display_arrays()
+        if x.size == 0:
+            self.statusBar().showMessage("Select a single spectrum in the Data dock to use Jump to max")
+            return
+        try:
+            idx = int(np.nanargmax(y))
+        except Exception:
+            self.statusBar().showMessage("Unable to compute maximum for the selected spectrum")
+            return
+        xp = float(x[idx])
+        self._center_view_on_x(xp)
+        self.statusBar().showMessage(f"Jumped to max at x≈{xp:.6g} {unit}")
+
+    @ui_action("Failed to find peak near cursor")
+    def _on_find_peak_near_cursor(self) -> None:
+        _sid, x, y, unit = self._get_selected_spec_and_display_arrays()
+        if x.size == 0:
+            self.statusBar().showMessage("Select a single spectrum in the Data dock to find a peak")
+            return
+        x0 = self._last_cursor_x_display
+        if x0 is None or not np.isfinite(x0):
+            self.statusBar().showMessage("Move the cursor over the plot to choose a neighborhood")
+            return
+        # Window: 2% of current x-range (reasonable default across units)
+        (xr0, xr1), _ = self.plot.view_range()
+        try:
+            width = abs(float(xr1) - float(xr0)) * 0.02
+            if not np.isfinite(width) or width <= 0:
+                width = max(1e-6, (np.nanmax(x) - np.nanmin(x)) * 0.02)
+        except Exception:
+            width = max(1e-6, (np.nanmax(x) - np.nanmin(x)) * 0.02)
+        idx, xp, yp = peak_near(x, y, float(x0), width)
+        if idx < 0 or not np.isfinite(xp):
+            self.statusBar().showMessage("No peak found near cursor")
+            return
+        self._center_view_on_x(xp)
+        self.statusBar().showMessage(f"Peak near cursor at x≈{xp:.6g} {unit}, y≈{float(yp):.6g}")
+
+    def _center_view_on_x(self, x_center: float) -> None:
+        """Pan the view to center on x_center, preserving current width."""
+        try:
+            (xr0, xr1), yr = self.plot.view_range()
+            width = float(abs(xr1 - xr0)) if np.isfinite(xr0) and np.isfinite(xr1) else None
+            if not width or width <= 0:
+                # Fallback to 10% of data span
+                width = max(1e-3, (np.nanmax(self._plot_x_span()) - np.nanmin(self._plot_x_span())) * 0.1)
+            half = width * 0.5
+            self.plot._plot.setXRange(x_center - half, x_center + half, padding=0.0)
+        except Exception:
+            pass
+
+    def _plot_x_span(self) -> np.ndarray:
+        # Collect concatenated x arrays from visible traces for a fallback span estimate
+        xs: list[np.ndarray] = []
+        try:
+            for key in getattr(self.plot, "_traces", {}).keys():
+                trace = self.plot._traces.get(key)
+                if not trace or not bool(trace.get("visible", True)):
+                    continue
+                x_nm = np.asarray(trace.get("x_nm"), dtype=float)
+                x_disp = self.plot._x_nm_to_disp(x_nm)
+                xs.append(x_disp)
+        except Exception:
+            return np.array([], dtype=float)
+        return np.concatenate(xs) if xs else np.array([], dtype=float)
 
     # ----------------------------- Calibration -------------------------
     def _on_calibration_changed(self, payload: Mapping[str, Any]) -> None:
