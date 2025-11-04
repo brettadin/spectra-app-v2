@@ -124,6 +124,11 @@ fetches are stored in a temporary data directory for the current session. The
 dialog will still reuse results within that session, but the artefacts are
 discarded once the preview shell closes.
 
+
 See `docs/link_collection.md` for a curated index of spectroscopy catalogues,
 laboratory references, and instrument handbooks you can target with the remote
 workflow.
+
+## Further reading
+- [Atlas: remote data rationale](../atlas/README.md#remote-data-rationale)
+- [Atlas: provenance and data quality](../atlas/README.md#provenance-and-data-quality)

@@ -181,3 +181,8 @@ Each band now renders as a filled, labelled lane that anchors itself to the acti
   spectroscopic targets (UV/VIS, IR, mass-spec benchmarks) when wiring new data sources.
 - JWST quick-look placeholders have been retired from the Reference tab until calibrated spectra are regenerated from MAST; see
   the workplan for the outstanding ingestion task.
+
+## Further reading
+- [Atlas: NIST spectral line identification](../atlas/README.md#identification-peak-scoring)
+- [Atlas: overlays and NIST anchoring](../atlas/README.md#overlays-nist-anchoring-and-scaling)
+- [Atlas: IR functional group coverage](../atlas/README.md#ir-functional-group-coverage)

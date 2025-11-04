@@ -36,6 +36,12 @@ Path aliases (modular storage)
 Commenting & docstrings
 - Follow `docs/dev/COMMENTING_GUIDE.md` when adding or touching code. Prioritize module headers and public API docstrings.
 
+Fresh Eyes Review (required for non-trivial work)
+- For each meaningful session or PR, create a short review in `docs/dev/agent_reviews/YYYY-MM-DD.md` using
+  `docs/dev/AGENT_REVIEW_TEMPLATE.md`.
+- Use `python tools/agent_review_helper.py` to generate the header (ET/UTC) and suggested path.
+- Copy actionable suggestions into `docs/reviews/inbox.md` and promote items into the workplan/backlog.
+
 ### Per-change checklist (log as you go)
 
 Every time you land a change (even small ones), update these:

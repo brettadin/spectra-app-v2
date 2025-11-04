@@ -27,11 +27,14 @@ Note: If a specific guide is missing, check `docs/user/` for additional topics.
  - Cleanup & consolidation plan: [reviews/cleanup_consolidation_plan.md](./reviews/cleanup_consolidation_plan.md)
  - Path aliases (modular storage): [specs/path_aliases.md](./specs/path_aliases.md)
  - Commenting & docstrings guide: [dev/COMMENTING_GUIDE.md](./dev/COMMENTING_GUIDE.md)
+	- Fresh Eyes Review guide: [dev/REVIEW_GUIDE.md](./dev/REVIEW_GUIDE.md)
+		- Atlas integration plan: [reviews/atlas_integration_plan.md](./reviews/atlas_integration_plan.md)
 
 ### Cleanup Branch (Nov 2025)
 - Patch notes (latest changes): [docs/history/PATCH_NOTES.md](./history/PATCH_NOTES.md)
 - Enhancement plan status (stub + archive link): [docs/ENHANCEMENT_PLAN_STATUS.md](./ENHANCEMENT_PLAN_STATUS.md)
 - Repository inventory (active annotated catalog): [docs/repo_inventory.md](./repo_inventory.md)
+ - Suggestions inbox (triage queue): [docs/reviews/inbox.md](./reviews/inbox.md)
 - Capability atlas (archived snapshot): [docs/app_capabilities.md](./app_capabilities.md)
 - Roadmap: [reports/roadmap.md](../reports/roadmap.md)
 
@@ -46,6 +49,7 @@ Note: If a specific guide is missing, check `docs/user/` for additional topics.
 - Knowledge log (curated): [docs/history/KNOWLEDGE_LOG.md](./history/KNOWLEDGE_LOG.md)
 - Archive index: [docs/history/archive/README.md](./history/archive/README.md)
 - Decisions and rationale: See `docs/brains/` and `docs/history/` subfolders
+ - State of the repo (2025‑11‑04): [reports/state_of_repo_2025-11-04.md](../reports/state_of_repo_2025-11-04.md)
 
 ## Data Guides
 - Planet data playbook: [spectra-data/Planet Data Playbook What to get, where, and how much.md](../spectra-data/Planet Data Playbook What to get, where, and how much.md)

@@ -11,6 +11,10 @@ Notes
 - FWHM is interpreted in the current display axis units; for stability it’s applied internally in nanometers.
 - Disable resolution matching by unchecking the Enable toggle.
 
+
 Tips
 - After changing settings, the plot and the Data Table will refresh automatically.
 - Combine RV shift and resolution matching for quick comparison to line lists.
+
+## Further reading
+- [Atlas: calibration FWHM kernels](../atlas/README.md#calibration-fwhm-kernels)

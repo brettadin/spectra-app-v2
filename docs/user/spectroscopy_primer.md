@@ -65,4 +65,10 @@ operations without digging through historical specs.
 - **STScI GitHub (JWST)** — https://github.com/spacetelescope (open notebooks, calibration tools, sample data).
 - **astroquery documentation** — https://astroquery.readthedocs.io/en/latest/ (API reference for NIST/MAST helpers).
 
+
 Store new references alongside code changes in `docs/dev/reference_library.md` (see below) to keep provenance transparent.
+
+## Further reading
+- [Atlas: units and signed log transform](../atlas/README.md#units-signed-log-transform)
+- [Atlas: normalization (global vs per-spectrum)](../atlas/README.md#normalization-global-vs-per-spectrum)
+- [Atlas: identification and peak scoring](../atlas/README.md#identification-peak-scoring)

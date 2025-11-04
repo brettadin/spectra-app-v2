@@ -1,3 +1,6 @@
+## Further reading
+- [Atlas: units and signed log transform](../atlas/README.md#units-signed-log-transform)
+- [Atlas: provenance and data quality](../atlas/README.md#provenance-and-data-quality)
 # Importing Local Spectra
 
 The **File → Open** picker currently filters to comma-separated (`*.csv`,

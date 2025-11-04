@@ -143,3 +143,8 @@ All artefacts share the same base filename. For example, exporting `~/spectra/ar
 - For extremely dense imported files, let the initial draw settle for a second before interacting; once cached, subsequent pans and zooms reuse the downsampled envelope.
 
 Following these practices keeps the UI responsive even with multi-megabyte spectral stacks, while the provenance export pipeline continues to capture the unmodified data stream.
+
+## Further reading
+- [Atlas: normalization (global vs per-spectrum)](../atlas/README.md#normalization-global-vs-per-spectrum)
+- [Atlas: overlays and NIST anchoring](../atlas/README.md#overlays-nist-anchoring-and-scaling)
+- [Atlas: calibration FWHM kernels](../atlas/README.md#calibration-fwhm-kernels)
