@@ -39,6 +39,22 @@ This is the concise, human‑curated history for Spectra App. Routine automation
 
 ---
 
+## 2025-11-04 14:25 (America/New_York) / 19:25Z (UTC) — NIST line list caching
+
+**Author**: GitHub Copilot
+
+**Context**: Reference data, NIST ASD integration, performance optimization
+
+**Summary**: Implemented disk-backed caching for NIST spectral line queries to enable instant offline lookups and avoid repeated network requests. Cache entries are stored as JSON in `downloads/_cache/line_lists/` with 365-day expiry (spectral lines are stable reference data). Cache keys deterministically combine element symbol, ion stage, and wavelength bounds. UI shows `[cached]` indicators for cache hits. Added "Clear Cache" button to Reference tab for manual cache management. Cache can be disabled via `SPECTRA_DISABLE_LINE_CACHE=1` environment variable. Comprehensive test coverage: 12 unit tests (cache service) + 7 integration tests (NIST flow).
+
+**References**:
+- Code: `app/services/line_list_cache.py` (new), `app/services/nist_asd_service.py` (cache integration), `app/ui/main_window.py` (UI wiring)
+- Tests: `tests/test_line_list_cache.py`, `tests/test_nist_cache_integration.py`
+- Docs: `docs/user/reference_data.md` (caching section), `docs/dev/worklog/2025-11-04.md`
+- Patch Notes: `docs/history/PATCH_NOTES.md` (2025-11-04 entry)
+
+---
+
 ## 2025-11-02 10:28 – Repository documentation audit
 
 **Author**: agent (GitHub Copilot)
@@ -1302,5 +1318,941 @@ remains grounded in the current implementation reality and user pain points.
 **References**:
 - reference::nist::h
 - {'source_type': 'reference', 'archive': 'NIST ASD', 'label': 'H I (NIST ASD)', 'element_symbol': 'H', 'element_name': 'Hydrogen', 'atomic_number': 1, 'ion_stage': 'I', 'ion_stage_number': 1, 'query': {'linename': 'H I', 'identifier': 'H', 'lower_wavelength': 380.0, 'upper_wavelength': 750.0, 'wavelength_unit': 'nm', 'wavelength_type': 'vacuum', 'use_ritz': True}, 'fetched_at_utc': '2025-10-22T21:33:00.753620+00:00', 'citation': 'Kramida, A. et al. (NIST ASD), https://physics.nist.gov/asd', 'retrieved_via': 'astroquery.nist'}
+
+---
+## 2025-11-03 00:26 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file table_HAT-P-18-b-Fournier-Tondreau-et-al.-2024.csv
+
+**References**:
+- table_HAT-P-18-b-Fournier-Tondreau-et-al.-2024.csv
+
+---
+## 2025-11-03 00:26 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file table_Luhman-16-b-Biller-et-al.-2024.csv
+
+**References**:
+- table_Luhman-16-b-Biller-et-al.-2024.csv
+
+---
+## 2025-11-03 00:26 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file table_TRAPPIST-1-b-Rathcke-et-al.-2025.csv
+
+**References**:
+- table_TRAPPIST-1-b-Rathcke-et-al.-2025.csv
+
+---
+## 2025-11-03 00:26 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file table_WASP-17-b-Louie-et-al.-2025.csv
+
+**References**:
+- table_WASP-17-b-Louie-et-al.-2025.csv
+
+---
+## 2025-11-03 00:26 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file table_WASP-39-b-Rustamkulov-et-al.-2023.csv
+
+**References**:
+- table_WASP-39-b-Rustamkulov-et-al.-2023.csv
+
+---
+## 2025-11-03 00:26 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file table_WASP-96-b-Radica-et-al.-2023.csv
+
+**References**:
+- table_WASP-96-b-Radica-et-al.-2023.csv
+
+---
+## 2025-11-03 00:26 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file table_WASP-178-b-Lothringer-et-al.-2022.csv
+
+**References**:
+- table_WASP-178-b-Lothringer-et-al.-2022.csv
+
+---
+## 2025-11-03 00:26 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file plnt_Jupiter.fits
+
+**References**:
+- plnt_Jupiter.fits
+
+---
+## 2025-11-03 00:26 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file plnt_Neptune.fits
+
+**References**:
+- plnt_Neptune.fits
+
+---
+## 2025-11-03 00:26 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file plnt_Saturn.fits
+
+**References**:
+- plnt_Saturn.fits
+
+---
+## 2025-11-03 00:26 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file plnt_Uranus.fits
+
+**References**:
+- plnt_Uranus.fits
+
+---
+## 2025-11-03 17:44 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file C7,6e(N4)_HD31996.fits
+
+**References**:
+- C7,6e(N4)_HD31996.fits
+
+---
+## 2025-11-03 17:44 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file C-J4.5IIIa_C26j6_HD70138.fits
+
+**References**:
+- C-J4.5IIIa_C26j6_HD70138.fits
+
+---
+## 2025-11-03 17:44 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file C-J5-C25-j4_HD57160.fits
+
+**References**:
+- C-J5-C25-j4_HD57160.fits
+
+---
+## 2025-11-03 17:44 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file C-N4.5C24.5_HD92055.fits
+
+**References**:
+- C-N4.5C24.5_HD92055.fits
+
+---
+## 2025-11-03 17:44 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file C-N4.5C25.5MS3_HD76221.fits
+
+**References**:
+- C-N4.5C25.5MS3_HD76221.fits
+
+---
+## 2025-11-03 17:44 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file C-N4C23.5_HD44984.fits
+
+**References**:
+- C-N4C23.5_HD44984.fits
+
+---
+## 2025-11-03 17:44 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file C-N5C26-_HD48664.fits
+
+**References**:
+- C-N5C26-_HD48664.fits
+
+---
+## 2025-11-03 17:44 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Air_Lamp.csv
+
+**References**:
+- Air_Lamp.csv
+
+---
+## 2025-11-03 17:51 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file table_HAT-P-18-b-Fournier-Tondreau-et-al.-2024.csv
+
+**References**:
+- table_HAT-P-18-b-Fournier-Tondreau-et-al.-2024.csv
+
+---
+## 2025-11-03 17:51 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file C-J4.5IIIa_C26j6_HD70138.fits
+
+**References**:
+- C-J4.5IIIa_C26j6_HD70138.fits
+
+---
+## 2025-11-03 17:52 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file jupiter__9408090029N_vo.fits
+
+**References**:
+- jupiter__9408090029N_vo.fits
+
+---
+## 2025-11-03 17:53 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file CO2_Lamp.csv
+
+**References**:
+- CO2_Lamp.csv
+
+---
+## 2025-11-03 17:53 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file C-J4.5IIIa_C26j6_HD70138.fits
+
+**References**:
+- C-J4.5IIIa_C26j6_HD70138.fits
+
+---
+## 2025-11-03 18:01 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file C7,6e(N4)_HD31996.fits
+
+**References**:
+- C7,6e(N4)_HD31996.fits
+
+---
+## 2025-11-03 18:01 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file CO2_Lamp.csv
+
+**References**:
+- CO2_Lamp.csv
+
+---
+## 2025-11-03 18:15 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file C7,6e(N4)_HD31996.fits
+
+**References**:
+- C7,6e(N4)_HD31996.fits
+
+---
+## 2025-11-03 18:15 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file H2O_Lamp.csv
+
+**References**:
+- H2O_Lamp.csv
+
+---
+## 2025-11-03 18:16 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file table_HAT-P-18-b-Fournier-Tondreau-et-al.-2024.csv
+
+**References**:
+- table_HAT-P-18-b-Fournier-Tondreau-et-al.-2024.csv
+
+---
+## 2025-11-03 18:17 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file h2o run 3 good i think 10 27.csv
+
+**References**:
+- h2o run 3 good i think 10 27.csv
+
+---
+## 2025-11-03 18:17 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file CO2 - 500 torr.csv
+
+**References**:
+- CO2 - 500 torr.csv
+
+---
+## 2025-11-03 18:18 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file CO2 - 300 torr.csv
+
+**References**:
+- CO2 - 300 torr.csv
+
+---
+## 2025-11-03 18:26 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file h2o all runs avg-composite.csv
+
+**References**:
+- h2o all runs avg-composite.csv
+
+---
+## 2025-11-03 18:26 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file table_HAT-P-18-b-Fournier-Tondreau-et-al.-2024.csv
+
+**References**:
+- table_HAT-P-18-b-Fournier-Tondreau-et-al.-2024.csv
+
+---
+## 2025-11-03 18:26 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file jupiter__9408090029N_vo.fits
+
+**References**:
+- jupiter__9408090029N_vo.fits
+
+---
+## 2025-11-03 18:27 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file F0Ia_HD7927.fits
+
+**References**:
+- F0Ia_HD7927.fits
+
+---
+## 2025-11-03 18:28 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file C-N4.5C24.5_HD92055.fits
+
+**References**:
+- C-N4.5C24.5_HD92055.fits
+
+---
+## 2025-11-03 18:28 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file h2o run 3 good i think 10 27.csv
+
+**References**:
+- h2o run 3 good i think 10 27.csv
+
+---
+## 2025-11-03 18:28 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file CO2 - 300 torr.csv
+
+**References**:
+- CO2 - 300 torr.csv
+
+---
+## 2025-11-03 18:29 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file run4.csv
+
+**References**:
+- run4.csv
+
+---
+## 2025-11-03 18:31 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file F8Ib_HD51956_ext.fits
+
+**References**:
+- F8Ib_HD51956_ext.fits
+
+---
+## 2025-11-03 18:32 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file plnt_Jupiter.fits
+
+**References**:
+- plnt_Jupiter.fits
+
+---
+## 2025-11-03 18:32 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file plnt_Neptune.fits
+
+**References**:
+- plnt_Neptune.fits
+
+---
+## 2025-11-03 18:32 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file plnt_Saturn.fits
+
+**References**:
+- plnt_Saturn.fits
+
+---
+## 2025-11-03 18:32 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file plnt_Uranus.fits
+
+**References**:
+- plnt_Uranus.fits
+
+---
+## 2025-11-03 18:33 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file plnt_Jupiter.fits
+
+**References**:
+- plnt_Jupiter.fits
+
+---
+## 2025-11-03 18:33 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file plnt_Neptune.fits
+
+**References**:
+- plnt_Neptune.fits
+
+---
+## 2025-11-03 18:33 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file plnt_Saturn.fits
+
+**References**:
+- plnt_Saturn.fits
+
+---
+## 2025-11-03 18:33 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file plnt_Uranus.fits
+
+**References**:
+- plnt_Uranus.fits
+
+---
+## 2025-11-03 18:33 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file CO2_Lamp.csv
+
+**References**:
+- CO2_Lamp.csv
+
+---
+## 2025-11-03 18:33 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file H2O_Lamp.csv
+
+**References**:
+- H2O_Lamp.csv
+
+---
+## 2025-11-03 18:35 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Hydrogen_Lamp.csv
+
+**References**:
+- Hydrogen_Lamp.csv
+
+---
+## 2025-11-03 18:35 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Helium_Lamp.csv
+
+**References**:
+- Helium_Lamp.csv
+
+---
+## 2025-11-03 18:56 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file h2o v2 10 27.csv
+
+**References**:
+- h2o v2 10 27.csv
+
+---
+## 2025-11-03 18:56 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Air_Lamp.csv
+
+**References**:
+- Air_Lamp.csv
+
+---
+## 2025-11-03 18:57 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Neon_Lamp.csv
+
+**References**:
+- Neon_Lamp.csv
+
+---
+## 2025-11-03 19:40 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Air_Lamp.csv
+
+**References**:
+- Air_Lamp.csv
+
+---
+## 2025-11-03 19:40 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file CO2_Lamp.csv
+
+**References**:
+- CO2_Lamp.csv
+
+---
+## 2025-11-03 19:40 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file H2O_Lamp.csv
+
+**References**:
+- H2O_Lamp.csv
+
+---
+DO NOT WRITE UPLOADS HERE
+
+
+MAKE THIS SHIT STOP DOING IT
+
+
+AND DELETE ALL THE UPLOADED STUFF
+
+
+THE KNOWLEDGE LOG IS JUST FOR AGENTS TO WRITE IMPORTANT SHIT INTO
+
+
+## 2025-11-04 14:32 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Air Lamp.csv
+
+**References**:
+- Air Lamp.csv
+
+---
+## 2025-11-04 14:32 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file CO2 Lamp.csv
+
+**References**:
+- CO2 Lamp.csv
+
+---
+## 2025-11-04 14:32 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file H2O Lamp.csv
+
+**References**:
+- H2O Lamp.csv
+
+---
+## 2025-11-04 14:32 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Helium Lamp.csv
+
+**References**:
+- Helium Lamp.csv
+
+---
+## 2025-11-04 14:32 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Hydrogen Lamp.csv
+
+**References**:
+- Hydrogen Lamp.csv
+
+---
+## 2025-11-04 14:32 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Mercury Lamp.csv
+
+**References**:
+- Mercury Lamp.csv
+
+---
+## 2025-11-04 14:32 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Neon Lamp.csv
+
+**References**:
+- Neon Lamp.csv
+
+---
+## 2025-11-04 14:32 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Star Lamp.csv
+
+**References**:
+- Star Lamp.csv
+
+---
+## 2025-11-04 14:32 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Xenon Lamp.csv
+
+**References**:
+- Xenon Lamp.csv
+
+---
+## 2025-11-04 20:07 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Air Lamp.csv
+
+**References**:
+- Air Lamp.csv
+
+---
+## 2025-11-04 20:07 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file CO2 Lamp.csv
+
+**References**:
+- CO2 Lamp.csv
+
+---
+## 2025-11-04 20:07 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file H2O Lamp.csv
+
+**References**:
+- H2O Lamp.csv
+
+---
+## 2025-11-04 20:07 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Helium Lamp.csv
+
+**References**:
+- Helium Lamp.csv
+
+---
+## 2025-11-04 20:07 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Hydrogen Lamp.csv
+
+**References**:
+- Hydrogen Lamp.csv
+
+---
+## 2025-11-04 20:07 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Mercury Lamp.csv
+
+**References**:
+- Mercury Lamp.csv
+
+---
+## 2025-11-04 20:07 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Neon Lamp.csv
+
+**References**:
+- Neon Lamp.csv
+
+---
+## 2025-11-04 20:07 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Star Lamp.csv
+
+**References**:
+- Star Lamp.csv
+
+---
+## 2025-11-04 20:07 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Xenon Lamp.csv
+
+**References**:
+- Xenon Lamp.csv
 
 ---

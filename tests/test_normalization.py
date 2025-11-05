@@ -281,3 +281,49 @@ def test_normalization_multiple_spectra(tmp_path: Path) -> None:
         window.close()
         window.deleteLater()
         app.processEvents()
+
+
+def test_normalization_ignores_nans(tmp_path: Path) -> None:
+    """Max/Area normalization should ignore NaNs and still scale finite data."""
+    if SpectraMainWindow is None or QtWidgets is None:
+        pytest.skip(f"Qt stack unavailable: {_qt_import_error}")
+
+    app = _ensure_app()
+    log_service = KnowledgeLogService(log_path=tmp_path / "history.md", author="pytest")
+    window = SpectraMainWindow(knowledge_log_service=log_service)
+
+    try:
+        csv_path = tmp_path / "test_nan.csv"
+        # Include a NaN in the middle; use absorbance units
+        csv_path.write_text(
+            "wavelength_nm,absorbance\n"
+            "400,1.0\n"
+            "450,\n"  # NaN/empty
+            "500,3.0\n",
+            encoding="utf-8"
+        )
+
+        # Max normalization
+        window.norm_combo.setCurrentText("Max")
+        app.processEvents()
+        window._ingest_path(csv_path)
+        app.processEvents()
+
+        specs = window.overlay_service.list()
+        spec = specs[0]
+        trace = window.plot._traces.get(spec.id)
+        y_plotted = np.asarray(trace["y"], dtype=float)
+        # Finite values should be scaled so max(abs) == 1.0
+        assert np.nanmax(np.abs(y_plotted)) == pytest.approx(1.0, abs=1e-6)
+
+        # Switch to Area; should not crash and should produce finite scaling
+        window.norm_combo.setCurrentText("Area")
+        app.processEvents()
+        trace = window.plot._traces.get(spec.id)
+        y_area = np.asarray(trace["y"], dtype=float)
+        assert np.all(np.isfinite(y_area[~np.isnan(y_plotted)]))
+
+    finally:
+        window.close()
+        window.deleteLater()
+        app.processEvents()

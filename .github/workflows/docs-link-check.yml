@@ -1,0 +1,19 @@
+name: Docs Link Check
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  lychee:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Check documentation links
+        uses: lycheeverse/lychee-action@v1.11.0
+        with:
+          # Check README and all docs markdown files; ignore external rate limits with retries
+          args: --no-progress --max-concurrency 4 --verbose README.md docs/**/*.md
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

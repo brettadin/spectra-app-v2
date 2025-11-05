@@ -21,15 +21,28 @@ When dozens of spectra are loaded, use the search field at the top of the **Data
 
 ## Reading the status bar and inspector
 
-Moving the mouse over the plot updates the status bar with the current cursor coordinates in the active display units. When the Inspector dock is visible, the **Info** tab also highlights the selected trace's sample count, value range, and original units so you can confirm whether a spike is physical or an artefact.
+Moving the mouse over the plot updates the status bar with live cursor coordinates. The x value uses the current display unit (nm/Å/µm/cm⁻¹). The y value reflects what you see on the canvas (post‑normalization). When a non‑linear Y‑scale is active, the status bar appends a short suffix (e.g., `[Log10]`, `[Asinh]`). If normalization is enabled, the readout also shows `[Max]` or `[Area]` and tags `[•Global]` when global normalization is active.
+
+When the Inspector dock is visible, the **Info** tab also highlights the selected trace's sample count, value range, and original units so you can confirm whether a spike is physical or an artefact.
 
 The **Cursor** toolbar toggle controls whether the crosshair guides are visible. Leave it enabled when measuring peaks; turn it off if you need an unobstructed screenshot.
+
+> Note: Planned enhancement — show the pre‑scale y value alongside the transformed value when a non‑linear Y‑scale is active, and surface quick “Find peak near cursor” and “Jump to max” actions near the plot and in the Data Table.
 
 ## Legend & trace management
 
 Every trace that remains visible has a matching entry in the floating legend anchored to the top-left corner of the plot. Rename a dataset from the Inspector's alias field to update the legend label in real time. To declutter dense overlays, uncheck the visibility toggle in the Data dock’s Datasets tab—the trace disappears from the canvas and the legend until you re-enable it.
 
 > **Remote catalogue tip**: Imports triggered from **File → Fetch Remote Data…** behave just like local files. The spectra land in the Data dock’s Datasets tab with their remote provenance already cached, so you can toggle overlays, rename aliases, and compute ratios without any manual copying.
+
+### Removing datasets quickly
+
+The **Data → Datasets** tab includes a small toolbar above the tree:
+
+- **Remove Selected** removes the highlighted datasets (or press `Del`).
+- **Clear All** removes every dataset from the session (or press `Ctrl+Shift+C`). A confirmation dialog displays the total before proceeding.
+
+These actions only affect the current workspace; cached source files stay intact in the Library.
 
 ## Normalisation toolbar modes
 
@@ -42,6 +55,29 @@ Use the control to adjust every visible trace without mutating the underlying da
 - **Area** scales the curve so the absolute area under the graph equals 1.0, helping you compare broad features without flattening local structure.
 
 The data table and provenance metadata mirror the active normalisation, and the plot toolbar’s left-axis label calls out both the unit (e.g. `%T`) and the selected normalisation mode for downstream auditing.
+
+### Global normalisation
+
+When comparing traces with very different magnitudes, enable the toolbar checkbox labeled **Global** next to the Normalize control:
+
+- Unchecked: Each spectrum is normalised independently (per‑spectrum).
+- Checked: A single factor is computed across all visible spectra and applied to each (global). For Max, this is the finite‑only max(|y|) across all traces; for Area, it’s the sum of per‑trace absolute areas. This keeps small signals visible while preserving relative intensities.
+
+Global mode is applied live to the plot and to the Data Table values. Adding or removing spectra will recompute the shared factor automatically.
+
+### Y‑scale transforms
+
+To improve visibility across wide dynamic ranges after normalisation, adjust the **Y‑scale** control on the toolbar:
+
+- **Linear**: identity
+- **Log10**: signed logarithm, sign(y)*log10(1+|y|), safe for zeros and negatives
+- **Asinh**: arcsinh(y), linear near zero and ~logarithmic for large |y|
+
+These transforms are view‑only and are applied after normalisation. They do not modify the underlying data or exported CSVs.
+
+### FITS/NaN robustness
+
+Some FITS imports can contain NaNs or masked samples. The normalisation pipeline automatically ignores non‑finite values when computing scales so a few bad points don’t collapse your factors. NaNs remain in the plotted/output arrays (so you can still identify gaps) but are excluded from Max/Area calculations.
 
 ## Trace colouring modes
 
@@ -56,6 +92,10 @@ with a *Trace colouring* combo box:
 Switching modes updates both the plot and the Data dock icons immediately without mutating provenance metadata. Rename traces
 or toggle visibility as usual—returning to the palette restores each spectrum’s original colour assignment.
 
+The default high‑contrast palette now includes 20+ distinct colours before cycling, so large sessions reuse hues less often. The
+Data → Datasets list shows a small colour chip next to each alias that matches the plotted trace, making it easier to correlate
+legend entries, list rows, and on‑canvas lines at a glance.
+
 ## Overlay alignment and troubleshooting
 
 Reference overlays adopt the scaling of the active plot so annotations land where you expect them. The IR functional-group lanes, for example, now anchor their filled band to the visible y-axis span and assign each label to its own vertical slot. When you normalise a trace or zoom the view, the overlay recalculates those slots to keep the stacked annotations readable. If labels ever drift out of band after switching datasets:
@@ -69,6 +109,13 @@ payload and annotations rather than rebuilding empty containers. That means manu
 clears until you load a different dataset or regenerate the payload from the inspector table.
 
 Automated coverage in `tests/test_reference_ui.py::test_ir_overlay_labels_stack_inside_band` protects the label-spacing logic, so overlap usually signals that the active axis is extremely compressed. Widening the y-range or temporarily disabling normalisation restores the expected layout.
+
+### Working with NIST line overlays
+
+- Each fetched result is “pinned” to the session; multiple pins draw together with distinct colours.
+- Double‑click a pinned item in the list to remove it; the status label shows how many sets are pinned.
+- Bars rescale automatically when you zoom or change normalization so they remain legible. When 0 is in view, the bar baseline is anchored at y=0.
+- Line overlays render behind spectra to reduce clutter; zooming in around a feature typically reveals the bars clearly without obscuring peaks.
 
 ## Level-of-detail safeguards
 
@@ -96,3 +143,8 @@ All artefacts share the same base filename. For example, exporting `~/spectra/ar
 - For extremely dense imported files, let the initial draw settle for a second before interacting; once cached, subsequent pans and zooms reuse the downsampled envelope.
 
 Following these practices keeps the UI responsive even with multi-megabyte spectral stacks, while the provenance export pipeline continues to capture the unmodified data stream.
+
+## Further reading
+- [Atlas: normalization (global vs per-spectrum)](../atlas/README.md#normalization-global-vs-per-spectrum)
+- [Atlas: overlays and NIST anchoring](../atlas/README.md#overlays-nist-anchoring-and-scaling)
+- [Atlas: calibration FWHM kernels](../atlas/README.md#calibration-fwhm-kernels)

@@ -1,3 +1,4 @@
+MOVED: This log has been archived to reports/logs/runtime-2025-11-04.log and logs are now ignored by git.
 Traceback (most recent call last):
   File "C:\Code\spectra-app-v2\app\main.py", line 949, in open_file
     self._ingest_path(Path(path_str))

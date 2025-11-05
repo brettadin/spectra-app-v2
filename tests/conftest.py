@@ -104,10 +104,16 @@ def pytest_sessionstart(session: pytest.Session) -> None:  # pragma: no cover - 
 
     Some runners or IDEs may start pytest from a parent directory (e.g., C:\Code),
     which breaks relative paths like 'samples/sample_spectrum.csv'. Force the CWD
-    to the repo root alongside 'app/' and 'tests/'.
+    to the repo root alongside 'app/' and 'tests/'. Also set a safe Qt platform
+    for headless test environments to avoid plugin crashes on Windows.
     """
     try:
         os.chdir(ROOT)
+    except Exception:
+        pass
+    # Ensure a headless Qt platform to avoid access violations when creating Qt objects
+    try:
+        os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
     except Exception:
         pass
     # Provide a global fallback for tests that reference 'mini_fits' without

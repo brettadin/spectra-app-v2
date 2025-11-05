@@ -1,0 +1,65 @@
+(cd "$(git rev-parse --show-toplevel)" && git apply --3way <<'EOF' 
+diff --git a/README.md b/README.md
+index 176e61c753f0cd112a973c30f42a6817ed1ca16f..2ce23b7cf958738c2e87fc776726564ca845c035 100644
+--- a/README.md
++++ b/README.md
+@@ -2,53 +2,53 @@
+ 
+ [![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue.svg)](https://www.python.org/downloads/)
+ [![Platform: Windows](https://img.shields.io/badge/platform-Windows-lightgrey.svg)](https://www.microsoft.com/windows)
+ [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+ [![Code style: Black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+ 
+ A modern, modular **Windows desktop application** for spectroscopic analysis of stellar, planetary, and exoplanet data. Built with PySide6/Qt for performance and reliability, featuring clean UI, robust provenance tracking, and offline-first caching.
+ 
+ ## 🎯 Project Overview
+ 
+ This repository represents the complete rewrite of the Spectra-App into a modern, modular desktop application. The redesign addresses legacy limitations while preserving all existing functionality:
+ 
+ - **Clean Architecture**: Modular service-based design for maintainability
+ - **Scientific Accuracy**: Rigorous unit handling and provenance tracking
+ - **Performance Focus**: Optimized for large datasets (1M+ points)
+ - **Docs-First Development**: Comprehensive documentation for users and developers
+ 
+ ### Legacy Reference
+ - Original application: https://github.com/brettadin/spectra-app
+ - This repository: Complete PySide6 rewrite with enhanced architecture
+ 
+ ## ✨ Key Features
+ 
+ ### Accessing Real Spectral Data
+ - **Remote Data Dialog**: Fetch calibrated spectra directly from NASA MAST archives
+-  - **Solar System**: Jupiter, Mars, Saturn, Venus, and their moons (JWST, HST observations)
+-  - **Stars**: Vega (A0V standard), Tau Ceti (solar analog), stellar libraries (CALSPEC, Pickles)
+-  - **Exoplanets**: WASP-39 b, TRAPPIST-1 system, hot Jupiters (JWST transmission/emission spectra)
++  - **Solar System quick-picks**: Mercury, Venus, Earth, Mars, Jupiter, Saturn, Uranus, Neptune, Pluto (JWST, HST, Cassini, New Horizons)
++  - **Stars**: Vega (A0V CALSPEC standard), Tau Ceti (solar analog), HD 189733 (active K-dwarf host)
++  - **Exoplanets & systems**: HD 189733 b, WASP-39 b, TRAPPIST-1 system (JWST transmission/emission spectra)
+   - Access via **File → Fetch Remote Data** (Ctrl+Shift+R)
+   - All data from credible sources: MAST, Exo.MAST, NASA Exoplanet Archive
+   - Wavelength coverage: UV, visible, near-IR, mid-IR (0.1–30 µm depending on instrument)
+ 
+ > **Note**: Bundled reference data (JWST targets JSON) contains example-only digitized values for demonstration purposes. For scientific analysis, always use the Remote Data dialog to fetch real calibrated observations from MAST.
+ 
+ ### Data Ingestion & Management
+ - **Multi-format Support**: CSV/TXT, FITS 1D, JCAMP-DX with intelligent header detection
+ - **Remote Data Integration**: NASA/MAST API for JWST spectra, NIST Atomic Spectra Database, NASA Exoplanet Archive
+ - **Offline-First Cache**: All data persists locally with SHA256 deduplication
+ - **Provenance Tracking**: Complete audit trail for all data operations
+ 
+ ### Analysis & Processing
+ - **Unit Canon System**: Store raw data in nanometers; display-time conversions (nm/Å/µm/cm⁻¹)
+ - **Mathematical Operations**: A−B, A/B (epsilon-guarded), baseline removal, Savitzky-Golay smoothing
+ - **Spectral Analysis**: Gaussian fitting, peak detection, continuum subtraction
+ - **Reference Overlays**: NIST atomic line lists with interactive redshift controls
+ 
+ ### User Experience
+ - **High-Performance Plotting**: PyQtGraph with LOD optimization for 1M+ point datasets
+ - **Clean, Intuitive UI**: Logical control grouping with progressive disclosure
+ - **Comprehensive Inspector**: Spectrum metadata, math operations, style controls, provenance viewer
+ - **Export Capabilities**: PNG, CSV with complete manifest.json provenance
+ 
+ ## 📁 Repository Structure
+... (truncated for brevity)
+EOF
+)

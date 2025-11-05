@@ -1,0 +1,102 @@
+{
+  "version": "1.0",
+  "app": {
+    "name": "SpectraApp",
+    "version": "0.1.0",
+    "build_date": "2025-11-04",
+    "libraries": {
+      "numpy": "2.3.4",
+      "pyside6": "6.10.0",
+      "pytest": "8.4.1"
+    }
+  },
+  "timestamp_utc": "2025-11-04T15:39:53.088910+00:00",
+  "sources": [
+    {
+      "id": "7ab8b416-1f33-4997-becf-fc15c458fba0",
+      "name": "H2O",
+      "units": {
+        "wavelength": "nm",
+        "intensity": "absorbance"
+      },
+      "metadata": {
+        "operation": {
+          "name": "average",
+          "parameters": {
+            "count": 10,
+            "wavelength_range": [
+              345.386,
+              1045.841
+            ],
+            "points": 3648
+          },
+          "parents": [
+            "757170b9-a185-482a-8882-cb95eae5e773",
+            "b76e2952-a716-4508-9d04-a810bb3af394",
+            "76bb7271-ef9d-4012-8148-91c2d24f306f",
+            "5f394cfa-ec05-42fd-b713-3070a0a62d67",
+            "30c6cf35-e103-4c41-912b-013c7a41f7fc",
+            "e8ead8cb-6547-4b30-9393-c9dd93f0a46f",
+            "f63eac6a-68a8-4fd7-bd4b-80132d9b3b0d",
+            "343a3240-7a9b-44aa-b441-5bd27493c6eb",
+            "468d8665-c951-4fd1-94a3-473555060233",
+            "fa9b264f-2a28-4f6f-abd7-ce50f432a1e9"
+          ]
+        },
+        "source_spectra": [
+          {
+            "id": "757170b9-a185-482a-8882-cb95eae5e773",
+            "name": "H2O_Subt9__0__00040"
+          },
+          {
+            "id": "b76e2952-a716-4508-9d04-a810bb3af394",
+            "name": "H2O_Subt9__1__00041"
+          },
+          {
+            "id": "76bb7271-ef9d-4012-8148-91c2d24f306f",
+            "name": "H2O_Subt9__2__00042"
+          },
+          {
+            "id": "5f394cfa-ec05-42fd-b713-3070a0a62d67",
+            "name": "H2O_Subt9__3__00043"
+          },
+          {
+            "id": "30c6cf35-e103-4c41-912b-013c7a41f7fc",
+            "name": "H2O_Subt9__4__00044"
+          },
+          {
+            "id": "e8ead8cb-6547-4b30-9393-c9dd93f0a46f",
+            "name": "H2O_Subt9__5__00045"
+          },
+          {
+            "id": "f63eac6a-68a8-4fd7-bd4b-80132d9b3b0d",
+            "name": "H2O_Subt9__6__00046"
+          },
+          {
+            "id": "343a3240-7a9b-44aa-b441-5bd27493c6eb",
+            "name": "H2O_Subt9__7__00047"
+          },
+          {
+            "id": "468d8665-c951-4fd1-94a3-473555060233",
+            "name": "H2O_Subt9__8__00048"
+          },
+          {
+            "id": "fa9b264f-2a28-4f6f-abd7-ce50f432a1e9",
+            "name": "H2O_Subt9__9__00049"
+          }
+        ],
+        "unit_conversions": {
+          "source_units": {
+            "x": "nm",
+            "y": "absorbance"
+          }
+        }
+      },
+      "parents": [],
+      "transforms": [],
+      "canonical_csv": "spectra\\h2o-7ab8b416-1f33-4997-becf-fc15c458fba0.csv"
+    }
+  ],
+  "transforms": [],
+  "citations": []
+}

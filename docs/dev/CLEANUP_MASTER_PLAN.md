@@ -16,6 +16,36 @@ This document tracks the complete cleanup, refactoring, and improvement effort f
 
 ---
 
+## Progress Log (Nov 2025)
+
+### 2025-11-03
+
+- UI polish and docs
+    - Docs panel now groups topics (User, Developer, History, Other) and renders Markdown when supported; selection skips headers automatically.
+    - Added a dedicated summary: `docs/history/2025-11-03_cleanup_branch_summary.md` and linked it from the index.
+- Plotting and overlays
+    - Fixed cm⁻¹ display reversal by reversing arrays after conversion to keep x monotonic (prevents pan/zoom dropouts).
+    - NIST line overlays: reflow with zoom/normalization, anchored at y=0 if visible, drawn behind traces; separate color iterator so dataset colors remain stable.
+- Palette and accessibility
+    - Expanded high-contrast palette and applied to datasets; dark-mode checked states improved for visibility.
+- Library
+    - Samples node lists bundled files; double-click to ingest without file dialogs.
+- Notes
+    - Details recorded in `docs/history/PATCH_NOTES.md` (2025‑11‑03 section).
+
+### 2025-11-02
+
+- Normalization and calibration
+    - Global normalization option (Max/Area) across visible spectra; NaN/Inf-robust scaling; Y-scale transforms (Linear, signed Log10, Asinh).
+    - Display-time calibration (FWHM blur, RV shift) applied in nm-space pre-normalization; non-destructive.
+- Documentation
+    - Capability atlas and repository inventory archived under `docs/history/archive/2025-11-02-pre-cleanup/` with current pointers in root files.
+    - Index (`docs/INDEX.md`) promoted to canonical entry point; cleanup plan created (this document).
+- Notes
+    - Details recorded in `docs/history/PATCH_NOTES.md` (2025‑11‑02 entries).
+
+---
+
 ## Initial Assessment (2025-11-02)
 
 ### Critical Issues Identified
@@ -988,6 +1018,58 @@ Phase 4 (Week 4): Clean main.py
    - Create new structure
    - Write READMEs
    - Start moving files
+
+---
+
+## Execution Plan (Easiest → Hardest)
+
+This is the pragmatic order to execute work from lowest effort/fastest wins to highest effort/risk. Each item lists a rough time estimate and a crisp acceptance criterion.
+
+### 1) Quick Wins (60–120 min total)
+- Finalize docs/INDEX.md (45–60 min)
+    - Accept: All links resolve locally; INDEX is linked from README.
+- Update README to point to INDEX and Quick Start (20–30 min)
+    - Accept: Top-level navigation clear; no stale sections remain.
+- Archive redundant docs with stubs (45–75 min)
+    - Accept: IMPLEMENTATION_SUMMARY.md, ENHANCEMENT_PLAN_STATUS.md, IR_EXPANSION_SUMMARY.md, docs/app_capabilities.md, docs/repo_inventory.md moved to archive with “replacement” pointers.
+
+### 2) Small Code Shims (90–150 min)
+- Introduce app/constants.py (45–60 min)
+    - Accept: No behavior change; at least 5 hard-coded strings replaced safely in touched modules; tests still pass.
+- Configure baseline logging (45–75 min)
+    - Accept: app starts without warnings; a log file is created; Help → “Open Log File” menu entry works if present or noted for follow-up.
+
+### 3) Samples Directory Skeleton (60–90 min)
+- Create samples/{test_fixtures,calibration_standards,solar_system,exoplanets,laboratory}/ with README per folder
+    - Accept: New READMEs exist; at least two representative files moved; tests referencing sample paths still pass or are updated.
+
+### 4) MainWindow Extraction – Phase 1 (2–3 hours)
+- Extract window setup and menu wiring into app/ui/main_window.py and app/ui/menu_factory.py
+    - Accept: App launches and core flows (open CSV/FITS, plot, export) work unchanged; main.py shrinks meaningfully (>300 lines reduction).
+
+### 5) Export Logic Split (2–3 hours)
+- Move format-specific code into services/export_formatters (csv/json/bundle) and add a format_version
+    - Accept: Exports produce identical artifacts plus a version marker; tests for manifest/CSV remain green.
+
+### 6) Worker De-duplication (2–4 hours)
+- Consolidate remote search/download workers into app/workers/
+    - Accept: Both main window and remote dialog use shared workers; no duplicated classes remain; manual search/download still works.
+
+### 7) Error Handling Wrapper (60–90 min)
+- Add user-friendly error wrapper and apply to top 3 UI actions
+    - Accept: Those actions show dialog instead of raw stack traces on error; logs capture technical details.
+
+### 8) Test Hygiene (90–150 min)
+- Expand tests/conftest.py with reusable spectrum fixtures; add tests/README.md
+    - Accept: At least two test modules updated to use fixtures; quick test run passes.
+
+### 9) Profiling Hooks and CI (60–90 min)
+- Add lightweight @profile decorator and optional GitHub Actions workflow for pyright + pytest
+    - Accept: Profile logs appear in DEBUG mode; CI job runs on PRs and reports status.
+
+Notes:
+- If any medium/large item shows unexpected risk, pause and land the previous small shims to keep the branch green.
+- Prefer short PRs (≤400 LOC changes) that keep behavior stable and are easy to review.
 
 ---
 

@@ -231,9 +231,9 @@ I'll address updates to the housekeeping plan, audit report, and suggest new fea
 
 ### Files to Check
 1. **`patch.patch`** (root directory)
-   - Likely old patch file
-   - Not referenced by code
-   - **Decision**: DELETE - historical artifact only
+    - Historical patch sample
+    - Status: removed from repository (kept only in archived docs)
+    - **Decision**: ✅ DONE
 
 2. **`docs/history/past prompts/`** directory
    - Old conversation logs

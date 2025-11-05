@@ -1,0 +1,25 @@
+# Atlas anchors index
+# Maps stable anchor slugs to their location and a short description.
+# Keep slugs stable; update paths if files move.
+
+anchors:
+  units-signed-log-transform:
+    file: README.md
+    section: "Units: signed log transform"
+    description: "Definition and usage of signed log10/asinh transforms for display"
+  normalization-global-vs-per-spectrum:
+    file: README.md
+    section: "Normalization — global vs per-spectrum"
+    description: "When to use global normalization vs per-spectrum and implications"
+  calibration-fwhm-kernels:
+    file: README.md
+    section: "Calibration: FWHM kernels and RV shifts"
+    description: "Display-time FWHM blur kernels and radial velocity shifting in nm space"
+  overlays-nist-anchoring-and-scaling:
+    file: README.md
+    section: "Overlays: NIST anchoring and scaling"
+    description: "How spectral line overlays anchor and rescale with zoom/normalization"
+  identification-peak-scoring:
+    file: chapter_7_identification_and_prediction_logic.md
+    section: "Identification: peak scoring"
+    description: "Peak detection and scoring concepts for functional-group identification"

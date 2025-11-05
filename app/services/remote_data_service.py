@@ -186,7 +186,7 @@ class RemoteDataService:
             "local_samples": [
                 {
                     "id": "earth-visible",
-                    "label": "Disc reflectance (350-700 nm)",
+                    "label": "Visible disc reflectance (350-700 nm)",
                     "path": "solar_system/earth/earth_visible.csv",
                     "description": "EPOXI-inspired whole-Earth reflectance across the visible band.",
                     "instrument": "EPOXI MRI",
@@ -1457,7 +1457,22 @@ class RemoteDataService:
         *,
         progress: Callable[[RemoteRecord, int, int | None], None] | None = None,
     ) -> Path:
-        return self._fetch_via_mast_direct(record.download_url, record=record, progress=progress)
+        # Prefer astroquery's Observations.download_file when available; fall back to direct HTTP
+        try:
+            mast = self._ensure_mast()
+            # Resolve a local target path; Observations will create/overwrite this path
+            parsed = urlparse(record.download_url)
+            suffix = Path(parsed.path).suffix or ".fits"
+            alias = record.suggested_filename() or Path(parsed.path).name or "mast_product"
+            target = self._prepare_staging_file(alias, suffix=suffix)
+            # The astroquery API writes to the provided local_path and returns the written path
+            result = mast.Observations.download_file(record.download_url, cache=False, local_path=str(target))
+            try:
+                return Path(result)
+            except Exception:
+                return target
+        except Exception:
+            return self._fetch_via_mast_direct(record.download_url, record=record, progress=progress)
 
     def _fetch_via_mast_direct(
         self,

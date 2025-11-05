@@ -211,7 +211,12 @@ class PlotPane(QtWidgets.QWidget):
         self._rebuild_legend()
 
     def autoscale(self) -> None:
-        self._plot.enableAutoRange(axis=pg.ViewBox.XYAxes, enable=True)
+        """Autoscale the plot to fit all visible data."""
+        try:
+            self._plot.enableAutoRange(axis=pg.ViewBox.XYAxes, enable=True)
+            self._plot.autoRange()  # Force immediate autoscale
+        except Exception:
+            pass
 
     def export_png(self, path: str | Path, width: int = 1600) -> None:
         """Export the current plot view as a PNG image."""
@@ -334,6 +339,15 @@ class PlotPane(QtWidgets.QWidget):
         x_nm: np.ndarray = trace["x_nm"]  # type: ignore[assignment]
         y: np.ndarray = trace["y"]  # type: ignore[assignment]
         x_disp = self._x_nm_to_disp(x_nm)
+        # Ensure display x is monotonically increasing for robust clipping/downsampling.
+        # Conversions like cm⁻¹ = 1e7 / nm invert the order; reverse both arrays
+        # so pyqtgraph's clipToView/downsampling never drops entire segments.
+        try:
+            if x_disp.size >= 2 and x_disp[-1] < x_disp[0]:
+                x_disp = x_disp[::-1]
+                y = y[::-1]
+        except Exception:
+            pass
         x_disp, y = self._downsample_peak(x_disp, y, self._max_points)
         item.setData(x_disp, y, connect="finite")
         item.setVisible(bool(trace.get("visible", True)))

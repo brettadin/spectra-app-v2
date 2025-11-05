@@ -11,6 +11,7 @@ from .store import LocalStore
 from .remote_data_service import RemoteDataService, RemoteRecord, RemoteDownloadResult, LocalSample
 from .line_shapes import LineShapeModel, LineShapeOutcome
 from .knowledge_log_service import KnowledgeLogEntry, KnowledgeLogService
+from .calibration_service import CalibrationService, CalibrationConfig
 
 __all__ = [
     "Spectrum",
@@ -30,4 +31,6 @@ __all__ = [
     "LineShapeOutcome",
     "KnowledgeLogEntry",
     "KnowledgeLogService",
+    "CalibrationService",
+    "CalibrationConfig",
 ]

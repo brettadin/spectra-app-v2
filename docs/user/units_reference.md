@@ -30,3 +30,4 @@ All values are stored in nm internally, which keeps the unit canon consistent ac
 
 - [Quickstart](./quickstart.md) — outlines how to ingest data and toggle units during a session.
 - [Importing guide](./importing.md) — details metadata requirements for unit annotations and provenance capture.
+- [Atlas: units and signed log transform](../atlas/README.md#units-signed-log-transform)

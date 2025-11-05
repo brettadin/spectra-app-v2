@@ -1,5 +1,10 @@
 # Spectra App Capability Atlas (2025-11-02)
 
+> Archived notice (2025-11-02): This atlas has been archived to
+> `docs/history/archive/2025-11-02-pre-cleanup/app_capabilities.md`.
+> For the canonical documentation map, use `docs/INDEX.md`. Architecture
+> overview lives in `specs/architecture.md`.
+
 *Compiled 2025-11-02T10:43:33-05:00 / 2025-11-02T15:43:35+00:00 by agent.*
 
 This atlas is an exhaustive, narrative map of everything the Spectra desktop application currently does, the pathways that make

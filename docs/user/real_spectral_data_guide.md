@@ -212,8 +212,13 @@ Downloaded files are typically:
 
 ## Getting Help
 
+
 If you encounter issues accessing real spectral data:
-1. Check the logs in the Log dock (View → Log)
+1. Check the logs in the Log dock (View  Log)
 2. Verify your internet connection and firewall settings
 3. Review the Remote Data user guide for provider-specific tips
 4. Report persistent issues with specific target names and error messages
+
+## Further reading
+- [Atlas: remote data rationale](../atlas/README.md#remote-data-rationale)
+- [Atlas: provenance and data quality](../atlas/README.md#provenance-and-data-quality)

@@ -1,5 +1,70 @@
 # Patch Notes
 
+## 2025-11-04 (Live cursor readout, NIST caching) — 15:40 ET / 20:40Z UTC
+- Live cursor coordinate readout in the status bar: shows x in the active unit (nm/Å/µm/cm⁻¹) and y as displayed post‑normalization. When a non‑linear Y‑scale is active, a short suffix (e.g., `[Log10]`, `[Asinh]`) is appended.
+- Status readout now also shows normalization badges when enabled (e.g., `[Max]`, `[Area]`, plus `[•Global]` when global normalization is active).
+- Updated `docs/user/plot_tools.md` to describe the readout and note planned peak‑finding helpers.
+- Added a design doc for the upcoming analysis toolkit (peak picker, centroid/FWHM/EW, alignment, comparison tools): `docs/specs/analysis_toolkit.md` and linked it from the docs index.
+
+## 2025-11-04 (NIST line list caching) — 14:25 ET / 19:25Z UTC
+- **Line list caching**: NIST spectral line queries are now automatically cached on disk after the first fetch. Repeated queries for the same element, ion stage, and wavelength range return instantly from cache without network access.
+  - Cache location: `downloads/_cache/line_lists/`
+  - Cache entries expire after 365 days (spectral lines are stable reference data)
+  - Cached results show a `[cached]` indicator in the Reference tab status message
+  - Added **Clear Cache** button to the Reference tab (NIST ASD section) to remove all cached line lists
+  - Cache can be disabled via `SPECTRA_DISABLE_LINE_CACHE=1` environment variable
+  - Cache statistics (hits/misses/stores/evictions) available via `nist_asd_service.cache_stats()`
+- Updated `docs/user/reference_data.md` with caching behavior documentation
+- Added comprehensive test coverage: 12 unit tests for cache service, 7 integration tests for NIST flow
+
+## 2025-11-04 (Worklog helper and logging docs)
+- Added `tools/worklog_helper.py`, a zero-dependency helper that prints:
+  - Today’s ET-based worklog filename suggestion (`docs/dev/worklog/YYYY-MM-DD.md`)
+  - Current Local ET and UTC times
+  - A ready-to-copy entry header stub
+- Linked the helper from `docs/dev/worklog/README.md` and `TEMPLATE.md` so agents can stamp real ET/UTC times quickly.
+
+## 2025-11-03 (Calibration UI, Global normalisation, Y‑scale, NaN‑robust scales)
+- Reference overlays
+  - NIST bars now rescale when zooming or after normalization changes and draw behind traces (reduced clutter).
+  - Bars anchor to y=0 when visible to avoid negative offsets.
+  - Each pinned set receives a distinct colour; double‑click a pin in the list to remove it.
+  - Library view gained a “Samples” section listing files for one‑click ingest.
+
+- Trace colouring and readability
+  - Expanded the high‑contrast palette to 20+ distinct colours and applied it to datasets as well as line overlays.
+  - The Datasets list now shows a small colour chip next to each alias that matches the plot trace.
+  - Improved dark‑mode checked states for toolbar buttons and checkboxes for better visibility.
+
+- Docs panel polish
+  - The Docs tab now groups entries under bold headers (User, Developer, History, Other) with alphabetical sorting inside each group.
+  - The viewer renders Markdown where supported (Qt setMarkdown), falling back to plain text if unavailable.
+
+- Colour management stability
+  - NIST pinned overlays now draw colours from a dedicated iterator so adding/removing line sets no longer shifts dataset colours mid‑session.
+
+
+Display‑time calibration and visibility improvements
+
+- Added a lightweight Calibration tab (Inspector) that applies FWHM blurring and radial‑velocity (RV km/s) shifts at display time in nm‑space. The transform precedes normalisation and plotting; underlying data remains unchanged.
+- Introduced a Global checkbox next to the Normalize control. When enabled, a single factor is computed across all visible spectra:
+  - Max: finite‑only max(|y|) across traces
+  - Area: sum of per‑trace absolute areas (index‑based integration to match tests)
+- Added Y‑scale transforms applied after normalisation to improve dynamic‑range visibility: Linear (identity), Log10 (signed log: sign(y)*log10(1+|y|)), and Asinh.
+- Hardened normalisation scale calculations to ignore NaNs/Infs so FITS masked values don’t collapse visibility. NaNs remain in arrays for provenance but are excluded from scale computation.
+- Plot autoscale path updated to force re‑range on refresh so changes from calibration/normalisation/Y‑scale are immediately visible.
+
+Docs & tests
+
+- Updated `docs/user/plot_tools.md` to document Global normalisation, Y‑scale transforms, and FITS/NaN robustness.
+- Refreshed `README.md` feature list to call out Calibration, Global normalisation, Y‑scale, and FITS scale robustness.
+- Extended `NORMALIZATION_VERIFICATION.md` with Y‑scale notes and NaN behaviour and confirmed existing tests remain green.
+
+Notes
+
+- Area scaling continues to use index‑based integration to preserve current unit tests; x‑weighted integration can be revisited with adjusted expectations.
+- Global factors recompute automatically on add/remove/visibility changes.
+
 ## 2025-11-02 (Capability atlas & cleanup audit) (10:43 EST / 15:43 UTC)
 
 **Mapped active features & cleanup targets**
