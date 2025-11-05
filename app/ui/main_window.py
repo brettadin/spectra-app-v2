@@ -470,12 +470,12 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
 
         # Analysis helpers
         self.plot_toolbar.addSeparator()
-    self.action_jump_max = QtGui.QAction("Jump to max", self)
+        self.action_jump_max = QtGui.QAction("Jump to max", self)
         self.action_jump_max.setToolTip("Center view on the maximum of the selected spectrum (post-normalization)")
         self.action_jump_max.triggered.connect(self._on_jump_to_max)
         self.plot_toolbar.addAction(self.action_jump_max)
 
-    self.action_find_peak = QtGui.QAction("Find peak near cursor", self)
+        self.action_find_peak = QtGui.QAction("Find peak near cursor", self)
         self.action_find_peak.setToolTip("Find a peak near the cursor in the selected spectrum and center the view")
         self.action_find_peak.triggered.connect(self._on_find_peak_near_cursor)
         self.plot_toolbar.addAction(self.action_find_peak)

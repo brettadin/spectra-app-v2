@@ -7,7 +7,7 @@ import hashlib
 import json
 import logging
 from pathlib import Path
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Dict, Optional, Tuple, cast
 
 logger = logging.getLogger(__name__)
 
@@ -184,7 +184,7 @@ class LineListCache:
         path = self._get_path(key)
         
         try:
-            entry = {
+            entry: Dict[str, Any] = {
                 "cached_at": datetime.now(UTC).isoformat(),
                 "query": {
                     "element_symbol": element_symbol,
@@ -240,8 +240,8 @@ class LineListCache:
         """
         if not self._enabled:
             return []
-        
-        entries = []
+
+        entries: list[Tuple[str, datetime, int]] = []
         try:
             for path in self._cache_dir.glob("*.json"):
                 try:
@@ -252,8 +252,14 @@ class LineListCache:
                     cached_at_str = entry.get("cached_at", "")
                     cached_at = datetime.fromisoformat(cached_at_str) if cached_at_str else None
                     
-                    lines = entry.get("data", {}).get("lines", [])
-                    line_count = len(lines) if isinstance(lines, list) else 0
+                    data_block_raw = entry.get("data")
+                    if isinstance(data_block_raw, dict):
+                        data_block = cast(Dict[str, Any], data_block_raw)
+                    else:
+                        data_block = {}
+                    raw_lines = data_block.get("lines")
+                    lines = cast(list[Any], raw_lines) if isinstance(raw_lines, list) else []
+                    line_count = len(lines)
                     
                     if cached_at:
                         entries.append((key, cached_at, line_count))
