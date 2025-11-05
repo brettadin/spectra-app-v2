@@ -1,5 +1,10 @@
 """Test script to verify global normalization feature."""
 
+import pytest
+
+# Ensure pytest won't try to collect/execute this interactive manual runner
+pytestmark = pytest.mark.skip(reason="Manual UI check moved to tests/manual; run directly as a script if needed.")
+
 import sys
 from pathlib import Path
 import numpy as np

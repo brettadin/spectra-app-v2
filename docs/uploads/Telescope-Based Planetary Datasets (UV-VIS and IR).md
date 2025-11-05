@@ -1,3 +1,12 @@
+---
+title: Telescope-Based Planetary Datasets (UV-VIS and IR) (Moved)
+status: moved
+canonical: ../user/Telescope-Based Planetary Datasets (UV-VIS and IR).md
+date: 2025-11-05
+---
+
+Note: This document has moved to [docs/user/Telescope-Based Planetary Datasets (UV-VIS and IR).md](../user/Telescope-Based%20Planetary%20Datasets%20(UV-VIS%20and%20IR).md). Please update any bookmarks or references.
+
 # Telescope-Based Planetary Datasets (UV-VIS and IR)
 
 Below are two datasets for each of the nine planets. Each entry lists the mission/instrument, wavelength range, target planet, observation type, and a direct link to the data.

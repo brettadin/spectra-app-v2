@@ -1,3 +1,12 @@
+---
+title: Relating Lab Spectra to Astronomical Data (Moved)
+status: moved
+canonical: ../user/Relating Lab Spectra to Astronomical Data.md
+date: 2025-11-05
+---
+
+Note: This document has moved to [docs/user/Relating Lab Spectra to Astronomical Data.md](../user/Relating%20Lab%20Spectra%20to%20Astronomical%20Data.md). Please update any bookmarks or references.
+
 # Relating Lab Spectra to Astronomical Data
 
 ## Using Reference Standards for Calibration

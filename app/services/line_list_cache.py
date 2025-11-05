@@ -6,7 +6,6 @@ from datetime import UTC, datetime, timedelta
 import hashlib
 import json
 import logging
-import os
 from pathlib import Path
 from typing import Any, Dict, Optional, Tuple
 
@@ -18,7 +17,8 @@ class LineListCache:
     Disk-backed cache for NIST spectral line query results.
     
     Cache keys are derived from query parameters (element, ion_stage, wavelength_range).
-    Entries are stored as JSON files in downloads/_cache/line_lists/ with metadata
+    Entries are stored as JSON files under storage://cache/_cache/line_lists/ (defaulting to
+    <repo>/downloads/_cache/line_lists during migration) with metadata
     including fetch timestamp and expiry.
     """
 
@@ -34,7 +34,8 @@ class LineListCache:
         
         Args:
             cache_dir: Directory to store cached line lists. If None, defaults to
-                      downloads/_cache/line_lists/ relative to the workspace root.
+                      storage://cache/_cache/line_lists/ (resolved via PathAlias) relative
+                      to the workspace root.
             max_age_days: Maximum age in days before cached entries are considered stale.
                          Defaults to 365 days (spectral lines are stable reference data).
             enabled: Whether caching is enabled. If False, all operations become no-ops.
@@ -43,9 +44,14 @@ class LineListCache:
         self._max_age = timedelta(days=max_age_days)
         
         if cache_dir is None:
-            # Default to downloads/_cache/line_lists in workspace root
-            workspace = Path(__file__).resolve().parents[2]
-            cache_dir = workspace / "downloads" / "_cache" / "line_lists"
+            # Default to storage://cache/_cache/line_lists (compatible with downloads/ during migration)
+            try:
+                from app.utils.path_alias import PathAlias  # lazy import to avoid cycles
+                cache_root = PathAlias.resolve("storage://cache")
+            except Exception:
+                # Fallback to repo_root/downloads for maximum compatibility if alias helper unavailable
+                cache_root = Path(__file__).resolve().parents[2] / "downloads"
+            cache_dir = cache_root / "_cache" / "line_lists"
         
         self._cache_dir = Path(cache_dir)
         
