@@ -122,50 +122,18 @@ python test_global_normalization.py
 ```
 
 This creates two spectra with 100:1 intensity ratio and demonstrates:
-1. No normalization: Both visible
-2. Max (per-spectrum): Both peaks at Y=1.0, smaller one hard to distinguish
-3. Max + Global: Large peak at Y=1.0, small spectrum proportionally scaled
-
-### Automated Tests
-All tests pass:
-```bash
-pytest tests/test_normalization.py -v
-```
-
-Tests verify:
-- Per-spectrum normalization (default, backward compatible)
-- Global normalization can be implemented in future tests
-- No regression in existing functionality
- - NaN/Inf samples are ignored when computing scales (FITS robustness)
-
-## Usage Recommendations
-
-### When to Use Per-Spectrum (Default):
-- Comparing line shapes/features across spectra
-- Each spectrum represents different measurement
-- Don't care about relative intensities
-- **Example**: Comparing absorption features across different materials
-
-### When to Use Global:
-- Comparing relative intensities/brightness
-- Multiple spectra have vastly different scales
-- Want to preserve intensity ratios
-- **Example**: Stellar spectra where brightness differences are meaningful
-
-## Conclusion
-
-✅ **Feature Implemented and Tested**
-
-The global normalization toggle solves the user's problem:
-- Default behavior preserved (per-spectrum)
-- Users can opt-in to global normalization when needed
-- All existing tests pass
-- No breaking changes
-
-**Status**: Ready for use ✅
-
+---
+title: Normalization Feature Verification [Moved]
+status: moved
+date: 2025-11-04
+canonical: ./docs/reviews/NORMALIZATION_VERIFICATION.md
 ---
 
-**Last Updated**: 2025-11-03  
-**Feature Added**: Global Normalization Toggle
-**Additions**: Y-scale control (Linear/Log10/Asinh), NaN/Inf-robust scale computation
+# This page has moved
+
+The canonical, reviewed copy is now at:
+
+- `docs/reviews/NORMALIZATION_VERIFICATION.md`
+
+Please update links to the new location; this stub preserves the old path while directing readers to the canonical doc.
+ - NaN/Inf samples are ignored when computing scales (FITS robustness)

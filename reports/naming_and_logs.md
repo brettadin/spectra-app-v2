@@ -38,3 +38,53 @@ To address these issues and create a coherent history for future agents, we prop
 5. **Adopt guidelines for future logs:** Document the naming convention and index procedure in `docs/knowledge_guidelines.md`.  Require future agents to append new entries using the canonical scheme and update the index accordingly.
 
 This normalisation will improve traceability and ensure continuity of knowledge across agent sessions.
+
+---
+
+## 2025-11-04 — Duplicate docs consolidation (user guides)
+
+We identified multiple copies of two user-facing documents scattered across the repo:
+
+- Telescope-Based Planetary Datasets (UV-VIS and IR)
+   - docs/Telescope-Based Planetary datasets.md (legacy)
+   - docs/uploads/Telescope-Based Planetary Datasets (UV-VIS and IR).md (converted)
+   - docs/user/Telescope-Based Planetary Datasets (UV-VIS and IR).md (canonical)
+   - Also found binary sources/exports in both docs/ and docs/reference_sources/ (.docx/.pdf)
+
+- Relating Lab Spectra to Astronomical Data
+   - docs/uploads/Relating Lab Spectra to Astronomical Data.md (converted)
+   - docs/user/Relating Lab Spectra to Astronomical Data.md (canonical)
+
+Actions taken:
+
+- Promoted the canonical Markdown copies into `docs/user/` (ensures in-app visibility).
+- Rewrote legacy root file `docs/Telescope-Based Planetary datasets.md` to a short redirect stub pointing to the canonical path.
+- Linked both guides in `docs/INDEX.md` under “Data Guides.”
+
+Pending/next steps:
+
+- Remove duplicate Markdown copies from `docs/uploads/` after verifying no consumers rely on those paths.
+- Normalize binary sources: keep `.docx/.pdf` in `docs/reference_sources/` only; remove duplicates from `docs/` root.
+- Grep for references to `docs/Telescope-Based Planetary datasets.md` and update to the canonical `docs/user/...` path where appropriate (the stub will keep old links functional meanwhile).
+
+## 2025-11-04 — Move NORMALIZATION_VERIFICATION.md into docs/reviews
+
+Action taken:
+
+- Promoted `NORMALIZATION_VERIFICATION.md` from repository root to `docs/reviews/NORMALIZATION_VERIFICATION.md` as the canonical verification guide for normalization behaviour.
+- Replaced the root `NORMALIZATION_VERIFICATION.md` with a redirect stub pointing to `docs/reviews/NORMALIZATION_VERIFICATION.md`.
+
+Rationale:
+
+- The document is user-facing documentation tied to plot behaviour, so `docs/reviews/` is an appropriate canonical location that makes it discoverable by maintainers and the Docs UI.
+- The redirect stub preserves backward compatibility for existing links while encouraging migration to the canonical path.
+
+Next steps:
+
+- Run a quick grep for references to the root path and update to the `docs/reviews/` path where safe.
+- Consider adding this file to the docs index if you want it surfaced under a specific guide category (e.g., "Plotting & Normalization").
+
+Rationale:
+
+- Canonicalize user guides under `docs/user/` to match the in-app documentation loader and reduce drift.
+- Maintain a temporary redirect stub to avoid breaking existing links in notes and worklogs.
