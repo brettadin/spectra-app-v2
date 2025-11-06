@@ -187,9 +187,9 @@
     },
     "283417d0db257f60e458765472c01550f5af2dfdfd2daf0f151c7e6710d7bf52": {
       "sha256": "283417d0db257f60e458765472c01550f5af2dfdfd2daf0f151c7e6710d7bf52",
-      "filename": "Good Sun reading.txt",
-      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\28\\Good Sun reading.txt",
-      "original_path": "C:\\Code\\spectra-app-v2\\samples\\SUN AND MOON\\Good Sun reading.txt",
+      "filename": "Good Sun reading questionable.txt",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\28\\Good Sun reading questionable.txt",
+      "original_path": "C:\\Code\\spectra-app-v2\\samples\\SUN AND MOON\\Good Sun reading questionable.txt",
       "bytes": 69934,
       "units": {
         "x": "nm",
@@ -197,7 +197,7 @@
       },
       "source": {
         "ingest": {
-          "source_path": "C:\\Code\\spectra-app-v2\\samples\\SUN AND MOON\\Good Sun reading.txt",
+          "source_path": "C:\\Code\\spectra-app-v2\\samples\\SUN AND MOON\\Good Sun reading questionable.txt",
           "importer": "CsvImporter"
         },
         "source_units": {
@@ -206,7 +206,7 @@
         }
       },
       "created": "2025-10-26T16:58:03.536602+00:00",
-      "updated": "2025-10-26T19:57:50.207088+00:00"
+      "updated": "2025-11-06T17:34:40.069537+00:00"
     },
     "7cc3a528beb2b24bc84cb8991c4da78457f97f27005d4edc04fe16c4233738c5": {
       "sha256": "7cc3a528beb2b24bc84cb8991c4da78457f97f27005d4edc04fe16c4233738c5",
@@ -5593,6 +5593,303 @@
       },
       "created": "2025-11-01T18:43:47.521035+00:00",
       "updated": "2025-11-01T18:43:47.521035+00:00"
+    },
+    "4bfa767005fa5f3b1d37eb39b64cd9c43509cb3a2bcce248869db7ee53b1d65b": {
+      "sha256": "4bfa767005fa5f3b1d37eb39b64cd9c43509cb3a2bcce248869db7ee53b1d65b",
+      "filename": "Subt4__1__12-29-51-219.txt",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\4b\\Subt4__1__12-29-51-219.txt",
+      "original_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\Sun\\11 6 solar data at noon\\Subt4__1__12-29-51-219.txt",
+      "bytes": 76684,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\Sun\\11 6 solar data at noon\\Subt4__1__12-29-51-219.txt",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "absorbance"
+        }
+      },
+      "created": "2025-11-06T17:34:12.259080+00:00",
+      "updated": "2025-11-06T17:34:12.259370+00:00"
+    },
+    "c719e2f1d5ba63719198ae81aad1de6bc7c470c97b8c9ff6a78c2e3aa3ebbcef": {
+      "sha256": "c719e2f1d5ba63719198ae81aad1de6bc7c470c97b8c9ff6a78c2e3aa3ebbcef",
+      "filename": "Subt4__2__12-29-55-323.txt",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\c7\\Subt4__2__12-29-55-323.txt",
+      "original_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\Sun\\11 6 solar data at noon\\Subt4__2__12-29-55-323.txt",
+      "bytes": 76651,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\Sun\\11 6 solar data at noon\\Subt4__2__12-29-55-323.txt",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "absorbance"
+        }
+      },
+      "created": "2025-11-06T17:34:12.504671+00:00",
+      "updated": "2025-11-06T17:34:12.504893+00:00"
+    },
+    "97ada58e5c6c0cca5662079268994c35be383f743dd81a2408bff9791156997d": {
+      "sha256": "97ada58e5c6c0cca5662079268994c35be383f743dd81a2408bff9791156997d",
+      "filename": "Subt4__3__12-30-36-084.txt",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\97\\Subt4__3__12-30-36-084.txt",
+      "original_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\Sun\\11 6 solar data at noon\\Subt4__3__12-30-36-084.txt",
+      "bytes": 76626,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\Sun\\11 6 solar data at noon\\Subt4__3__12-30-36-084.txt",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "absorbance"
+        }
+      },
+      "created": "2025-11-06T17:34:12.636528+00:00",
+      "updated": "2025-11-06T17:34:12.636701+00:00"
+    },
+    "b58c4523334e945131e2fe9de21857d8214d7dc8565bc05fe77cdc6e0d8a68e2": {
+      "sha256": "b58c4523334e945131e2fe9de21857d8214d7dc8565bc05fe77cdc6e0d8a68e2",
+      "filename": "Subt4__4__12-30-39-002.txt",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\b5\\Subt4__4__12-30-39-002.txt",
+      "original_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\Sun\\11 6 solar data at noon\\Subt4__4__12-30-39-002.txt",
+      "bytes": 76640,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\Sun\\11 6 solar data at noon\\Subt4__4__12-30-39-002.txt",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "absorbance"
+        }
+      },
+      "created": "2025-11-06T17:34:12.763006+00:00",
+      "updated": "2025-11-06T17:34:12.763219+00:00"
+    },
+    "51ef7079883b7653686e3635a478912fa09fea85bfb290343c2ec0b9f1bf83fa": {
+      "sha256": "51ef7079883b7653686e3635a478912fa09fea85bfb290343c2ec0b9f1bf83fa",
+      "filename": "Subt4__5__12-30-39-838.txt",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\51\\Subt4__5__12-30-39-838.txt",
+      "original_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\Sun\\11 6 solar data at noon\\Subt4__5__12-30-39-838.txt",
+      "bytes": 76612,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\Sun\\11 6 solar data at noon\\Subt4__5__12-30-39-838.txt",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "absorbance"
+        }
+      },
+      "created": "2025-11-06T17:34:12.884045+00:00",
+      "updated": "2025-11-06T17:34:12.884465+00:00"
+    },
+    "16bd7fad92ce92cf778fe1e73640b7478589f5dcb468172b86443731be3323c4": {
+      "sha256": "16bd7fad92ce92cf778fe1e73640b7478589f5dcb468172b86443731be3323c4",
+      "filename": "Subt4__6__12-30-40-674.txt",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\16\\Subt4__6__12-30-40-674.txt",
+      "original_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\Sun\\11 6 solar data at noon\\Subt4__6__12-30-40-674.txt",
+      "bytes": 76592,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\Sun\\11 6 solar data at noon\\Subt4__6__12-30-40-674.txt",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "absorbance"
+        }
+      },
+      "created": "2025-11-06T17:34:12.998508+00:00",
+      "updated": "2025-11-06T17:34:12.998738+00:00"
+    },
+    "fb3f2585ecef248c7ba38cf71dfb9c91c440cd39d093277d6411bc505e83af10": {
+      "sha256": "fb3f2585ecef248c7ba38cf71dfb9c91c440cd39d093277d6411bc505e83af10",
+      "filename": "Subt4__7__12-30-40-683.txt",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\fb\\Subt4__7__12-30-40-683.txt",
+      "original_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\Sun\\11 6 solar data at noon\\Subt4__7__12-30-40-683.txt",
+      "bytes": 76512,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\Sun\\11 6 solar data at noon\\Subt4__7__12-30-40-683.txt",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "absorbance"
+        }
+      },
+      "created": "2025-11-06T17:34:13.109237+00:00",
+      "updated": "2025-11-06T17:34:13.109381+00:00"
+    },
+    "23d592d5184fc9e88efd4566ddf1ca81b2965adbe2fab1bf88617d5cc8dcfbc7": {
+      "sha256": "23d592d5184fc9e88efd4566ddf1ca81b2965adbe2fab1bf88617d5cc8dcfbc7",
+      "filename": "Subt4__8__12-30-41-745.txt",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\23\\Subt4__8__12-30-41-745.txt",
+      "original_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\Sun\\11 6 solar data at noon\\Subt4__8__12-30-41-745.txt",
+      "bytes": 76506,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\Sun\\11 6 solar data at noon\\Subt4__8__12-30-41-745.txt",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "absorbance"
+        }
+      },
+      "created": "2025-11-06T17:34:13.225688+00:00",
+      "updated": "2025-11-06T17:34:13.225828+00:00"
+    },
+    "dff076bacbab97f6e0d69dc3d29e8b498888b4223dc6eda177ee891421b117b2": {
+      "sha256": "dff076bacbab97f6e0d69dc3d29e8b498888b4223dc6eda177ee891421b117b2",
+      "filename": "Subt4__9__12-30-41-753.txt",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\df\\Subt4__9__12-30-41-753.txt",
+      "original_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\Sun\\11 6 solar data at noon\\Subt4__9__12-30-41-753.txt",
+      "bytes": 76713,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\Sun\\11 6 solar data at noon\\Subt4__9__12-30-41-753.txt",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "absorbance"
+        }
+      },
+      "created": "2025-11-06T17:34:13.344666+00:00",
+      "updated": "2025-11-06T17:34:13.344812+00:00"
+    },
+    "45c8297b4f205f28a52361911532c188cf9e71a24a069d8696bcd47b2b814c6c": {
+      "sha256": "45c8297b4f205f28a52361911532c188cf9e71a24a069d8696bcd47b2b814c6c",
+      "filename": "Air Lamp.csv",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\45\\Air Lamp.csv",
+      "original_path": "C:\\Code\\spectra-app-v2\\samples\\lamp data\\new set\\Air Lamp.csv",
+      "bytes": 321356,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "bundle_members": [
+          "8205422b-9eff-4701-a582-6dd473d526e9"
+        ]
+      },
+      "created": "2025-11-06T17:36:23.495903+00:00",
+      "updated": "2025-11-06T17:36:23.496301+00:00"
+    },
+    "253652762dfca7e6cc2e6ba6063690d8f1f29e8a4bb9e0c46ef4a7a1c0a94a72": {
+      "sha256": "253652762dfca7e6cc2e6ba6063690d8f1f29e8a4bb9e0c46ef4a7a1c0a94a72",
+      "filename": "CO2 Lamp.csv",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\25\\CO2 Lamp.csv",
+      "original_path": "C:\\Code\\spectra-app-v2\\samples\\lamp data\\new set\\CO2 Lamp.csv",
+      "bytes": 321731,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "bundle_members": [
+          "abb5f43e-39f7-4e00-9c94-18a2b72b0413"
+        ]
+      },
+      "created": "2025-11-06T17:36:23.620654+00:00",
+      "updated": "2025-11-06T17:36:23.620833+00:00"
+    },
+    "bd682728b43b43a4c3c9471c1269ef3a5d9d89a35d9ff9dafe603c180b57a79e": {
+      "sha256": "bd682728b43b43a4c3c9471c1269ef3a5d9d89a35d9ff9dafe603c180b57a79e",
+      "filename": "H2O Lamp.csv",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\bd\\H2O Lamp.csv",
+      "original_path": "C:\\Code\\spectra-app-v2\\samples\\lamp data\\new set\\H2O Lamp.csv",
+      "bytes": 302429,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "bundle_members": [
+          "7ab8b416-1f33-4997-becf-fc15c458fba0"
+        ]
+      },
+      "created": "2025-11-06T17:36:23.736473+00:00",
+      "updated": "2025-11-06T17:36:23.736675+00:00"
+    },
+    "2217ef3c1c5bfe6ddbd16b145941555d20ce949eab32c09bf5bec2bc08d10dc1": {
+      "sha256": "2217ef3c1c5bfe6ddbd16b145941555d20ce949eab32c09bf5bec2bc08d10dc1",
+      "filename": "Helium Lamp.csv",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\22\\Helium Lamp.csv",
+      "original_path": "C:\\Code\\spectra-app-v2\\samples\\lamp data\\new set\\Helium Lamp.csv",
+      "bytes": 331716,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "bundle_members": [
+          "67caaf87-34fd-412f-8ebc-f0eb37aa8292"
+        ]
+      },
+      "created": "2025-11-06T17:36:23.854296+00:00",
+      "updated": "2025-11-06T17:36:23.854989+00:00"
+    },
+    "fab1b1a81e9a5321c44061864da7ceb34fd710443f291a92b4b8e28cc927bca2": {
+      "sha256": "fab1b1a81e9a5321c44061864da7ceb34fd710443f291a92b4b8e28cc927bca2",
+      "filename": "Hydrogen Lamp.csv",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\fa\\Hydrogen Lamp.csv",
+      "original_path": "C:\\Code\\spectra-app-v2\\samples\\lamp data\\new set\\Hydrogen Lamp.csv",
+      "bytes": 339513,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "bundle_members": [
+          "ae4b2d42-c9e0-45fb-8384-1b0a6c30c63a"
+        ]
+      },
+      "created": "2025-11-06T17:36:23.985938+00:00",
+      "updated": "2025-11-06T17:36:23.986075+00:00"
     }
   }
 }
