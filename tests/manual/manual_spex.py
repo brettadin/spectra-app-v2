@@ -50,10 +50,10 @@ def test_spex_file():
     
     if abs(actual_min - expected_min) < 1 and abs(actual_max - expected_max) < 1:
         print(f"✓ Conversion correct! 0.804 µm → {actual_min:.1f} nm ≈ {expected_min} nm")
-        print(f"✓ All checks passed!")
+        print("✓ All checks passed!")
         return True
     else:
-        print(f"❌ Conversion incorrect:")
+        print("❌ Conversion incorrect:")
         print(f"  Expected: {expected_min} to {expected_max} nm")
         print(f"  Got: {actual_min:.1f} to {actual_max:.1f} nm")
         return False

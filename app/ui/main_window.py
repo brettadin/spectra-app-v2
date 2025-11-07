@@ -44,7 +44,6 @@ from app.services import (
     KnowledgeLogEntry,
     KnowledgeLogService,
     RemoteDataService,
-        RemoteRecord,
         CalibrationService,
 )
 from app.ui.plot_pane import PlotPane, TraceStyle
@@ -379,13 +378,17 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.merge_name_edit = self.merge_panel.merge_name_edit
         self.merge_preview_label = self.merge_panel.merge_preview_label
         self.merge_average_button = self.merge_panel.merge_average_button
+        self.merge_subtract_button = self.merge_panel.merge_subtract_button
+        self.merge_ratio_button = self.merge_panel.merge_ratio_button
         self.merge_status_label = self.merge_panel.merge_status_label
 
         # Wire existing handlers
         self.merge_only_visible.toggled.connect(lambda _: self._update_merge_preview())
         self.merge_average_button.clicked.connect(self._on_merge_average)
+        self.merge_subtract_button.clicked.connect(self._on_merge_subtract)
+        self.merge_ratio_button.clicked.connect(self._on_merge_ratio)
 
-        self.inspector_tabs.addTab(self.merge_panel, "Merge/Average")
+        self.inspector_tabs.addTab(self.merge_panel, "Math")
         
         self.inspector_dock.setWidget(self.inspector_tabs)
         self.addDockWidget(QtCore.Qt.DockWidgetArea.RightDockWidgetArea, self.inspector_dock)
@@ -2220,6 +2223,9 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         if self._nist_collections:
             multi = {"kind": "nist-multi", "payloads": {k: v["payload"] for k, v in self._nist_collections.items()}}
             self._update_reference_overlay_state(multi)
+            # Always clear the overlay first to remove graphics from the unpinned set
+            self._clear_reference_overlay()
+            # Then re-apply if the checkbox is checked
             if self.reference_overlay_checkbox.isChecked():
                 self._apply_reference_overlay()
             self.reference_status_label.setText(f"{len(self._nist_collections)} pinned set(s)")
@@ -2330,6 +2336,14 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         else:
             self._reference_overlay_key = key
 
+        # Always clear old annotations first to prevent stale items from persisting
+        for item in list(self._reference_overlay_annotations):
+            try:
+                self.plot.remove_graphics_item(item)
+            except Exception:
+                pass
+        self._reference_overlay_annotations.clear()
+
         # Create stacked label annotations on the main plot
         labels = payload.get("labels") or []
         if isinstance(labels, list) and labels:
@@ -2338,8 +2352,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                 band_bottom, band_top = self._overlay_band_bounds()
             span = float(band_top - band_bottom) if (band_top is not None and band_bottom is not None) else 1.0
             n = max(1, len(labels))
-            # Do not replace the list object; mutate in-place so identity is preserved for tests
-            self._reference_overlay_annotations.clear()
+            # Annotations already cleared above
             for i, label in enumerate(sorted(labels, key=lambda d: d.get("centre_nm", 0))):
                 y = float(band_bottom) + (i + 1) * span / (n + 1)
                 x_nm = float(label.get("centre_nm", 0.0))
@@ -2568,6 +2581,8 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         if len(selected_specs) == 0:
             self.merge_preview_label.setText("No datasets selected")
             self.merge_average_button.setEnabled(False)
+            self.merge_subtract_button.setEnabled(False)
+            self.merge_ratio_button.setEnabled(False)
         elif len(selected_specs) == 1:
             spec = selected_specs[0]
             self.merge_preview_label.setText(
@@ -2575,6 +2590,42 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                 f"Points: {len(spec.x)}, Range: {spec.x.min():.2f}-{spec.x.max():.2f} nm"
             )
             self.merge_average_button.setEnabled(False)
+            self.merge_subtract_button.setEnabled(False)
+            self.merge_ratio_button.setEnabled(False)
+        elif len(selected_specs) == 2:
+            # Two spectra: enable subtract/ratio, check for average
+            spec_a, spec_b = selected_specs
+            # Check if they have the same wavelength grid for subtract/ratio
+            try:
+                ax, _, _ = self.units_service.to_canonical(spec_a.x, spec_a.y, spec_a.x_unit, spec_a.y_unit)
+                bx, _, _ = self.units_service.to_canonical(spec_b.x, spec_b.y, spec_b.x_unit, spec_b.y_unit)
+                same_grid = ax.shape == bx.shape and np.allclose(ax, bx, atol=1e-9)
+            except Exception:
+                same_grid = False
+            
+            if same_grid:
+                self.merge_preview_label.setText(
+                    f"2 datasets selected:\n"
+                    f"A: {spec_a.name}\n"
+                    f"B: {spec_b.name}\n"
+                    f"✓ Same wavelength grid"
+                )
+                self.merge_subtract_button.setEnabled(True)
+                self.merge_ratio_button.setEnabled(True)
+            else:
+                self.merge_preview_label.setText(
+                    f"2 datasets selected:\n"
+                    f"A: {spec_a.name}\n"
+                    f"B: {spec_b.name}\n"
+                    f"⚠️ Different wavelength grids - cannot subtract/divide"
+                )
+                self.merge_subtract_button.setEnabled(False)
+                self.merge_ratio_button.setEnabled(False)
+            
+            # Check for overlapping range for average
+            overlap_min = max(spec_a.x.min(), spec_b.x.min())
+            overlap_max = min(spec_a.x.max(), spec_b.x.max())
+            self.merge_average_button.setEnabled(overlap_min < overlap_max)
         else:
             # Show info about multiple spectra
             point_counts = [len(spec.x) for spec in selected_specs]
@@ -2583,6 +2634,10 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             
             overlap_min = max(min_wls)
             overlap_max = min(max_wls)
+            
+            # Disable subtract/ratio for more than 2 spectra
+            self.merge_subtract_button.setEnabled(False)
+            self.merge_ratio_button.setEnabled(False)
             
             if overlap_min >= overlap_max:
                 self.merge_preview_label.setText(
@@ -2689,6 +2744,124 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             self.merge_status_label.setText(
                 f"✓ Created '{result.name}' from {len(spectra)} spectra"
             )
+            
+            # Clear the name field
+            if hasattr(self, 'merge_name_edit'):
+                self.merge_name_edit.clear()
+            
+            # Refresh UI
+            self.plot.autoscale()
+            self._refresh_history_view()
+            
+        except Exception as exc:
+            self.merge_status_label.setText(f"❌ Error: {exc}")
+            import traceback
+            traceback.print_exc()
+
+    def _on_merge_subtract(self) -> None:
+        """Perform subtraction operation on two selected spectra (A - B)."""
+        if not hasattr(self, 'merge_status_label'):
+            return
+        
+        self.merge_status_label.setText("Processing...")
+        
+        try:
+            # Get exactly 2 spectra
+            spectra = self._get_merge_candidates()
+            
+            if len(spectra) != 2:
+                self.merge_status_label.setText("⚠️ Select exactly 2 datasets for subtraction")
+                return
+            
+            spec_a, spec_b = spectra
+            
+            # Perform subtraction (A - B)
+            result, metadata = self.math_service.subtract(spec_a, spec_b)
+            
+            # Check if result was suppressed
+            if result is None:
+                status = metadata.get('status', '')
+                message = metadata.get('message', 'Result suppressed')
+                self.merge_status_label.setText(f"ℹ️ {message}")
+                self.knowledge_log.record_event(
+                    "Math Subtract",
+                    f"Subtraction of '{spec_b.name}' from '{spec_a.name}' was suppressed (trivial result)",
+                    references=[spec_a.name, spec_b.name],
+                    persist=False,
+                )
+                return
+            
+            # Add to overlay
+            self.overlay_service.add(result)
+            self._add_spectrum(result)
+            
+            # Log the operation
+            self.knowledge_log.record_event(
+                "Math Subtract",
+                f"Subtracted '{spec_b.name}' from '{spec_a.name}' → '{result.name}'",
+                references=[result.name],
+                persist=False,
+            )
+            
+            # Update status
+            self.merge_status_label.setText(
+                f"✓ Created '{result.name}' = {spec_a.name} − {spec_b.name}"
+            )
+            
+            # Clear the name field
+            if hasattr(self, 'merge_name_edit'):
+                self.merge_name_edit.clear()
+            
+            # Refresh UI
+            self.plot.autoscale()
+            self._refresh_history_view()
+            
+        except Exception as exc:
+            self.merge_status_label.setText(f"❌ Error: {exc}")
+            import traceback
+            traceback.print_exc()
+
+    def _on_merge_ratio(self) -> None:
+        """Perform ratio operation on two selected spectra (A / B)."""
+        if not hasattr(self, 'merge_status_label'):
+            return
+        
+        self.merge_status_label.setText("Processing...")
+        
+        try:
+            # Get exactly 2 spectra
+            spectra = self._get_merge_candidates()
+            
+            if len(spectra) != 2:
+                self.merge_status_label.setText("⚠️ Select exactly 2 datasets for ratio")
+                return
+            
+            spec_a, spec_b = spectra
+            
+            # Perform ratio (A / B)
+            result, metadata = self.math_service.ratio(spec_a, spec_b)
+            
+            # Add to overlay
+            self.overlay_service.add(result)
+            self._add_spectrum(result)
+            
+            # Log the operation
+            masked = metadata.get('masked_points', 0)
+            summary = f"Divided '{spec_a.name}' by '{spec_b.name}' → '{result.name}'"
+            if masked > 0:
+                summary += f" ({masked} points masked due to near-zero denominator)"
+            self.knowledge_log.record_event(
+                "Math Ratio",
+                summary,
+                references=[result.name],
+                persist=False,
+            )
+            
+            # Update status
+            status_msg = f"✓ Created '{result.name}' = {spec_a.name} / {spec_b.name}"
+            if masked > 0:
+                status_msg += f"\n⚠️ {masked} points masked"
+            self.merge_status_label.setText(status_msg)
             
             # Clear the name field
             if hasattr(self, 'merge_name_edit'):

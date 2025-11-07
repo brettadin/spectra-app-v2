@@ -20,6 +20,8 @@ class MergePanel(QtWidgets.QWidget):
       - merge_name_edit (QLineEdit)
       - merge_preview_label (QLabel)
       - merge_average_button (QPushButton)
+      - merge_subtract_button (QPushButton)
+      - merge_ratio_button (QPushButton)
       - merge_status_label (QLabel)
     """
 
@@ -29,6 +31,8 @@ class MergePanel(QtWidgets.QWidget):
         self.merge_name_edit: QtWidgets.QLineEdit
         self.merge_preview_label: QtWidgets.QLabel
         self.merge_average_button: QtWidgets.QPushButton
+        self.merge_subtract_button: QtWidgets.QPushButton
+        self.merge_ratio_button: QtWidgets.QPushButton
         self.merge_status_label: QtWidgets.QLabel
         self._build_ui()
 
@@ -38,7 +42,7 @@ class MergePanel(QtWidgets.QWidget):
 
         # Instructions
         merge_info = QtWidgets.QLabel(
-            "Select multiple datasets from the Datasets panel, then merge or average them into a single spectrum."
+            "Select datasets from the Datasets panel, then perform mathematical operations."
         )
         merge_info.setWordWrap(True)
         layout.addWidget(merge_info)
@@ -69,9 +73,22 @@ class MergePanel(QtWidgets.QWidget):
 
         # Action buttons
         merge_buttons_layout = QtWidgets.QHBoxLayout()
-        self.merge_average_button = QtWidgets.QPushButton("Average Selected")
+        
+        self.merge_average_button = QtWidgets.QPushButton("Average")
         self.merge_average_button.setEnabled(False)
+        self.merge_average_button.setToolTip("Average multiple selected spectra")
         merge_buttons_layout.addWidget(self.merge_average_button)
+        
+        self.merge_subtract_button = QtWidgets.QPushButton("A − B")
+        self.merge_subtract_button.setEnabled(False)
+        self.merge_subtract_button.setToolTip("Subtract second spectrum from first (select exactly 2)")
+        merge_buttons_layout.addWidget(self.merge_subtract_button)
+        
+        self.merge_ratio_button = QtWidgets.QPushButton("A / B")
+        self.merge_ratio_button.setEnabled(False)
+        self.merge_ratio_button.setToolTip("Divide first spectrum by second (select exactly 2)")
+        merge_buttons_layout.addWidget(self.merge_ratio_button)
+        
         layout.addLayout(merge_buttons_layout)
 
         # Status

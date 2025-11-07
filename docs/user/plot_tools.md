@@ -96,6 +96,71 @@ The default high‑contrast palette now includes 20+ distinct colours before cyc
 Data → Datasets list shows a small colour chip next to each alias that matches the plotted trace, making it easier to correlate
 legend entries, list rows, and on‑canvas lines at a glance.
 
+## Mathematical operations on spectra
+
+The **Math** tab in the Inspector dock (previously "Merge/Average") provides tools for performing mathematical operations on selected datasets. All operations create new derived spectra while preserving the original data with full provenance tracking.
+
+### Selecting datasets for operations
+
+1. Navigate to the **Data → Datasets** tab in the Data dock
+2. Select one or more spectra by clicking their rows (use `Ctrl`/`Cmd` + click for multiple selections)
+3. Switch to the **Inspector → Math** tab to see available operations
+
+The preview panel shows how many datasets are selected and which operations are available based on the selection.
+
+### Available operations
+
+**Average** (requires 2+ spectra with overlapping wavelength ranges)
+- Interpolates all selected spectra onto a common wavelength grid
+- Computes the mean intensity at each wavelength
+- Useful for: noise reduction, creating reference envelopes, combining multiple measurements
+
+**Subtract (A − B)** (requires exactly 2 spectra with identical wavelength grids)
+- Computes the difference: first spectrum minus second spectrum
+- Button shows as **A − B** where A is the first selected spectrum
+- Useful for: background subtraction, isolating absorption features, removing baselines
+- Note: If the result is trivial (all zeros within tolerance), it will be suppressed with an informational message
+
+**Ratio (A / B)** (requires exactly 2 spectra with identical wavelength grids)
+- Computes the quotient: first spectrum divided by second spectrum
+- Button shows as **A / B** where A is the first selected spectrum  
+- Useful for: transmittance calculations, normalizing by reference lamp, relative comparisons
+- Automatically masks points where the denominator is near zero (< 1e-9), replacing them with NaN
+
+### Understanding wavelength grid requirements
+
+- **Identical grids** (for subtract/ratio): Both spectra must have exactly the same wavelength sampling points. This ensures point-by-point operations are mathematically valid. The preview will warn if grids don't match.
+  
+- **Overlapping ranges** (for average): Spectra can have different sampling, but must share some wavelength range in common. The result covers only the overlapping region with interpolation to a common grid.
+
+The Math tab's preview panel automatically checks grid compatibility and enables/disables buttons accordingly. If you see "⚠️ Different wavelength grids", you can still average but not subtract or divide.
+
+### Operation workflow
+
+1. Select datasets in the Data dock
+2. Check the Math tab preview to confirm the operation is available
+3. Optionally enter a custom name in the "Result name" field (or leave blank for auto-generated names)
+4. Click the desired operation button (Average, A − B, or A / B)
+5. The result appears as a new derived spectrum in the Datasets panel
+6. The operation is logged to the History dock with provenance details
+
+### Provenance and metadata
+
+Every mathematical result preserves:
+- Parent spectrum IDs and names
+- Operation type and parameters (e.g., epsilon threshold for ratio)
+- Masked point counts (for ratio operations)
+- Wavelength range (for average operations)
+
+When you export a manifest bundle (**File → Export → Manifest**), derived spectra include their complete operation chain so collaborators can trace results back to source data.
+
+### Tips and best practices
+
+- **Before subtracting**: Verify both spectra use the same wavelength axis by checking their ranges in the preview
+- **For clean ratios**: Ensure the denominator spectrum has sufficient signal (avoid dividing by near-zero noise)
+- **Averaging many traces**: Use the "Only include visible (checked) datasets" option to filter which spectra participate
+- **Checking results**: New derived spectra appear in the Datasets panel under "Derived" and are automatically plotted. Zoom in to verify features align as expected.
+
 ## Overlay alignment and troubleshooting
 
 Reference overlays adopt the scaling of the active plot so annotations land where you expect them. The IR functional-group lanes, for example, now anchor their filled band to the visible y-axis span and assign each label to its own vertical slot. When you normalise a trace or zoom the view, the overlay recalculates those slots to keep the stacked annotations readable. If labels ever drift out of band after switching datasets:

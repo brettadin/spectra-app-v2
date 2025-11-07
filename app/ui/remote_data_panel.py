@@ -10,7 +10,7 @@ This panel provides:
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Callable, List
+from typing import Any, List
 
 from app.qt_compat import get_qt
 

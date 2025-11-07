@@ -1,7 +1,7 @@
 """Test multi-file upload and averaging functionality."""
 from pathlib import Path
 import os
-from typing import Any, Dict, cast
+from typing import Any, cast
 
 import pytest
 import numpy as np
@@ -323,3 +323,207 @@ def test_merge_average_creates_new_spectrum(tmp_path: Path) -> None:
         window.close()
         window.deleteLater()
         app.processEvents()
+
+
+def test_merge_subtract_creates_difference_spectrum(tmp_path: Path) -> None:
+    """Test that subtraction creates A - B spectrum."""
+    if SpectraMainWindow is None or QtWidgets is None:
+        pytest.skip(f"Qt stack unavailable: {_qt_import_error}")
+    
+    app = _ensure_app()
+    log_service = KnowledgeLogService(log_path=tmp_path / "history.md", author="pytest")
+    window = SpectraMainWindow(knowledge_log_service=log_service)
+    
+    try:
+        # Ingest 2 spectra with same wavelength grid
+        csv1 = tmp_path / "test1.csv"
+        csv1.write_text(
+            "wavelength_nm,absorbance\n"
+            "400,5.0\n"
+            "500,6.0\n"
+            "600,7.0\n",
+            encoding="utf-8"
+        )
+        csv2 = tmp_path / "test2.csv"
+        csv2.write_text(
+            "wavelength_nm,absorbance\n"
+            "400,2.0\n"
+            "500,3.0\n"
+            "600,4.0\n",
+            encoding="utf-8"
+        )
+        window._ingest_path(csv1)
+        window._ingest_path(csv2)
+        app.processEvents()
+        
+        # Select both (first selected will be A, second will be B)
+        for i in range(2):
+            item = window._originals_item.child(i, 0)
+            index = window.dataset_model.indexFromItem(item)
+            window.dataset_view.selectionModel().select(
+                index,
+                QtCore.QItemSelectionModel.SelectionFlag.Select | QtCore.QItemSelectionModel.SelectionFlag.Rows
+            )
+        app.processEvents()
+        
+        # Check button is enabled
+        assert window.merge_subtract_button.isEnabled()
+        
+        # Initially 2 spectra
+        assert len(window.overlay_service.list()) == 2
+        
+        # Perform subtraction
+        window._on_merge_subtract()
+        app.processEvents()
+        
+        # Should now have 3 spectra (original 2 + difference)
+        assert len(window.overlay_service.list()) == 3
+        
+        # Find the difference spectrum
+        specs = window.overlay_service.list()
+        diff = [s for s in specs if " - " in s.name][0]
+        
+        # Check difference values (should be A - B = 5-2=3, 6-3=3, 7-4=3)
+        assert diff.y[0] == pytest.approx(3.0, abs=0.1)
+        assert diff.y[1] == pytest.approx(3.0, abs=0.1)
+        assert diff.y[2] == pytest.approx(3.0, abs=0.1)
+        
+        # Check status message
+        assert "Created" in window.merge_status_label.text()
+        assert "−" in window.merge_status_label.text() or "-" in window.merge_status_label.text()
+        
+    finally:
+        window.close()
+        window.deleteLater()
+        app.processEvents()
+
+
+def test_merge_ratio_creates_quotient_spectrum(tmp_path: Path) -> None:
+    """Test that ratio creates A / B spectrum."""
+    if SpectraMainWindow is None or QtWidgets is None:
+        pytest.skip(f"Qt stack unavailable: {_qt_import_error}")
+    
+    app = _ensure_app()
+    log_service = KnowledgeLogService(log_path=tmp_path / "history.md", author="pytest")
+    window = SpectraMainWindow(knowledge_log_service=log_service)
+    
+    try:
+        # Ingest 2 spectra with same wavelength grid
+        csv1 = tmp_path / "test1.csv"
+        csv1.write_text(
+            "wavelength_nm,absorbance\n"
+            "400,6.0\n"
+            "500,9.0\n"
+            "600,12.0\n",
+            encoding="utf-8"
+        )
+        csv2 = tmp_path / "test2.csv"
+        csv2.write_text(
+            "wavelength_nm,absorbance\n"
+            "400,2.0\n"
+            "500,3.0\n"
+            "600,4.0\n",
+            encoding="utf-8"
+        )
+        window._ingest_path(csv1)
+        window._ingest_path(csv2)
+        app.processEvents()
+        
+        # Select both
+        for i in range(2):
+            item = window._originals_item.child(i, 0)
+            index = window.dataset_model.indexFromItem(item)
+            window.dataset_view.selectionModel().select(
+                index,
+                QtCore.QItemSelectionModel.SelectionFlag.Select | QtCore.QItemSelectionModel.SelectionFlag.Rows
+            )
+        app.processEvents()
+        
+        # Check button is enabled
+        assert window.merge_ratio_button.isEnabled()
+        
+        # Initially 2 spectra
+        assert len(window.overlay_service.list()) == 2
+        
+        # Perform ratio
+        window._on_merge_ratio()
+        app.processEvents()
+        
+        # Should now have 3 spectra (original 2 + ratio)
+        assert len(window.overlay_service.list()) == 3
+        
+        # Find the ratio spectrum
+        specs = window.overlay_service.list()
+        ratio = [s for s in specs if " / " in s.name][0]
+        
+        # Check ratio values (should be A / B = 6/2=3, 9/3=3, 12/4=3)
+        assert ratio.y[0] == pytest.approx(3.0, abs=0.1)
+        assert ratio.y[1] == pytest.approx(3.0, abs=0.1)
+        assert ratio.y[2] == pytest.approx(3.0, abs=0.1)
+        
+        # Check status message
+        assert "Created" in window.merge_status_label.text()
+        assert "/" in window.merge_status_label.text()
+        
+    finally:
+        window.close()
+        window.deleteLater()
+        app.processEvents()
+
+
+def test_merge_math_buttons_disabled_for_different_grids(tmp_path: Path) -> None:
+    """Test that subtract/ratio buttons are disabled for different wavelength grids."""
+    if SpectraMainWindow is None or QtWidgets is None:
+        pytest.skip(f"Qt stack unavailable: {_qt_import_error}")
+    
+    app = _ensure_app()
+    log_service = KnowledgeLogService(log_path=tmp_path / "history.md", author="pytest")
+    window = SpectraMainWindow(knowledge_log_service=log_service)
+    
+    try:
+        # Ingest 2 spectra with DIFFERENT wavelength grids
+        csv1 = tmp_path / "test1.csv"
+        csv1.write_text(
+            "wavelength_nm,absorbance\n"
+            "400,1.0\n"
+            "500,2.0\n"
+            "600,3.0\n",
+            encoding="utf-8"
+        )
+        csv2 = tmp_path / "test2.csv"
+        csv2.write_text(
+            "wavelength_nm,absorbance\n"
+            "410,2.0\n"  # Different grid!
+            "510,3.0\n"
+            "610,4.0\n",
+            encoding="utf-8"
+        )
+        window._ingest_path(csv1)
+        window._ingest_path(csv2)
+        app.processEvents()
+        
+        # Select both
+        for i in range(2):
+            item = window._originals_item.child(i, 0)
+            index = window.dataset_model.indexFromItem(item)
+            window.dataset_view.selectionModel().select(
+                index,
+                QtCore.QItemSelectionModel.SelectionFlag.Select | QtCore.QItemSelectionModel.SelectionFlag.Rows
+            )
+        app.processEvents()
+        
+        # Math buttons should be disabled (different grids)
+        assert not window.merge_subtract_button.isEnabled()
+        assert not window.merge_ratio_button.isEnabled()
+        
+        # But average should still be enabled (uses interpolation)
+        assert window.merge_average_button.isEnabled()
+        
+        # Check preview message warns about different grids
+        assert "Different wavelength grids" in window.merge_preview_label.text() or "different" in window.merge_preview_label.text().lower()
+        
+    finally:
+        window.close()
+        window.deleteLater()
+        app.processEvents()
+
