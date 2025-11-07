@@ -19,7 +19,22 @@ if TYPE_CHECKING:  # pragma: no cover - used only for typing
 
 @dataclass(frozen=True)
 class Spectrum:
-    """Immutable spectral dataset with provenance and unit tracking."""
+    """Immutable spectral dataset with provenance and unit tracking.
+    
+    Attributes:
+        id: Unique identifier
+        name: Human-readable name
+        x: Wavelength/frequency array
+        y: Intensity/flux array
+        x_unit: Unit for x-axis (e.g., 'nm', 'cm⁻¹')
+        y_unit: Unit for y-axis (e.g., 'absorbance', 'counts')
+        metadata: Additional information (instrument, observer, etc.)
+        source_path: Original file path if loaded from disk
+        parents: IDs of parent spectra (for derived data)
+        transforms: History of operations applied
+        uncertainty: Standard deviation/error for each y point (optional)
+        quality_flags: Bit flags marking data quality issues (optional)
+    """
 
     id: str
     name: str
@@ -31,6 +46,8 @@ class Spectrum:
     source_path: Path | None = None
     parents: Tuple[str, ...] = field(default_factory=tuple)
     transforms: Tuple[Dict[str, Any], ...] = field(default_factory=tuple)
+    uncertainty: np.ndarray | None = None
+    quality_flags: np.ndarray | None = None
 
     @staticmethod
     def create(
@@ -42,6 +59,8 @@ class Spectrum:
         y_unit: str,
         metadata: Dict[str, Any] | None = None,
         source_path: Path | None = None,
+        uncertainty: np.ndarray | None = None,
+        quality_flags: np.ndarray | None = None,
     ) -> "Spectrum":
         """Factory that records the provided units without conversion."""
         return Spectrum(
@@ -53,6 +72,8 @@ class Spectrum:
             y_unit=str(y_unit),
             metadata=dict(metadata or {}),
             source_path=source_path,
+            uncertainty=np.array(uncertainty, dtype=np.float64, copy=True) if uncertainty is not None else None,
+            quality_flags=np.array(quality_flags, dtype=np.uint8, copy=True) if quality_flags is not None else None,
         )
 
     # ------------------------------------------------------------------
@@ -82,6 +103,8 @@ class Spectrum:
         *,
         x_unit: str | None = None,
         y_unit: str | None = None,
+        uncertainty: np.ndarray | None = None,
+        quality_flags: np.ndarray | None = None,
     ) -> "Spectrum":
         """Create a derived spectrum preserving provenance and selected units."""
         return Spectrum(
@@ -95,6 +118,8 @@ class Spectrum:
             source_path=self.source_path,
             parents=self.parents + (self.id,),
             transforms=self.transforms + (transform,),
+            uncertainty=np.array(uncertainty, dtype=np.float64, copy=True) if uncertainty is not None else None,
+            quality_flags=np.array(quality_flags, dtype=np.uint8, copy=True) if quality_flags is not None else None,
         )
 
     def with_metadata(self, **metadata_updates: Any) -> "Spectrum":

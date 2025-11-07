@@ -12,6 +12,7 @@ from .remote_data_service import RemoteDataService, RemoteRecord, RemoteDownload
 from .line_shapes import LineShapeModel, LineShapeOutcome
 from .knowledge_log_service import KnowledgeLogEntry, KnowledgeLogService
 from .calibration_service import CalibrationService, CalibrationConfig
+from .quality_flags import QualityFlags
 
 __all__ = [
     "Spectrum",
@@ -33,4 +34,5 @@ __all__ = [
     "KnowledgeLogService",
     "CalibrationService",
     "CalibrationConfig",
+    "QualityFlags",
 ]

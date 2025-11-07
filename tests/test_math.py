@@ -36,3 +36,57 @@ def test_ratio_with_zero_guard():
     assert info["masked_points"] == 1
     assert np.isclose(result.y[0], 1.0)
     assert np.isnan(result.y[1])
+
+
+def test_math_with_different_ranges():
+    """Test that math operations work with non-overlapping ranges via interpolation."""
+    math = MathService(UnitsService(), epsilon=1e-9)
+    
+    # Spectrum A: 400-500 nm
+    x_a = np.linspace(400.0, 500.0, 11)
+    y_a = np.ones(11) * 2.0
+    a = Spectrum.create("A", x_a, y_a, x_unit="nm", y_unit="absorbance")
+    
+    # Spectrum B: 450-550 nm (partial overlap)
+    x_b = np.linspace(450.0, 550.0, 11)
+    y_b = np.ones(11) * 1.0
+    b = Spectrum.create("B", x_b, y_b, x_unit="nm", y_unit="absorbance")
+    
+    # Subtract: should work on overlapping range (450-500 nm)
+    result_sub, info_sub = math.subtract(a, b)
+    assert result_sub is not None
+    assert info_sub["status"] == "ok"
+    # Result should be in overlapping range
+    assert np.nanmin(result_sub.x) >= 450.0
+    assert np.nanmax(result_sub.x) <= 500.0
+    # Values should be ~1.0 (2.0 - 1.0)
+    assert np.allclose(result_sub.y, 1.0, atol=0.01)
+    
+    # Ratio: should work on overlapping range
+    result_ratio, info_ratio = math.ratio(a, b)
+    assert result_ratio is not None
+    assert info_ratio["status"] == "ok"
+    # Values should be ~2.0 (2.0 / 1.0)
+    assert np.allclose(result_ratio.y, 2.0, atol=0.01)
+
+
+def test_math_with_different_grid_densities():
+    """Test that interpolation chooses the finer grid."""
+    math = MathService(UnitsService(), epsilon=1e-9)
+    
+    # Coarse spectrum: 10 points
+    x_coarse = np.linspace(400.0, 500.0, 10)
+    y_coarse = np.ones(10) * 2.0
+    coarse = Spectrum.create("Coarse", x_coarse, y_coarse, x_unit="nm", y_unit="absorbance")
+    
+    # Fine spectrum: 100 points
+    x_fine = np.linspace(400.0, 500.0, 100)
+    y_fine = np.ones(100) * 1.0
+    fine = Spectrum.create("Fine", x_fine, y_fine, x_unit="nm", y_unit="absorbance")
+    
+    # Result should use the finer grid
+    result, info = math.subtract(coarse, fine)
+    assert result is not None
+    # Should have ~100 points (the finer grid)
+    assert result.x.size > 50
+

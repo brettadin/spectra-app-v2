@@ -83,6 +83,9 @@ class PlotPane(QtWidgets.QWidget):
         x_nm: np.ndarray,
         y: np.ndarray,
         style: TraceStyle,
+        *,
+        uncertainty: np.ndarray | None = None,
+        quality_flags: np.ndarray | None = None,
     ) -> None:
         """Add or update a trace in the plot."""
 
@@ -92,6 +95,8 @@ class PlotPane(QtWidgets.QWidget):
             trace["x_nm"] = np.array(x_nm, copy=True)
             trace["y"] = np.array(y, copy=True)
             trace["style"] = style
+            trace["sigma"] = np.array(uncertainty, copy=True) if uncertainty is not None else None
+            trace["flags"] = np.array(quality_flags, copy=True) if quality_flags is not None else None
             self._apply_style(key)
             self._update_curve(key)
             return
@@ -106,6 +111,10 @@ class PlotPane(QtWidgets.QWidget):
             "item": curve,
             "style": style,
             "visible": True,
+            "sigma": (np.array(uncertainty, copy=True) if uncertainty is not None else None),
+            "flags": (np.array(quality_flags, copy=True) if quality_flags is not None else None),
+            "err_item": None,
+            "flag_items": [],
         }
         self._order.append(key)
         self._apply_style(key)
@@ -338,6 +347,8 @@ class PlotPane(QtWidgets.QWidget):
         item: pg.PlotDataItem = trace["item"]  # type: ignore[assignment]
         x_nm: np.ndarray = trace["x_nm"]  # type: ignore[assignment]
         y: np.ndarray = trace["y"]  # type: ignore[assignment]
+        sigma: np.ndarray | None = trace.get("sigma")  # type: ignore[assignment]
+        flags: np.ndarray | None = trace.get("flags")  # type: ignore[assignment]
         x_disp = self._x_nm_to_disp(x_nm)
         # Ensure display x is monotonically increasing for robust clipping/downsampling.
         # Conversions like cm⁻¹ = 1e7 / nm invert the order; reverse both arrays
@@ -346,11 +357,83 @@ class PlotPane(QtWidgets.QWidget):
             if x_disp.size >= 2 and x_disp[-1] < x_disp[0]:
                 x_disp = x_disp[::-1]
                 y = y[::-1]
+                if sigma is not None:
+                    sigma = sigma[::-1]
+                if flags is not None:
+                    flags = flags[::-1]
         except Exception:
             pass
         x_disp, y = self._downsample_peak(x_disp, y, self._max_points)
         item.setData(x_disp, y, connect="finite")
         item.setVisible(bool(trace.get("visible", True)))
+
+        # Remove any prior error/flag items before re-adding
+        try:
+            if trace.get("err_item") is not None:
+                self._plot.removeItem(trace["err_item"])  # type: ignore[index]
+                trace["err_item"] = None
+        except Exception:
+            pass
+        try:
+            for gi in list(trace.get("flag_items") or []):
+                self._plot.removeItem(gi)
+            trace["flag_items"] = []
+        except Exception:
+            pass
+
+        # Error bars (only for moderate point counts for performance)
+        try:
+            if sigma is not None and x_disp.size <= 5000 and sigma.size == len(x_nm):
+                # When downsampled, take matching head of sigma if sizes differ
+                if sigma.size != x_disp.size:
+                    # Basic resampling: interpolate sigma to x_disp domain
+                    with np.errstate(all="ignore"):
+                        sigma_disp = np.interp(x_disp, self._x_nm_to_disp(x_nm), sigma)
+                else:
+                    sigma_disp = sigma
+                err = pg.ErrorBarItem(x=x_disp, y=y, top=sigma_disp, bottom=sigma_disp, beam=0.0)
+                self._plot.addItem(err)
+                trace["err_item"] = err
+        except Exception:
+            # Non-fatal if ErrorBarItem is unavailable
+            pass
+
+        # Quality flag markers (limited density)
+        try:
+            if flags is not None and flags.size == len(x_nm):
+                # Map primary flags to colours
+                flag_defs: list[tuple[int, QtGui.QColor, str]] = [
+                    (0x01, QtGui.QColor(220, 20, 60), "Bad pixel"),        # red
+                    (0x02, QtGui.QColor(255, 0, 255), "Cosmic ray"),       # magenta
+                    (0x04, QtGui.QColor(255, 140, 0), "Saturated"),        # orange
+                    (0x08, QtGui.QColor(255, 215, 0), "Low SNR"),          # gold
+                ]
+                x_src_disp = self._x_nm_to_disp(x_nm)
+                for bit, color, _label in flag_defs:
+                    mask = (flags & bit) != 0
+                    if not np.any(mask):
+                        continue
+                    x_f = x_src_disp[mask]
+                    # Place markers along bottom of current view for visibility
+                    try:
+                        _, y_range = self._plot.viewRange()
+                        y_base = float(y_range[0])
+                    except Exception:
+                        y_base = 0.0
+                    y_f = np.full_like(x_f, y_base, dtype=float)
+                    # Limit number of points per flag type for performance
+                    if x_f.size > 3000:
+                        step = int(np.ceil(x_f.size / 3000))
+                        x_f = x_f[::step]
+                    spots = [{'pos': (xf, np.nan), 'data': 1} for xf in x_f]
+                    sp = pg.ScatterPlotItem(size=6, pen=pg.mkPen(color), brush=pg.mkBrush(color), pxMode=True)
+                    # Position markers at current y=NaN so they don't connect; use infinite line instead?
+                    # Scatter without y can be weird; place at bottom of view bounds later if needed.
+                    sp.setData(x=x_f, y=y_f)
+                    self._plot.addItem(sp)
+                    (trace.get("flag_items") or []).append(sp)
+        except Exception:
+            pass
 
     def set_max_points(self, value: int | None) -> None:
         """Adjust the point budget used when downsampling traces."""

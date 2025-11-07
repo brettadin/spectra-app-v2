@@ -734,6 +734,82 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             return np.arcsinh(y)
         return y
 
+    def _compute_display_uncertainty(
+        self,
+        spec: "Spectrum",
+        x_nm: np.ndarray,
+        y_cal: np.ndarray,
+        norm_mode: str,
+        global_value: float | None,
+    ) -> np.ndarray | None:
+        """Compute uncertainty array aligned with current display transforms.
+
+        Steps:
+        - Convert uncertainty to current Y-units
+        - Apply same normalization scale
+        - Map through Y-scale using first-order derivative
+        """
+        try:
+            sigma_src = getattr(spec, "uncertainty", None)
+        except Exception:
+            sigma_src = None
+        if sigma_src is None:
+            return None
+        # Convert uncertainty with the same unit mapping used for Y
+        try:
+            _, sigma_conv, _ = self.units_service.convert_arrays(
+                np.asarray(spec.x, dtype=float),
+                np.asarray(sigma_src, dtype=float),
+                spec.x_unit,
+                spec.y_unit,
+                "nm",
+                spec.y_unit,
+            )
+        except Exception:
+            sigma_conv = np.asarray(sigma_src, dtype=float)
+
+        sigma_lin = np.asarray(sigma_conv, dtype=float)
+
+        # Apply normalization scale (replicate logic from _apply_normalization)
+        if norm_mode != "None" and y_cal.size:
+            finite_y = np.isfinite(y_cal)
+            norm_val: float | None = None
+            if norm_mode == "Max":
+                if global_value is not None and np.isfinite(global_value):
+                    norm_val = float(global_value)
+                elif np.any(finite_y):
+                    norm_val = float(np.nanmax(np.abs(y_cal[finite_y])))
+            elif norm_mode == "Area":
+                if global_value is not None and np.isfinite(global_value):
+                    norm_val = float(global_value)
+                elif np.any(finite_y):
+                    norm_val = float(np.trapz(np.abs(y_cal[finite_y])))
+            if norm_val and norm_val > 0:
+                sigma_lin = sigma_lin / norm_val
+
+        # Apply Y-scale derivative mapping
+        try:
+            y_scale_mode = self.y_scale_combo.currentText() if hasattr(self, "y_scale_combo") else "Linear"
+        except Exception:
+            y_scale_mode = "Linear"
+
+        y_norm = self._apply_normalization(y_cal, norm_mode, global_value, x_nm)
+        if y_scale_mode == "Linear":
+            return sigma_lin
+        if y_scale_mode == "Log10":
+            # d/dy [sign(y)*log10(1+|y|)] ≈ 1 / ((1+|y|) ln 10)
+            denom = (1.0 + np.abs(y_norm)) * np.log(10.0)
+            with np.errstate(divide="ignore", invalid="ignore"):
+                sigma_disp = np.divide(sigma_lin, denom, where=denom > 0)
+            return sigma_disp
+        if y_scale_mode == "Asinh":
+            # d/dy asinh(y) = 1 / sqrt(1+y^2)
+            denom = np.sqrt(1.0 + y_norm * y_norm)
+            with np.errstate(divide="ignore", invalid="ignore"):
+                sigma_disp = np.divide(sigma_lin, denom, where=denom > 0)
+            return sigma_disp
+        return sigma_lin
+
     def _setup_menu(self) -> None:
         menu = self.menuBar()
         file_menu = menu.addMenu("&File")
@@ -1408,6 +1484,8 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             x_nm=x_nm,
             y=y_data,
             style=style,
+            uncertainty=self._compute_display_uncertainty(spectrum, x_nm, y_cal, norm_mode, None),
+            quality_flags=getattr(spectrum, "quality_flags", None),
         )
         self._visibility[spectrum.id] = True
         self._append_dataset_row(spectrum)
@@ -1748,6 +1826,8 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                     x_nm=x_nm,
                     y=y_data,
                     style=style,
+                    uncertainty=self._compute_display_uncertainty(spec, x_nm, y_cal, norm_mode, global_norm_value),
+                    quality_flags=getattr(spec, "quality_flags", None),
                 )
             except Exception as e:
                 import logging
