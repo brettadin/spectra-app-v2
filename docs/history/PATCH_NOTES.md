@@ -1,5 +1,19 @@
 # Patch Notes
 
+## 2025-11-06 (Math operations UI and spectral line unpin fix) — 22:15 ET / 03:15Z UTC
+- **Math operations UI**: The Merge/Average tab has been expanded and renamed to "Math" with three operations:
+  - **Average**: Combine multiple spectra via interpolation onto a common wavelength grid (existing feature, now with improved UI)
+  - **Subtract (A − B)**: NEW - Subtract second spectrum from first for background removal, baseline correction, differential spectroscopy
+  - **Ratio (A / B)**: NEW - Divide first spectrum by second for transmittance, normalization by reference lamp, relative comparisons
+  - Smart button enable/disable based on wavelength grid compatibility (subtract/ratio require identical grids, average accepts overlapping ranges)
+  - Automatic masking of near-zero denominators in ratio operations (< 1e-9 epsilon) with point count reporting
+  - Suppression of trivial subtract results (all-zero within tolerance) with informational feedback
+  - Enhanced preview panel shows grid compatibility warnings and operation availability
+- **Spectral line unpinning fix**: Fixed bug where NIST spectral line overlays persisted on the plot after unpinning a collection when the "Show on plot" checkbox was unchecked. Now always clears overlay graphics before re-applying remaining collections.
+- Updated `docs/user/plot_tools.md` with comprehensive Math operations section covering workflow, grid requirements, provenance, and best practices
+- Added 4 new integration tests for subtract/ratio UI flows and grid mismatch handling
+- All tests pass: 107 passed, 36 skipped
+
 ## 2025-11-04 (Live cursor readout, NIST caching) — 15:40 ET / 20:40Z UTC
 - Live cursor coordinate readout in the status bar: shows x in the active unit (nm/Å/µm/cm⁻¹) and y as displayed post‑normalization. When a non‑linear Y‑scale is active, a short suffix (e.g., `[Log10]`, `[Asinh]`) is appended.
 - Status readout now also shows normalization badges when enabled (e.g., `[Max]`, `[Area]`, plus `[•Global]` when global normalization is active).

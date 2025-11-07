@@ -4,7 +4,6 @@ Provides a modern dark theme with subtle accents that works across Qt bindings.
 """
 from __future__ import annotations
 
-from typing import Optional
 
 
 def get_app_stylesheet(accent: str = "#4FC3F7") -> str:

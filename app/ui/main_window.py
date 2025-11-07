@@ -44,7 +44,6 @@ from app.services import (
     KnowledgeLogEntry,
     KnowledgeLogService,
     RemoteDataService,
-        RemoteRecord,
         CalibrationService,
 )
 from app.ui.plot_pane import PlotPane, TraceStyle

@@ -8,7 +8,6 @@ import html
 import math
 import json
 from collections.abc import Mapping, Sequence
-from pathlib import Path
 from typing import Any, List
 
 from app.qt_compat import get_qt

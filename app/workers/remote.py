@@ -5,8 +5,6 @@ live in a reusable module to avoid duplication.
 """
 from __future__ import annotations
 
-from typing import Any, Mapping
-from pathlib import Path
 
 from app.qt_compat import get_qt
 from app.services import DataIngestService, RemoteDataService, RemoteRecord

@@ -3048,3 +3048,20 @@ THE KNOWLEDGE LOG IS JUST FOR AGENTS TO WRITE IMPORTANT SHIT INTO
 - vacuumed cell.csv
 
 ---
+## 2025-11-06 22:15 – Bug Fix & Feature Enhancement
+
+**Author**: agent
+
+**Context**: Repository maintenance and feature development
+
+**Summary**: Fixed spectral line unpinning bug where NIST line overlays persisted on the plot after unpinning when the overlay checkbox was unchecked. Added Math UI for subtract and ratio operations in addition to existing average functionality. Renamed "Merge/Average" tab to "Math" with smart button enable/disable based on wavelength grid compatibility.
+
+**References**:
+- app/ui/main_window.py (unpin fix, math handlers)
+- app/ui/merge_panel.py (UI expansion)
+- tests/test_merge_average.py (new tests)
+- docs/user/plot_tools.md (Math operations documentation)
+- docs/history/PATCH_NOTES.md
+
+---
+

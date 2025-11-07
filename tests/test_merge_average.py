@@ -1,7 +1,7 @@
 """Test multi-file upload and averaging functionality."""
 from pathlib import Path
 import os
-from typing import Any, Dict, cast
+from typing import Any, cast
 
 import pytest
 import numpy as np
