@@ -21,19 +21,23 @@ class MergePanel(QtWidgets.QWidget):
       - merge_preview_label (QLabel)
       - merge_average_button (QPushButton)
       - merge_subtract_button (QPushButton)
-      - merge_ratio_button (QPushButton)
+    - merge_ratio_button (QPushButton)
+    - merge_normalized_diff_button (QPushButton)
       - merge_status_label (QLabel)
     """
 
+    # Attribute type annotations (class-level per PEP 526)
+    merge_only_visible: QtWidgets.QCheckBox
+    merge_name_edit: QtWidgets.QLineEdit
+    merge_preview_label: QtWidgets.QLabel
+    merge_average_button: QtWidgets.QPushButton
+    merge_subtract_button: QtWidgets.QPushButton
+    merge_ratio_button: QtWidgets.QPushButton
+    merge_normalized_diff_button: QtWidgets.QPushButton
+    merge_status_label: QtWidgets.QLabel
+
     def __init__(self, parent: Optional[QtWidgets.QWidget] = None) -> None:
         super().__init__(parent)
-        self.merge_only_visible: QtWidgets.QCheckBox
-        self.merge_name_edit: QtWidgets.QLineEdit
-        self.merge_preview_label: QtWidgets.QLabel
-        self.merge_average_button: QtWidgets.QPushButton
-        self.merge_subtract_button: QtWidgets.QPushButton
-        self.merge_ratio_button: QtWidgets.QPushButton
-        self.merge_status_label: QtWidgets.QLabel
         self._build_ui()
 
     def _build_ui(self) -> None:
@@ -88,6 +92,11 @@ class MergePanel(QtWidgets.QWidget):
         self.merge_ratio_button.setEnabled(False)
         self.merge_ratio_button.setToolTip("Divide first spectrum by second (select exactly 2)")
         merge_buttons_layout.addWidget(self.merge_ratio_button)
+        
+        self.merge_normalized_diff_button = QtWidgets.QPushButton("ND(A,B)")
+        self.merge_normalized_diff_button.setEnabled(False)
+        self.merge_normalized_diff_button.setToolTip("Normalized difference: (A − B) / (A + B) (select exactly 2)")
+        merge_buttons_layout.addWidget(self.merge_normalized_diff_button)
         
         layout.addLayout(merge_buttons_layout)
 

@@ -3065,3 +3065,423 @@ THE KNOWLEDGE LOG IS JUST FOR AGENTS TO WRITE IMPORTANT SHIT INTO
 
 ---
 
+## 2025-11-07 15:32 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file 10.8 Test 1.csv
+
+**References**:
+- 10.8 Test 1.csv
+
+---
+## 2025-11-07 15:32 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file 10.8 Test 2.csv
+
+**References**:
+- 10.8 Test 2.csv
+
+---
+## 2025-11-07 15:32 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file bckgr.csv
+
+**References**:
+- bckgr.csv
+
+---
+## 2025-11-07 15:32 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file bkgrd A.csv
+
+**References**:
+- bkgrd A.csv
+
+---
+## 2025-11-07 15:32 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file bkgrd.csv
+
+**References**:
+- bkgrd.csv
+
+---
+## 2025-11-07 15:32 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file CO2 - 300 torr A.csv
+
+**References**:
+- CO2 - 300 torr A.csv
+
+---
+## 2025-11-07 15:32 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file CO2 - 300 torr.csv
+
+**References**:
+- CO2 - 300 torr.csv
+
+---
+## 2025-11-07 15:32 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file CO2 - 500 torr A.csv
+
+**References**:
+- CO2 - 500 torr A.csv
+
+---
+## 2025-11-07 15:32 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file CO2 - 500 torr.csv
+
+**References**:
+- CO2 - 500 torr.csv
+
+---
+## 2025-11-07 15:32 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file open air A.csv
+
+**References**:
+- open air A.csv
+
+---
+## 2025-11-07 15:32 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file open air.csv
+
+**References**:
+- open air.csv
+
+---
+## 2025-11-07 15:32 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Run1 no co2.csv
+
+**References**:
+- Run1 no co2.csv
+
+---
+## 2025-11-07 15:32 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file run2.csv
+
+**References**:
+- run2.csv
+
+---
+## 2025-11-07 15:32 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file run4.csv
+
+**References**:
+- run4.csv
+
+---
+## 2025-11-07 16:03 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file 10.8 Test 1.csv
+
+**References**:
+- 10.8 Test 1.csv
+
+---
+## 2025-11-07 16:03 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file 10.8 Test 2.csv
+
+**References**:
+- 10.8 Test 2.csv
+
+---
+## 2025-11-07 16:03 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file bckgr.csv
+
+**References**:
+- bckgr.csv
+
+---
+## 2025-11-07 16:03 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file bkgrd A.csv
+
+**References**:
+- bkgrd A.csv
+
+---
+## 2025-11-07 16:03 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file bkgrd.csv
+
+**References**:
+- bkgrd.csv
+
+---
+## 2025-11-07 16:03 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file CO2 - 300 torr A.csv
+
+**References**:
+- CO2 - 300 torr A.csv
+
+---
+## 2025-11-07 16:03 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file CO2 - 300 torr.csv
+
+**References**:
+- CO2 - 300 torr.csv
+
+---
+## 2025-11-07 16:03 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file CO2 - 500 torr A.csv
+
+**References**:
+- CO2 - 500 torr A.csv
+
+---
+## 2025-11-07 16:03 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file CO2 - 500 torr.csv
+
+**References**:
+- CO2 - 500 torr.csv
+
+---
+## 2025-11-07 16:03 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file open air A.csv
+
+**References**:
+- open air A.csv
+
+---
+## 2025-11-07 16:03 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file open air.csv
+
+**References**:
+- open air.csv
+
+---
+## 2025-11-07 16:03 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Run1 no co2.csv
+
+**References**:
+- Run1 no co2.csv
+
+---
+## 2025-11-07 16:03 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file run2.csv
+
+**References**:
+- run2.csv
+
+---
+## 2025-11-07 16:03 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file run4.csv
+
+**References**:
+- run4.csv
+
+---
+## 2025-11-07 16:13 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file okay sun file.csv
+
+**References**:
+- okay sun file.csv
+
+---
+## 2025-11-07 16:20 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file plnt_Jupiter.fits
+
+**References**:
+- plnt_Jupiter.fits
+
+---
+## 2025-11-07 16:20 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file plnt_Neptune.fits
+
+**References**:
+- plnt_Neptune.fits
+
+---
+## 2025-11-07 16:20 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file plnt_Saturn.fits
+
+**References**:
+- plnt_Saturn.fits
+
+---
+## 2025-11-07 16:20 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file plnt_Uranus.fits
+
+**References**:
+- plnt_Uranus.fits
+
+---
+## 2025-11-07 16:20 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Helium Lamp.csv
+
+**References**:
+- Helium Lamp.csv
+
+---
+## 2025-11-07 16:20 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Hydrogen Lamp.csv
+
+**References**:
+- Hydrogen Lamp.csv
+
+---

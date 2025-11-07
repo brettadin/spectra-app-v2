@@ -185,6 +185,116 @@ class MathService:
             'masked_points': int(mask.sum()),
         }
 
+    def normalized_difference(self, a: Spectrum, b: Spectrum) -> Tuple[Spectrum | None, Dict[str, object]]:
+        """Compute the normalized difference (A - B) / (A + B).
+
+        Suppresses trivial all-zero ND across valid points. Propagates uncertainties using a
+        conservative relative-uncertainty combination:
+            σ_nd ≈ |ND| * sqrt( (σ_a/|a|)² + (σ_b/|b|)² ), with safeguards.
+
+        Returns None if the computed ND is trivial (all zeros within tolerance) or if there are
+        no valid (non-masked) points due to a nearly-zero denominator.
+        """
+        x_canon, a_canon_y, b_canon_y = self._aligned_canonical(a, b)
+        a_sigma, b_sigma = self._aligned_uncertainties(a, b, x_canon)
+        a_flags, b_flags = self._aligned_quality_flags(a, b, x_canon)
+
+        num = a_canon_y - b_canon_y
+        denom = a_canon_y + b_canon_y
+        with np.errstate(divide='ignore', invalid='ignore'):
+            denom_mask = np.abs(denom) < self.epsilon
+            denom_safe = denom.copy()
+            denom_safe[denom_mask] = np.nan
+            nd = np.divide(num, denom_safe)
+
+        # Determine valid points (where denominator wasn't too small)
+        valid_mask = ~denom_mask & ~np.isnan(nd)
+        if not np.any(valid_mask):
+            return None, {
+                'status': 'no_valid_points',
+                'operation': 'normalized_difference',
+                'message': 'All points masked due to near-zero denominator; no valid ND to compute.',
+                'parents': [a.id, b.id],
+            }
+        # Suppress trivial case where ND is ~0 across all valid points (e.g., a == b)
+        if np.allclose(nd[valid_mask], 0.0, atol=self.epsilon):
+            return None, {
+                'status': 'suppressed_trivial',
+                'operation': 'normalized_difference',
+                'message': 'Normalized difference is zero across valid range; result suppressed.',
+                'parents': [a.id, b.id],
+            }
+
+        # Propagate uncertainty (simplified): treat nd = f(a,b); approximate via relative uncertainties
+        result_sigma = None
+        if a_sigma is not None or b_sigma is not None:
+            a_sig = a_sigma if a_sigma is not None else np.zeros_like(nd)
+            b_sig = b_sigma if b_sigma is not None else np.zeros_like(nd)
+            with np.errstate(divide='ignore', invalid='ignore'):
+                rel_a = np.divide(a_sig, np.abs(a_canon_y), where=np.abs(a_canon_y) > self.epsilon)
+                rel_b = np.divide(b_sig, np.abs(b_canon_y), where=np.abs(b_canon_y) > self.epsilon)
+                # Heuristic: scaled combination of relative uncertainties
+                result_sigma = np.abs(nd) * np.sqrt(rel_a**2 + rel_b**2)
+            if result_sigma is not None:
+                result_sigma[denom_mask] = np.nan
+
+        result_flags = None
+        if a_flags is not None or b_flags is not None:
+            a_flg = a_flags if a_flags is not None else np.zeros(len(nd), dtype=np.uint8)
+            b_flg = b_flags if b_flags is not None else np.zeros(len(nd), dtype=np.uint8)
+            result_flags = a_flg | b_flg
+
+        metadata: Dict[str, Any] = {
+            'operation': {
+                'name': 'normalized_difference',
+                'parameters': {
+                    'epsilon': self.epsilon,
+                    'masked_points': int(denom_mask.sum()),
+                    'wavelength_range': [float(np.nanmin(x_canon)), float(np.nanmax(x_canon))],
+                    'points': int(x_canon.size),
+                },
+                'parents': [a.id, b.id],
+            },
+            'primary_metadata': dict(a.metadata),
+            'secondary_metadata': dict(b.metadata),
+        }
+        result_x, result_y, _ = self.units_service.convert_arrays(
+            x_canon,
+            nd,
+            'nm',
+            'absorbance',
+            a.x_unit,
+            a.y_unit,
+        )
+
+        result_sigma_converted = None
+        if result_sigma is not None:
+            _, result_sigma_converted, _ = self.units_service.convert_arrays(
+                x_canon,
+                result_sigma,
+                'nm',
+                'absorbance',
+                a.x_unit,
+                a.y_unit,
+            )
+
+        spectrum = Spectrum.create(
+            name=f"ND({a.name}, {b.name})",
+            x=result_x,
+            y=result_y,
+            x_unit=a.x_unit,
+            y_unit=a.y_unit,
+            metadata=metadata,
+            uncertainty=result_sigma_converted,
+            quality_flags=result_flags,
+        )
+        return spectrum, {
+            'status': 'ok',
+            'operation': 'normalized_difference',
+            'result_id': spectrum.id,
+            'masked_points': int(denom_mask.sum()),
+        }
+
     def _aligned_canonical(self, a: Spectrum, b: Spectrum) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         """Align two spectra to a common wavelength grid via interpolation.
         

@@ -1,17 +1,4 @@
-MOVED: This log has been archived to reports/logs/runtime-2025-11-04.log and logs are now ignored by git.
 Traceback (most recent call last):
-  File "C:\Code\spectra-app-v2\app\main.py", line 949, in open_file
-    self._ingest_path(Path(path_str))
-  File "C:\Code\spectra-app-v2\app\main.py", line 1176, in _ingest_path
-    self._add_spectrum(spectrum)
-  File "C:\Code\spectra-app-v2\app\main.py", line 1200, in _add_spectrum
-    self.plot.add_trace(
-  File "C:\Code\spectra-app-v2\app\ui\plot_pane.py", line 93, in add_trace
-    self._plot.addItem(curve)
-  File "c:\Users\brett\AppData\Local\Programs\Python\Python312\Lib\site-packages\pyqtgraph\graphicsItems\PlotItem\PlotItem.py", line 545, in addItem
-    self.addAvgCurve(item)
-  File "c:\Users\brett\AppData\Local\Programs\Python\Python312\Lib\site-packages\pyqtgraph\graphicsItems\PlotItem\PlotItem.py", line 489, in addAvgCurve
-    plot.setData(x, y, stepMode=stepMode)
-  File "c:\Users\brett\AppData\Local\Programs\Python\Python312\Lib\site-packages\pyqtgraph\graphicsItems\PlotDataItem.py", line 741, in setData
-    raise TypeError('When passing two unnamed arguments, both must be a list or array of values. (got %s, %s)' % (str(type(args[0])), str(type(args[1]))))
-TypeError: When passing two unnamed arguments, both must be a list or array of values. (got <class 'NoneType'>, <class 'NoneType'>)
+  File "C:\Code\spectra-app-v2\app\ui\main_window.py", line 2708, in _update_merge_preview
+    self.merge_average_button.setEnabled(overlap_min < overlap_max)
+TypeError: 'numpy.bool' object cannot be interpreted as an integer

@@ -21,6 +21,7 @@ except ModuleNotFoundError as exc:
 from app.logging_config import setup_logging
 from app.ui.main_window import SpectraMainWindow
 from app.ui.styles import get_app_stylesheet, apply_pyqtgraph_theme
+from app.services import nist_asd_service as nist_asd_service_module
 
 QtCore: Any
 QtGui: Any
@@ -33,6 +34,12 @@ QT_BINDING = qt_tuple[3]
 
 # Re-exported constants used by tests to monkeypatch paths
 SAMPLES_DIR = Path(__file__).resolve().parent.parent / "samples"
+
+# Global NIST ASD service instance re-exported for UI modules that lazily access
+# main_module.nist_asd_service. The heavy astroquery import cost is incurred only
+# if the user triggers a NIST fetch. If astroquery is unavailable, fetch calls
+# will raise a clear NistUnavailableError handled in the UI.
+nist_asd_service = nist_asd_service_module  # provides fetch_lines(), clear_cache(), cache_stats()
 
 
 def _install_exception_handler() -> None:

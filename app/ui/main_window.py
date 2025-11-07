@@ -380,6 +380,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.merge_average_button = self.merge_panel.merge_average_button
         self.merge_subtract_button = self.merge_panel.merge_subtract_button
         self.merge_ratio_button = self.merge_panel.merge_ratio_button
+        self.merge_normalized_diff_button = self.merge_panel.merge_normalized_diff_button
         self.merge_status_label = self.merge_panel.merge_status_label
 
         # Wire existing handlers
@@ -387,6 +388,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.merge_average_button.clicked.connect(self._on_merge_average)
         self.merge_subtract_button.clicked.connect(self._on_merge_subtract)
         self.merge_ratio_button.clicked.connect(self._on_merge_ratio)
+        self.merge_normalized_diff_button.clicked.connect(self._on_merge_normalized_difference)
 
         self.inspector_tabs.addTab(self.merge_panel, "Math")
         
@@ -1300,8 +1302,10 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             pass
 
         # Double-click to ingest sample files
+        # Guard disconnect to avoid runtime warning when not previously connected
         try:
-            self.library_view.itemActivated.disconnect()
+            if hasattr(self.library_view.itemActivated, 'disconnect'):
+                self.library_view.itemActivated.disconnect()
         except Exception:
             pass
         try:
@@ -2663,6 +2667,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             self.merge_average_button.setEnabled(False)
             self.merge_subtract_button.setEnabled(False)
             self.merge_ratio_button.setEnabled(False)
+            self.merge_normalized_diff_button.setEnabled(False)
         elif len(selected_specs) == 1:
             spec = selected_specs[0]
             self.merge_preview_label.setText(
@@ -2672,6 +2677,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             self.merge_average_button.setEnabled(False)
             self.merge_subtract_button.setEnabled(False)
             self.merge_ratio_button.setEnabled(False)
+            self.merge_normalized_diff_button.setEnabled(False)
         elif len(selected_specs) == 2:
             # Two spectra: enable subtract/ratio, check for average
             spec_a, spec_b = selected_specs
@@ -2692,6 +2698,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                 )
                 self.merge_subtract_button.setEnabled(True)
                 self.merge_ratio_button.setEnabled(True)
+                self.merge_normalized_diff_button.setEnabled(True)
             else:
                 self.merge_preview_label.setText(
                     f"2 datasets selected:\n"
@@ -2701,11 +2708,12 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                 )
                 self.merge_subtract_button.setEnabled(False)
                 self.merge_ratio_button.setEnabled(False)
+                self.merge_normalized_diff_button.setEnabled(False)
             
             # Check for overlapping range for average
             overlap_min = max(spec_a.x.min(), spec_b.x.min())
             overlap_max = min(spec_a.x.max(), spec_b.x.max())
-            self.merge_average_button.setEnabled(overlap_min < overlap_max)
+            self.merge_average_button.setEnabled(bool(overlap_min < overlap_max))
         else:
             # Show info about multiple spectra
             point_counts = [len(spec.x) for spec in selected_specs]
@@ -2718,8 +2726,9 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             # Disable subtract/ratio for more than 2 spectra
             self.merge_subtract_button.setEnabled(False)
             self.merge_ratio_button.setEnabled(False)
+            self.merge_normalized_diff_button.setEnabled(False)
             
-            if overlap_min >= overlap_max:
+            if bool(overlap_min >= overlap_max):
                 self.merge_preview_label.setText(
                     f"{len(selected_specs)} datasets selected\n"
                     f"⚠️ No overlapping wavelength range - cannot average"
@@ -2951,6 +2960,60 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             self.plot.autoscale()
             self._refresh_history_view()
             
+        except Exception as exc:
+            self.merge_status_label.setText(f"❌ Error: {exc}")
+            import traceback
+            traceback.print_exc()
+
+    def _on_merge_normalized_difference(self) -> None:
+        """Perform normalized difference operation on two selected spectra."""
+        if not hasattr(self, 'merge_status_label'):
+            return
+        
+        self.merge_status_label.setText("Processing...")
+        try:
+            spectra = self._get_merge_candidates()
+            if len(spectra) != 2:
+                self.merge_status_label.setText("⚠️ Select exactly 2 datasets for ND")
+                return
+            spec_a, spec_b = spectra
+            result, metadata = self.math_service.normalized_difference(spec_a, spec_b)
+            if result is None:
+                status = str(metadata.get('status', 'suppressed'))
+                msg = str(metadata.get('message', 'Result suppressed'))
+                self.merge_status_label.setText(f"ℹ️ {msg}")
+                self.knowledge_log.record_event(
+                    "Math ND",
+                    f"ND({spec_a.name}, {spec_b.name}) suppressed: {status}",
+                    references=[spec_a.name, spec_b.name],
+                    persist=False,
+                )
+                return
+            # Add to overlay
+            self.overlay_service.add(result)
+            self._add_spectrum(result)
+            # Log
+            masked = int(metadata.get('masked_points', 0)) if isinstance(metadata, dict) else 0
+            summary = f"Computed ND({spec_a.name}, {spec_b.name}) → '{result.name}'"
+            if masked > 0:
+                summary += f" ({masked} points masked)"
+            self.knowledge_log.record_event(
+                "Math ND",
+                summary,
+                references=[result.name],
+                persist=False,
+            )
+            # Status
+            status_msg = f"✓ Created '{result.name}' = (A − B) / (A + B)"
+            if masked > 0:
+                status_msg += f"\n⚠️ {masked} points masked"
+            self.merge_status_label.setText(status_msg)
+            # Clear the name field if used in future iterations
+            if hasattr(self, 'merge_name_edit'):
+                self.merge_name_edit.clear()
+            # Refresh UI
+            self.plot.autoscale()
+            self._refresh_history_view()
         except Exception as exc:
             self.merge_status_label.setText(f"❌ Error: {exc}")
             import traceback

@@ -38,6 +38,26 @@ def test_ratio_with_zero_guard():
     assert np.isnan(result.y[1])
 
 
+def test_normalized_difference_basic():
+    math = MathService(UnitsService(), epsilon=1e-9)
+    a = make_spectrum("A", np.array([2.0, 4.0, 6.0]))
+    b = make_spectrum("B", np.array([1.0, 2.0, 3.0]))
+    result, info = math.normalized_difference(a, b)
+    assert result is not None
+    assert info['operation'] == 'normalized_difference'
+    # ND = (a-b)/(a+b) -> (1/3, 2/6, 3/9) = (0.333..., 0.333..., 0.333...)
+    assert np.allclose(result.y, np.array([1/3, 1/3, 1/3]), atol=1e-6)
+
+
+def test_normalized_difference_trivial_suppressed():
+    math = MathService(UnitsService(), epsilon=1e-9)
+    a = make_spectrum("A", np.array([1.0, 1.0, 1.0]))
+    b = make_spectrum("B", np.array([1.0, 1.0, 1.0]))
+    result, info = math.normalized_difference(a, b)
+    assert result is None
+    assert info['status'] == 'suppressed_trivial'
+
+
 def test_math_with_different_ranges():
     """Test that math operations work with non-overlapping ranges via interpolation."""
     math = MathService(UnitsService(), epsilon=1e-9)
