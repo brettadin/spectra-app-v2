@@ -2436,3 +2436,615 @@ THE KNOWLEDGE LOG IS JUST FOR AGENTS TO WRITE IMPORTANT SHIT INTO
 - Hydrogen Lamp.csv
 
 ---
+## 2025-11-06 18:41 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Hydrogen Lamp.csv
+
+**References**:
+- Hydrogen Lamp.csv
+
+---
+## 2025-11-06 19:16 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Hydrogen _Subt9__0__00000.txt
+
+**References**:
+- Hydrogen _Subt9__0__00000.txt
+
+---
+## 2025-11-06 19:16 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Hydrogen _Subt9__1__00001.txt
+
+**References**:
+- Hydrogen _Subt9__1__00001.txt
+
+---
+## 2025-11-06 19:16 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Hydrogen _Subt9__2__00002.txt
+
+**References**:
+- Hydrogen _Subt9__2__00002.txt
+
+---
+## 2025-11-06 19:16 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Hydrogen _Subt9__3__00003.txt
+
+**References**:
+- Hydrogen _Subt9__3__00003.txt
+
+---
+## 2025-11-06 19:16 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Hydrogen _Subt9__4__00004.txt
+
+**References**:
+- Hydrogen _Subt9__4__00004.txt
+
+---
+## 2025-11-06 19:16 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Hydrogen _Subt9__5__00005.txt
+
+**References**:
+- Hydrogen _Subt9__5__00005.txt
+
+---
+## 2025-11-06 19:16 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Hydrogen _Subt9__6__00006.txt
+
+**References**:
+- Hydrogen _Subt9__6__00006.txt
+
+---
+## 2025-11-06 19:16 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Hydrogen _Subt9__7__00007.txt
+
+**References**:
+- Hydrogen _Subt9__7__00007.txt
+
+---
+## 2025-11-06 19:16 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Hydrogen _Subt9__8__00008.txt
+
+**References**:
+- Hydrogen _Subt9__8__00008.txt
+
+---
+## 2025-11-06 19:16 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Hydrogen _Subt9__9__00009.txt
+
+**References**:
+- Hydrogen _Subt9__9__00009.txt
+
+---
+## 2025-11-06 19:38 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Helium Lamp.csv
+
+**References**:
+- Helium Lamp.csv
+
+---
+## 2025-11-06 19:54 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Mercury Lamp.csv
+
+**References**:
+- Mercury Lamp.csv
+
+---
+## 2025-11-06 19:55 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Neon Lamp.csv
+
+**References**:
+- Neon Lamp.csv
+
+---
+## 2025-11-06 19:55 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Air Lamp.csv
+
+**References**:
+- Air Lamp.csv
+
+---
+## 2025-11-06 19:55 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file CO2 Lamp.csv
+
+**References**:
+- CO2 Lamp.csv
+
+---
+## 2025-11-06 19:55 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file H2O Lamp.csv
+
+**References**:
+- H2O Lamp.csv
+
+---
+## 2025-11-06 19:55 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Helium Lamp.csv
+
+**References**:
+- Helium Lamp.csv
+
+---
+## 2025-11-06 19:55 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Hydrogen Lamp.csv
+
+**References**:
+- Hydrogen Lamp.csv
+
+---
+## 2025-11-06 19:55 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Mercury Lamp.csv
+
+**References**:
+- Mercury Lamp.csv
+
+---
+## 2025-11-06 19:55 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Neon Lamp.csv
+
+**References**:
+- Neon Lamp.csv
+
+---
+## 2025-11-06 19:55 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Star Lamp.csv
+
+**References**:
+- Star Lamp.csv
+
+---
+## 2025-11-06 19:55 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Xenon Lamp.csv
+
+**References**:
+- Xenon Lamp.csv
+
+---
+## 2025-11-06 19:58 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Iodine_Lamp.csv
+
+**References**:
+- Iodine_Lamp.csv
+
+---
+## 2025-11-06 19:58 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Krypton_Lamp.csv
+
+**References**:
+- Krypton_Lamp.csv
+
+---
+## 2025-11-06 20:01 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file .880torr~ w low vol h2o vapor - Copy.csv
+
+**References**:
+- .880torr~ w low vol h2o vapor - Copy.csv
+
+---
+## 2025-11-06 20:01 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file 7ish torr w h2o vapor - Copy.csv
+
+**References**:
+- 7ish torr w h2o vapor - Copy.csv
+
+---
+## 2025-11-06 20:01 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file 100 torr h2o 4-1k - Copy.csv
+
+**References**:
+- 100 torr h2o 4-1k - Copy.csv
+
+---
+## 2025-11-06 20:01 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file bckgr.csv
+
+**References**:
+- bckgr.csv
+
+---
+## 2025-11-06 20:01 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file bkgrd 10 16 VAC.csv
+
+**References**:
+- bkgrd 10 16 VAC.csv
+
+---
+## 2025-11-06 20:01 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file bkgrd A.csv
+
+**References**:
+- bkgrd A.csv
+
+---
+## 2025-11-06 20:01 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file bkgrd.csv
+
+**References**:
+- bkgrd.csv
+
+---
+## 2025-11-06 20:01 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file CO2 - 300 torr A.csv
+
+**References**:
+- CO2 - 300 torr A.csv
+
+---
+## 2025-11-06 20:01 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file CO2 - 300 torr.csv
+
+**References**:
+- CO2 - 300 torr.csv
+
+---
+## 2025-11-06 20:01 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file CO2 - 500 torr A.csv
+
+**References**:
+- CO2 - 500 torr A.csv
+
+---
+## 2025-11-06 20:01 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file CO2 - 500 torr.csv
+
+**References**:
+- CO2 - 500 torr.csv
+
+---
+## 2025-11-06 20:01 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file co2 gas vessel.csv
+
+**References**:
+- co2 gas vessel.csv
+
+---
+## 2025-11-06 20:01 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file goodo vapor run i think - Copy.csv
+
+**References**:
+- goodo vapor run i think - Copy.csv
+
+---
+## 2025-11-06 20:01 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file goodo vapor run i think.csv
+
+**References**:
+- goodo vapor run i think.csv
+
+---
+## 2025-11-06 20:01 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file h2o run 1 10 27 - Copy.csv
+
+**References**:
+- h2o run 1 10 27 - Copy.csv
+
+---
+## 2025-11-06 20:01 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file h2o run 3 good i think 10 27 - Copy.csv
+
+**References**:
+- h2o run 3 good i think 10 27 - Copy.csv
+
+---
+## 2025-11-06 20:01 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file i froze h2o in the schlenk line oopsie.csv
+
+**References**:
+- i froze h2o in the schlenk line oopsie.csv
+
+---
+## 2025-11-06 20:01 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file low vapor for the road.csv
+
+**References**:
+- low vapor for the road.csv
+
+---
+## 2025-11-06 20:01 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Methanol Blank.csv
+
+**References**:
+- Methanol Blank.csv
+
+---
+## 2025-11-06 20:01 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file open air A.csv
+
+**References**:
+- open air A.csv
+
+---
+## 2025-11-06 20:01 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file open air.csv
+
+**References**:
+- open air.csv
+
+---
+## 2025-11-06 20:01 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file run2.csv
+
+**References**:
+- run2.csv
+
+---
+## 2025-11-06 20:01 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file run4.csv
+
+**References**:
+- run4.csv
+
+---
+## 2025-11-06 20:01 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file sketchy vapor test.csv
+
+**References**:
+- sketchy vapor test.csv
+
+---
+## 2025-11-06 20:01 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file vacc'd again 244 pm.csv
+
+**References**:
+- vacc'd again 244 pm.csv
+
+---
+## 2025-11-06 20:01 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file vacuumed cell.csv
+
+**References**:
+- vacuumed cell.csv
+
+---

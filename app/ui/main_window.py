@@ -2330,6 +2330,14 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         else:
             self._reference_overlay_key = key
 
+        # Always clear old annotations first to prevent stale items from persisting
+        for item in list(self._reference_overlay_annotations):
+            try:
+                self.plot.remove_graphics_item(item)
+            except Exception:
+                pass
+        self._reference_overlay_annotations.clear()
+
         # Create stacked label annotations on the main plot
         labels = payload.get("labels") or []
         if isinstance(labels, list) and labels:
@@ -2338,8 +2346,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                 band_bottom, band_top = self._overlay_band_bounds()
             span = float(band_top - band_bottom) if (band_top is not None and band_bottom is not None) else 1.0
             n = max(1, len(labels))
-            # Do not replace the list object; mutate in-place so identity is preserved for tests
-            self._reference_overlay_annotations.clear()
+            # Annotations already cleared above
             for i, label in enumerate(sorted(labels, key=lambda d: d.get("centre_nm", 0))):
                 y = float(band_bottom) + (i + 1) * span / (n + 1)
                 x_nm = float(label.get("centre_nm", 0.0))
