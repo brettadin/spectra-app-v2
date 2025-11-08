@@ -1,0 +1,7 @@
+{
+  "python.defaultInterpreterPath": "C:/Users/brett/miniconda3/python.exe",
+  "python.analysis.extraPaths": [
+    "${workspaceFolder}"
+  ],
+  "terminal.integrated.defaultProfile.windows": "PowerShell"
+}

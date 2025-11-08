@@ -2199,7 +2199,6 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             self.reference_status_label.setText("Enter element symbol")
             return
         try:
-            # Use lazy import to avoid circular dependency
             from app import main as main_module
             payload = main_module.nist_asd_service.fetch_lines(
                 element,
@@ -2208,13 +2207,11 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                 wavelength_unit="nm",
                 wavelength_type="vacuum",
             )
-            # Show cache status in UI
             cache_hit = payload.get("meta", {}).get("cache_hit", False)
             cache_indicator = " [cached]" if cache_hit else ""
         except Exception as exc:
             self.reference_status_label.setText(f"NIST fetch failed: {exc}")
             return
-        # Populate table with the first collection
         lines = list(payload.get("lines", [])) if isinstance(payload, Mapping) else []
         self.reference_table.setColumnCount(5)
         self.reference_table.setHorizontalHeaderLabels(["λ (nm)", "Ritz λ (nm)", "Intensity", "Lower", "Upper"])
@@ -2226,14 +2223,12 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             self.reference_table.setItem(r, 3, QtWidgets.QTableWidgetItem(str(row.get("lower_level", ""))))
             self.reference_table.setItem(r, 4, QtWidgets.QTableWidgetItem(str(row.get("upper_level", ""))))
 
-        # Build multi-overlay container (pin collection)
         try:
             label = str(payload.get("meta", {}).get("label", element))
         except Exception:
             label = element
-        alias = f"Reference – {label}"
+        alias = f"NIST: {label}"
         xs = np.array([row.get("wavelength_nm") for row in lines if isinstance(row, Mapping)], dtype=float)
-        # Normalise intensities to [0,1] for bar heights
         intensities = []
         for row in lines:
             try:
@@ -2243,36 +2238,30 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         ys_raw = np.array(intensities, dtype=float)
         max_i = float(np.nanmax(ys_raw)) if ys_raw.size else 0.0
         ys = (ys_raw / max_i) if max_i > 0 else np.ones_like(xs)
-        # Assign a distinct color per pinned set
-        # Assign colour using a dedicated NIST palette cursor so dataset colours remain stable
         color = self._nist_collection_colors.get(str(label)) if False else None
         if color is None:
             color = self._next_nist_color()
             self._nist_collection_colors[str(label)] = color
-        single = {
-            "key": f"reference::nist::{label}",
+        # Create a unique overlay ID for this NIST set
+        overlay_id = f"nist::{label}::{self._nist_collection_counter}"
+        self._nist_collection_counter += 1
+        # Add to overlay service as a normal overlay
+        self.overlay_service.add({
+            "id": overlay_id,
             "alias": alias,
-            "x_nm": xs,
+            "x": xs,
             "y": ys,
             "color": color.name() if hasattr(color, "name") else "#6D597A",
             "width": 1.2,
             "mode": "bars",
-            "labels": [],
-        }
-        # Track pinned sets
-        self._nist_collection_counter += 1
-        pin_key = f"set-{self._nist_collection_counter}"
-        self._nist_collections[pin_key] = {"payload": single, "label": label}
+        })
+        self._nist_collections[overlay_id] = {"label": label, "alias": alias}
         self.nist_collections_list.addItem(f"{label}{cache_indicator} – pinned")
-        multi = {"kind": "nist-multi", "payloads": {k: v["payload"] for k, v in self._nist_collections.items()}}
-        self._update_reference_overlay_state(multi)
-        self.reference_overlay_checkbox.setEnabled(True)
         count = len(self._nist_collections)
         suffix = "set" if count == 1 else "sets"
         stats_msg = f"{count} pinned {suffix}{cache_indicator}"
         self.reference_status_label.setText(stats_msg)
-        # Preview the most recent fetch as bars
-        self._preview_reference_payload(single)
+
 
     def _on_nist_cache_clear_clicked(self) -> None:
         """Clear all cached NIST line lists."""
@@ -2296,39 +2285,39 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         keys = list(self._nist_collections.keys())
         if not (0 <= row < len(keys)):
             return
-        pin_key = keys[row]
+        overlay_id = keys[row]
+        # Remove overlay from overlay service and plot
+        try:
+            self.overlay_service.remove(overlay_id)
+        except Exception:
+            pass
         # Remove from state and UI
-        self._nist_collections.pop(pin_key, None)
+        self._nist_collections.pop(overlay_id, None)
         try:
             self.nist_collections_list.takeItem(row)
         except Exception:
             pass
-        # Update overlay payload
-        if self._nist_collections:
-            multi = {"kind": "nist-multi", "payloads": {k: v["payload"] for k, v in self._nist_collections.items()}}
-            self._update_reference_overlay_state(multi)
-            # Always clear the overlay first to remove graphics from the unpinned set
-            self._clear_reference_overlay()
-            # Then re-apply if the checkbox is checked
-            if self.reference_overlay_checkbox.isChecked():
-                self._apply_reference_overlay()
-            self.reference_status_label.setText(f"{len(self._nist_collections)} pinned set(s)")
+        count = len(self._nist_collections)
+        if count:
+            suffix = "set" if count == 1 else "sets"
+            self.reference_status_label.setText(f"{count} pinned {suffix}")
         else:
-            self._clear_reference_overlay()
-            self.reference_overlay_checkbox.setChecked(False)
-            self.reference_overlay_checkbox.setEnabled(False)
             self.reference_status_label.setText("No pinned sets – Fetch to add")
+
 
     def _clear_all_nist_pins(self) -> None:
         """Remove all pinned NIST sets."""
+        # Remove all overlays from overlay service
+        for overlay_id in list(self._nist_collections.keys()):
+            try:
+                self.overlay_service.remove(overlay_id)
+            except Exception:
+                pass
         self._nist_collections.clear()
         try:
             self.nist_collections_list.clear()
         except Exception:
             pass
-        self._clear_reference_overlay()
-        self.reference_overlay_checkbox.setChecked(False)
-        self.reference_overlay_checkbox.setEnabled(False)
         self.reference_status_label.setText("No pinned sets – Fetch to add")
 
     def _refresh_reference_overlay_geometry(self) -> None:

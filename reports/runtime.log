@@ -1,4 +1,10 @@
 Traceback (most recent call last):
-  File "C:\Code\spectra-app-v2\app\ui\main_window.py", line 2708, in _update_merge_preview
-    self.merge_average_button.setEnabled(overlap_min < overlap_max)
-TypeError: 'numpy.bool' object cannot be interpreted as an integer
+  File "C:\Code\spectra-app-v2\app\ui\main_window.py", line 336, in <lambda>
+    lambda element, lower, upper: self._on_nist_fetch_clicked()
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Code\spectra-app-v2\app\ui\main_window.py", line 2249, in _on_nist_fetch_clicked
+    self.overlay_service.add({
+  File "C:\Code\spectra-app-v2\app\services\overlay_service.py", line 28, in add
+    self._spectra[spectrum.id] = spectrum
+                  ^^^^^^^^^^^
+AttributeError: 'dict' object has no attribute 'id'

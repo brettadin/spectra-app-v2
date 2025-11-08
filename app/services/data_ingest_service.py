@@ -8,7 +8,7 @@ from typing import Any, Dict, Iterable, List, Sequence, cast
 
 import numpy as np
 
-from .importers import CsvImporter, ExoplanetCsvImporter, FitsImporter, JcampImporter, SupportsImport
+from .importers import CsvImporter, ExoplanetCsvImporter, FitsImporter, JcampImporter, SupportsImport, ModisHdfImporter
 from .spectrum import Spectrum
 from .store import LocalStore
 from .units_service import UnitsService
@@ -41,6 +41,8 @@ class DataIngestService:
             self.register_importer({'.csv', '.txt'}, CsvImporter())
             self.register_importer({'.fits', '.fit', '.fts'}, FitsImporter())
             self.register_importer({'.jdx', '.dx', '.jcamp'}, JcampImporter())
+            # HDF4 (MODIS Surface Reflectance) via dedicated importer
+            self.register_importer({'.hdf'}, ModisHdfImporter())
         
         # Keep a reference to specialized importers for format detection
         self._exoplanet_csv_importer = ExoplanetCsvImporter()
@@ -71,7 +73,17 @@ class DataIngestService:
             if self._exoplanet_csv_importer.can_read(path):
                 importer = self._exoplanet_csv_importer
 
-        raw = importer.read(path)
+        # Delegate to importer and surface a friendlier error for HDF4/MODIS
+        try:
+            raw = importer.read(path)
+        except Exception as exc:
+            # If this is an HDF file, provide actionable guidance
+            if ext == '.hdf':
+                raise RuntimeError(
+                    f"Failed to read HDF file '{path.name}': {exc}.\n"
+                    "Ensure HDF4 support is installed (pip/conda 'pyhdf' preferred, or 'gdal' with HDF4 driver)."
+                ) from exc
+            raise
         bundle_meta = raw.metadata.get("bundle") if isinstance(raw.metadata, dict) else None
         if isinstance(bundle_meta, dict) and bundle_meta.get("format") == "spectra-export-v1":
             members = bundle_meta.get("members", [])

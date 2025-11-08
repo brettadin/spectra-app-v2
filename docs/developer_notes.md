@@ -160,3 +160,98 @@ h5py>=3.9.0                  # Phase 2: Efficient dataset storage
 - **Offline-first**: Extended database works without ML; rule-based predictor works without neural network; neural predictor bundled for offline use
 - **Immutable spectra**: Predictions are derived data, never modify original `Spectrum` objects
 - **Explainability**: Every prediction must decompose into understandable components (peaks, patterns, rules, attention weights)
+
+## 2025-11-07 — MODIS HDF4 Integration, Environment Stabilization, NIST Overlay Refactor
+
+### Session Goals
+- Enable ingestion of a NASA MODIS Surface Reflectance (MOD09) HDF4 granule and expose it as a 7-point discrete reflectance "spectrum" (band centers).
+- Make NIST spectral line collections behave like normal overlays so pin/unpin removes them cleanly.
+- Resolve Windows HDF4 dependency friction (pyhdf DLLs) and offer fallbacks.
+- Stabilize launch environment after migrating to conda Python.
+
+### Implemented Components
+1. MODIS Importer (`app/services/importers/modis_hdf_importer.py`):
+  - Reads SDS datasets `sur_refl_b01`..`sur_refl_b07` via `pyhdf` (primary) or GDAL (fallback).
+  - Masks invalid values (<0 or >10000), scales by 0.0001, aggregates median per band.
+  - Emits a single 7-point spectrum with wavelength centers (nm) mapped from official band specs.
+2. Ingest Registration: Added `.hdf` extension mapping in `DataIngestService`.
+3. CSV Fallback Sample: Added sample 7-point CSV (mirrors importer output) so UI can be exercised without native libs.
+4. Extraction Helper Script: `tools/extract_modis_hdf.py` attempts automated extraction (GDAL / h5py) and guides manual export (Panoply) if binaries missing.
+5. Documentation:
+  - `docs/dev/MODIS_INSTALL_WINDOWS.md` explains why pyhdf needs conda (HDF4 DLL bundling) and enumerates options (conda, GDAL, Panoply, CSV workaround).
+  - Dev notes for ingest strategy (scaling, masking, QA roadmap).
+6. Environment / Launch Adjustments:
+  - VS Code `launch.json` updated to force conda interpreter & set `PYTHONPATH`.
+  - Added `.vscode/settings.json` to pin interpreter.
+  - Updated `RunSpectraApp_Conda.cmd` to set `PYTHONPATH` and show exit code.
+7. Dependency Corrections:
+  - Fixed `requirements.txt` invalid `pyhdf>=0.12.2` → `pyhdf>=0.11.6` with comment clarifying conda usage.
+8. NIST Overlay Refactor (Partial): Began converting from special multi-payload reference overlay to normal overlay entries so removal/unpin acts uniformly.
+
+### Current Issues / Gaps
+| Area | Status | Notes |
+|------|--------|-------|
+| Full app launch (PySide6 6.10 + Python 3.13) | Hard crash (native exit code) | Minimal Qt tests succeed; failure occurs during `SpectraMainWindow` init. Suspected binary/ABI edge with 3.13. |
+| NIST fetch handler | Still inserts raw `dict` into `OverlayService.add` | Causes `AttributeError: 'dict' object has no attribute 'id'` (runtime.log). Needs wrapper Spectrum. |
+| MODIS importer runtime | Blocked by launch crash | Path will work once window stable. |
+| Environment isolation | Using base conda env | Should create dedicated `spectra312` env (Python 3.12) for stability & reproducibility. |
+| QA / per-pixel MODIS features | Not implemented | Future: ROI selection, QA bit decoding, uncertainty arrays. |
+
+### Why HDF4 Was Painful on Windows
+- PyPI wheels for `pyhdf` ship only the Python wrapper; required DLLs (`hdf4`, `mfhdf`) are absent.
+- `conda-forge` builds bundle the native libraries; installation solved import errors.
+- Alternatives: Use LAADS/AppEEARS API to export GeoTIFF/CSV; bypass HDF4 parsing locally.
+
+### Alternate Data Acquisition Paths (Surface Reflectance)
+| Path | Format | Pros | Cons |
+|------|--------|------|------|
+| LAADS DAAC subset | GeoTIFF / netCDF | Avoids HDF4; scriptable API | Subset configuration step |
+| AppEEARS | CSV / GeoTIFF | Direct CSV output; easy UI | Queue delay, account needed |
+| VIIRS / Sentinel-2 / HLS | COG / netCDF | More bands (richer spectral shape) | Requires new band mapping |
+| Manual Panoply export | CSV | Zero code changes | Manual, error-prone |
+
+### Rationale for Discrete 7-Point Representation
+- MODIS surface reflectance is inherently multi-band (not contiguous spectroscopy).
+- Representing each band center as a point preserves relative band shape without fabricating interpolation.
+- UI labeling should clarify it is a "MODIS 7-Band Reflectance" dataset.
+
+### Planned Fixes (Priority)
+1. Create Python 3.12 conda env (`spectra312`) & reinstall stack (expect PySide6 stability).
+2. Wrap NIST line set into a lightweight `Spectrum` (e.g., x = wavelengths, y = zeros, metadata type = `nist_lines`). Provide distinct style (vertical markers) via plot overlay or a custom trace flag.
+3. Re-run launch; if crash persists on 3.12, instrument `SpectraMainWindow.__init__` with staged checkpoints to binary-search the failing block.
+4. Add unit test for NIST fetch (mock service → assert overlay added & removable).
+5. Add offscreen (headless) smoke test to construct & dispose `SpectraMainWindow` (set `QT_QPA_PLATFORM=offscreen`).
+6. Enhance MODIS importer with optional QA bitmask filtering & uncertainty propagation.
+
+### Rollback Strategy (If Needed)
+- Keep current branch; create tag `pre_modis_refactor`.
+- Selectively revert only MODIS importer and launch config changes if environment stability remains elusive after Python 3.12 migration.
+- Retain CSV sample + docs as low-risk additions.
+
+### Risk Matrix
+| Risk | Impact | Likelihood | Mitigation |
+|------|--------|-----------|------------|
+| PySide6 crash on 3.13 | Blocks UI | Medium | Migrate to 3.12 env; pin versions. |
+| OverlayService misuse (dict) | Exceptions / feature break | High (present) | Enforce Spectrum interface; type guard in `add()`. |
+| Confusion: discrete vs continuous spectra | Misinterpretation | Medium | Rename dataset + doc note in ingest panel. |
+| Future dependency drift | Repro issues | Medium | Commit `environment.yml`; CI lock. |
+| User friction ingesting MODIS | Adoption drop | Low-Med | Promote CSV/AppEEARS path in docs. |
+
+### Environment Recommendation
+```
+conda create -n spectra312 python=3.12 -c conda-forge
+conda activate spectra312
+conda install -c conda-forge pyhdf pyqtgraph pyside6 numpy pandas astropy astroquery requests
+pip install pytest
+```
+Then update VS Code interpreter & re-run.
+
+### Outstanding Technical Debt
+- Unfinished NIST overlay normalization (needs consistent removal & color assignment separate from dataset palette increment logic).
+- Lack of explicit test coverage for new MODIS importer (mock pyhdf path + CSV parity test).
+- Missing provenance annotation describing band aggregation (store list of raw band medians before scaling? Optional metadata field `modis_band_medians`).
+- No marker styling abstraction for discrete multi-band points vs continuous lines (future: symbol-only trace style for discrete sensors).
+
+### Summary
+Core architecture remained intact; issues are environment/version (PySide6 + CPython 3.13) and one incomplete overlay refactor. Path forward is an isolated, slightly older interpreter (3.12), finalize the NIST Spectrum wrapper, and enable stable MODIS ingestion with documented CSV and remote-export alternatives.
+

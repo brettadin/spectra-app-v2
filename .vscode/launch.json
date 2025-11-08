@@ -10,8 +10,10 @@
       "cwd": "${workspaceFolder}",
       "console": "integratedTerminal",
       "justMyCode": false,
+      "python": "C:/Users/brett/miniconda3/python.exe",
       "env": {
-        "SPECTRA_DEBUG": "1"
+        "SPECTRA_DEBUG": "1",
+        "PYTHONPATH": "${workspaceFolder}"
       }
     },
     {
@@ -22,8 +24,10 @@
       "cwd": "${workspaceFolder}",
       "console": "integratedTerminal",
       "justMyCode": false,
+      "python": "C:/Users/brett/miniconda3/python.exe",
       "env": {
-        "SPECTRA_DEBUG": "1"
+        "SPECTRA_DEBUG": "1",
+        "PYTHONPATH": "${workspaceFolder}"
       }
     }
   ]

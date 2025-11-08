@@ -5,6 +5,7 @@ from .csv_importer import CsvImporter
 from .exoplanet_csv_importer import ExoplanetCsvImporter
 from .fits_importer import FitsImporter
 from .jcamp_importer import JcampImporter
+from .modis_hdf_importer import ModisHdfImporter
 
 __all__ = [
     "ImporterResult",
@@ -13,4 +14,5 @@ __all__ = [
     "ExoplanetCsvImporter",
     "FitsImporter",
     "JcampImporter",
+    "ModisHdfImporter",
 ]
