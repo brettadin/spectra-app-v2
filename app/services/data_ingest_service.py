@@ -38,7 +38,7 @@ class DataIngestService:
 
     def __post_init__(self) -> None:
         if not self._registry:
-            self.register_importer({'.csv', '.txt'}, CsvImporter())
+            self.register_importer({'.csv', '.txt', '.dat'}, CsvImporter())
             self.register_importer({'.fits', '.fit', '.fts'}, FitsImporter())
             self.register_importer({'.jdx', '.dx', '.jcamp'}, JcampImporter())
             # HDF4 (MODIS Surface Reflectance) via dedicated importer
