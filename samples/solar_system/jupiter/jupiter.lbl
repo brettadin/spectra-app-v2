@@ -1,0 +1,37 @@
+CCSD3ZF0000100000001NJPL3IF0PDSX00000001
+PDS_VERSION_ID                        = PDS3
+
+/* File Characteristic Keywords */
+RECORD_TYPE                           = FIXED_LENGTH
+RECORD_BYTES                          = 912
+FILE_RECORDS                          = 30243
+HARDWARE_MODEL_ID                     = "SUN SPARCSERVER"
+OPERATING_SYSTEM_ID                   = "SOLARIS 2.5.1"
+
+/* Data Object Pointer */
+^TABLE                                = "T790105.DAT"
+
+/* Identification Keywords */
+DATA_SET_NAME                         = "VG1 Jupiter Ultraviolet Spectrometer 
+Subsystem 3 RDR V1.0"
+DATA_SET_ID                           = "VG1-J-UVS-3-RDR-V1.0"
+SPACECRAFT_NAME                       = "VOYAGER 1"
+INSTRUMENT_NAME                       = "ULTRAVIOLET SPECTROMETER"
+START_TIME                            = 1979-005T00:00:02.291Z
+STOP_TIME                             = 1979-005T23:59:58.480Z
+MISSION_PHASE_NAME                    = "JUPITER ENCOUNTER"
+PRODUCT_ID                            = "T790105.DAT"
+PRODUCT_CREATION_TIME                 = 1999-03-04T15:45:03Z
+SPACECRAFT_CLOCK_START_COUNT          = "1460418"
+SPACECRAFT_CLOCK_STOP_COUNT           = "1463418"
+
+/* Data Object Description */
+OBJECT                                = TABLE
+  NAME                                = "UVS RDR RECORD"
+  INTERCHANGE_FORMAT                  = BINARY
+  ROWS                                = 30243
+  COLUMNS                             = 237
+  ROW_BYTES                           = 912
+  ^STRUCTURE                          = "UVSRDR.FMT"
+END_OBJECT                            = TABLE
+END
