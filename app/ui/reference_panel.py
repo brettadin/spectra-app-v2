@@ -34,7 +34,7 @@ class ReferencePanel(QtWidgets.QWidget):
       - reference_plot (PlotWidget)
       - reference_tabs (QTabWidget)
       - nist_element_edit, nist_lower_spin, nist_upper_spin, nist_fetch_button
-      - nist_collections_list
+      - nist_cache_button
       - reference_table (for NIST lines)
       - reference_filter (for IR filter)
       - ir_table
@@ -57,7 +57,7 @@ class ReferencePanel(QtWidgets.QWidget):
         self.nist_lower_spin: QtWidgets.QDoubleSpinBox
         self.nist_upper_spin: QtWidgets.QDoubleSpinBox
         self.nist_fetch_button: QtWidgets.QPushButton
-        self.nist_collections_list: QtWidgets.QListWidget
+        self.nist_cache_button: QtWidgets.QPushButton
         self.reference_table: QtWidgets.QTableWidget
         # IR controls
         self.reference_filter: QtWidgets.QLineEdit
@@ -112,9 +112,7 @@ class ReferencePanel(QtWidgets.QWidget):
         self.nist_fetch_button = QtWidgets.QPushButton("Fetch")
         # Wire fetch button
         self.nist_fetch_button.clicked.connect(self._on_nist_fetch_clicked)
-        # Extra controls: show selected only, clear pins, cache management
-        self.nist_show_selected_only = QtWidgets.QCheckBox("Show selected only")
-        self.nist_clear_button = QtWidgets.QPushButton("Clear Pins")
+        # Cache management only
         self.nist_cache_button = QtWidgets.QPushButton("Clear Cache")
         self.nist_cache_button.setToolTip("Clear all cached NIST line lists")
         
@@ -126,15 +124,18 @@ class ReferencePanel(QtWidgets.QWidget):
             QtWidgets.QLabel("–"),
             self.nist_upper_spin,
             self.nist_fetch_button,
-            self.nist_show_selected_only,
-            self.nist_clear_button,
             self.nist_cache_button,
         ):
             nist_controls.addWidget(w)
         nist_controls.addStretch(1)
         nist_layout.addLayout(nist_controls)
-        self.nist_collections_list = QtWidgets.QListWidget()
-        nist_layout.addWidget(self.nist_collections_list, 1)
+        
+        # Info label explaining checkbox behavior
+        info_label = QtWidgets.QLabel("Fetched lines appear in Datasets panel with checkboxes for visibility control.")
+        info_label.setWordWrap(True)
+        info_label.setStyleSheet("QLabel { color: #888; font-size: 10pt; padding: 4px; }")
+        nist_layout.addWidget(info_label)
+        
         self.reference_table = QtWidgets.QTableWidget(0, 5)
         self.reference_table.setHorizontalHeaderLabels(
             ["λ (nm)", "Ritz λ (nm)", "Intensity", "Lower", "Upper"]

@@ -24,22 +24,44 @@ try:  # Optional dependency – requests may be absent in minimal installs
 except Exception:  # pragma: no cover - handled by dependency guards
     requests = None  # type: ignore[assignment]
 
-try:  # Optional dependency – astroquery is heavy and not always bundled
-    from astroquery import mast as astroquery_mast
-except Exception:  # pragma: no cover - handled by dependency guards
-    astroquery_mast = None  # type: ignore[assignment]
+# Lazy import sentinels for heavy optional dependencies; avoid importing at module load
+astroquery_mast = None  # type: ignore[assignment]
+astroquery_nexsci = None  # type: ignore[assignment]
 
-try:  # Optional dependency – Exoplanet Archive helpers live in astroquery
-    from astroquery.ipac.nexsci.nasa_exoplanet_archive import NasaExoplanetArchive as astroquery_nexsci
-except Exception:  # pragma: no cover - handled by dependency guards
-    astroquery_nexsci = None  # type: ignore[assignment]
+# Probe availability without importing the modules eagerly
+import importlib.util as _importlib_util
 
-try:  # Optional dependency – astroquery depends on pandas at runtime
-    import pandas  # type: ignore  # noqa: F401
-except Exception:  # pragma: no cover - handled by dependency guards
-    _HAS_PANDAS = False
-else:  # pragma: no branch - simple flag wiring
-    _HAS_PANDAS = True
+def _spec_exists(module_name: str) -> bool:
+    try:
+        return _importlib_util.find_spec(module_name) is not None
+    except Exception:
+        return False
+
+
+def _has_module(module_name: str) -> bool:
+    return _spec_exists(module_name)
+
+
+def _import_mast():
+    global astroquery_mast
+    if astroquery_mast is None:
+        from astroquery import mast as _mast  # type: ignore
+        astroquery_mast = _mast
+    return astroquery_mast
+
+
+def _import_exoplanet_archive():
+    global astroquery_nexsci
+    if astroquery_nexsci is None:
+        from astroquery.ipac.nexsci.nasa_exoplanet_archive import (
+            NasaExoplanetArchive as _archive,  # type: ignore
+        )
+        astroquery_nexsci = _archive
+    return astroquery_nexsci
+
+
+def _has_pandas() -> bool:
+    return _has_module("pandas")
 
 
 @dataclass
@@ -1651,7 +1673,7 @@ class RemoteDataService:
             raise RuntimeError(
                 "The 'astroquery' and 'pandas' packages are required for MAST searches"
             )
-        return astroquery_mast
+        return _import_mast()
 
     def _has_nist_support(self) -> bool:
         return nist_asd_service.dependencies_available()
@@ -1660,7 +1682,7 @@ class RemoteDataService:
         return self._has_astroquery()
 
     def _has_exoplanet_archive(self) -> bool:
-        return astroquery_nexsci is not None and _HAS_PANDAS
+        return _has_module("astroquery.ipac.nexsci.nasa_exoplanet_archive") and _has_pandas()
 
     def _has_exosystem_support(self) -> bool:
         return self._has_mast_support() and self._has_exoplanet_archive() and self._has_requests()
@@ -1669,14 +1691,14 @@ class RemoteDataService:
         return requests is not None or self.session is not None
 
     def _has_astroquery(self) -> bool:
-        return astroquery_mast is not None and _HAS_PANDAS
+        return _has_module("astroquery.mast") and _has_pandas()
 
     def _ensure_exoplanet_archive(self):
         if not self._has_exoplanet_archive():
             raise RuntimeError(
                 "The 'astroquery' and 'pandas' packages are required for Exoplanet Archive queries"
             )
-        return astroquery_nexsci
+        return _import_exoplanet_archive()
 
     def _table_to_records(self, table: Any) -> List[Mapping[str, Any]]:
         if table is None:

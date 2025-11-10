@@ -53,6 +53,7 @@ from app.ui.reference_panel import ReferencePanel
 from app.ui.merge_panel import MergePanel
 from app.ui.history_panel import HistoryPanel
 from app.ui.calibration_panel import CalibrationPanel
+from app.ui.nist_lines_panel import NistLinesPanel
 from app.utils.error_handling import ui_action
 
 
@@ -160,14 +161,11 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             QtGui.QColor("#F07167"), QtGui.QColor("#00AFB9"), QtGui.QColor("#06D6A0"), QtGui.QColor("#C77DFF"),
         ]
         self._palette_index = 0
-        self._nist_collections: "OrderedDict[str, Dict[str, Any]]" = OrderedDict()
-        self._nist_collection_labels: Dict[str, str] = {}
-        self._nist_collection_colors: Dict[str, QtGui.QColor] = {}
-        self._nist_palette_index = 0
-        self._nist_use_uniform_colors = False
-        self._nist_active_key: Optional[str] = None
-        self._nist_collection_counter = 0
-        self._nist_overlay_payloads: Dict[str, Dict[str, Any]] = {}
+        self._nist_collection_counter = 0  # Just for unique IDs
+        
+        # NIST lines state: track collections and plot items
+        self._nist_collections: Dict[str, Dict[str, Any]] = {}  # collection_id -> {xs, ys, color, ...}
+        self._nist_plot_items: Dict[str, pg.PlotDataItem] = {}  # collection_id -> plot item
 
         self.log_view: QtWidgets.QPlainTextEdit | None = None
         self._log_buffer: list[tuple[str, str]] = []
@@ -324,7 +322,6 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.nist_lower_spin = self.reference_panel.nist_lower_spin
         self.nist_upper_spin = self.reference_panel.nist_upper_spin
         self.nist_fetch_button = self.reference_panel.nist_fetch_button
-        self.nist_collections_list = self.reference_panel.nist_collections_list
         self.reference_table = self.reference_panel.reference_table
         self.reference_filter = self.reference_panel.reference_filter
         self.ir_table = self.reference_panel.ir_table
@@ -339,13 +336,6 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.reference_panel.tabChanged.connect(lambda _: self._refresh_reference_view())
         # Cache management
         self.reference_panel.nist_cache_button.clicked.connect(self._on_nist_cache_clear_clicked)
-        # Allow double-click to remove a pinned NIST set
-        try:
-            self.nist_collections_list.itemDoubleClicked.connect(lambda *_: self._remove_selected_nist_collection())
-            # Hint to user
-            self.reference_status_label.setText("Double-click a pin to remove it")
-        except Exception:
-            pass
         # Table selection changes still wired directly (more complex to decouple without rewriting handlers)
         self.ir_table.itemSelectionChanged.connect(self._on_ir_row_selected)
         self.ls_table.itemSelectionChanged.connect(self._on_line_shape_row_selected)
@@ -381,6 +371,10 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.merge_subtract_button = self.merge_panel.merge_subtract_button
         self.merge_ratio_button = self.merge_panel.merge_ratio_button
         self.merge_normalized_diff_button = self.merge_panel.merge_normalized_diff_button
+        # Newly added math operation buttons (single-operand)
+        self.merge_smooth_button = self.merge_panel.merge_smooth_button
+        self.merge_derivative_button = self.merge_panel.merge_derivative_button
+        self.merge_integral_button = self.merge_panel.merge_integral_button
         self.merge_status_label = self.merge_panel.merge_status_label
 
         # Wire existing handlers
@@ -389,6 +383,9 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.merge_subtract_button.clicked.connect(self._on_merge_subtract)
         self.merge_ratio_button.clicked.connect(self._on_merge_ratio)
         self.merge_normalized_diff_button.clicked.connect(self._on_merge_normalized_difference)
+        self.merge_smooth_button.clicked.connect(self._on_merge_smooth)
+        self.merge_derivative_button.clicked.connect(self._on_merge_derivative)
+        self.merge_integral_button.clicked.connect(self._on_merge_integral)
 
         self.inspector_tabs.addTab(self.merge_panel, "Math")
         
@@ -428,6 +425,20 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self._history_search = ""
         self._refresh_history_view()
 
+        # NIST Lines dock (separate from main Datasets)
+        self.nist_lines_dock = QtWidgets.QDockWidget("NIST Lines", self)
+        self.nist_lines_dock.setObjectName("dock-nist-lines")
+        self.nist_lines_panel = NistLinesPanel(self)
+        self.nist_lines_dock.setWidget(self.nist_lines_panel)
+        self.addDockWidget(QtCore.Qt.DockWidgetArea.RightDockWidgetArea, self.nist_lines_dock)
+        # Don't auto-show; open when first NIST fetch completes
+        self.nist_lines_dock.hide()
+        
+        # Wire NIST Lines panel signals
+        self.nist_lines_panel.visibilityChanged.connect(self._on_nist_visibility_changed)
+        self.nist_lines_panel.removeRequested.connect(self._on_nist_remove_requested)
+        self.nist_lines_panel.clearAllRequested.connect(self._on_nist_clear_all_requested)
+
         # Plot toolbar
         self.plot_toolbar = QtWidgets.QToolBar("Plot")
         self.plot_toolbar.setMovable(False)
@@ -440,6 +451,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.unit_combo.addItems(["nm", "Å", "µm", "cm⁻¹"])
         self.unit_combo.setCurrentText("nm")
         self.unit_combo.currentTextChanged.connect(self.plot.set_display_unit)
+        self.unit_combo.currentTextChanged.connect(self._on_unit_changed)
         self.plot_toolbar.addWidget(QtWidgets.QLabel(" X: "))
         self.plot_toolbar.addWidget(self.unit_combo)
         # Normalization combo
@@ -488,6 +500,194 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         # Status bar
         self.statusBar().showMessage("Ready")
 
+    # ----------------------------- Merge / Math handlers -------------
+    def _selected_dataset_ids(self) -> List[str]:
+        """Return the list of selected dataset IDs from the dataset panel.
+
+        Falls back to an empty list when the selection model is not ready yet.
+        """
+        try:
+            if self.dataset_view is None:
+                return []
+            selection = self.dataset_view.selectionModel()
+            if selection is None:
+                return []
+            ids: List[str] = []
+            for index in selection.selectedRows():  # type: ignore[attr-defined]
+                if self.dataset_model is None:
+                    continue
+                item = self.dataset_model.itemFromIndex(index)
+                if item is None:
+                    continue
+                dataset_id = str(item.data(QtCore.Qt.ItemDataRole.UserRole) or "").strip()
+                if dataset_id:
+                    ids.append(dataset_id)
+            return ids
+        except Exception:
+            return []
+
+    def _resolve_spectra(self, ids: Sequence[str]) -> List[Spectrum]:
+        spectra: List[Spectrum] = []
+        for did in ids:
+            try:
+                spec = self.ingest_service.get(did)  # type: ignore[attr-defined]
+            except Exception:
+                spec = None
+            if isinstance(spec, Spectrum):
+                spectra.append(spec)
+        return spectra
+
+    def _merge_result_name(self, base: str) -> str:
+        token = base.strip() or "result"
+        if self.merge_name_edit is not None:
+            custom = str(self.merge_name_edit.text()).strip()
+            if custom:
+                return custom
+        counter = 1
+        candidate = token
+        while candidate in self._dataset_items:  # avoid collision with existing IDs
+            counter += 1
+            candidate = f"{token}_{counter}"
+        return candidate
+
+    def _emit_math_result(self, result: Spectrum | None, label: str) -> None:
+        if result is None:
+            self._log(f"Math operation '{label}' failed or produced no result", level="WARN")
+            if self.merge_status_label is not None:
+                self.merge_status_label.setText(f"{label}: failed")
+            return
+        # Ingest as a transient spectrum (persist if store available)
+        try:
+            stored = self.ingest_service.ingest_arrays(
+                result.x, result.y, x_unit=result.x_unit, y_unit=result.y_unit, alias=result.label
+            )
+            self._log(f"Created math spectrum: {stored['id']}")
+            self._refresh_dataset_view()
+            if self.merge_status_label is not None:
+                self.merge_status_label.setText(f"{label}: created '{stored['id']}'")
+        except Exception as exc:
+            self._log(f"Failed to ingest math result: {exc}", level="ERROR")
+            if self.merge_status_label is not None:
+                self.merge_status_label.setText(f"{label}: ingest failed")
+
+    def _on_merge_average(self) -> None:
+        ids = self._selected_dataset_ids()
+        spectra = self._resolve_spectra(ids)
+        if len(spectra) < 2:
+            if self.merge_status_label is not None:
+                self.merge_status_label.setText("Average requires ≥2 spectra")
+            return
+        try:
+            result = self.math_service.average([spec for spec in spectra])  # type: ignore[attr-defined]
+        except Exception as exc:
+            self._log(f"Average failed: {exc}", level="ERROR")
+            result = None
+        if result is not None:
+            result.label = self._merge_result_name("average")
+        self._emit_math_result(result, "Average")
+
+    def _on_merge_subtract(self) -> None:
+        ids = self._selected_dataset_ids()
+        spectra = self._resolve_spectra(ids)
+        if len(spectra) != 2:
+            if self.merge_status_label is not None:
+                self.merge_status_label.setText("Subtract requires exactly 2 spectra")
+            return
+        a, b = spectra
+        try:
+            result = self.math_service.subtract(a, b)  # type: ignore[attr-defined]
+        except Exception as exc:
+            self._log(f"Subtract failed: {exc}", level="ERROR")
+            result = None
+        if result is not None:
+            result.label = self._merge_result_name("subtract")
+        self._emit_math_result(result, "Subtract")
+
+    def _on_merge_ratio(self) -> None:
+        ids = self._selected_dataset_ids()
+        spectra = self._resolve_spectra(ids)
+        if len(spectra) != 2:
+            if self.merge_status_label is not None:
+                self.merge_status_label.setText("Ratio requires exactly 2 spectra")
+            return
+        a, b = spectra
+        try:
+            result = self.math_service.ratio(a, b)  # type: ignore[attr-defined]
+        except Exception as exc:
+            self._log(f"Ratio failed: {exc}", level="ERROR")
+            result = None
+        if result is not None:
+            result.label = self._merge_result_name("ratio")
+        self._emit_math_result(result, "Ratio")
+
+    def _on_merge_normalized_difference(self) -> None:
+        ids = self._selected_dataset_ids()
+        spectra = self._resolve_spectra(ids)
+        if len(spectra) != 2:
+            if self.merge_status_label is not None:
+                self.merge_status_label.setText("Normalized difference requires exactly 2 spectra")
+            return
+        a, b = spectra
+        try:
+            result = self.math_service.normalized_difference(a, b)  # type: ignore[attr-defined]
+        except Exception as exc:
+            self._log(f"Normalized difference failed: {exc}", level="ERROR")
+            result = None
+        if result is not None:
+            result.label = self._merge_result_name("normalized_diff")
+        self._emit_math_result(result, "Normalized difference")
+
+    def _on_merge_smooth(self) -> None:
+        ids = self._selected_dataset_ids()
+        spectra = self._resolve_spectra(ids)
+        if len(spectra) != 1:
+            if self.merge_status_label is not None:
+                self.merge_status_label.setText("Smooth requires exactly 1 spectrum")
+            return
+        spec = spectra[0]
+        try:
+            result = self.math_service.smooth(spec, window_size=7, method="moving_average")  # type: ignore[attr-defined]
+        except Exception as exc:
+            self._log(f"Smooth failed: {exc}", level="ERROR")
+            result = None
+        if result is not None:
+            result.label = self._merge_result_name("smooth")
+        self._emit_math_result(result, "Smooth")
+
+    def _on_merge_derivative(self) -> None:
+        ids = self._selected_dataset_ids()
+        spectra = self._resolve_spectra(ids)
+        if len(spectra) != 1:
+            if self.merge_status_label is not None:
+                self.merge_status_label.setText("Derivative requires exactly 1 spectrum")
+            return
+        spec = spectra[0]
+        try:
+            result = self.math_service.derivative(spec, order=1)  # type: ignore[attr-defined]
+        except Exception as exc:
+            self._log(f"Derivative failed: {exc}", level="ERROR")
+            result = None
+        if result is not None:
+            result.label = self._merge_result_name("derivative")
+        self._emit_math_result(result, "Derivative")
+
+    def _on_merge_integral(self) -> None:
+        ids = self._selected_dataset_ids()
+        spectra = self._resolve_spectra(ids)
+        if len(spectra) != 1:
+            if self.merge_status_label is not None:
+                self.merge_status_label.setText("Integral requires exactly 1 spectrum")
+            return
+        spec = spectra[0]
+        try:
+            result = self.math_service.integral(spec, cumulative=True)  # type: ignore[attr-defined]
+        except Exception as exc:
+            self._log(f"Integral failed: {exc}", level="ERROR")
+            result = None
+        if result is not None:
+            result.label = self._merge_result_name("integral")
+        self._emit_math_result(result, "Integral")
+
     # ----------------------------- Status readout ----------------------
     def _on_plot_point_hovered(self, x: float, y: float) -> None:
         """Update the status bar with live cursor coordinates.
@@ -534,6 +734,14 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                 self._last_cursor_x_display = None
         except Exception:
             pass
+
+    # ----------------------------- NIST Lines helpers ------------------
+    def _on_unit_changed(self, unit: str) -> None:
+        """Refresh NIST collections when unit changes."""
+        # Redraw all visible NIST collections with new unit
+        for collection_id in list(self._nist_plot_items.keys()):
+            if self.nist_lines_panel.is_visible(collection_id):
+                self._draw_nist_collection(collection_id)
 
     # ----------------------------- Analysis helpers -------------------
     def _get_selected_spec_and_display_arrays(self) -> tuple[str | None, np.ndarray, np.ndarray, str]:
@@ -858,6 +1066,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         view_menu.addAction(self.dataset_dock.toggleViewAction())
         view_menu.addAction(self.inspector_dock.toggleViewAction())
         view_menu.addAction(self.history_dock.toggleViewAction())
+        view_menu.addAction(self.nist_lines_dock.toggleViewAction())
         view_menu.addAction(self.log_dock.toggleViewAction())
         if self.plot_toolbar is not None:
             view_menu.addAction(self.plot_toolbar.toggleViewAction())
@@ -1956,19 +2165,9 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         return color
 
     def _next_nist_color(self) -> QtGui.QColor:
-        """Return the next colour for NIST pin collections without advancing the dataset palette index.
-
-        Keeping a separate index avoids interleaving NIST colours with dataset colours so that
-        adding/removing overlays does not shift dataset colours mid-session.
-        """
-        try:
-            # Respect a potential uniform overlay colour mode if toggled in the future
-            if getattr(self, "_nist_use_uniform_colors", False) and hasattr(self, "_uniform_color"):
-                return QtGui.QColor(self._uniform_color)
-        except Exception:
-            pass
-        color = self._palette[self._nist_palette_index % len(self._palette)]
-        self._nist_palette_index += 1
+        """Return the next colour for NIST spectra from the main palette."""
+        color = self._palette[self._palette_index % len(self._palette)]
+        self._palette_index += 1
         return color
 
     # ----------------------------- Reference tab helpers -----------------
@@ -2192,27 +2391,72 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.reference_plot.plot(outcome.x, outcome.y, pen=(180, 140, 60, 220))
 
     def _on_nist_fetch_clicked(self) -> None:
+        """Fetch NIST spectral lines and add to the dedicated NIST Lines dock."""
         element = (self.nist_element_edit.text() or "").strip()
         lower = float(self.nist_lower_spin.value())
         upper = float(self.nist_upper_spin.value())
         if not element:
             self.reference_status_label.setText("Enter element symbol")
             return
+        
+        # Try subprocess first (isolates crashes), then HTTP fallback if that fails
+        payload = None
+        cache_indicator = ""
+        subprocess_error = None
+        
+        # Attempt 1: Subprocess (isolates native crashes)
         try:
-            from app import main as main_module
-            payload = main_module.nist_asd_service.fetch_lines(
-                element,
-                lower_wavelength=lower,
-                upper_wavelength=upper,
+            from app.services import nist_subprocess
+            payload = nist_subprocess.safe_fetch(
+                identifier=element,
+                element=element,
+                lower=lower,
+                upper=upper,
                 wavelength_unit="nm",
                 wavelength_type="vacuum",
+                use_ritz=True,
             )
-            cache_hit = payload.get("meta", {}).get("cache_hit", False)
-            cache_indicator = " [cached]" if cache_hit else ""
+            if "error" not in payload:
+                cache_indicator = " (subprocess)"
+            else:
+                subprocess_error = f"{payload.get('error', 'unknown')}: {payload.get('message', 'No details')}"
+                self._log("NIST", f"Subprocess failed: {subprocess_error}")
         except Exception as exc:
-            self.reference_status_label.setText(f"NIST fetch failed: {exc}")
+            subprocess_error = str(exc)
+            self._log("NIST", f"Subprocess exception: {subprocess_error}")
+            payload = {"error": "subprocess-exception", "message": str(exc)}
+        
+        # Attempt 2: HTTP fallback if subprocess failed
+        if payload and "error" in payload:
+            self._log("NIST", f"Trying HTTP fallback (subprocess failed: {subprocess_error})")
+            try:
+                from app.services.nist_http_fallback import fetch_lines_http
+                payload = fetch_lines_http(element=element, lower=lower, upper=upper, wavelength_unit="nm")
+                if "error" not in payload:
+                    cache_indicator = " (HTTP)"
+                    self._log("NIST", f"HTTP fallback succeeded with {len(payload.get('lines', []))} lines")
+                else:
+                    http_error = f"{payload.get('error', 'unknown')}: {payload.get('message', 'No details')}"
+                    self._log("NIST", f"HTTP fallback also failed: {http_error}")
+            except Exception as exc:
+                self._log("NIST", f"HTTP fallback exception: {exc}")
+                payload = {"error": "http-exception", "message": str(exc)}
+        
+        # Check final result
+        if not payload or "error" in payload:
+            error_code = payload.get("error", "unknown") if payload else "no-result"
+            error_msg = payload.get("message", "No details") if payload else "Both subprocess and HTTP failed"
+            full_msg = f"NIST error ({error_code}): {error_msg}"
+            self.reference_status_label.setText(full_msg)
+            self._log("NIST", full_msg)
             return
+        
         lines = list(payload.get("lines", [])) if isinstance(payload, Mapping) else []
+        if not lines:
+            self.reference_status_label.setText(f"No lines found for {element} in {lower}-{upper} nm")
+            return
+        
+        # Update reference table
         self.reference_table.setColumnCount(5)
         self.reference_table.setHorizontalHeaderLabels(["λ (nm)", "Ritz λ (nm)", "Intensity", "Lower", "Upper"])
         self.reference_table.setRowCount(len(lines))
@@ -2223,45 +2467,173 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             self.reference_table.setItem(r, 3, QtWidgets.QTableWidgetItem(str(row.get("lower_level", ""))))
             self.reference_table.setItem(r, 4, QtWidgets.QTableWidgetItem(str(row.get("upper_level", ""))))
 
+        # Build stick spectrum data for the NIST Lines dock
         try:
-            label = str(payload.get("meta", {}).get("label", element))
-        except Exception:
-            label = element
-        alias = f"NIST: {label}"
-        xs = np.array([row.get("wavelength_nm") for row in lines if isinstance(row, Mapping)], dtype=float)
-        intensities = []
-        for row in lines:
+            raw_xs = np.array([row.get("wavelength_nm") for row in lines if isinstance(row, Mapping)], dtype=float)
+            intensities = []
+            for row in lines:
+                try:
+                    intensities.append(float(row.get("relative_intensity") or 0.0))
+                except Exception:
+                    intensities.append(0.0)
+            raw_ys = np.array(intensities, dtype=float)
+            max_i = float(np.nanmax(raw_ys)) if raw_ys.size else 0.0
+            raw_ys_norm = (raw_ys / max_i) if max_i > 0 else np.ones_like(raw_xs)
+            
+            # Create stick spectrum: [x0, x0, nan, x1, x1, nan, ...] and [0, y0, nan, 0, y1, nan, ...]
+            n = len(raw_xs)
+            xs = np.empty(3 * n, dtype=float)
+            ys = np.empty(3 * n, dtype=float)
+            xs[0::3] = raw_xs
+            xs[1::3] = raw_xs
+            xs[2::3] = np.nan
+            ys[0::3] = 0.0
+            ys[1::3] = raw_ys_norm
+            ys[2::3] = np.nan
+            
+            # If HTTP fallback used built-in set, label accordingly
             try:
-                intensities.append(float(row.get("relative_intensity") or 0.0))
+                meta = payload.get("meta", {}) if isinstance(payload, Mapping) else {}
+                if str(meta.get("source", "")).lower() == "builtin":
+                    cache_indicator = " (builtin)"
             except Exception:
-                intensities.append(0.0)
-        ys_raw = np.array(intensities, dtype=float)
-        max_i = float(np.nanmax(ys_raw)) if ys_raw.size else 0.0
-        ys = (ys_raw / max_i) if max_i > 0 else np.ones_like(xs)
-        color = self._nist_collection_colors.get(str(label)) if False else None
-        if color is None:
-            color = self._next_nist_color()
-            self._nist_collection_colors[str(label)] = color
-        # Create a unique overlay ID for this NIST set
-        overlay_id = f"nist::{label}::{self._nist_collection_counter}"
-        self._nist_collection_counter += 1
-        # Add to overlay service as a normal overlay
-        self.overlay_service.add({
-            "id": overlay_id,
-            "alias": alias,
-            "x": xs,
-            "y": ys,
-            "color": color.name() if hasattr(color, "name") else "#6D597A",
-            "width": 1.2,
-            "mode": "bars",
-        })
-        self._nist_collections[overlay_id] = {"label": label, "alias": alias}
-        self.nist_collections_list.addItem(f"{label}{cache_indicator} – pinned")
-        count = len(self._nist_collections)
-        suffix = "set" if count == 1 else "sets"
-        stats_msg = f"{count} pinned {suffix}{cache_indicator}"
-        self.reference_status_label.setText(stats_msg)
+                pass
 
+            # Generate unique collection ID and pick color
+            self._nist_collection_counter += 1
+            collection_id = f"nist_{element}_{self._nist_collection_counter}"
+            color = self._next_nist_color()
+            alias = f"NIST: {element}{cache_indicator}"
+            
+            # Store collection data
+            self._nist_collections[collection_id] = {
+                "xs_nm": xs,
+                "ys": ys,
+                "color": color,
+                "alias": alias,
+                "element": element,
+                "line_count": len(lines),
+            }
+            
+            # Add to NIST Lines panel
+            self.nist_lines_panel.add_collection(collection_id, alias, len(lines), color)
+            
+            # Draw on plot (respects visibility state)
+            self._draw_nist_collection(collection_id)
+            
+            # Show the NIST Lines dock if this is the first fetch
+            if self.nist_lines_dock.isHidden():
+                self.nist_lines_dock.show()
+                self.nist_lines_dock.raise_()
+            
+            self.reference_status_label.setText(f"✓ Fetched {len(lines)} lines for {element}{cache_indicator}")
+            self._refresh_reference_view()
+        except Exception as exc:
+            # Catch any errors during spectrum creation/display
+            self.reference_status_label.setText(f"Error creating spectrum: {exc}")
+            import traceback
+            traceback.print_exc()
+
+
+    def _draw_nist_collection(self, collection_id: str) -> None:
+        """Draw a NIST collection on the main plot as stick spectrum."""
+        if collection_id not in self._nist_collections:
+            return
+        
+        collection = self._nist_collections[collection_id]
+        xs_nm = collection["xs_nm"]
+        ys = collection["ys"]
+        color = collection["color"]
+        
+        # Convert nm to current display unit
+        unit = self.unit_combo.currentText() if self.unit_combo is not None else "nm"
+        if unit == "nm":
+            xs_disp = xs_nm
+        elif unit == "Å":
+            xs_disp = xs_nm * 10.0
+        elif unit == "µm":
+            xs_disp = xs_nm / 1000.0
+        elif unit == "cm⁻¹":
+            with np.errstate(divide="ignore"):
+                xs_disp = 1e7 / xs_nm
+        else:
+            xs_disp = xs_nm
+        
+        # Create plot item
+        pen = pg.mkPen(color=color, width=1.2)
+        item = pg.PlotDataItem(xs_disp, ys, pen=pen, connect="finite")
+        try:
+            item.setZValue(-5)  # Draw behind spectra but above reference overlays
+        except Exception:
+            pass
+        
+        # Remove old item if exists
+        old_item = self._nist_plot_items.get(collection_id)
+        if old_item:
+            try:
+                self.plot.remove_graphics_item(old_item)
+            except Exception:
+                pass
+        
+        # Add new item and track it
+        self.plot.add_graphics_item(item)
+        self._nist_plot_items[collection_id] = item
+
+    def _on_nist_visibility_changed(self, collection_id: str, visible: bool) -> None:
+        """Handle visibility toggle for a NIST collection."""
+        if collection_id not in self._nist_collections:
+            return
+        
+        if visible:
+            self._draw_nist_collection(collection_id)
+        else:
+            # Remove from plot
+            item = self._nist_plot_items.get(collection_id)
+            if item:
+                try:
+                    self.plot.remove_graphics_item(item)
+                except Exception:
+                    pass
+                del self._nist_plot_items[collection_id]
+
+    def _on_nist_remove_requested(self, collection_ids: List[str]) -> None:
+        """Handle removal of NIST collections."""
+        for collection_id in collection_ids:
+            # Remove from plot
+            item = self._nist_plot_items.get(collection_id)
+            if item:
+                try:
+                    self.plot.remove_graphics_item(item)
+                except Exception:
+                    pass
+                self._nist_plot_items.pop(collection_id, None)
+            
+            # Remove from panel
+            self.nist_lines_panel.remove_collection(collection_id)
+            
+            # Remove from internal state
+            self._nist_collections.pop(collection_id, None)
+        
+        self._log("NIST", f"Removed {len(collection_ids)} collection(s)")
+
+    def _on_nist_clear_all_requested(self) -> None:
+        """Handle Clear All for NIST collections."""
+        # Remove all plot items
+        for item in list(self._nist_plot_items.values()):
+            try:
+                self.plot.remove_graphics_item(item)
+            except Exception:
+                pass
+        
+        # Clear panel
+        count = len(self._nist_collections)
+        self.nist_lines_panel.clear()
+        
+        # Clear internal state
+        self._nist_plot_items.clear()
+        self._nist_collections.clear()
+        
+        self._log("NIST", f"Cleared all {count} collection(s)")
 
     def _on_nist_cache_clear_clicked(self) -> None:
         """Clear all cached NIST line lists."""
@@ -2273,52 +2645,6 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             self.reference_status_label.setText(msg)
         except Exception as exc:
             self.reference_status_label.setText(f"Cache clear failed: {exc}")
-
-    def _remove_selected_nist_collection(self) -> None:
-        """Remove the currently selected pinned NIST set (double-click)."""
-        try:
-            row = self.nist_collections_list.currentRow()
-        except Exception:
-            row = -1
-        if row < 0:
-            return
-        keys = list(self._nist_collections.keys())
-        if not (0 <= row < len(keys)):
-            return
-        overlay_id = keys[row]
-        # Remove overlay from overlay service and plot
-        try:
-            self.overlay_service.remove(overlay_id)
-        except Exception:
-            pass
-        # Remove from state and UI
-        self._nist_collections.pop(overlay_id, None)
-        try:
-            self.nist_collections_list.takeItem(row)
-        except Exception:
-            pass
-        count = len(self._nist_collections)
-        if count:
-            suffix = "set" if count == 1 else "sets"
-            self.reference_status_label.setText(f"{count} pinned {suffix}")
-        else:
-            self.reference_status_label.setText("No pinned sets – Fetch to add")
-
-
-    def _clear_all_nist_pins(self) -> None:
-        """Remove all pinned NIST sets."""
-        # Remove all overlays from overlay service
-        for overlay_id in list(self._nist_collections.keys()):
-            try:
-                self.overlay_service.remove(overlay_id)
-            except Exception:
-                pass
-        self._nist_collections.clear()
-        try:
-            self.nist_collections_list.clear()
-        except Exception:
-            pass
-        self.reference_status_label.setText("No pinned sets – Fetch to add")
 
     def _refresh_reference_overlay_geometry(self) -> None:
         """Re-apply overlay items with the current view's y-range.
@@ -2657,6 +2983,9 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             self.merge_subtract_button.setEnabled(False)
             self.merge_ratio_button.setEnabled(False)
             self.merge_normalized_diff_button.setEnabled(False)
+            self.merge_smooth_button.setEnabled(False)
+            self.merge_derivative_button.setEnabled(False)
+            self.merge_integral_button.setEnabled(False)
         elif len(selected_specs) == 1:
             spec = selected_specs[0]
             self.merge_preview_label.setText(
@@ -2667,6 +2996,10 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             self.merge_subtract_button.setEnabled(False)
             self.merge_ratio_button.setEnabled(False)
             self.merge_normalized_diff_button.setEnabled(False)
+            # Enable single-operand operations
+            self.merge_smooth_button.setEnabled(True)
+            self.merge_derivative_button.setEnabled(True)
+            self.merge_integral_button.setEnabled(True)
         elif len(selected_specs) == 2:
             # Two spectra: enable subtract/ratio, check for average
             spec_a, spec_b = selected_specs
@@ -2699,6 +3032,11 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                 self.merge_ratio_button.setEnabled(False)
                 self.merge_normalized_diff_button.setEnabled(False)
             
+            # Disable single-operand operations for 2 spectra
+            self.merge_smooth_button.setEnabled(False)
+            self.merge_derivative_button.setEnabled(False)
+            self.merge_integral_button.setEnabled(False)
+            
             # Check for overlapping range for average
             overlap_min = max(spec_a.x.min(), spec_b.x.min())
             overlap_max = min(spec_a.x.max(), spec_b.x.max())
@@ -2716,6 +3054,11 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             self.merge_subtract_button.setEnabled(False)
             self.merge_ratio_button.setEnabled(False)
             self.merge_normalized_diff_button.setEnabled(False)
+            
+            # Disable single-operand operations for multiple spectra
+            self.merge_smooth_button.setEnabled(False)
+            self.merge_derivative_button.setEnabled(False)
+            self.merge_integral_button.setEnabled(False)
             
             if bool(overlap_min >= overlap_max):
                 self.merge_preview_label.setText(
@@ -3003,6 +3346,178 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             # Refresh UI
             self.plot.autoscale()
             self._refresh_history_view()
+        except Exception as exc:
+            self.merge_status_label.setText(f"❌ Error: {exc}")
+            import traceback
+            traceback.print_exc()
+
+    def _on_merge_smooth(self) -> None:
+        """Apply smoothing to selected spectrum."""
+        if not hasattr(self, 'merge_status_label'):
+            return
+        
+        self.merge_status_label.setText("Processing...")
+        try:
+            spectra = self._get_merge_candidates()
+            if len(spectra) != 1:
+                self.merge_status_label.setText("⚠️ Select exactly 1 dataset for smoothing")
+                return
+            
+            # Prompt for smoothing parameters
+            window_size, ok1 = QtWidgets.QInputDialog.getInt(
+                self, "Smoothing Parameters", "Window size (odd number ≥3):",
+                value=5, min=3, max=51, step=2
+            )
+            if not ok1:
+                self.merge_status_label.setText("Cancelled")
+                return
+            
+            method_items = ["moving_average", "savitzky_golay"]
+            method, ok2 = QtWidgets.QInputDialog.getItem(
+                self, "Smoothing Method", "Select method:",
+                method_items, 0, False
+            )
+            if not ok2:
+                self.merge_status_label.setText("Cancelled")
+                return
+            
+            spec = spectra[0]
+            result, metadata = self.math_service.smooth(spec, window_size=window_size, method=method)
+            
+            # Add to overlay
+            self.overlay_service.add(result)
+            self._add_spectrum(result)
+            
+            # Log
+            self.knowledge_log.record_event(
+                "Math Smooth",
+                f"Applied {method} smoothing (window={window_size}) to '{spec.name}' → '{result.name}'",
+                references=[result.name],
+                persist=False,
+            )
+            
+            self.merge_status_label.setText(f"✓ Created '{result.name}' ({method}, window={window_size})")
+            
+            if hasattr(self, 'merge_name_edit'):
+                self.merge_name_edit.clear()
+            
+            self.plot.autoscale()
+            self._refresh_history_view()
+            
+        except Exception as exc:
+            self.merge_status_label.setText(f"❌ Error: {exc}")
+            import traceback
+            traceback.print_exc()
+
+    def _on_merge_derivative(self) -> None:
+        """Compute derivative of selected spectrum."""
+        if not hasattr(self, 'merge_status_label'):
+            return
+        
+        self.merge_status_label.setText("Processing...")
+        try:
+            spectra = self._get_merge_candidates()
+            if len(spectra) != 1:
+                self.merge_status_label.setText("⚠️ Select exactly 1 dataset for derivative")
+                return
+            
+            # Prompt for derivative order
+            order, ok = QtWidgets.QInputDialog.getInt(
+                self, "Derivative Order", "Order (1=first derivative, 2=second derivative):",
+                value=1, min=1, max=2, step=1
+            )
+            if not ok:
+                self.merge_status_label.setText("Cancelled")
+                return
+            
+            spec = spectra[0]
+            result, metadata = self.math_service.derivative(spec, order=order)
+            
+            # Add to overlay
+            self.overlay_service.add(result)
+            self._add_spectrum(result)
+            
+            # Log
+            order_name = "first" if order == 1 else "second"
+            self.knowledge_log.record_event(
+                "Math Derivative",
+                f"Computed {order_name} derivative of '{spec.name}' → '{result.name}'",
+                references=[result.name],
+                persist=False,
+            )
+            
+            self.merge_status_label.setText(f"✓ Created '{result.name}' ({order_name} derivative)")
+            
+            if hasattr(self, 'merge_name_edit'):
+                self.merge_name_edit.clear()
+            
+            self.plot.autoscale()
+            self._refresh_history_view()
+            
+        except Exception as exc:
+            self.merge_status_label.setText(f"❌ Error: {exc}")
+            import traceback
+            traceback.print_exc()
+
+    def _on_merge_integral(self) -> None:
+        """Compute integral of selected spectrum."""
+        if not hasattr(self, 'merge_status_label'):
+            return
+        
+        self.merge_status_label.setText("Processing...")
+        try:
+            spectra = self._get_merge_candidates()
+            if len(spectra) != 1:
+                self.merge_status_label.setText("⚠️ Select exactly 1 dataset for integral")
+                return
+            
+            # Prompt for integration method
+            method_items = ["cumulative", "total"]
+            method, ok = QtWidgets.QInputDialog.getItem(
+                self, "Integration Method", "Select method:\n• cumulative: cumulative trapezoid integration (creates new spectrum)\n• total: single integrated value (shown in log)",
+                method_items, 0, False
+            )
+            if not ok:
+                self.merge_status_label.setText("Cancelled")
+                return
+            
+            spec = spectra[0]
+            result, metadata = self.math_service.integral(spec, method=method)
+            
+            if method == 'cumulative':
+                # Add spectrum to overlay
+                self.overlay_service.add(result)
+                self._add_spectrum(result)
+                
+                total_val = metadata.get('total', 0.0)
+                self.knowledge_log.record_event(
+                    "Math Integral",
+                    f"Computed cumulative integral of '{spec.name}' → '{result.name}' (total: {total_val:.6g})",
+                    references=[result.name],
+                    persist=False,
+                )
+                
+                self.merge_status_label.setText(f"✓ Created '{result.name}' (cumulative, total={total_val:.6g})")
+                
+                if hasattr(self, 'merge_name_edit'):
+                    self.merge_name_edit.clear()
+                
+                self.plot.autoscale()
+                self._refresh_history_view()
+            else:
+                # Total: just show the value
+                total_val = metadata.get('total', 0.0)
+                unit = metadata.get('unit', '')
+                
+                self.knowledge_log.record_event(
+                    "Math Integral",
+                    f"Computed total integral of '{spec.name}': {total_val:.6g} {unit}",
+                    references=[spec.name],
+                    persist=False,
+                )
+                
+                self.merge_status_label.setText(f"✓ Total integral: {total_val:.6g} {unit}")
+                
         except Exception as exc:
             self.merge_status_label.setText(f"❌ Error: {exc}")
             import traceback

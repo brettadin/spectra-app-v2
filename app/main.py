@@ -91,9 +91,19 @@ def main(argv: list[str] | None = None) -> int:
     except Exception:
         pass
 
-    window: SpectraMainWindow = SpectraMainWindow()
-    window.show()
-    return app.exec()
+    try:
+        window: SpectraMainWindow = SpectraMainWindow()
+        window.show()
+        logger.info("Main window constructed and shown successfully")
+    except Exception as exc:
+        logger.exception("Failed to construct main window: %s", exc)
+        return 1
+    code = app.exec()
+    try:
+        logger.info("Qt event loop exited with code %s", code)
+    except Exception:
+        pass
+    return code
 
 
 if __name__ == "__main__":  # Script/direct launch

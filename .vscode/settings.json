@@ -1,5 +1,5 @@
 {
-  "python.defaultInterpreterPath": "C:/Users/brett/miniconda3/python.exe",
+  "python.defaultInterpreterPath": "C:/Users/brett/miniconda3/envs/spectra312/python.exe",
   "python.analysis.extraPaths": [
     "${workspaceFolder}"
   ],

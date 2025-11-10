@@ -599,3 +599,267 @@ class MathService:
             'count': len(spectra),
             'wavelength_range': [float(min_wl), float(max_wl)],
         }
+
+    def smooth(self, spec: Spectrum, window_size: int = 5, method: str = 'moving_average') -> Tuple[Spectrum, Dict[str, object]]:
+        """Apply smoothing to a spectrum.
+        
+        Args:
+            spec: Input spectrum
+            window_size: Size of smoothing window (must be odd, >=3)
+            method: 'moving_average' or 'savitzky_golay'
+            
+        Returns:
+            Tuple of (smoothed spectrum, operation metadata)
+        """
+        if window_size < 3:
+            raise ValueError(f'window_size must be >= 3, got {window_size}')
+        if window_size % 2 == 0:
+            window_size += 1  # Ensure odd window size
+        
+        x_canon, y_canon, _ = self.units_service.to_canonical(spec.x, spec.y, spec.x_unit, spec.y_unit)
+        
+        if method == 'moving_average':
+            # Simple moving average
+            smoothed = np.convolve(y_canon, np.ones(window_size) / window_size, mode='same')
+            # Fix edges by using smaller windows
+            half_window = window_size // 2
+            for i in range(half_window):
+                left_window = 2 * i + 1
+                smoothed[i] = np.mean(y_canon[:left_window])
+                smoothed[-(i+1)] = np.mean(y_canon[-left_window:])
+        
+        elif method == 'savitzky_golay':
+            try:
+                from scipy.signal import savgol_filter
+                # Use polynomial order 2 for smoothing
+                poly_order = min(2, window_size - 1)
+                smoothed = savgol_filter(y_canon, window_size, poly_order)
+            except ImportError:
+                # Fallback to moving average if scipy not available
+                smoothed = np.convolve(y_canon, np.ones(window_size) / window_size, mode='same')
+                method = 'moving_average (scipy unavailable)'
+        else:
+            raise ValueError(f"Unknown smoothing method: {method}. Use 'moving_average' or 'savitzky_golay'")
+        
+        # Propagate uncertainty (smoothing reduces uncertainty by ~1/√N)
+        result_sigma = None
+        if spec.uncertainty is not None:
+            result_sigma = spec.uncertainty / np.sqrt(window_size)
+        
+        metadata: Dict[str, Any] = {
+            'operation': {
+                'name': 'smooth',
+                'parameters': {
+                    'method': method,
+                    'window_size': window_size,
+                    'wavelength_range': [float(np.nanmin(x_canon)), float(np.nanmax(x_canon))],
+                    'points': int(x_canon.size),
+                },
+                'parents': [spec.id],
+            },
+            'primary_metadata': dict(spec.metadata),
+        }
+        
+        result_x, result_y, _ = self.units_service.convert_arrays(
+            x_canon,
+            smoothed,
+            'nm',
+            'absorbance',
+            spec.x_unit,
+            spec.y_unit,
+        )
+        
+        result_sigma_converted = None
+        if result_sigma is not None:
+            _, result_sigma_converted, _ = self.units_service.convert_arrays(
+                x_canon,
+                result_sigma,
+                'nm',
+                'absorbance',
+                spec.x_unit,
+                spec.y_unit,
+            )
+        
+        result = Spectrum.create(
+            name=f"{spec.name} (smoothed)",
+            x=result_x,
+            y=result_y,
+            x_unit=spec.x_unit,
+            y_unit=spec.y_unit,
+            metadata=metadata,
+            uncertainty=result_sigma_converted,
+            quality_flags=spec.quality_flags.copy() if spec.quality_flags is not None else None,
+        )
+        
+        return result, {
+            'status': 'ok',
+            'operation': 'smooth',
+            'result_id': result.id,
+            'method': method,
+            'window_size': window_size,
+        }
+
+    def derivative(self, spec: Spectrum, order: int = 1) -> Tuple[Spectrum, Dict[str, object]]:
+        """Compute derivative of a spectrum.
+        
+        Args:
+            spec: Input spectrum
+            order: Derivative order (1 for first derivative, 2 for second)
+            
+        Returns:
+            Tuple of (derivative spectrum, operation metadata)
+        """
+        if order not in [1, 2]:
+            raise ValueError(f'order must be 1 or 2, got {order}')
+        
+        x_canon, y_canon, _ = self.units_service.to_canonical(spec.x, spec.y, spec.x_unit, spec.y_unit)
+        
+        # Compute derivative using gradient (central differences)
+        deriv = np.gradient(y_canon, x_canon)
+        if order == 2:
+            deriv = np.gradient(deriv, x_canon)
+        
+        # Uncertainty propagation for derivatives is complex; approximate as scaled uncertainty
+        result_sigma = None
+        if spec.uncertainty is not None:
+            # Very rough approximation: derivative uncertainty scales with data spacing
+            dx = np.median(np.diff(x_canon))
+            result_sigma = spec.uncertainty / dx
+            if order == 2:
+                result_sigma = result_sigma / dx
+        
+        # Determine appropriate y_unit for derivative
+        if order == 1:
+            deriv_unit = f"d({spec.y_unit})/d({spec.x_unit})"
+        else:
+            deriv_unit = f"d²({spec.y_unit})/d({spec.x_unit})²"
+        
+        metadata: Dict[str, Any] = {
+            'operation': {
+                'name': 'derivative',
+                'parameters': {
+                    'order': order,
+                    'wavelength_range': [float(np.nanmin(x_canon)), float(np.nanmax(x_canon))],
+                    'points': int(x_canon.size),
+                },
+                'parents': [spec.id],
+            },
+            'primary_metadata': dict(spec.metadata),
+        }
+        
+        result = Spectrum.create(
+            name=f"d{order}({spec.name})/d{spec.x_unit}{order if order > 1 else ''}",
+            x=spec.x.copy(),
+            y=deriv,
+            x_unit=spec.x_unit,
+            y_unit=deriv_unit,
+            metadata=metadata,
+            uncertainty=result_sigma,
+            quality_flags=spec.quality_flags.copy() if spec.quality_flags is not None else None,
+        )
+        
+        return result, {
+            'status': 'ok',
+            'operation': 'derivative',
+            'result_id': result.id,
+            'order': order,
+        }
+
+    def integral(self, spec: Spectrum, method: str = 'cumulative') -> Tuple[Spectrum | None, Dict[str, object]]:
+        """Compute integral of a spectrum.
+        
+        Args:
+            spec: Input spectrum
+            method: 'cumulative' for cumulative sum, 'total' for single integrated value
+            
+        Returns:
+            Tuple of (integral spectrum or None for total method, operation metadata)
+        """
+        x_canon, y_canon, _ = self.units_service.to_canonical(spec.x, spec.y, spec.x_unit, spec.y_unit)
+        
+        if method == 'cumulative':
+            # Cumulative trapezoid integration
+            integral = np.zeros_like(y_canon)
+            for i in range(1, len(y_canon)):
+                dx = x_canon[i] - x_canon[i-1]
+                integral[i] = integral[i-1] + 0.5 * (y_canon[i] + y_canon[i-1]) * dx
+            
+            # Uncertainty propagation (cumulative, so uncertainties add in quadrature)
+            result_sigma = None
+            if spec.uncertainty is not None:
+                result_sigma = np.zeros_like(y_canon)
+                for i in range(1, len(y_canon)):
+                    dx = x_canon[i] - x_canon[i-1]
+                    # Propagate uncertainty assuming independent errors
+                    sigma_contrib = 0.5 * np.sqrt(spec.uncertainty[i]**2 + spec.uncertainty[i-1]**2) * dx
+                    result_sigma[i] = np.sqrt(result_sigma[i-1]**2 + sigma_contrib**2)
+            
+            integral_unit = f"{spec.y_unit}·{spec.x_unit}"
+            
+            metadata: Dict[str, Any] = {
+                'operation': {
+                    'name': 'integral',
+                    'parameters': {
+                        'method': method,
+                        'wavelength_range': [float(np.nanmin(x_canon)), float(np.nanmax(x_canon))],
+                        'points': int(x_canon.size),
+                        'total': float(integral[-1]),
+                    },
+                    'parents': [spec.id],
+                },
+                'primary_metadata': dict(spec.metadata),
+            }
+            
+            # For integrals, we keep the result in canonical units (nm) for x
+            # and use the compound unit for y (no unit conversion needed)
+            result_x = spec.x.copy()  # Keep original x values
+            result_y = integral
+            
+            # Uncertainty stays in the same compound units (no conversion)
+            result_sigma_converted = result_sigma
+            
+            result = Spectrum.create(
+                name=f"∫({spec.name})",
+                x=result_x,
+                y=result_y,
+                x_unit=spec.x_unit,
+                y_unit=integral_unit,
+                metadata=metadata,
+                uncertainty=result_sigma_converted,
+                quality_flags=spec.quality_flags.copy() if spec.quality_flags is not None else None,
+            )
+            
+            return result, {
+                'status': 'ok',
+                'operation': 'integral',
+                'result_id': result.id,
+                'method': method,
+                'total': float(integral[-1]),
+            }
+        
+        elif method == 'total':
+            # Single value: total area under curve
+            total = np.trapezoid(y_canon, x_canon)
+            
+            metadata: Dict[str, Any] = {
+                'operation': {
+                    'name': 'integral',
+                    'parameters': {
+                        'method': method,
+                        'wavelength_range': [float(np.nanmin(x_canon)), float(np.nanmax(x_canon))],
+                        'total': float(total),
+                    },
+                    'parents': [spec.id],
+                },
+            }
+            
+            return None, {
+                'status': 'ok',
+                'operation': 'integral',
+                'method': method,
+                'total': float(total),
+                'unit': f"{spec.y_unit}·{spec.x_unit}",
+            }
+        
+        else:
+            raise ValueError(f"Unknown integration method: {method}. Use 'cumulative' or 'total'")

@@ -2281,3 +2281,88 @@
 2025-11-07 18:07:03 INFO [spectra] Starting Spectra App desktop session
 2025-11-07 18:17:17 INFO [spectra] Starting Spectra App desktop session
 2025-11-07 18:44:58 INFO [spectra] Starting Spectra App desktop session
+2025-11-08 14:00:45 INFO [spectra] Starting Spectra App desktop session
+2025-11-08 14:00:45 ERROR [spectra] Failed to construct main window: 'SpectraMainWindow' object has no attribute 'merge_smooth_button'
+Traceback (most recent call last):
+  File "C:\Code\spectra-app-v2\app\main.py", line 95, in main
+    window: SpectraMainWindow = SpectraMainWindow()
+                                ~~~~~~~~~~~~~~~~~^^
+  File "C:\Code\spectra-app-v2\app\ui\main_window.py", line 207, in __init__
+    self._setup_ui()
+    ~~~~~~~~~~~~~~^^
+  File "C:\Code\spectra-app-v2\app\ui\main_window.py", line 392, in _setup_ui
+    self.merge_smooth_button.clicked.connect(self._on_merge_smooth)
+    ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'SpectraMainWindow' object has no attribute 'merge_smooth_button'. Did you mean: 'merge_ratio_button'?
+2025-11-08 14:09:15 INFO [spectra] Starting Spectra App desktop session
+2025-11-08 14:09:16 INFO [spectra] Main window constructed and shown successfully
+2025-11-08 14:12:06 INFO [spectra] Starting Spectra App desktop session
+2025-11-08 14:12:06 INFO [spectra] Main window constructed and shown successfully
+2025-11-08 14:14:27 INFO [spectra] Starting Spectra App desktop session
+2025-11-08 14:14:27 INFO [spectra] Main window constructed and shown successfully
+2025-11-08 14:16:32 INFO [spectra] Starting Spectra App desktop session
+2025-11-08 14:16:33 INFO [spectra] Main window constructed and shown successfully
+2025-11-08 14:17:33 INFO [spectra] Qt event loop exited with code 0
+2025-11-08 15:27:44 INFO [spectra] Starting Spectra App desktop session
+2025-11-08 15:27:44 INFO [spectra] Main window constructed and shown successfully
+2025-11-08 15:33:03 INFO [spectra] Qt event loop exited with code 0
+2025-11-08 15:33:14 INFO [spectra] Starting Spectra App desktop session
+2025-11-08 15:33:14 INFO [spectra] Main window constructed and shown successfully
+2025-11-08 15:33:54 INFO [spectra] Qt event loop exited with code 0
+2025-11-08 15:41:53 INFO [spectra] Starting Spectra App desktop session
+2025-11-08 15:41:53 INFO [spectra] Main window constructed and shown successfully
+2025-11-08 15:43:29 INFO [spectra] Qt event loop exited with code 0
+2025-11-08 15:47:51 INFO [spectra] Starting Spectra App desktop session
+2025-11-08 15:47:51 ERROR [spectra] Failed to construct main window: 'ReferencePanel' object has no attribute 'nist_collections_list'
+Traceback (most recent call last):
+  File "C:\Code\spectra-app-v2\app\main.py", line 95, in main
+    window: SpectraMainWindow = SpectraMainWindow()
+                                ~~~~~~~~~~~~~~~~~^^
+  File "C:\Code\spectra-app-v2\app\ui\main_window.py", line 207, in __init__
+    self._setup_ui()
+    ~~~~~~~~~~~~~~^^
+  File "C:\Code\spectra-app-v2\app\ui\main_window.py", line 327, in _setup_ui
+    self.nist_collections_list = self.reference_panel.nist_collections_list
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'ReferencePanel' object has no attribute 'nist_collections_list'
+2025-11-08 15:48:16 INFO [spectra] Starting Spectra App desktop session
+2025-11-08 15:48:16 ERROR [spectra] Failed to construct main window: 'ReferencePanel' object has no attribute 'nist_collections_list'
+Traceback (most recent call last):
+  File "C:\Code\spectra-app-v2\app\main.py", line 95, in main
+    window: SpectraMainWindow = SpectraMainWindow()
+                                ^^^^^^^^^^^^^^^^^^^
+  File "C:\Code\spectra-app-v2\app\ui\main_window.py", line 207, in __init__
+    self._setup_ui()
+  File "C:\Code\spectra-app-v2\app\ui\main_window.py", line 327, in _setup_ui
+    self.nist_collections_list = self.reference_panel.nist_collections_list
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'ReferencePanel' object has no attribute 'nist_collections_list'
+2025-11-08 15:48:29 INFO [spectra] Starting Spectra App desktop session
+2025-11-08 15:48:30 ERROR [spectra] Failed to construct main window: 'ReferencePanel' object has no attribute 'nist_collections_list'
+Traceback (most recent call last):
+  File "C:\Code\spectra-app-v2\app\main.py", line 95, in main
+    window: SpectraMainWindow = SpectraMainWindow()
+                                ^^^^^^^^^^^^^^^^^^^
+  File "C:\Code\spectra-app-v2\app\ui\main_window.py", line 207, in __init__
+    self._setup_ui()
+  File "C:\Code\spectra-app-v2\app\ui\main_window.py", line 327, in _setup_ui
+    self.nist_collections_list = self.reference_panel.nist_collections_list
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'ReferencePanel' object has no attribute 'nist_collections_list'
+2025-11-08 15:53:15 INFO [spectra] Starting Spectra App desktop session
+2025-11-08 15:53:16 INFO [spectra] Main window constructed and shown successfully
+2025-11-08 15:57:16 INFO [spectra] Starting Spectra App desktop session
+2025-11-08 15:57:17 INFO [spectra] Main window constructed and shown successfully
+2025-11-08 15:59:23 INFO [spectra] Starting Spectra App desktop session
+2025-11-08 15:59:24 INFO [spectra] Main window constructed and shown successfully
+2025-11-08 16:01:50 INFO [spectra] Starting Spectra App desktop session
+2025-11-08 16:01:51 INFO [spectra] Main window constructed and shown successfully
+2025-11-08 16:04:51 INFO [spectra] Starting Spectra App desktop session
+2025-11-08 16:04:52 INFO [spectra] Main window constructed and shown successfully
+2025-11-08 16:09:38 INFO [spectra] Qt event loop exited with code 0
+2025-11-08 16:09:43 INFO [spectra] Starting Spectra App desktop session
+2025-11-08 16:09:44 INFO [spectra] Main window constructed and shown successfully
+2025-11-08 16:50:45 INFO [spectra] Qt event loop exited with code 0
+2025-11-08 17:01:13 INFO [spectra] Starting Spectra App desktop session
+2025-11-08 17:01:16 INFO [spectra] Main window constructed and shown successfully
+2025-11-08 17:01:48 INFO [spectra] Qt event loop exited with code 0

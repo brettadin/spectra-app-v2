@@ -4,22 +4,12 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime, timezone
+import importlib.util
 import math
 import re
 from typing import Any, Dict, Iterable, List, Mapping, Optional, Tuple
 
 from app.services.line_list_cache import LineListCache
-
-try:  # Optional dependency wired through requirements.txt but guarded for tests
-    import astropy.units as u
-    from astroquery.nist import Nist
-except Exception as exc:  # pragma: no cover - import guard exercised in negative tests
-    ASTROQUERY_AVAILABLE = False
-    _IMPORT_ERROR: Exception | None = exc
-else:  # pragma: no cover - simple flag assignment
-    ASTROQUERY_AVAILABLE = True
-    _IMPORT_ERROR = None
-
 
 # Global cache instance shared across all NIST queries
 _CACHE: Optional[LineListCache] = None
@@ -42,7 +32,7 @@ class ElementRecord:
 
 
 # Adapted from the upstream Spectra project (`spectra-app`) so element lookups and
-# alias handling match the curated Streamlit build.  The dataset is static and
+# alias handling match the curated Streamlit build. The dataset is static and
 # maps symbols/names onto atomic numbers.
 _ELEMENT_TABLE: Tuple[ElementRecord, ...] = (
     ElementRecord(1, "H", "Hydrogen"),
@@ -180,9 +170,14 @@ DEFAULT_UPPER_WAVELENGTH_NM = 750.0
 
 
 def dependencies_available() -> bool:
-    """Return True when astroquery is importable and ready for use."""
-
-    return ASTROQUERY_AVAILABLE
+    """Return True if astroquery.nist and astropy.units are present without importing them."""
+    try:
+        return (
+            importlib.util.find_spec("astroquery.nist") is not None
+            and importlib.util.find_spec("astropy.units") is not None
+        )
+    except Exception:
+        return False
 
 
 def get_cache() -> LineListCache:
@@ -362,6 +357,12 @@ def _scaled_float(value: Optional[float], scale: float) -> Optional[float]:
 
 
 def _column_scale_to_nm(table: Any, column: str, default: float = 1.0) -> float:
+    # Import astropy.units lazily to avoid triggering heavy imports at module import time
+    try:
+        import astropy.units as u  # type: ignore
+    except Exception:
+        return default
+
     if table is None or column not in getattr(table, "colnames", []):
         return default
     col = table[column]
@@ -386,7 +387,14 @@ def _column_scale_to_nm(table: Any, column: str, default: float = 1.0) -> float:
     return default
 
 
-def _resolve_wavelength_unit(label: str) -> Tuple[u.Unit, str]:
+def _resolve_wavelength_unit(label: str) -> Tuple[Any, str]:
+    # Import astropy.units lazily
+    try:
+        import astropy.units as u  # type: ignore
+    except Exception:
+        # Fallback: pretend everything is nm
+        return ("nm", "nm")
+
     normalized = (label or "nm").strip().lower()
     aliases = {
         "nm": (u.nm, "nm"),
@@ -442,10 +450,14 @@ def fetch_lines(
         Meta includes cache_hit boolean indicating whether data came from cache.
     """
 
-    if not dependencies_available():
+    # Import heavy deps lazily
+    try:
+        import astropy.units as u  # type: ignore
+        from astroquery.nist import Nist  # type: ignore
+    except Exception as exc:
         raise NistUnavailableError(
-            "astroquery.nist is required to query the NIST Atomic Spectra Database"
-        ) from _IMPORT_ERROR
+            "astroquery.nist (and astropy.units) are required to query the NIST ASD"
+        ) from exc
 
     element_record, stage_value, stage_roman, spectrum, label = _resolve_spectrum(
         element=element,
@@ -472,7 +484,6 @@ def fetch_lines(
                 upper,
             )
             if cached_data is not None:
-                # Restore and return cached result
                 cached_data["meta"]["cache_hit"] = True
                 return cached_data
 
@@ -487,7 +498,7 @@ def fetch_lines(
             linename=spectrum,
             wavelength_type=wavelength_type,
         )
-    except Exception as exc:  # pragma: no cover - network path exercised in integration
+    except Exception as exc:
         raise NistQueryError(f"Failed to query NIST ASD: {exc}") from exc
 
     lines: List[Dict[str, Any]] = []

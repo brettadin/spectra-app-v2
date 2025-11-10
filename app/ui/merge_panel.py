@@ -34,6 +34,9 @@ class MergePanel(QtWidgets.QWidget):
     merge_subtract_button: QtWidgets.QPushButton
     merge_ratio_button: QtWidgets.QPushButton
     merge_normalized_diff_button: QtWidgets.QPushButton
+    merge_smooth_button: QtWidgets.QPushButton
+    merge_derivative_button: QtWidgets.QPushButton
+    merge_integral_button: QtWidgets.QPushButton
     merge_status_label: QtWidgets.QLabel
 
     def __init__(self, parent: Optional[QtWidgets.QWidget] = None) -> None:
@@ -76,27 +79,44 @@ class MergePanel(QtWidgets.QWidget):
         layout.addWidget(self.merge_preview_label)
 
         # Action buttons
-        merge_buttons_layout = QtWidgets.QHBoxLayout()
+        merge_buttons_layout = QtWidgets.QGridLayout()
         
+        # Row 0: Two-operand operations
         self.merge_average_button = QtWidgets.QPushButton("Average")
         self.merge_average_button.setEnabled(False)
         self.merge_average_button.setToolTip("Average multiple selected spectra")
-        merge_buttons_layout.addWidget(self.merge_average_button)
+        merge_buttons_layout.addWidget(self.merge_average_button, 0, 0)
         
         self.merge_subtract_button = QtWidgets.QPushButton("A − B")
         self.merge_subtract_button.setEnabled(False)
         self.merge_subtract_button.setToolTip("Subtract second spectrum from first (select exactly 2)")
-        merge_buttons_layout.addWidget(self.merge_subtract_button)
+        merge_buttons_layout.addWidget(self.merge_subtract_button, 0, 1)
         
         self.merge_ratio_button = QtWidgets.QPushButton("A / B")
         self.merge_ratio_button.setEnabled(False)
         self.merge_ratio_button.setToolTip("Divide first spectrum by second (select exactly 2)")
-        merge_buttons_layout.addWidget(self.merge_ratio_button)
+        merge_buttons_layout.addWidget(self.merge_ratio_button, 0, 2)
         
         self.merge_normalized_diff_button = QtWidgets.QPushButton("ND(A,B)")
         self.merge_normalized_diff_button.setEnabled(False)
         self.merge_normalized_diff_button.setToolTip("Normalized difference: (A − B) / (A + B) (select exactly 2)")
-        merge_buttons_layout.addWidget(self.merge_normalized_diff_button)
+        merge_buttons_layout.addWidget(self.merge_normalized_diff_button, 0, 3)
+        
+        # Row 1: Single-operand operations
+        self.merge_smooth_button = QtWidgets.QPushButton("Smooth")
+        self.merge_smooth_button.setEnabled(False)
+        self.merge_smooth_button.setToolTip("Apply smoothing filter (moving average or Savitzky-Golay)")
+        merge_buttons_layout.addWidget(self.merge_smooth_button, 1, 0)
+        
+        self.merge_derivative_button = QtWidgets.QPushButton("d/dx")
+        self.merge_derivative_button.setEnabled(False)
+        self.merge_derivative_button.setToolTip("Compute first or second derivative")
+        merge_buttons_layout.addWidget(self.merge_derivative_button, 1, 1)
+        
+        self.merge_integral_button = QtWidgets.QPushButton("∫")
+        self.merge_integral_button.setEnabled(False)
+        self.merge_integral_button.setToolTip("Compute cumulative integral or total area")
+        merge_buttons_layout.addWidget(self.merge_integral_button, 1, 2)
         
         layout.addLayout(merge_buttons_layout)
 

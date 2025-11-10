@@ -3605,3 +3605,27 @@ THE KNOWLEDGE LOG IS JUST FOR AGENTS TO WRITE IMPORTANT SHIT INTO
 - F0Ia_HD7927.fits
 
 ---
+## 2025-11-08 14:17 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file earth_modis_reflectance_example.csv
+
+**References**:
+- earth_modis_reflectance_example.csv
+
+---
+## 2025-11-08 14:17 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file mock_MODIS_reflectance_sample.csv
+
+**References**:
+- mock_MODIS_reflectance_sample.csv
+
+---
