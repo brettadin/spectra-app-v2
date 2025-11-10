@@ -3653,3 +3653,111 @@ THE KNOWLEDGE LOG IS JUST FOR AGENTS TO WRITE IMPORTANT SHIT INTO
 - mock_MODIS_reflectance_sample.csv
 
 ---
+## 2025-11-10 17:25 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file 1995high.tab
+
+**References**:
+- 1995high.tab
+
+---
+## 2025-11-10 17:26 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file 1995high.tab
+
+**References**:
+- 1995high.tab
+
+---
+## 2025-11-10 17:26 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Hydrogen Lamp.csv
+
+**References**:
+- Hydrogen Lamp.csv
+
+---
+## 2025-11-10 17:27 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file CO2 Lamp.csv
+
+**References**:
+- CO2 Lamp.csv
+
+---
+## 2025-11-10 17:27 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Helium Lamp.csv
+
+**References**:
+- Helium Lamp.csv
+
+---
+## 2025-11-10 17:32 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file 1995low.tab
+
+**References**:
+- 1995low.tab
+
+---
+## 2025-11-10 17:32 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file 1995high.tab
+
+**References**:
+- 1995high.tab
+
+---
+## 2025-11-10 17:44 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file 1995low.tab
+
+**References**:
+- 1995low.tab
+
+---
+## 2025-11-10 17:44 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file 1995high.tab
+
+**References**:
+- 1995high.tab
+
+---

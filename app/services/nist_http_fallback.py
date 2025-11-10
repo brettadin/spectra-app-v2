@@ -48,6 +48,51 @@ _BUILTIN_LINES: Dict[str, List[Dict[str, float]]] = {
         {"wavelength_nm": 434.047, "relative_intensity": 16.0},   # Hγ
         {"wavelength_nm": 410.174, "relative_intensity": 9.0},    # Hδ
     ],
+    # Helium (approximate neutral He I lines)
+    "He": [
+        {"wavelength_nm": 587.562, "relative_intensity": 100.0},  # D3
+        {"wavelength_nm": 501.567, "relative_intensity": 50.0},
+        {"wavelength_nm": 447.148, "relative_intensity": 40.0},
+        {"wavelength_nm": 706.519, "relative_intensity": 80.0},
+    ],
+    # Sodium D-lines
+    "Na": [
+        {"wavelength_nm": 588.995, "relative_intensity": 100.0},  # D1
+        {"wavelength_nm": 589.592, "relative_intensity": 100.0},  # D2
+    ],
+    # Iron (some bright Fe I lines)
+    "Fe": [
+        {"wavelength_nm": 438.355, "relative_intensity": 100.0},
+        {"wavelength_nm": 440.475, "relative_intensity": 80.0},
+        {"wavelength_nm": 441.513, "relative_intensity": 60.0},
+        {"wavelength_nm": 445.897, "relative_intensity": 40.0},
+        {"wavelength_nm": 495.761, "relative_intensity": 50.0},
+    ],
+    # Calcium H & K lines
+    "Ca": [
+        {"wavelength_nm": 393.366, "relative_intensity": 100.0},  # K
+        {"wavelength_nm": 396.847, "relative_intensity": 100.0},  # H
+        {"wavelength_nm": 422.673, "relative_intensity": 80.0},
+    ],
+    # Magnesium
+    "Mg": [
+        {"wavelength_nm": 518.362, "relative_intensity": 100.0},
+        {"wavelength_nm": 517.270, "relative_intensity": 80.0},
+        {"wavelength_nm": 516.733, "relative_intensity": 60.0},
+    ],
+    # Oxygen (OI lines)
+    "O": [
+        {"wavelength_nm": 777.194, "relative_intensity": 100.0},
+        {"wavelength_nm": 777.417, "relative_intensity": 100.0},
+        {"wavelength_nm": 777.539, "relative_intensity": 100.0},
+        {"wavelength_nm": 844.625, "relative_intensity": 80.0},
+    ],
+    # Nitrogen (NI lines)
+    "N": [
+        {"wavelength_nm": 746.831, "relative_intensity": 100.0},
+        {"wavelength_nm": 821.634, "relative_intensity": 80.0},
+        {"wavelength_nm": 870.334, "relative_intensity": 60.0},
+    ],
 }
 
 

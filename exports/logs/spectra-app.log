@@ -2366,3 +2366,33 @@ AttributeError: 'ReferencePanel' object has no attribute 'nist_collections_list'
 2025-11-08 17:01:13 INFO [spectra] Starting Spectra App desktop session
 2025-11-08 17:01:16 INFO [spectra] Main window constructed and shown successfully
 2025-11-08 17:01:48 INFO [spectra] Qt event loop exited with code 0
+2025-11-10 17:05:38 INFO [spectra] Starting Spectra App desktop session
+2025-11-10 17:05:39 INFO [spectra] Main window constructed and shown successfully
+2025-11-10 17:06:05 INFO [spectra] Qt event loop exited with code 0
+2025-11-10 17:08:57 INFO [spectra] Starting Spectra App desktop session
+2025-11-10 17:08:58 INFO [spectra] Main window constructed and shown successfully
+2025-11-10 17:11:58 INFO [spectra] Qt event loop exited with code 0
+2025-11-10 17:25:41 INFO [spectra] Starting Spectra App desktop session
+2025-11-10 17:25:44 INFO [spectra] Main window constructed and shown successfully
+2025-11-10 17:26:56 INFO [spectra] Max normalization: norm_val=0.550500
+2025-11-10 17:26:56 INFO [spectra]   Result range: [0.030518, 1.000000]
+2025-11-10 17:26:56 INFO [spectra] Max normalization: norm_val=0.598600
+2025-11-10 17:26:56 INFO [spectra]   Result range: [0.045105, 1.000000]
+2025-11-10 17:26:56 INFO [spectra] Max normalization: norm_val=0.627600
+2025-11-10 17:26:56 INFO [spectra]   Result range: [0.015296, 1.000000]
+2025-11-10 17:26:56 INFO [spectra] Max normalization: norm_val=1677.493035
+2025-11-10 17:26:56 INFO [spectra]   Result range: [-0.014852, 1.000000]
+2025-11-10 17:27:10 INFO [spectra] Max normalization: norm_val=614.316302
+2025-11-10 17:27:10 INFO [spectra]   Result range: [-0.014882, 1.000000]
+2025-11-10 17:27:34 INFO [spectra] Max normalization: norm_val=18919.596754
+2025-11-10 17:27:34 INFO [spectra]   Result range: [-0.027996, 1.000000]
+2025-11-10 17:31:55 INFO [spectra] Qt event loop exited with code 0
+2025-11-10 17:32:02 INFO [spectra] Starting Spectra App desktop session
+2025-11-10 17:32:03 INFO [spectra] Main window constructed and shown successfully
+2025-11-10 17:41:00 INFO [spectra] Qt event loop exited with code 0
+2025-11-10 17:43:18 INFO [spectra] Starting Spectra App desktop session
+2025-11-10 17:43:19 INFO [spectra] Main window constructed and shown successfully
+2025-11-10 17:46:48 INFO [spectra] Qt event loop exited with code 0
+2025-11-10 17:47:12 INFO [spectra] Starting Spectra App desktop session
+2025-11-10 17:47:13 INFO [spectra] Main window constructed and shown successfully
+2025-11-10 17:49:32 INFO [spectra] Qt event loop exited with code 0
