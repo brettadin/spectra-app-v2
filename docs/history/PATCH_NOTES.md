@@ -886,3 +886,8 @@ See: `docs/dev/worklog/2025-10-22.md` and neurons in `docs/brains/*`.
 - Added a Solar System quick-pick menu to the Remote Data dialog covering Mercury through Pluto, expanded curated targets to include HD 189733 (host + planet), and wired the button to fire short ExoSystems queries automatically.
 - Refactored `RemoteDataService` with `curated_targets()` helpers, category metadata, and tightened science-ready filtering (`dataproduct_type="spectrum"`, `calib_level=[2,3]`, `intentType="SCIENCE"`) for MAST/ExoSystems results.
 - Updated README, remote data guides, developer notes, and workplan entries alongside new unit/integration tests exercising the quick-pick UI and calibrated product gating.
+
+## 2025-11-10T16:24:12-05:00 — ASCII DAT ingest support
+
+- Routed `.dat` uploads through the resilient CSV importer and added the extension to the file dialog filter and samples browser so MASCS-style tables load without renaming.
+- Documented DAT usage in the importing guide and extended ingest smoke tests with a `.dat` regression to keep the extension registered.

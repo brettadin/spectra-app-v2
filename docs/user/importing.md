@@ -4,9 +4,9 @@
 # Importing Local Spectra
 
 The **File → Open** picker currently filters to comma-separated (`*.csv`,
-`*.txt`) datasets. JCAMP-DX still appears once you toggle the OS-provided
-"*All files*" view, but FITS ingest requires manually typing or pasting the path
-into the filename field until the [GUI filter expansion roadmap
+`*.txt`) and delimited data tables (`*.dat`). JCAMP-DX still appears once you
+toggle the OS-provided "*All files*" view, but FITS ingest requires manually
+typing or pasting the path into the filename field until the [GUI filter expansion roadmap
 item](../../reports/roadmap.md#gui-file-dialog-filter-expansion) lands. Imported
 arrays are normalised into the app's canonical wavelength baseline of
 nanometres while the desktop build now copies the raw upload into the local
@@ -18,6 +18,10 @@ cache for provenance-aware reuse.
   surrounds the table. Units can be provided inline (e.g. `wavelength(nm)`), in
   square brackets, or in the preamble text; otherwise the importer estimates
   sensible defaults from value ranges (e.g. 400–2500 ≈ nanometres).
+- **DAT** – Uses the same resilient parser as CSV/TXT for ASCII or delimited
+  science tables. MASCS-style label pairs (`*.lbl` + `*.dat`) work when the data
+  section is plain text; binary PDS tables still need pre-processing via the
+  tooling in `tools/parse_messenger_mascs.py`.
 - **FITS** – 1D binary tables with wavelength and flux columns. The importer
   looks for standard names such as `WAVELENGTH`, `WAVE`, or `FLUX`. Original
   header metadata is preserved in the provenance panel. Install the optional
