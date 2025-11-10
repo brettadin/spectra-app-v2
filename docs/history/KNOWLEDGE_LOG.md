@@ -38,6 +38,30 @@ This is the concise, human‑curated history for Spectra App. Routine automation
 **References**: Relative links to files, PRs, tests, or external docs.
 
 ---
+## 2025-11-10 16:24 (America/New_York) / 2025-11-10 21:24 (UTC) — DAT ingest support for ASCII tables
+
+Author: automation
+
+Why
+- Addressed missing `.dat` support so MASCS-style exports no longer need to be renamed before ingest.
+
+What changed
+- Registered `.dat` with the CSV importer and surfaced the extension in the file dialog and Samples browser filters.
+- Added documentation and regression tests covering `.dat` ingestion to keep the behaviour in sync.
+
+Impact
+- Users can open ASCII `.dat` spectra directly and see the workflow explained in the importing guide, while binary PDS tables retain a clear pre-processing path.
+
+References
+- Code: `app/services/data_ingest_service.py`
+- Code: `app/ui/main_window.py`
+- Tests: `tests/test_ingest.py`
+- Docs: `docs/user/importing.md`
+
+Notes
+- Binary `.dat` tables still require conversion via `tools/parse_messenger_mascs.py`.
+
+---
 
 ## 2025-11-04 14:25 (America/New_York) / 19:25Z (UTC) — NIST line list caching
 

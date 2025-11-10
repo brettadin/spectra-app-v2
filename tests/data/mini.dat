@@ -1,0 +1,6 @@
+# Synthetic reflectance sample for .dat ingestion tests
+Wavelength (nm),Reflectance
+400,0.12
+410,0.18
+420,0.22
+430,0.27

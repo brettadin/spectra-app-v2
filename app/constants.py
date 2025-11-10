@@ -36,7 +36,7 @@ X_UNIT_SYNONYMS: dict[str, str] = {
 
 # ---- File filters --------------------------------------------------------
 SPECTRAL_FILE_EXTENSIONS: tuple[str, ...] = (
-    ".csv", ".txt", ".fits", ".fit", ".fts", ".jdx", ".dx", ".jcamp",
+    ".csv", ".txt", ".dat", ".fits", ".fit", ".fts", ".jdx", ".dx", ".jcamp",
 )
 
 NON_SPECTRAL_EXTENSIONS: tuple[str, ...] = (

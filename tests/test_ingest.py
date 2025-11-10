@@ -26,6 +26,21 @@ def test_csv_ingest_samples():
     assert np.isclose(spectrum.x[0], 400.0)
 
 
+def test_dat_ingest_uses_csv_importer():
+    service = build_ingest_service()
+    dat_path = Path("tests/data/mini.dat")
+    spectra = service.ingest(dat_path)
+
+    assert len(spectra) == 1
+    spectrum = spectra[0]
+    ingest_meta = spectrum.metadata["ingest"]
+    assert ingest_meta["importer"] == "CsvImporter"
+    assert spectrum.x_unit == "nm"
+    assert spectrum.y_unit == "transmittance"
+    assert np.allclose(spectrum.x, np.array([400.0, 410.0, 420.0, 430.0]))
+    assert np.allclose(spectrum.y, np.array([0.12, 0.18, 0.22, 0.27]))
+
+
 def test_percent_transmittance_conversion():
     service = build_ingest_service()
     sample_path = Path("samples/sample_transmittance.csv")

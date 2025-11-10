@@ -193,6 +193,7 @@ def test_history_view_updates_on_import(tmp_path: Path) -> None:
 
     supported = ingest.supported_extensions()
     assert supported.get(".csv") == "CsvImporter"
+    assert supported.get(".dat") == "CsvImporter"
     assert supported.get(".fits") == "FitsImporter"
 
     angstrom_view = csv_spec.view(units, "angstrom", "transmittance")
