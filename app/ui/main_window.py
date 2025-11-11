@@ -2446,7 +2446,15 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         if not payload or "error" in payload:
             error_code = payload.get("error", "unknown") if payload else "no-result"
             error_msg = payload.get("message", "No details") if payload else "Both subprocess and HTTP failed"
-            full_msg = f"NIST error ({error_code}): {error_msg}"
+            
+            # Provide helpful guidance based on error type
+            if error_code == "empty-output" and "code 0xc06d007f" in str(payload.get("stderr", "")):
+                full_msg = f"NIST fetch failed: Astropy has a known Windows DLL issue. Try using the built-in lines (H, He, Na, Fe, Ca, Mg, O, N) or update astropy."
+            elif error_code in ("http-status", "http-failure"):
+                full_msg = f"NIST server error: {error_msg}. Using built-in lines if available."
+            else:
+                full_msg = f"NIST error ({error_code}): {error_msg}"
+            
             self.reference_status_label.setText(full_msg)
             self._log("NIST", full_msg)
             return

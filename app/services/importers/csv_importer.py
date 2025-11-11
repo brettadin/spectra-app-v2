@@ -1,4 +1,4 @@
-"""CSV importer implementation with heuristic parsing for loose tabular data."""
+"""CSV importer implementation with heuristic parsing for loose tabular data, including PDS3 tables."""
 
 from __future__ import annotations
 
@@ -12,6 +12,7 @@ from typing import Dict, Iterable, List, Sequence, Tuple, cast
 import numpy as np
 
 from .base import ImporterResult
+from ..pds_label_parser import parse_pds_label
 
 _NUMERIC_RE = re.compile(r"[-+]?\d*\.?\d+(?:[eE][-+]?\d+)?")
 
@@ -116,6 +117,12 @@ class CsvImporter:
         """
 
         lines = path.read_text(encoding="utf-8").splitlines()
+        
+        # Try PDS3 table format first (checks for companion .lbl file)
+        pds_result = self._try_parse_pds_table(path, lines)
+        if pds_result is not None:
+            return pds_result
+        
         wide_bundle = self._try_parse_wide_bundle(path, lines)
         if wide_bundle is not None:
             return wide_bundle
@@ -279,6 +286,144 @@ class CsvImporter:
         )
 
     # ------------------------------------------------------------------
+    def _try_parse_pds_table(
+        self, path: Path, lines: Sequence[str]
+    ) -> ImporterResult | None:
+        """Parse PDS3 table with companion .lbl file defining multi-column structure.
+        
+        Returns a bundle-style result containing all target spectra if a .lbl file
+        is found and parsed successfully. Returns None if no PDS label exists.
+        """
+        # Look for companion .lbl file
+        label_path = path.with_suffix(".lbl")
+        if not label_path.exists():
+            return None
+        
+        label = parse_pds_label(label_path)
+        if label is None:
+            return None
+        
+        # Verify the label points to this data file
+        if label.data_file and label.data_file.lower() != path.name.lower():
+            return None
+        
+        # Parse the table data using fixed-width column definitions
+        wavelength_col = label.get_wavelength_column()
+        if wavelength_col is None:
+            return None
+        
+        target_cols = label.get_target_columns()
+        if not target_cols:
+            return None
+        
+        # Parse data - use whitespace-delimited parsing as PDS labels sometimes
+        # have incorrect byte specifications (especially for values >1000)
+        data_values: Dict[str, List[float]] = {"wavelength": []}
+        for target_name, _ in target_cols:
+            data_values[target_name] = []
+        
+        # Map column numbers to extraction
+        wl_col_num = wavelength_col.column_number - 1  # Convert to 0-indexed
+        target_col_nums = {name: col.column_number - 1 for name, col in target_cols}
+        
+        for line in lines:
+            if not line.strip():
+                continue
+            try:
+                # Split on whitespace
+                fields = line.split()
+                if len(fields) < len(label.columns):
+                    continue
+                
+                # Extract wavelength
+                wavelength = float(fields[wl_col_num])
+                data_values["wavelength"].append(wavelength)
+                
+                # Extract each target's data
+                for target_name, col_idx in target_col_nums.items():
+                    value = float(fields[col_idx]) if fields[col_idx] else np.nan
+                    data_values[target_name].append(value)
+            
+            except (ValueError, IndexError):
+                # Skip malformed lines
+                continue
+        
+        if not data_values["wavelength"]:
+            return None
+        
+        # Convert wavelength to nm if needed
+        wl_array = np.array(data_values["wavelength"])
+        wl_unit = wavelength_col.unit or "nm"
+        wl_unit_lower = wl_unit.lower()
+        if "nanometer" in wl_unit_lower or "nm" in wl_unit_lower:
+            x_unit = "nm"
+        elif "micron" in wl_unit_lower or "um" in wl_unit_lower or "µm" in wl_unit_lower:
+            x_unit = "µm"
+        elif "angstrom" in wl_unit_lower or "a" == wl_unit_lower:
+            x_unit = "Å"
+        else:
+            x_unit = "nm"  # Default assumption
+        
+        # Build bundle with all targets
+        members_payload: List[Dict[str, object]] = []
+        for target_name, col in target_cols:
+            y_array = np.array(data_values[target_name])
+            
+            # Filter out NaN/inf values
+            mask = np.isfinite(wl_array) & np.isfinite(y_array)
+            x_clean = wl_array[mask]
+            y_clean = y_array[mask]
+            
+            if len(x_clean) == 0:
+                continue
+            
+            # Determine Y unit from column description
+            y_unit = "albedo"  # Default for planetary data
+            if col.unit:
+                y_unit = col.unit.lower()
+            
+            members_payload.append({
+                "id": f"{label.product_name}_{target_name}",
+                "name": f"{target_name} ({label.product_name})",
+                "x": x_clean.tolist(),
+                "y": y_clean.tolist(),
+                "x_unit": x_unit,
+                "y_unit": y_unit,
+            })
+        
+        if not members_payload:
+            return None
+        
+        # Return first target's data with bundle metadata
+        first = members_payload[0]
+        metadata: Dict[str, object] = {
+            "pds_label": {
+                "version": label.version_id,
+                "targets": label.target_names,
+                "instrument": label.instrument_name,
+                "instrument_host": label.instrument_host,
+                "start_time": label.start_time,
+                "stop_time": label.stop_time,
+                "note": label.note,
+            },
+            "bundle": {
+                "format": "pds3-multi-target",
+                "members": members_payload,
+                "source_path": str(path),
+                "label_path": str(label_path),
+            },
+        }
+        
+        return ImporterResult(
+            name=cast(str, first.get("name")) or path.stem,
+            x=np.asarray(first.get("x", []), dtype=float),
+            y=np.asarray(first.get("y", []), dtype=float),
+            x_unit=cast(str, first.get("x_unit")) or "nm",
+            y_unit=cast(str, first.get("y_unit")) or "albedo",
+            metadata=metadata,
+            source_path=path,
+        )
+    
     def _try_parse_export_bundle(
         self, path: Path, lines: Sequence[str]
     ) -> ImporterResult | None:

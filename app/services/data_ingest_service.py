@@ -38,7 +38,7 @@ class DataIngestService:
 
     def __post_init__(self) -> None:
         if not self._registry:
-            self.register_importer({'.csv', '.txt', '.dat'}, CsvImporter())
+            self.register_importer({'.csv', '.txt', '.dat', '.tab'}, CsvImporter())
             self.register_importer({'.fits', '.fit', '.fts'}, FitsImporter())
             self.register_importer({'.jdx', '.dx', '.jcamp'}, JcampImporter())
             # HDF4 (MODIS Surface Reflectance) via dedicated importer
@@ -85,9 +85,13 @@ class DataIngestService:
                 ) from exc
             raise
         bundle_meta = raw.metadata.get("bundle") if isinstance(raw.metadata, dict) else None
-        if isinstance(bundle_meta, dict) and bundle_meta.get("format") == "spectra-export-v1":
-            members = bundle_meta.get("members", [])
-            return self._ingest_bundle(path, importer, members)
+        if isinstance(bundle_meta, dict):
+            bundle_format = bundle_meta.get("format")
+            if bundle_format in ("spectra-export-v1", "pds3-multi-target", "spectra-wide-v1"):
+                members = bundle_meta.get("members", [])
+                # Extract PDS metadata if present
+                pds_metadata = raw.metadata.get("pds_label") if bundle_format == "pds3-multi-target" else None
+                return self._ingest_bundle(path, importer, members, pds_metadata)
         
         spectrum = self._build_spectrum(
             raw.name,
@@ -242,6 +246,7 @@ class DataIngestService:
         bundle_path: Path,
         importer: SupportsImport,
         members: Sequence[Dict[str, Any]],
+        pds_metadata: Dict[str, Any] | None = None,
     ) -> List[Spectrum]:
         spectra: List[Spectrum] = []
         member_ids: List[str] = []
@@ -260,6 +265,11 @@ class DataIngestService:
             x_unit = cast(str, member.get("x_unit")) if isinstance(member.get("x_unit"), str) else "nm"
             y_unit = cast(str, member.get("y_unit")) if isinstance(member.get("y_unit"), str) else "absorbance"
             metadata = member.get("metadata") if isinstance(member.get("metadata"), dict) else {}
+            
+            # Add PDS label metadata if available
+            if pds_metadata:
+                metadata["pds_label"] = pds_metadata
+            
             resolved_name = name or f"{bundle_path.stem}-{spectrum_id or len(spectra)}"
             spectrum = self._build_spectrum(
                 resolved_name,
