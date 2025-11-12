@@ -84,26 +84,6 @@ References
 
 ---
 
-## 2025-11-12 15:15 (America/New_York) / 2025-11-12 20:15 (UTC) — Theme bootstrap compatibility
-
-Author: automation
-
-Why
-- A merge conflict resolved with "keep current" dropped the launch-time theme variable, causing the Windows launcher to crash with `NameError` when it tried to pass `theme.key` into `SpectraMainWindow`.
-
-What changed
-- Exposed `SpectraMainWindow.load_theme_preference()` so callers can hydrate the stored palette key without instantiating the window.
-- Reinstated the launcher-side theme lookup and forwarded the resolved key into the main window constructor, preserving the single-pass styling flow while keeping compatibility with downstream bootstrap code.
-
-Impact
-- Launch scripts that expect a `theme` object regain compatibility, and the persisted palette loads consistently even when retrying conflicted merges.
-
-References
-- Code: `app/main.py`
-- Code: `app/ui/main_window.py`
-
----
-
 ## 2025-11-10 16:24 (America/New_York) / 2025-11-10 21:24 (UTC) — DAT ingest support for ASCII tables
 
 Author: automation
@@ -4163,46 +4143,279 @@ THE KNOWLEDGE LOG IS JUST FOR AGENTS TO WRITE IMPORTANT SHIT INTO
 - table_WASP-178-b-Lothringer-et-al.-2022.csv
 
 ---
-## 2025-11-12 15:23 (America/New_York) / 2025-11-12 20:23 (UTC) — Launcher theme bootstrap guard
+## 2025-11-12 14:41 – Ingest
 
-Author: ChatGPT
+**Author**: automation
 
-Why
-- Windows launch scripts crashed after conflicted merges because `app/main.py` referenced an undefined `theme` variable when hydrating the persisted palette.
+**Context**: Spectra Desktop Session
 
-What changed
-- Treated stored theme preferences as optional input when bootstrapping the UI launcher.
-- Resolved the active theme definition before constructing `SpectraMainWindow`, ensuring the window always receives a valid key.
+**Summary**: Ingested file okay sun file.csv
 
-Impact
-- Restores compatibility for RunSpectraApp.cmd and other entry points that expect the launcher to tolerate missing theme state.
-
-References
-- Code: `app/main.py`
-- Docs: `docs/history/PATCH_NOTES.md`
-
-Notes
-- Qt-dependent test runs remain blocked in this container due to missing `libGL.so.1`.
+**References**:
+- okay sun file.csv
 
 ---
-## 2025-11-12 15:35 (America/New_York) / 2025-11-12 20:35 (UTC) — Launcher theme instantiation hardening
+## 2025-11-12 14:41 – Ingest
 
-Author: ChatGPT
+**Author**: automation
 
-Why
-- Windows environments that kept conflicted launcher code continued to reference an undefined `theme` variable even after the bootstrap guard landed.
+**Context**: Spectra Desktop Session
 
-What changed
-- Resolved the palette key once during startup and passed it directly into `SpectraMainWindow`, removing the lingering `theme` reference.
+**Summary**: Ingested file sun redo.csv
 
-Impact
-- Ensures RunSpectraApp.cmd and similar entry points succeed after merge retries without requiring manual cleanup of stale launcher code.
+**References**:
+- sun redo.csv
 
-References
-- Code: `app/main.py`
-- Docs: `docs/history/PATCH_NOTES.md`
+---
+## 2025-11-12 14:45 – Ingest
 
-Notes
-- PySide6 GUI tests still fail in this container because `libGL.so.1` is unavailable.
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file sun redo.csv
+
+**References**:
+- sun redo.csv
+
+---
+## 2025-11-12 14:47 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Air Lamp.csv
+
+**References**:
+- Air Lamp.csv
+
+---
+## 2025-11-12 14:47 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file CO2 Lamp.csv
+
+**References**:
+- CO2 Lamp.csv
+
+---
+## 2025-11-12 14:47 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file H2O Lamp.csv
+
+**References**:
+- H2O Lamp.csv
+
+---
+## 2025-11-12 14:48 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file 1995low.tab
+
+**References**:
+- 1995low.tab
+
+---
+## 2025-11-12 14:49 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file CH4_Fink(1977)_297K_440-1036nm.txt
+
+**References**:
+- CH4_Fink(1977)_297K_440-1036nm.txt
+
+---
+## 2025-11-12 14:49 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file 1995high.tab
+
+**References**:
+- 1995high.tab
+
+---
+## 2025-11-12 14:58 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file S2.5Zr2_BD+44_2267.fits
+
+**References**:
+- S2.5Zr2_BD+44_2267.fits
+
+---
+## 2025-11-12 14:58 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file S4.5Zr2Ti4_HD64332.fits
+
+**References**:
+- S4.5Zr2Ti4_HD64332.fits
+
+---
+## 2025-11-12 14:58 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file S5-S6Zr3to4Ti0_HD62164.fits
+
+**References**:
+- S5-S6Zr3to4Ti0_HD62164.fits
+
+---
+## 2025-11-12 14:58 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file SC5.5Zr0.5_HD44544.fits
+
+**References**:
+- SC5.5Zr0.5_HD44544.fits
+
+---
+## 2025-11-12 15:00 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file CO2 - 500 torr.csv
+
+**References**:
+- CO2 - 500 torr.csv
+
+---
+## 2025-11-12 15:01 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file jupiter__9408090029N_vo.fits
+
+**References**:
+- jupiter__9408090029N_vo.fits
+
+---
+## 2025-11-12 15:02 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file C7,6e(N4)_HD31996.fits
+
+**References**:
+- C7,6e(N4)_HD31996.fits
+
+---
+## 2025-11-12 15:02 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file C-J4.5IIIa_C26j6_HD70138.fits
+
+**References**:
+- C-J4.5IIIa_C26j6_HD70138.fits
+
+---
+## 2025-11-12 15:02 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file C-J5-C25-j4_HD57160.fits
+
+**References**:
+- C-J5-C25-j4_HD57160.fits
+
+---
+## 2025-11-12 15:02 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file C-N4.5C24.5_HD92055.fits
+
+**References**:
+- C-N4.5C24.5_HD92055.fits
+
+---
+## 2025-11-12 15:02 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file C-N4.5C25.5MS3_HD76221.fits
+
+**References**:
+- C-N4.5C25.5MS3_HD76221.fits
+
+---
+## 2025-11-12 15:02 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file C-N4C23.5_HD44984.fits
+
+**References**:
+- C-N4C23.5_HD44984.fits
+
+---
+## 2025-11-12 15:02 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file C-N5C26-_HD48664.fits
+
+**References**:
+- C-N5C26-_HD48664.fits
+
+---
+## 2025-11-12 15:02 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file C-R2+IIIa_C22.5_HD76846.fits
+
+**References**:
+- C-R2+IIIa_C22.5_HD76846.fits
 
 ---

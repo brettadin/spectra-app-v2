@@ -7,3 +7,5 @@ downloads/
 reports/**/*.log
 exports/logs/**
 samples/solar_system/earth/MOD09.A2025305.1535.061.2025307155046.hdf
+exports/logs/spectra-app.log
+docs/history/KNOWLEDGE_LOG.md

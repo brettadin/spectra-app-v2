@@ -1,12 +1,5 @@
 # Patch Notes
 
-## 2025-11-12 (Theme bootstrap compatibility fix) — 15:15 ET / 20:15Z UTC
-- Restored the theme bootstrap path in `app/main.py` so the launcher always resolves a palette from persisted settings before
-  constructing the main window, keeping merge retries from crashing with `NameError` when downstream callers expect a `theme`
-  object.
-- Exposed `SpectraMainWindow.load_theme_preference()` for reuse and used it to hydrate the initial palette while preserving the
-  single-pass styling workflow handled inside the window. (`app/main.py`, `app/ui/main_window.py`)
-
 ## 2025-11-12 (Theme performance regression fix) — 14:48 ET / 19:48Z UTC
 - Eliminated duplicate application-wide stylesheet passes when the main window boots so Qt no longer repaints the entire widget tree twice. The window now records the active theme key and skips redundant `QApplication.setStyleSheet` / `pyqtgraph` updates unless the user actually selects a new preset. (`app/ui/main_window.py`)
 - Deferred theme orchestration out of the launcher entry point and centralised it in the main window so startup avoids extra QSettings lookups and redundant palette configuration. (`app/main.py`, `app/ui/main_window.py`)
@@ -909,13 +902,3 @@ See: `docs/dev/worklog/2025-10-22.md` and neurons in `docs/brains/*`.
 - Added a shared theme registry with light, dark, and midnight presets so the desktop shell can swap window colours without touching code.
 - Persist the selected theme in `QSettings`, surface the options under View → Theme, and reapply the stylesheet, plot colours, and pyqtgraph palette immediately when switching.
 - Synced the plot pane with the active theme so axes, legends, and crosshair accents track the window palette, keeping tables and charts visually coherent.
-
-## 2025-11-12T15:23:08-05:00 — Launcher theme bootstrap guard
-
-- Hardened the desktop launcher to treat persisted theme lookups as optional, falling back to the default palette when preference hydration fails.
-- Reused the validated theme definition to seed `SpectraMainWindow`, avoiding the undefined `theme` reference that crashed Windows launch scripts after conflicted merges.
-
-## 2025-11-12T15:35:59-05:00 — Launcher theme instantiation hardening
-
-- Simplified the entry point to pass the resolved palette key directly into `SpectraMainWindow`, eliminating lingering references to the old `theme` variable on Windows workstations that still carried conflicted code.
-- Keeps the runtime bootstrap resilient when existing installations retry merges or launchers that predate the theming refactor resolve their imports.
