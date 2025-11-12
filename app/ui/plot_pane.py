@@ -17,6 +17,7 @@ except Exception:  # pragma: no cover
     pg = None  # type: ignore[assignment]
 
 from app.qt_compat import get_qt
+from app.ui.themes import ThemeDefinition, get_theme_definition
 from .palettes import DEFAULT_PALETTE_KEY, PaletteDefinition, load_palette_definitions
 
 QtCore: Any
@@ -66,6 +67,10 @@ class PlotPane(QtWidgets.QWidget):
         self._max_points = self.normalize_max_points(max_points)
         self._crosshair_visible = True
         self._build_ui()
+        try:
+            self.apply_theme(get_theme_definition(None))
+        except Exception:
+            pass
 
     # ------------------------------------------------------------------
     # Public API
@@ -75,6 +80,53 @@ class PlotPane(QtWidgets.QWidget):
         self._display_unit = unit
         self._redraw_units()
         self.unitChanged.emit(unit)
+
+    def apply_theme(self, theme: ThemeDefinition | str | None) -> None:
+        """Apply widget-level styling for the provided theme."""
+
+        theme_def = theme if isinstance(theme, ThemeDefinition) else get_theme_definition(theme)
+        palette = theme_def.palette
+        plot_item = self._plot.getPlotItem()
+
+        # Plot background and axis colours
+        try:
+            self._plot.setBackground(palette.plot_background)
+        except Exception:
+            pass
+
+        try:
+            axis_pen = pg.mkPen(palette.plot_foreground)
+            for axis in ("bottom", "left"):
+                axis_item = plot_item.getAxis(axis)
+                if hasattr(axis_item, "setPen"):
+                    axis_item.setPen(axis_pen)
+                if hasattr(axis_item, "setTextPen"):
+                    axis_item.setTextPen(axis_pen)
+            label_style = {"color": palette.plot_foreground}
+            self._plot.setLabel("bottom", "Wavelength", units=self._display_unit, **label_style)
+            self._plot.setLabel("left", self._y_label, **label_style)
+        except Exception:
+            pass
+
+        # Light grid and crosshair pens tuned to the theme
+        try:
+            crosshair_color = QtGui.QColor(palette.plot_foreground)
+            if crosshair_color.isValid():
+                crosshair_color.setAlphaF(0.35)
+                crosshair_pen = pg.mkPen(crosshair_color, width=1)
+                self._vline.setPen(crosshair_pen)
+                self._hline.setPen(crosshair_pen)
+        except Exception:
+            pass
+
+        # Legend styling: subtle panel background and readable text
+        try:
+            self._legend.setBrush(pg.mkBrush(palette.panel_alt))
+            self._legend.setPen(pg.mkPen(palette.border))
+            if hasattr(self._legend, "setLabelTextColor"):
+                self._legend.setLabelTextColor(palette.plot_foreground)
+        except Exception:
+            pass
 
     def add_trace(
         self,

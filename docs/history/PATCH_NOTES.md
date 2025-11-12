@@ -891,3 +891,9 @@ See: `docs/dev/worklog/2025-10-22.md` and neurons in `docs/brains/*`.
 
 - Routed `.dat` uploads through the resilient CSV importer and added the extension to the file dialog filter and samples browser so MASCS-style tables load without renaming.
 - Documented DAT usage in the importing guide and extended ingest smoke tests with a `.dat` regression to keep the extension registered.
+
+## 2025-11-12T13:23:12-05:00 — Theme switcher and plot theming
+
+- Added a shared theme registry with light, dark, and midnight presets so the desktop shell can swap window colours without touching code.
+- Persist the selected theme in `QSettings`, surface the options under View → Theme, and reapply the stylesheet, plot colours, and pyqtgraph palette immediately when switching.
+- Synced the plot pane with the active theme so axes, legends, and crosshair accents track the window palette, keeping tables and charts visually coherent.
