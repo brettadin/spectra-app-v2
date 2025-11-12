@@ -1,10 +1,5 @@
 # Patch Notes
 
-## 2025-11-12 (Theme performance regression fix) — 14:48 ET / 19:48Z UTC
-- Eliminated duplicate application-wide stylesheet passes when the main window boots so Qt no longer repaints the entire widget tree twice. The window now records the active theme key and skips redundant `QApplication.setStyleSheet` / `pyqtgraph` updates unless the user actually selects a new preset. (`app/ui/main_window.py`)
-- Deferred theme orchestration out of the launcher entry point and centralised it in the main window so startup avoids extra QSettings lookups and redundant palette configuration. (`app/main.py`, `app/ui/main_window.py`)
-- Cached the generated QSS per theme key to avoid rebuilding large stylesheet strings during rapid palette switches. (`app/ui/styles.py`)
-
 ## 2025-11-06 (Math operations UI and spectral line unpin fix) — 22:15 ET / 03:15Z UTC
 - **Math operations UI**: The Merge/Average tab has been expanded and renamed to "Math" with three operations:
   - **Average**: Combine multiple spectra via interpolation onto a common wavelength grid (existing feature, now with improved UI)

@@ -62,28 +62,6 @@ References
 
 ---
 
-## 2025-11-12 14:48 (America/New_York) / 2025-11-12 19:48 (UTC) — Theme runtime responsiveness fix
-
-Author: automation
-
-Why
-- The new theming system triggered a second application-wide stylesheet polish during startup, leaving the UI sluggish while Qt repainted every widget and rebuilding the QSS string on each toggle.
-
-What changed
-- Recorded the last applied theme key so redundant `QApplication.setStyleSheet` / `apply_pyqtgraph_theme` calls are skipped, letting the main window re-theme only when the palette actually changes.
-- Moved theme bootstrap logic out of `app/main.py` and into `SpectraMainWindow` so initialization performs a single controlled pass before widgets are created, then reapplies styling to the plot without re-polishing the app.
-- Cached generated theme stylesheets via `functools.lru_cache` to avoid recomputing large QSS payloads during rapid theme switches.
-
-Impact
-- Startup latency and menu responsiveness returned to pre-theme levels while retaining live palette switching for plots and widgets.
-
-References
-- Code: `app/main.py`
-- Code: `app/ui/main_window.py`
-- Code: `app/ui/styles.py`
-
----
-
 ## 2025-11-10 16:24 (America/New_York) / 2025-11-10 21:24 (UTC) — DAT ingest support for ASCII tables
 
 Author: automation

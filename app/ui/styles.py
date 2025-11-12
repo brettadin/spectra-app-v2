@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from functools import lru_cache
 from typing import overload
 
 from app.ui.themes import ThemeDefinition, get_theme_definition
@@ -18,7 +17,6 @@ def get_app_stylesheet(theme: str | None = None) -> str:
     ...
 
 
-@lru_cache(maxsize=None)
 def get_app_stylesheet(theme: ThemeDefinition | str | None = None) -> str:
     """Return the QSS stylesheet string for ``theme``."""
 
