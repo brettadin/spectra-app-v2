@@ -84,7 +84,7 @@ def main(argv: list[str] | None = None) -> int:
     app.setApplicationName("Spectra App")
     app.setOrganizationName("Spectra")
     try:
-        window: SpectraMainWindow = SpectraMainWindow()
+        window: SpectraMainWindow = SpectraMainWindow(theme_key=theme.key)
         window.show()
         logger.info("Main window constructed and shown successfully")
     except Exception as exc:

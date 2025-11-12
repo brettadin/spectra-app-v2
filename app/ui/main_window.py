@@ -245,6 +245,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.plot = PlotPane(self, max_points=self._plot_max_points)
         self.plot.remove_export_from_context_menu()
         self.central_split.addWidget(self.plot)
+        self._apply_theme_by_key(self._theme_key, persist=False)
         self.plot.autoscale()
         # Live cursor readout in status bar
         try:
