@@ -103,7 +103,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             self.reference_library.line_shape_placeholders(),
             self.reference_library.line_shape_metadata(),
         )
-        self._theme_key = self.load_theme_preference() if theme_key is None else get_theme_definition(theme_key).key
+        self._theme_key = self._load_theme_preference() if theme_key is None else get_theme_definition(theme_key).key
         self._theme_action_group: QtGui.QActionGroup | None = None
         self._applied_theme_key: str | None = None
         self.overlay_service = OverlayService(self.units_service, line_shape_model=self.line_shape_model)
@@ -245,6 +245,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.plot = PlotPane(self, max_points=self._plot_max_points)
         self.plot.remove_export_from_context_menu()
         self.central_split.addWidget(self.plot)
+        self._apply_theme_by_key(self._theme_key, persist=False)
         self.plot.autoscale()
         # Live cursor readout in status bar
         try:
@@ -1156,8 +1157,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         except Exception:
             pass
 
-    @staticmethod
-    def load_theme_preference() -> str:
+    def _load_theme_preference(self) -> str:
         try:
             settings = QtCore.QSettings("SpectraApp", "DesktopPreview")
             stored = settings.value("ui/theme", default_theme_key())

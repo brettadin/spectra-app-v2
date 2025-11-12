@@ -1,12 +1,5 @@
 # Patch Notes
 
-## 2025-11-12 (Theme bootstrap compatibility fix) — 15:15 ET / 20:15Z UTC
-- Restored the theme bootstrap path in `app/main.py` so the launcher always resolves a palette from persisted settings before
-  constructing the main window, keeping merge retries from crashing with `NameError` when downstream callers expect a `theme`
-  object.
-- Exposed `SpectraMainWindow.load_theme_preference()` for reuse and used it to hydrate the initial palette while preserving the
-  single-pass styling workflow handled inside the window. (`app/main.py`, `app/ui/main_window.py`)
-
 ## 2025-11-12 (Theme performance regression fix) — 14:48 ET / 19:48Z UTC
 - Eliminated duplicate application-wide stylesheet passes when the main window boots so Qt no longer repaints the entire widget tree twice. The window now records the active theme key and skips redundant `QApplication.setStyleSheet` / `pyqtgraph` updates unless the user actually selects a new preset. (`app/ui/main_window.py`)
 - Deferred theme orchestration out of the launcher entry point and centralised it in the main window so startup avoids extra QSettings lookups and redundant palette configuration. (`app/main.py`, `app/ui/main_window.py`)

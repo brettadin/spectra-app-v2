@@ -84,26 +84,6 @@ References
 
 ---
 
-## 2025-11-12 15:15 (America/New_York) / 2025-11-12 20:15 (UTC) — Theme bootstrap compatibility
-
-Author: automation
-
-Why
-- A merge conflict resolved with "keep current" dropped the launch-time theme variable, causing the Windows launcher to crash with `NameError` when it tried to pass `theme.key` into `SpectraMainWindow`.
-
-What changed
-- Exposed `SpectraMainWindow.load_theme_preference()` so callers can hydrate the stored palette key without instantiating the window.
-- Reinstated the launcher-side theme lookup and forwarded the resolved key into the main window constructor, preserving the single-pass styling flow while keeping compatibility with downstream bootstrap code.
-
-Impact
-- Launch scripts that expect a `theme` object regain compatibility, and the persisted palette loads consistently even when retrying conflicted merges.
-
-References
-- Code: `app/main.py`
-- Code: `app/ui/main_window.py`
-
----
-
 ## 2025-11-10 16:24 (America/New_York) / 2025-11-10 21:24 (UTC) — DAT ingest support for ASCII tables
 
 Author: automation
