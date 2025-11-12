@@ -39,7 +39,8 @@ This repository represents the complete rewrite of the Spectra-App into a modern
   - Access via **File → Fetch Remote Data** (Ctrl+Shift+R)
   - All data from credible sources: MAST, Exo.MAST, NASA Exoplanet Archive
   - Wavelength coverage: UV, visible, near-IR, mid-IR (0.1–30 µm depending on instrument)
-
+* SEMI BORKED. UHHH. HAVENT REALLY TRIED TO FETCH DATA IN A WHILE BUT IM LIKE 90% CERTAIN ITS A BROKEN MESS AND WONT WORK CORRECTLY.*
+That said we still can graph real data ya know lol.
 > **Note**: Bundled reference data (JWST targets JSON) contains example-only digitized values for demonstration purposes. For scientific analysis, always use the Remote Data dialog to fetch real calibrated observations from MAST.
 
 ### Data Ingestion & Management
@@ -47,13 +48,13 @@ This repository represents the complete rewrite of the Spectra-App into a modern
 - **Remote Data Integration**: NASA/MAST API for JWST spectra, NIST Atomic Spectra Database, NASA Exoplanet Archive
 - **Offline-First Cache**: All data persists locally with SHA256 deduplication
 - **Provenance Tracking**: Complete audit trail for all data operations
-
+* doesnt always detect file types. lately its been missing .tab files for me *
 ### Analysis & Processing
 - **Unit Canon System**: Store raw data in nanometers; display-time conversions (nm/Å/µm/cm⁻¹)
 - **Mathematical Operations**: A−B, A/B (epsilon-guarded), baseline removal, Savitzky-Golay smoothing
 - **Spectral Analysis**: Gaussian fitting, peak detection, continuum subtraction
 - **Reference Overlays**: NIST atomic line lists with interactive redshift controls
-- **IR Functional Groups**: 50+ comprehensive functional groups (hydroxyl, carbonyl, amine, aromatic, aliphatic, nitrogen, sulfur, halogen) with wavenumber ranges, intensity profiles, and vibrational modes for FTIR/ATR analysis
+- **IR Functional Groups**: 50+ comprehensive functional groups (hydroxyl, carbonyl, amine, aromatic, aliphatic, nitrogen, sulfur, halogen) with wavenumber ranges, intensity profiles, and vibrational modes for FTIR/ATR analysis * we can make this better for sure, i initally imported some self teaching FG codebase, and tried to adapt it. We should add in WAY more groups and make it work better. I dont know about the learning thing, but eh. put a pin in that part for now *
 - **ML Roadmap**: Hybrid system planned for automated functional group identification combining rule-based peak detection (80% precision target) with neural network predictions (90% precision target) trained on ~52K spectra from NIST and SDBS databases
  - **Calibration & Display‑time Transforms**: Apply FWHM blurring and radial‑velocity shifts in nm‑space at display time via the Calibration tab; transforms are non‑destructive and precede normalisation.
  - **Normalisation Modes + Global Toggle**: None, Max, Area, with an optional Global checkbox to compute a single scale across all visible spectra.
@@ -101,8 +102,10 @@ spectra-app-beta/
 └── packaging/            # Distribution & deployment
 ```
 
-## 📚 New User? Start Here!
+* so much of the file strucutre has been changed. we should revise this *
 
+## 📚 New User? Start Here!
+* this should all be fixed. a lot of it isnt right or out of date *
 **Brand new to Spectra App?** Check out these guides:
 
 1. **[Getting Started with Real Data](docs/user/GETTING_STARTED_WITH_REAL_DATA.md)** 🌟
@@ -211,7 +214,7 @@ The Spectra App is designed for rigorous spectroscopic analysis with particular 
 - **Transparent Processing**: All transformations documented and reversible
 
 ## 🛠 Development & Contribution
-
+* again could be out of date * 
 ### For Users
 - **Documentation**: Start with `docs/user/quickstart.md`
 - **Tutorials**: Explore `docs/user/spectroscopy_primer.md` and `docs/user/plot_tools.md`
@@ -259,6 +262,7 @@ Primary entry point: `docs/INDEX.md` (canonical documentation map)
 
 ## 🎯 Roadmap & Status
 
+* this is so out of date*
 ### Current Phase: Core Implementation
 - [x] Application skeleton and service architecture
 - [x] Unit conversion system and provenance tracking
