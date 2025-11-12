@@ -2396,3 +2396,454 @@ AttributeError: 'ReferencePanel' object has no attribute 'nist_collections_list'
 2025-11-10 17:47:12 INFO [spectra] Starting Spectra App desktop session
 2025-11-10 17:47:13 INFO [spectra] Main window constructed and shown successfully
 2025-11-10 17:49:32 INFO [spectra] Qt event loop exited with code 0
+2025-11-11 09:26:36 INFO [spectra] Starting Spectra App desktop session
+2025-11-11 09:26:38 INFO [spectra] Main window constructed and shown successfully
+2025-11-11 09:26:46 INFO [spectra] Qt event loop exited with code 0
+2025-11-11 10:17:46 INFO [spectra] Starting Spectra App desktop session
+2025-11-11 10:17:50 INFO [spectra] Main window constructed and shown successfully
+2025-11-11 10:18:24 INFO [spectra] Max normalization: norm_val=0.550500
+2025-11-11 10:18:24 INFO [spectra]   Result range: [0.030518, 1.000000]
+2025-11-11 10:18:24 INFO [spectra] Max normalization: norm_val=0.598600
+2025-11-11 10:18:24 INFO [spectra]   Result range: [0.045105, 1.000000]
+2025-11-11 10:18:24 INFO [spectra] Max normalization: norm_val=0.627600
+2025-11-11 10:18:24 INFO [spectra]   Result range: [0.015296, 1.000000]
+2025-11-11 10:18:24 INFO [spectra] Max normalization: norm_val=0.550200
+2025-11-11 10:18:24 INFO [spectra]   Result range: [0.035623, 1.000000]
+2025-11-11 10:18:24 INFO [spectra] Max normalization: norm_val=0.599000
+2025-11-11 10:18:24 INFO [spectra]   Result range: [0.054257, 1.000000]
+2025-11-11 10:18:24 INFO [spectra] Max normalization: norm_val=0.654200
+2025-11-11 10:18:24 INFO [spectra]   Result range: [0.011464, 1.000000]
+2025-11-11 10:18:24 INFO [spectra] Max normalization: norm_val=0.693300
+2025-11-11 10:18:24 INFO [spectra]   Result range: [0.015433, 1.000000]
+2025-11-11 10:18:24 INFO [spectra] Max normalization: norm_val=0.303100
+2025-11-11 10:18:24 INFO [spectra]   Result range: [0.142197, 1.000000]
+2025-11-11 10:18:24 INFO [spectra] Max normalization: norm_val=38756.466667
+2025-11-11 10:18:24 INFO [spectra]   Result range: [-0.000730, 1.000000]
+2025-11-11 10:21:08 INFO [spectra] Max normalization: norm_val=614.316302
+2025-11-11 10:21:08 INFO [spectra]   Result range: [-0.014882, 1.000000]
+2025-11-11 10:39:40 INFO [spectra] Max normalization: norm_val=1333.951724
+2025-11-11 10:39:40 INFO [spectra]   Result range: [-0.006826, 1.000000]
+2025-11-11 10:49:11 INFO [spectra] Qt event loop exited with code 0
+2025-11-11 11:09:01 INFO [spectra] Starting Spectra App desktop session
+2025-11-11 11:09:03 INFO [spectra] Main window constructed and shown successfully
+2025-11-11 11:10:03 INFO [spectra] Max normalization: norm_val=0.550500
+2025-11-11 11:10:03 INFO [spectra]   Result range: [0.030518, 1.000000]
+2025-11-11 11:10:03 INFO [spectra] Max normalization: norm_val=0.598600
+2025-11-11 11:10:03 INFO [spectra]   Result range: [0.045105, 1.000000]
+2025-11-11 11:10:03 INFO [spectra] Max normalization: norm_val=0.627600
+2025-11-11 11:10:03 INFO [spectra]   Result range: [0.015296, 1.000000]
+2025-11-11 11:10:03 INFO [spectra] Max normalization: norm_val=614.316302
+2025-11-11 11:10:03 INFO [spectra]   Result range: [-0.014882, 1.000000]
+2025-11-11 11:10:03 INFO [spectra] Max normalization: norm_val=1333.951724
+2025-11-11 11:10:03 INFO [spectra]   Result range: [-0.006826, 1.000000]
+2025-11-11 11:10:03 INFO [spectra] Max normalization: norm_val=18919.596754
+2025-11-11 11:10:03 INFO [spectra]   Result range: [-0.027996, 1.000000]
+2025-11-11 11:10:03 INFO [spectra] Max normalization: norm_val=1677.493035
+2025-11-11 11:10:03 INFO [spectra]   Result range: [-0.014852, 1.000000]
+2025-11-11 11:46:23 INFO [spectra] Max normalization: norm_val=0.550200
+2025-11-11 11:46:23 INFO [spectra]   Result range: [0.035623, 1.000000]
+2025-11-11 11:46:23 INFO [spectra] Max normalization: norm_val=0.599000
+2025-11-11 11:46:23 INFO [spectra]   Result range: [0.054257, 1.000000]
+2025-11-11 11:46:23 INFO [spectra] Max normalization: norm_val=0.654200
+2025-11-11 11:46:23 INFO [spectra]   Result range: [0.011464, 1.000000]
+2025-11-11 11:46:23 INFO [spectra] Max normalization: norm_val=0.693300
+2025-11-11 11:46:23 INFO [spectra]   Result range: [0.015433, 1.000000]
+2025-11-11 11:46:23 INFO [spectra] Max normalization: norm_val=0.303100
+2025-11-11 11:46:23 INFO [spectra]   Result range: [0.142197, 1.000000]
+2025-11-11 11:46:42 INFO [spectra] Max normalization: norm_val=0.550500
+2025-11-11 11:46:42 INFO [spectra]   Result range: [0.030518, 1.000000]
+2025-11-11 11:46:42 INFO [spectra] Max normalization: norm_val=0.598600
+2025-11-11 11:46:42 INFO [spectra]   Result range: [0.045105, 1.000000]
+2025-11-11 11:46:42 INFO [spectra] Max normalization: norm_val=0.627600
+2025-11-11 11:46:42 INFO [spectra]   Result range: [0.015296, 1.000000]
+2025-11-11 11:46:42 INFO [spectra] Max normalization: norm_val=614.316302
+2025-11-11 11:46:42 INFO [spectra]   Result range: [-0.014882, 1.000000]
+2025-11-11 11:46:42 INFO [spectra] Max normalization: norm_val=1333.951724
+2025-11-11 11:46:42 INFO [spectra]   Result range: [-0.006826, 1.000000]
+2025-11-11 11:46:42 INFO [spectra] Max normalization: norm_val=18919.596754
+2025-11-11 11:46:42 INFO [spectra]   Result range: [-0.027996, 1.000000]
+2025-11-11 11:46:42 INFO [spectra] Max normalization: norm_val=1677.493035
+2025-11-11 11:46:42 INFO [spectra]   Result range: [-0.014852, 1.000000]
+2025-11-11 11:46:42 INFO [spectra] Max normalization: norm_val=0.550200
+2025-11-11 11:46:42 INFO [spectra]   Result range: [0.035623, 1.000000]
+2025-11-11 11:46:43 INFO [spectra] Max normalization: norm_val=0.599000
+2025-11-11 11:46:43 INFO [spectra]   Result range: [0.054257, 1.000000]
+2025-11-11 11:46:43 INFO [spectra] Max normalization: norm_val=0.654200
+2025-11-11 11:46:43 INFO [spectra]   Result range: [0.011464, 1.000000]
+2025-11-11 11:46:43 INFO [spectra] Max normalization: norm_val=0.693300
+2025-11-11 11:46:43 INFO [spectra]   Result range: [0.015433, 1.000000]
+2025-11-11 11:46:43 INFO [spectra] Max normalization: norm_val=0.303100
+2025-11-11 11:46:43 INFO [spectra]   Result range: [0.142197, 1.000000]
+2025-11-11 11:47:58 INFO [spectra] Max normalization: norm_val=2.405786
+2025-11-11 11:47:58 INFO [spectra]   Result range: [0.000875, 1.000000]
+2025-11-11 12:13:59 INFO [spectra] Max normalization: norm_val=0.550500
+2025-11-11 12:13:59 INFO [spectra]   Result range: [0.030518, 1.000000]
+2025-11-11 12:13:59 INFO [spectra] Max normalization: norm_val=0.598600
+2025-11-11 12:13:59 INFO [spectra]   Result range: [0.045105, 1.000000]
+2025-11-11 12:13:59 INFO [spectra] Max normalization: norm_val=0.627600
+2025-11-11 12:13:59 INFO [spectra]   Result range: [0.015296, 1.000000]
+2025-11-11 12:13:59 INFO [spectra] Max normalization: norm_val=614.316302
+2025-11-11 12:13:59 INFO [spectra]   Result range: [-0.014882, 1.000000]
+2025-11-11 12:13:59 INFO [spectra] Max normalization: norm_val=1333.951724
+2025-11-11 12:13:59 INFO [spectra]   Result range: [-0.006826, 1.000000]
+2025-11-11 12:13:59 INFO [spectra] Max normalization: norm_val=18919.596754
+2025-11-11 12:13:59 INFO [spectra]   Result range: [-0.027996, 1.000000]
+2025-11-11 12:13:59 INFO [spectra] Max normalization: norm_val=1677.493035
+2025-11-11 12:13:59 INFO [spectra]   Result range: [-0.014852, 1.000000]
+2025-11-11 12:13:59 INFO [spectra] Max normalization: norm_val=0.550200
+2025-11-11 12:13:59 INFO [spectra]   Result range: [0.035623, 1.000000]
+2025-11-11 12:13:59 INFO [spectra] Max normalization: norm_val=0.599000
+2025-11-11 12:13:59 INFO [spectra]   Result range: [0.054257, 1.000000]
+2025-11-11 12:13:59 INFO [spectra] Max normalization: norm_val=0.654200
+2025-11-11 12:13:59 INFO [spectra]   Result range: [0.011464, 1.000000]
+2025-11-11 12:13:59 INFO [spectra] Max normalization: norm_val=0.693300
+2025-11-11 12:13:59 INFO [spectra]   Result range: [0.015433, 1.000000]
+2025-11-11 12:13:59 INFO [spectra] Max normalization: norm_val=0.303100
+2025-11-11 12:13:59 INFO [spectra]   Result range: [0.142197, 1.000000]
+2025-11-11 12:13:59 INFO [spectra] Max normalization: norm_val=2.405786
+2025-11-11 12:13:59 INFO [spectra]   Result range: [0.000875, 1.000000]
+2025-11-11 12:14:00 INFO [spectra] Max normalization: norm_val=2.405786
+2025-11-11 12:14:00 INFO [spectra]   Result range: [0.000875, 1.000000]
+2025-11-11 12:14:02 INFO [spectra] Max normalization: norm_val=0.550500
+2025-11-11 12:14:02 INFO [spectra]   Result range: [0.030518, 1.000000]
+2025-11-11 12:14:02 INFO [spectra] Max normalization: norm_val=0.598600
+2025-11-11 12:14:02 INFO [spectra]   Result range: [0.045105, 1.000000]
+2025-11-11 12:14:02 INFO [spectra] Max normalization: norm_val=0.627600
+2025-11-11 12:14:02 INFO [spectra]   Result range: [0.015296, 1.000000]
+2025-11-11 12:14:02 INFO [spectra] Max normalization: norm_val=614.316302
+2025-11-11 12:14:02 INFO [spectra]   Result range: [-0.014882, 1.000000]
+2025-11-11 12:14:02 INFO [spectra] Max normalization: norm_val=1333.951724
+2025-11-11 12:14:02 INFO [spectra]   Result range: [-0.006826, 1.000000]
+2025-11-11 12:14:02 INFO [spectra] Max normalization: norm_val=18919.596754
+2025-11-11 12:14:02 INFO [spectra]   Result range: [-0.027996, 1.000000]
+2025-11-11 12:14:02 INFO [spectra] Max normalization: norm_val=1677.493035
+2025-11-11 12:14:02 INFO [spectra]   Result range: [-0.014852, 1.000000]
+2025-11-11 12:14:02 INFO [spectra] Max normalization: norm_val=0.550200
+2025-11-11 12:14:02 INFO [spectra]   Result range: [0.035623, 1.000000]
+2025-11-11 12:14:02 INFO [spectra] Max normalization: norm_val=0.599000
+2025-11-11 12:14:02 INFO [spectra]   Result range: [0.054257, 1.000000]
+2025-11-11 12:14:02 INFO [spectra] Max normalization: norm_val=0.654200
+2025-11-11 12:14:02 INFO [spectra]   Result range: [0.011464, 1.000000]
+2025-11-11 12:14:02 INFO [spectra] Max normalization: norm_val=0.693300
+2025-11-11 12:14:02 INFO [spectra]   Result range: [0.015433, 1.000000]
+2025-11-11 12:14:02 INFO [spectra] Max normalization: norm_val=0.303100
+2025-11-11 12:14:02 INFO [spectra]   Result range: [0.142197, 1.000000]
+2025-11-11 12:14:02 INFO [spectra] Max normalization: norm_val=2.405786
+2025-11-11 12:14:02 INFO [spectra]   Result range: [0.000875, 1.000000]
+2025-11-11 12:14:02 INFO [spectra] Max normalization: norm_val=2.405786
+2025-11-11 12:14:02 INFO [spectra]   Result range: [0.000875, 1.000000]
+2025-11-11 12:14:05 INFO [spectra] Max normalization: norm_val=18919.596754
+2025-11-11 12:14:05 INFO [spectra]   Result range: [0.000001, 0.000029]
+2025-11-11 12:14:05 INFO [spectra] Max normalization: norm_val=18919.596754
+2025-11-11 12:14:05 INFO [spectra]   Result range: [0.000001, 0.000032]
+2025-11-11 12:14:05 INFO [spectra] Max normalization: norm_val=18919.596754
+2025-11-11 12:14:05 INFO [spectra]   Result range: [0.000001, 0.000033]
+2025-11-11 12:14:05 INFO [spectra] Max normalization: norm_val=18919.596754
+2025-11-11 12:14:05 INFO [spectra]   Result range: [-0.000483, 0.032470]
+2025-11-11 12:14:05 INFO [spectra] Max normalization: norm_val=18919.596754
+2025-11-11 12:14:05 INFO [spectra]   Result range: [-0.000481, 0.070506]
+2025-11-11 12:14:05 INFO [spectra] Max normalization: norm_val=18919.596754
+2025-11-11 12:14:05 INFO [spectra]   Result range: [-0.027996, 1.000000]
+2025-11-11 12:14:05 INFO [spectra] Max normalization: norm_val=18919.596754
+2025-11-11 12:14:05 INFO [spectra]   Result range: [-0.001317, 0.088664]
+2025-11-11 12:14:05 INFO [spectra] Max normalization: norm_val=18919.596754
+2025-11-11 12:14:05 INFO [spectra]   Result range: [0.000001, 0.000029]
+2025-11-11 12:14:05 INFO [spectra] Max normalization: norm_val=18919.596754
+2025-11-11 12:14:05 INFO [spectra]   Result range: [0.000002, 0.000032]
+2025-11-11 12:14:05 INFO [spectra] Max normalization: norm_val=18919.596754
+2025-11-11 12:14:05 INFO [spectra]   Result range: [0.000000, 0.000035]
+2025-11-11 12:14:05 INFO [spectra] Max normalization: norm_val=18919.596754
+2025-11-11 12:14:05 INFO [spectra]   Result range: [0.000001, 0.000037]
+2025-11-11 12:14:05 INFO [spectra] Max normalization: norm_val=18919.596754
+2025-11-11 12:14:05 INFO [spectra]   Result range: [0.000002, 0.000016]
+2025-11-11 12:14:05 INFO [spectra] Max normalization: norm_val=18919.596754
+2025-11-11 12:14:05 INFO [spectra]   Result range: [0.000000, 0.000127]
+2025-11-11 12:14:06 INFO [spectra] Max normalization: norm_val=18919.596754
+2025-11-11 12:14:06 INFO [spectra]   Result range: [0.000000, 0.000127]
+2025-11-11 12:14:08 INFO [spectra] Max normalization: norm_val=0.550500
+2025-11-11 12:14:08 INFO [spectra]   Result range: [0.030518, 1.000000]
+2025-11-11 12:14:08 INFO [spectra] Max normalization: norm_val=0.598600
+2025-11-11 12:14:08 INFO [spectra]   Result range: [0.045105, 1.000000]
+2025-11-11 12:14:08 INFO [spectra] Max normalization: norm_val=0.627600
+2025-11-11 12:14:08 INFO [spectra]   Result range: [0.015296, 1.000000]
+2025-11-11 12:14:08 INFO [spectra] Max normalization: norm_val=614.316302
+2025-11-11 12:14:08 INFO [spectra]   Result range: [-0.014882, 1.000000]
+2025-11-11 12:14:08 INFO [spectra] Max normalization: norm_val=1333.951724
+2025-11-11 12:14:08 INFO [spectra]   Result range: [-0.006826, 1.000000]
+2025-11-11 12:14:08 INFO [spectra] Max normalization: norm_val=18919.596754
+2025-11-11 12:14:08 INFO [spectra]   Result range: [-0.027996, 1.000000]
+2025-11-11 12:14:08 INFO [spectra] Max normalization: norm_val=1677.493035
+2025-11-11 12:14:08 INFO [spectra]   Result range: [-0.014852, 1.000000]
+2025-11-11 12:14:08 INFO [spectra] Max normalization: norm_val=0.550200
+2025-11-11 12:14:08 INFO [spectra]   Result range: [0.035623, 1.000000]
+2025-11-11 12:14:08 INFO [spectra] Max normalization: norm_val=0.599000
+2025-11-11 12:14:08 INFO [spectra]   Result range: [0.054257, 1.000000]
+2025-11-11 12:14:08 INFO [spectra] Max normalization: norm_val=0.654200
+2025-11-11 12:14:08 INFO [spectra]   Result range: [0.011464, 1.000000]
+2025-11-11 12:14:08 INFO [spectra] Max normalization: norm_val=0.693300
+2025-11-11 12:14:08 INFO [spectra]   Result range: [0.015433, 1.000000]
+2025-11-11 12:14:08 INFO [spectra] Max normalization: norm_val=0.303100
+2025-11-11 12:14:08 INFO [spectra]   Result range: [0.142197, 1.000000]
+2025-11-11 12:14:08 INFO [spectra] Max normalization: norm_val=2.405786
+2025-11-11 12:14:08 INFO [spectra]   Result range: [0.000875, 1.000000]
+2025-11-11 12:14:08 INFO [spectra] Max normalization: norm_val=2.405786
+2025-11-11 12:14:08 INFO [spectra]   Result range: [0.000875, 1.000000]
+2025-11-11 12:14:18 INFO [spectra] Area normalization: norm_val=2013.243150
+2025-11-11 12:14:18 INFO [spectra]   Result range: [0.000008, 0.000273]
+2025-11-11 12:14:18 INFO [spectra] Area normalization: norm_val=2181.196850
+2025-11-11 12:14:18 INFO [spectra]   Result range: [0.000012, 0.000274]
+2025-11-11 12:14:18 INFO [spectra] Area normalization: norm_val=1031.413550
+2025-11-11 12:14:18 INFO [spectra]   Result range: [0.000009, 0.000608]
+2025-11-11 12:14:18 INFO [spectra] Area normalization: norm_val=398078.711897
+2025-11-11 12:14:18 INFO [spectra]   Result range: [-0.000023, 0.001543]
+2025-11-11 12:14:18 INFO [spectra] Area normalization: norm_val=214748.190408
+2025-11-11 12:14:18 INFO [spectra]   Result range: [-0.000042, 0.006212]
+2025-11-11 12:14:18 INFO [spectra] Area normalization: norm_val=1603622.382011
+2025-11-11 12:14:18 INFO [spectra]   Result range: [-0.000330, 0.011798]
+2025-11-11 12:14:18 INFO [spectra] Area normalization: norm_val=173451.908261
+2025-11-11 12:14:18 INFO [spectra]   Result range: [-0.000144, 0.009671]
+2025-11-11 12:14:18 INFO [spectra] Area normalization: norm_val=739.984150
+2025-11-11 12:14:18 INFO [spectra]   Result range: [0.000026, 0.000744]
+2025-11-11 12:14:18 INFO [spectra] Area normalization: norm_val=740.940450
+2025-11-11 12:14:18 INFO [spectra]   Result range: [0.000044, 0.000808]
+2025-11-11 12:14:18 INFO [spectra] Area normalization: norm_val=566.332200
+2025-11-11 12:14:18 INFO [spectra]   Result range: [0.000013, 0.001155]
+2025-11-11 12:14:18 INFO [spectra] Area normalization: norm_val=521.069550
+2025-11-11 12:14:18 INFO [spectra]   Result range: [0.000021, 0.001331]
+2025-11-11 12:14:18 INFO [spectra] Area normalization: norm_val=334.664350
+2025-11-11 12:14:18 INFO [spectra]   Result range: [0.000129, 0.000906]
+2025-11-11 12:14:18 INFO [spectra] Area normalization: norm_val=1093369.289646
+2025-11-11 12:14:18 INFO [spectra]   Result range: [0.000000, 0.000002]
+2025-11-11 12:14:18 INFO [spectra] Area normalization: norm_val=1093369.289646
+2025-11-11 12:14:18 INFO [spectra]   Result range: [0.000000, 0.000002]
+2025-11-11 12:14:22 INFO [spectra] Area normalization: norm_val=2013.243150
+2025-11-11 12:14:22 INFO [spectra]   Result range: [0.000008, 0.000273]
+2025-11-11 12:14:22 INFO [spectra] Area normalization: norm_val=2181.196850
+2025-11-11 12:14:22 INFO [spectra]   Result range: [0.000012, 0.000274]
+2025-11-11 12:14:22 INFO [spectra] Area normalization: norm_val=1031.413550
+2025-11-11 12:14:22 INFO [spectra]   Result range: [0.000009, 0.000608]
+2025-11-11 12:14:22 INFO [spectra] Area normalization: norm_val=398078.711897
+2025-11-11 12:14:22 INFO [spectra]   Result range: [-0.000023, 0.001543]
+2025-11-11 12:14:22 INFO [spectra] Area normalization: norm_val=214748.190408
+2025-11-11 12:14:22 INFO [spectra]   Result range: [-0.000042, 0.006212]
+2025-11-11 12:14:22 INFO [spectra] Area normalization: norm_val=1603622.382011
+2025-11-11 12:14:22 INFO [spectra]   Result range: [-0.000330, 0.011798]
+2025-11-11 12:14:22 INFO [spectra] Area normalization: norm_val=173451.908261
+2025-11-11 12:14:22 INFO [spectra]   Result range: [-0.000144, 0.009671]
+2025-11-11 12:14:22 INFO [spectra] Area normalization: norm_val=739.984150
+2025-11-11 12:14:22 INFO [spectra]   Result range: [0.000026, 0.000744]
+2025-11-11 12:14:22 INFO [spectra] Area normalization: norm_val=740.940450
+2025-11-11 12:14:22 INFO [spectra]   Result range: [0.000044, 0.000808]
+2025-11-11 12:14:22 INFO [spectra] Area normalization: norm_val=566.332200
+2025-11-11 12:14:22 INFO [spectra]   Result range: [0.000013, 0.001155]
+2025-11-11 12:14:22 INFO [spectra] Area normalization: norm_val=521.069550
+2025-11-11 12:14:22 INFO [spectra]   Result range: [0.000021, 0.001331]
+2025-11-11 12:14:22 INFO [spectra] Area normalization: norm_val=334.664350
+2025-11-11 12:14:22 INFO [spectra]   Result range: [0.000129, 0.000906]
+2025-11-11 12:14:22 INFO [spectra] Area normalization: norm_val=1093369.289646
+2025-11-11 12:14:22 INFO [spectra]   Result range: [0.000000, 0.000002]
+2025-11-11 12:14:22 INFO [spectra] Area normalization: norm_val=1093369.289646
+2025-11-11 12:14:22 INFO [spectra]   Result range: [0.000000, 0.000002]
+2025-11-11 12:14:25 INFO [spectra] Area normalization: norm_val=2013.243150
+2025-11-11 12:14:25 INFO [spectra]   Result range: [0.000008, 0.000273]
+2025-11-11 12:14:25 INFO [spectra] Area normalization: norm_val=2181.196850
+2025-11-11 12:14:25 INFO [spectra]   Result range: [0.000012, 0.000274]
+2025-11-11 12:14:25 INFO [spectra] Area normalization: norm_val=1031.413550
+2025-11-11 12:14:25 INFO [spectra]   Result range: [0.000009, 0.000608]
+2025-11-11 12:14:25 INFO [spectra] Area normalization: norm_val=398078.711897
+2025-11-11 12:14:25 INFO [spectra]   Result range: [-0.000023, 0.001543]
+2025-11-11 12:14:25 INFO [spectra] Area normalization: norm_val=214748.190408
+2025-11-11 12:14:25 INFO [spectra]   Result range: [-0.000042, 0.006212]
+2025-11-11 12:14:25 INFO [spectra] Area normalization: norm_val=1603622.382011
+2025-11-11 12:14:25 INFO [spectra]   Result range: [-0.000330, 0.011798]
+2025-11-11 12:14:25 INFO [spectra] Area normalization: norm_val=173451.908261
+2025-11-11 12:14:25 INFO [spectra]   Result range: [-0.000144, 0.009671]
+2025-11-11 12:14:25 INFO [spectra] Area normalization: norm_val=739.984150
+2025-11-11 12:14:25 INFO [spectra]   Result range: [0.000026, 0.000744]
+2025-11-11 12:14:25 INFO [spectra] Area normalization: norm_val=740.940450
+2025-11-11 12:14:25 INFO [spectra]   Result range: [0.000044, 0.000808]
+2025-11-11 12:14:25 INFO [spectra] Area normalization: norm_val=566.332200
+2025-11-11 12:14:25 INFO [spectra]   Result range: [0.000013, 0.001155]
+2025-11-11 12:14:25 INFO [spectra] Area normalization: norm_val=521.069550
+2025-11-11 12:14:25 INFO [spectra]   Result range: [0.000021, 0.001331]
+2025-11-11 12:14:25 INFO [spectra] Area normalization: norm_val=334.664350
+2025-11-11 12:14:25 INFO [spectra]   Result range: [0.000129, 0.000906]
+2025-11-11 12:14:25 INFO [spectra] Area normalization: norm_val=1093369.289646
+2025-11-11 12:14:25 INFO [spectra]   Result range: [0.000000, 0.000002]
+2025-11-11 12:14:25 INFO [spectra] Area normalization: norm_val=1093369.289646
+2025-11-11 12:14:25 INFO [spectra]   Result range: [0.000000, 0.000002]
+2025-11-11 12:14:43 INFO [spectra] Max normalization: norm_val=0.550500
+2025-11-11 12:14:43 INFO [spectra]   Result range: [0.030518, 1.000000]
+2025-11-11 12:14:43 INFO [spectra] Max normalization: norm_val=0.598600
+2025-11-11 12:14:43 INFO [spectra]   Result range: [0.045105, 1.000000]
+2025-11-11 12:14:43 INFO [spectra] Max normalization: norm_val=0.627600
+2025-11-11 12:14:43 INFO [spectra]   Result range: [0.015296, 1.000000]
+2025-11-11 12:14:43 INFO [spectra] Max normalization: norm_val=614.316302
+2025-11-11 12:14:43 INFO [spectra]   Result range: [-0.014882, 1.000000]
+2025-11-11 12:14:43 INFO [spectra] Max normalization: norm_val=1333.951724
+2025-11-11 12:14:43 INFO [spectra]   Result range: [-0.006826, 1.000000]
+2025-11-11 12:14:43 INFO [spectra] Max normalization: norm_val=18919.596754
+2025-11-11 12:14:43 INFO [spectra]   Result range: [-0.027996, 1.000000]
+2025-11-11 12:14:43 INFO [spectra] Max normalization: norm_val=1677.493035
+2025-11-11 12:14:43 INFO [spectra]   Result range: [-0.014852, 1.000000]
+2025-11-11 12:14:43 INFO [spectra] Max normalization: norm_val=0.550200
+2025-11-11 12:14:43 INFO [spectra]   Result range: [0.035623, 1.000000]
+2025-11-11 12:14:43 INFO [spectra] Max normalization: norm_val=0.599000
+2025-11-11 12:14:43 INFO [spectra]   Result range: [0.054257, 1.000000]
+2025-11-11 12:14:43 INFO [spectra] Max normalization: norm_val=0.654200
+2025-11-11 12:14:43 INFO [spectra]   Result range: [0.011464, 1.000000]
+2025-11-11 12:14:43 INFO [spectra] Max normalization: norm_val=0.693300
+2025-11-11 12:14:43 INFO [spectra]   Result range: [0.015433, 1.000000]
+2025-11-11 12:14:43 INFO [spectra] Max normalization: norm_val=0.303100
+2025-11-11 12:14:43 INFO [spectra]   Result range: [0.142197, 1.000000]
+2025-11-11 12:14:43 INFO [spectra] Max normalization: norm_val=2.405786
+2025-11-11 12:14:43 INFO [spectra]   Result range: [0.000875, 1.000000]
+2025-11-11 12:14:43 INFO [spectra] Max normalization: norm_val=2.405786
+2025-11-11 12:14:43 INFO [spectra]   Result range: [0.000875, 1.000000]
+2025-11-12 09:34:28 INFO [spectra] Max normalization: norm_val=0.550500
+2025-11-12 09:34:28 INFO [spectra]   Result range: [0.030518, 1.000000]
+2025-11-12 09:34:28 INFO [spectra] Max normalization: norm_val=0.598600
+2025-11-12 09:34:28 INFO [spectra]   Result range: [0.045105, 1.000000]
+2025-11-12 09:34:28 INFO [spectra] Max normalization: norm_val=0.627600
+2025-11-12 09:34:28 INFO [spectra]   Result range: [0.015296, 1.000000]
+2025-11-12 09:34:28 INFO [spectra] Max normalization: norm_val=614.316302
+2025-11-12 09:34:28 INFO [spectra]   Result range: [-0.014882, 1.000000]
+2025-11-12 09:34:28 INFO [spectra] Max normalization: norm_val=1333.951724
+2025-11-12 09:34:28 INFO [spectra]   Result range: [-0.006826, 1.000000]
+2025-11-12 09:34:28 INFO [spectra] Max normalization: norm_val=18919.596754
+2025-11-12 09:34:28 INFO [spectra]   Result range: [-0.027996, 1.000000]
+2025-11-12 09:34:28 INFO [spectra] Max normalization: norm_val=1677.493035
+2025-11-12 09:34:28 INFO [spectra]   Result range: [-0.014852, 1.000000]
+2025-11-12 09:34:28 INFO [spectra] Max normalization: norm_val=0.550200
+2025-11-12 09:34:28 INFO [spectra]   Result range: [0.035623, 1.000000]
+2025-11-12 09:34:28 INFO [spectra] Max normalization: norm_val=0.599000
+2025-11-12 09:34:28 INFO [spectra]   Result range: [0.054257, 1.000000]
+2025-11-12 09:34:28 INFO [spectra] Max normalization: norm_val=0.654200
+2025-11-12 09:34:28 INFO [spectra]   Result range: [0.011464, 1.000000]
+2025-11-12 09:34:28 INFO [spectra] Max normalization: norm_val=0.693300
+2025-11-12 09:34:28 INFO [spectra]   Result range: [0.015433, 1.000000]
+2025-11-12 09:34:28 INFO [spectra] Max normalization: norm_val=0.303100
+2025-11-12 09:34:28 INFO [spectra]   Result range: [0.142197, 1.000000]
+2025-11-12 09:34:28 INFO [spectra] Max normalization: norm_val=2.405786
+2025-11-12 09:34:28 INFO [spectra]   Result range: [0.000875, 1.000000]
+2025-11-12 09:34:28 INFO [spectra] Max normalization: norm_val=2.405786
+2025-11-12 09:34:28 INFO [spectra]   Result range: [0.000875, 1.000000]
+2025-11-12 10:03:31 INFO [spectra] Max normalization: norm_val=0.000000
+2025-11-12 10:03:31 INFO [spectra]   Result range: [0.007113, 1.000000]
+2025-11-12 10:04:39 INFO [spectra] Max normalization: norm_val=0.550500
+2025-11-12 10:04:39 INFO [spectra]   Result range: [0.030518, 1.000000]
+2025-11-12 10:04:39 INFO [spectra] Max normalization: norm_val=0.598600
+2025-11-12 10:04:39 INFO [spectra]   Result range: [0.045105, 1.000000]
+2025-11-12 10:04:39 INFO [spectra] Max normalization: norm_val=0.627600
+2025-11-12 10:04:39 INFO [spectra]   Result range: [0.015296, 1.000000]
+2025-11-12 10:04:39 INFO [spectra] Max normalization: norm_val=614.316302
+2025-11-12 10:04:39 INFO [spectra]   Result range: [-0.014882, 1.000000]
+2025-11-12 10:04:39 INFO [spectra] Max normalization: norm_val=1333.951724
+2025-11-12 10:04:39 INFO [spectra]   Result range: [-0.006826, 1.000000]
+2025-11-12 10:04:39 INFO [spectra] Max normalization: norm_val=18919.596754
+2025-11-12 10:04:39 INFO [spectra]   Result range: [-0.027996, 1.000000]
+2025-11-12 10:04:39 INFO [spectra] Max normalization: norm_val=1677.493035
+2025-11-12 10:04:39 INFO [spectra]   Result range: [-0.014852, 1.000000]
+2025-11-12 10:04:39 INFO [spectra] Max normalization: norm_val=0.550200
+2025-11-12 10:04:39 INFO [spectra]   Result range: [0.035623, 1.000000]
+2025-11-12 10:04:39 INFO [spectra] Max normalization: norm_val=0.599000
+2025-11-12 10:04:39 INFO [spectra]   Result range: [0.054257, 1.000000]
+2025-11-12 10:04:39 INFO [spectra] Max normalization: norm_val=0.654200
+2025-11-12 10:04:39 INFO [spectra]   Result range: [0.011464, 1.000000]
+2025-11-12 10:04:39 INFO [spectra] Max normalization: norm_val=0.693300
+2025-11-12 10:04:39 INFO [spectra]   Result range: [0.015433, 1.000000]
+2025-11-12 10:04:39 INFO [spectra] Max normalization: norm_val=0.303100
+2025-11-12 10:04:39 INFO [spectra]   Result range: [0.142197, 1.000000]
+2025-11-12 10:04:39 INFO [spectra] Max normalization: norm_val=2.405786
+2025-11-12 10:04:39 INFO [spectra]   Result range: [0.000875, 1.000000]
+2025-11-12 10:04:39 INFO [spectra] Max normalization: norm_val=2.405786
+2025-11-12 10:04:39 INFO [spectra]   Result range: [0.000875, 1.000000]
+2025-11-12 10:04:39 INFO [spectra] Max normalization: norm_val=0.000000
+2025-11-12 10:04:39 INFO [spectra]   Result range: [0.007113, 1.000000]
+2025-11-12 10:05:20 INFO [spectra] Max normalization: norm_val=0.000000
+2025-11-12 10:05:20 INFO [spectra]   Result range: [0.007113, 1.000000]
+2025-11-12 10:07:16 INFO [spectra] Max normalization: norm_val=0.000000
+2025-11-12 10:07:16 INFO [spectra]   Result range: [0.000162, 1.000000]
+2025-11-12 12:39:56 INFO [spectra] Starting Spectra App desktop session
+2025-11-12 12:40:00 INFO [spectra] Main window constructed and shown successfully
+2025-11-12 12:41:46 INFO [spectra] Max normalization: norm_val=0.000000
+2025-11-12 12:41:46 INFO [spectra]   Result range: [0.000162, 1.000000]
+2025-11-12 12:41:46 INFO [spectra] Max normalization: norm_val=0.550500
+2025-11-12 12:41:46 INFO [spectra]   Result range: [0.030518, 1.000000]
+2025-11-12 12:41:46 INFO [spectra] Max normalization: norm_val=0.598600
+2025-11-12 12:41:46 INFO [spectra]   Result range: [0.045105, 1.000000]
+2025-11-12 12:41:46 INFO [spectra] Max normalization: norm_val=0.627600
+2025-11-12 12:41:46 INFO [spectra]   Result range: [0.015296, 1.000000]
+2025-11-12 12:42:21 INFO [spectra] Max normalization: norm_val=2.405786
+2025-11-12 12:42:21 INFO [spectra]   Result range: [0.000875, 1.000000]
+2025-11-12 12:49:57 INFO [spectra] Max normalization: norm_val=0.000000
+2025-11-12 12:49:57 INFO [spectra]   Result range: [0.000162, 1.000000]
+2025-11-12 12:49:57 INFO [spectra] Max normalization: norm_val=0.550500
+2025-11-12 12:49:57 INFO [spectra]   Result range: [0.030518, 1.000000]
+2025-11-12 12:49:57 INFO [spectra] Max normalization: norm_val=0.598600
+2025-11-12 12:49:57 INFO [spectra]   Result range: [0.045105, 1.000000]
+2025-11-12 12:49:57 INFO [spectra] Max normalization: norm_val=0.627600
+2025-11-12 12:49:57 INFO [spectra]   Result range: [0.015296, 1.000000]
+2025-11-12 12:49:57 INFO [spectra] Max normalization: norm_val=2.405786
+2025-11-12 12:49:57 INFO [spectra]   Result range: [0.000875, 1.000000]
+2025-11-12 12:50:26 INFO [spectra] Max normalization: norm_val=0.000000
+2025-11-12 12:50:26 INFO [spectra]   Result range: [0.000162, 1.000000]
+2025-11-12 12:50:26 INFO [spectra] Max normalization: norm_val=0.550500
+2025-11-12 12:50:26 INFO [spectra]   Result range: [0.030518, 1.000000]
+2025-11-12 12:50:26 INFO [spectra] Max normalization: norm_val=0.598600
+2025-11-12 12:50:26 INFO [spectra]   Result range: [0.045105, 1.000000]
+2025-11-12 12:50:26 INFO [spectra] Max normalization: norm_val=0.627600
+2025-11-12 12:50:26 INFO [spectra]   Result range: [0.015296, 1.000000]
+2025-11-12 12:50:26 INFO [spectra] Max normalization: norm_val=2.405786
+2025-11-12 12:50:26 INFO [spectra]   Result range: [0.000875, 1.000000]
+2025-11-12 12:50:29 INFO [spectra] Max normalization: norm_val=0.000000
+2025-11-12 12:50:29 INFO [spectra]   Result range: [0.000162, 1.000000]
+2025-11-12 12:50:29 INFO [spectra] Max normalization: norm_val=0.550500
+2025-11-12 12:50:29 INFO [spectra]   Result range: [0.030518, 1.000000]
+2025-11-12 12:50:29 INFO [spectra] Max normalization: norm_val=0.598600
+2025-11-12 12:50:29 INFO [spectra]   Result range: [0.045105, 1.000000]
+2025-11-12 12:50:29 INFO [spectra] Max normalization: norm_val=0.627600
+2025-11-12 12:50:29 INFO [spectra]   Result range: [0.015296, 1.000000]
+2025-11-12 12:50:29 INFO [spectra] Max normalization: norm_val=2.405786
+2025-11-12 12:50:29 INFO [spectra]   Result range: [0.000875, 1.000000]
+2025-11-12 12:50:32 INFO [spectra] Max normalization: norm_val=0.000000
+2025-11-12 12:50:32 INFO [spectra]   Result range: [0.000162, 1.000000]
+2025-11-12 12:50:32 INFO [spectra] Max normalization: norm_val=0.550500
+2025-11-12 12:50:32 INFO [spectra]   Result range: [0.030518, 1.000000]
+2025-11-12 12:50:32 INFO [spectra] Max normalization: norm_val=0.598600
+2025-11-12 12:50:32 INFO [spectra]   Result range: [0.045105, 1.000000]
+2025-11-12 12:50:32 INFO [spectra] Max normalization: norm_val=0.627600
+2025-11-12 12:50:32 INFO [spectra]   Result range: [0.015296, 1.000000]
+2025-11-12 12:50:32 INFO [spectra] Max normalization: norm_val=2.405786
+2025-11-12 12:50:32 INFO [spectra]   Result range: [0.000875, 1.000000]
+2025-11-12 12:51:20 INFO [spectra] Max normalization: norm_val=0.000000
+2025-11-12 12:51:20 INFO [spectra]   Result range: [0.000162, 1.000000]
+2025-11-12 12:51:20 INFO [spectra] Max normalization: norm_val=0.550500
+2025-11-12 12:51:20 INFO [spectra]   Result range: [0.030518, 1.000000]
+2025-11-12 12:51:20 INFO [spectra] Max normalization: norm_val=0.598600
+2025-11-12 12:51:20 INFO [spectra]   Result range: [0.045105, 1.000000]
+2025-11-12 12:51:20 INFO [spectra] Max normalization: norm_val=0.627600
+2025-11-12 12:51:20 INFO [spectra]   Result range: [0.015296, 1.000000]
+2025-11-12 12:51:20 INFO [spectra] Max normalization: norm_val=2.405786
+2025-11-12 12:51:20 INFO [spectra]   Result range: [0.000875, 1.000000]
+2025-11-12 12:54:39 INFO [spectra] Max normalization: norm_val=1677.493035
+2025-11-12 12:54:39 INFO [spectra]   Result range: [-0.014852, 1.000000]
+2025-11-12 12:57:48 INFO [spectra] Max normalization: norm_val=18919.596754
+2025-11-12 12:57:48 INFO [spectra]   Result range: [-0.027996, 1.000000]
+2025-11-12 12:59:42 INFO [spectra] Max normalization: norm_val=0.000000
+2025-11-12 12:59:42 INFO [spectra]   Result range: [0.000162, 1.000000]
+2025-11-12 13:04:00 INFO [spectra] Max normalization: norm_val=2471.000000
+2025-11-12 13:04:00 INFO [spectra]   Result range: [0.000000, 1.000000]
+2025-11-12 13:04:00 INFO [spectra] Max normalization: norm_val=0.000000
+2025-11-12 13:04:00 INFO [spectra]   Result range: [0.006501, 1.000000]
+2025-11-12 13:04:00 INFO [spectra] Max normalization: norm_val=361.000000
+2025-11-12 13:04:00 INFO [spectra]   Result range: [0.000000, 1.000000]
+2025-11-12 13:04:00 INFO [spectra] Max normalization: norm_val=704.000000
+2025-11-12 13:04:00 INFO [spectra]   Result range: [0.000000, 1.000000]
+2025-11-12 13:04:00 INFO [spectra] Max normalization: norm_val=206.000000
+2025-11-12 13:04:00 INFO [spectra]   Result range: [0.000000, 1.000000]
+2025-11-12 13:04:01 INFO [spectra] Max normalization: norm_val=2604.000000
+2025-11-12 13:04:01 INFO [spectra]   Result range: [0.000000, 1.000000]
+2025-11-12 13:04:01 INFO [spectra] Max normalization: norm_val=52.000000
+2025-11-12 13:04:01 INFO [spectra]   Result range: [0.000000, 1.000000]
+2025-11-12 13:06:17 INFO [spectra] Qt event loop exited with code 0

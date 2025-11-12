@@ -166,7 +166,7 @@
       "sha256": "a39c5b38ba14f61b01eba899e1b953ea9b458838f5a94ce4bc0a059fd41b3337",
       "filename": "okay sun file.csv",
       "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\a3\\okay sun file.csv",
-      "original_path": "C:\\Code\\spectra-app-v2\\samples\\other file types\\okay sun file.csv",
+      "original_path": "C:\\Code\\spectra-app-v2\\samples\\laboratory\\SUN AND MOON\\okay sun file.csv",
       "bytes": 23085394,
       "units": {
         "x": "nm",
@@ -174,7 +174,7 @@
       },
       "source": {
         "ingest": {
-          "source_path": "C:\\Code\\spectra-app-v2\\samples\\other file types\\okay sun file.csv",
+          "source_path": "C:\\Code\\spectra-app-v2\\samples\\laboratory\\SUN AND MOON\\okay sun file.csv",
           "importer": "CsvImporter"
         },
         "source_units": {
@@ -183,7 +183,7 @@
         }
       },
       "created": "2025-10-26T16:57:56.272849+00:00",
-      "updated": "2025-10-26T19:59:53.271169+00:00"
+      "updated": "2025-11-12T17:42:21.411314+00:00"
     },
     "283417d0db257f60e458765472c01550f5af2dfdfd2daf0f151c7e6710d7bf52": {
       "sha256": "283417d0db257f60e458765472c01550f5af2dfdfd2daf0f151c7e6710d7bf52",
@@ -5823,7 +5823,7 @@
       "sha256": "253652762dfca7e6cc2e6ba6063690d8f1f29e8a4bb9e0c46ef4a7a1c0a94a72",
       "filename": "CO2 Lamp.csv",
       "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\25\\CO2 Lamp.csv",
-      "original_path": "C:\\Code\\spectra-app-v2\\samples\\lamp data\\new set\\CO2 Lamp.csv",
+      "original_path": "C:\\Code\\spectra-app-v2\\samples\\laboratory\\lamp data\\new set\\CO2 Lamp.csv",
       "bytes": 321731,
       "units": {
         "x": "nm",
@@ -5835,13 +5835,13 @@
         ]
       },
       "created": "2025-11-06T17:36:23.620654+00:00",
-      "updated": "2025-11-06T17:36:23.620833+00:00"
+      "updated": "2025-11-11T16:09:59.710520+00:00"
     },
     "bd682728b43b43a4c3c9471c1269ef3a5d9d89a35d9ff9dafe603c180b57a79e": {
       "sha256": "bd682728b43b43a4c3c9471c1269ef3a5d9d89a35d9ff9dafe603c180b57a79e",
       "filename": "H2O Lamp.csv",
       "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\bd\\H2O Lamp.csv",
-      "original_path": "C:\\Code\\spectra-app-v2\\samples\\lamp data\\new set\\H2O Lamp.csv",
+      "original_path": "C:\\Code\\spectra-app-v2\\samples\\laboratory\\lamp data\\new set\\H2O Lamp.csv",
       "bytes": 302429,
       "units": {
         "x": "nm",
@@ -5853,13 +5853,13 @@
         ]
       },
       "created": "2025-11-06T17:36:23.736473+00:00",
-      "updated": "2025-11-06T17:36:23.736675+00:00"
+      "updated": "2025-11-11T16:09:59.838286+00:00"
     },
     "2217ef3c1c5bfe6ddbd16b145941555d20ce949eab32c09bf5bec2bc08d10dc1": {
       "sha256": "2217ef3c1c5bfe6ddbd16b145941555d20ce949eab32c09bf5bec2bc08d10dc1",
       "filename": "Helium Lamp.csv",
       "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\22\\Helium Lamp.csv",
-      "original_path": "C:\\Code\\spectra-app-v2\\samples\\lamp data\\new set\\Helium Lamp.csv",
+      "original_path": "C:\\Code\\spectra-app-v2\\samples\\laboratory\\lamp data\\new set\\Helium Lamp.csv",
       "bytes": 331716,
       "units": {
         "x": "nm",
@@ -5871,13 +5871,13 @@
         ]
       },
       "created": "2025-11-06T17:36:23.854296+00:00",
-      "updated": "2025-11-06T17:36:23.854989+00:00"
+      "updated": "2025-11-12T17:57:48.038468+00:00"
     },
     "fab1b1a81e9a5321c44061864da7ceb34fd710443f291a92b4b8e28cc927bca2": {
       "sha256": "fab1b1a81e9a5321c44061864da7ceb34fd710443f291a92b4b8e28cc927bca2",
       "filename": "Hydrogen Lamp.csv",
       "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\fa\\Hydrogen Lamp.csv",
-      "original_path": "C:\\Code\\spectra-app-v2\\samples\\lamp data\\new set\\Hydrogen Lamp.csv",
+      "original_path": "C:\\Code\\spectra-app-v2\\samples\\laboratory\\lamp data\\new set\\Hydrogen Lamp.csv",
       "bytes": 339513,
       "units": {
         "x": "nm",
@@ -5889,7 +5889,274 @@
         ]
       },
       "created": "2025-11-06T17:36:23.985938+00:00",
-      "updated": "2025-11-06T17:36:23.986075+00:00"
+      "updated": "2025-11-12T17:54:39.748263+00:00"
+    },
+    "5ed9eea9a5e26711e5e788af0402d87f0510b5b47947e78bd0db80291eade7e8": {
+      "sha256": "5ed9eea9a5e26711e5e788af0402d87f0510b5b47947e78bd0db80291eade7e8",
+      "filename": "1995high.tab",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\5e\\1995high.tab",
+      "original_path": "C:\\Code\\spectra-app-v2\\samples\\solar_system\\1995high.tab",
+      "bytes": 199500,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "bundle_members": [
+          "Methane Spectrophotometry of the Jovian_Jupiter",
+          "Methane Spectrophotometry of the Jovian_Saturn",
+          "Methane Spectrophotometry of the Jovian_Uranus"
+        ]
+      },
+      "created": "2025-11-11T15:18:06.159581+00:00",
+      "updated": "2025-11-12T17:41:23.012844+00:00"
+    },
+    "d8071e071c2c0a60052ec6c164e151bd42847acf5d9bfbe1e9b2f76bf49a788b": {
+      "sha256": "d8071e071c2c0a60052ec6c164e151bd42847acf5d9bfbe1e9b2f76bf49a788b",
+      "filename": "1995low.tab",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\d8\\1995low.tab",
+      "original_path": "C:\\Code\\spectra-app-v2\\samples\\solar_system\\1995low.tab",
+      "bytes": 101250,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "bundle_members": [
+          "Methane Spectrophotometry of the Jovian_Jupiter",
+          "Methane Spectrophotometry of the Jovian_Saturn",
+          "Methane Spectrophotometry of the Jovian_Uranus",
+          "Methane Spectrophotometry of the Jovian_Neptune",
+          "Methane Spectrophotometry of the Jovian_Titan"
+        ]
+      },
+      "created": "2025-11-11T15:18:06.306211+00:00",
+      "updated": "2025-11-11T16:46:23.225833+00:00"
+    },
+    "f70de329643b9c4781641350bb321e1f96ec5cc23a69834d3e48a82e71ac4914": {
+      "sha256": "f70de329643b9c4781641350bb321e1f96ec5cc23a69834d3e48a82e71ac4914",
+      "filename": "sun redo.csv",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\f7\\sun redo.csv",
+      "original_path": "C:\\Code\\spectra-app-v2\\samples\\laboratory\\SUN AND MOON\\sun redo.csv",
+      "bytes": 331027,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "bundle_members": [
+          "afe29383-1696-4d44-970d-052d9d544c81"
+        ]
+      },
+      "created": "2025-11-11T15:18:20.950425+00:00",
+      "updated": "2025-11-11T15:18:20.950579+00:00"
+    },
+    "503826ac380e283c997b1d92a532deb855908d6b313e68a3f3e00774efd8a2bc": {
+      "sha256": "503826ac380e283c997b1d92a532deb855908d6b313e68a3f3e00774efd8a2bc",
+      "filename": "CH4_Fink(1977)_297K_440-1036nm.txt",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\50\\CH4_Fink(1977)_297K_440-1036nm.txt",
+      "original_path": "C:\\Code\\spectra-app-v2\\samples\\laboratory\\CH4_Fink(1977)_297K_440-1036nm.txt",
+      "bytes": 5584,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Code\\spectra-app-v2\\samples\\laboratory\\CH4_Fink(1977)_297K_440-1036nm.txt",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "absorbance"
+        }
+      },
+      "created": "2025-11-12T15:03:31.683918+00:00",
+      "updated": "2025-11-12T15:03:31.688438+00:00"
+    },
+    "66d980e5df413f1a45b2bbc7ea7f3cd4cb815f325d97b958e4d997333816171e": {
+      "sha256": "66d980e5df413f1a45b2bbc7ea7f3cd4cb815f325d97b958e4d997333816171e",
+      "filename": "CH4_Fink(1977)_297K_440-1036nm.txt",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\66\\CH4_Fink(1977)_297K_440-1036nm.txt",
+      "original_path": "C:\\Code\\spectra-app-v2\\samples\\laboratory\\CH4_Fink(1977)_297K_440-1036nm.txt",
+      "bytes": 5552,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Code\\spectra-app-v2\\samples\\laboratory\\CH4_Fink(1977)_297K_440-1036nm.txt",
+          "importer": "CsvImporter"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "absorbance"
+        }
+      },
+      "created": "2025-11-12T15:07:16.968453+00:00",
+      "updated": "2025-11-12T17:59:42.762029+00:00"
+    },
+    "078e99621e30bb8a53c58c2bb03a11eca15485994e250691152c6143736b0f89": {
+      "sha256": "078e99621e30bb8a53c58c2bb03a11eca15485994e250691152c6143736b0f89",
+      "filename": "table_HAT-P-18-b-Fournier-Tondreau-et-al.-2024.csv",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\07\\table_HAT-P-18-b-Fournier-Tondreau-et-al.-2024.csv",
+      "original_path": "C:\\Code\\spectra-app-v2\\samples\\exoplanets\\table_HAT-P-18-b-Fournier-Tondreau-et-al.-2024.csv",
+      "bytes": 41450,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Code\\spectra-app-v2\\samples\\exoplanets\\table_HAT-P-18-b-Fournier-Tondreau-et-al.-2024.csv",
+          "importer": "ExoplanetCsvImporter"
+        },
+        "source_units": {
+          "x": "um",
+          "y": "absorbance"
+        }
+      },
+      "created": "2025-11-12T18:04:00.605135+00:00",
+      "updated": "2025-11-12T18:04:00.606238+00:00"
+    },
+    "ee69c81235e05551f8a7be2c1b9ae25589ce6c0d61ce0872b8044e9f9ca102ff": {
+      "sha256": "ee69c81235e05551f8a7be2c1b9ae25589ce6c0d61ce0872b8044e9f9ca102ff",
+      "filename": "table_Luhman-16-b-Biller-et-al.-2024.csv",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\ee\\table_Luhman-16-b-Biller-et-al.-2024.csv",
+      "original_path": "C:\\Code\\spectra-app-v2\\samples\\exoplanets\\table_Luhman-16-b-Biller-et-al.-2024.csv",
+      "bytes": 11919,
+      "units": {
+        "x": "nm",
+        "y": "flux_density"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Code\\spectra-app-v2\\samples\\exoplanets\\table_Luhman-16-b-Biller-et-al.-2024.csv",
+          "importer": "ExoplanetCsvImporter"
+        },
+        "source_units": {
+          "x": "um",
+          "y": "flux_density"
+        }
+      },
+      "created": "2025-11-12T18:04:00.692539+00:00",
+      "updated": "2025-11-12T18:04:00.692656+00:00"
+    },
+    "c0627b74117800b3d2125b7446648d51a8026685bf6f817bc67efa559b268405": {
+      "sha256": "c0627b74117800b3d2125b7446648d51a8026685bf6f817bc67efa559b268405",
+      "filename": "table_TRAPPIST-1-b-Rathcke-et-al.-2025.csv",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\c0\\table_TRAPPIST-1-b-Rathcke-et-al.-2025.csv",
+      "original_path": "C:\\Code\\spectra-app-v2\\samples\\exoplanets\\table_TRAPPIST-1-b-Rathcke-et-al.-2025.csv",
+      "bytes": 3606,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Code\\spectra-app-v2\\samples\\exoplanets\\table_TRAPPIST-1-b-Rathcke-et-al.-2025.csv",
+          "importer": "ExoplanetCsvImporter"
+        },
+        "source_units": {
+          "x": "um",
+          "y": "absorbance"
+        }
+      },
+      "created": "2025-11-12T18:04:00.760313+00:00",
+      "updated": "2025-11-12T18:04:00.760428+00:00"
+    },
+    "c15376d33ca4673ce618a0ea3dc00b173eb9c60a519212120f4f81b93339fcfb": {
+      "sha256": "c15376d33ca4673ce618a0ea3dc00b173eb9c60a519212120f4f81b93339fcfb",
+      "filename": "table_WASP-17-b-Louie-et-al.-2025.csv",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\c1\\table_WASP-17-b-Louie-et-al.-2025.csv",
+      "original_path": "C:\\Code\\spectra-app-v2\\samples\\exoplanets\\table_WASP-17-b-Louie-et-al.-2025.csv",
+      "bytes": 11942,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Code\\spectra-app-v2\\samples\\exoplanets\\table_WASP-17-b-Louie-et-al.-2025.csv",
+          "importer": "ExoplanetCsvImporter"
+        },
+        "source_units": {
+          "x": "um",
+          "y": "absorbance"
+        }
+      },
+      "created": "2025-11-12T18:04:00.840305+00:00",
+      "updated": "2025-11-12T18:04:00.840483+00:00"
+    },
+    "8c9513426cae2c015ebe6c014bb3f8b1efdf64095a475259da95be96b528afcd": {
+      "sha256": "8c9513426cae2c015ebe6c014bb3f8b1efdf64095a475259da95be96b528afcd",
+      "filename": "table_WASP-39-b-Rustamkulov-et-al.-2023.csv",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\8c\\table_WASP-39-b-Rustamkulov-et-al.-2023.csv",
+      "original_path": "C:\\Code\\spectra-app-v2\\samples\\exoplanets\\table_WASP-39-b-Rustamkulov-et-al.-2023.csv",
+      "bytes": 2067,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Code\\spectra-app-v2\\samples\\exoplanets\\table_WASP-39-b-Rustamkulov-et-al.-2023.csv",
+          "importer": "ExoplanetCsvImporter"
+        },
+        "source_units": {
+          "x": "um",
+          "y": "absorbance"
+        }
+      },
+      "created": "2025-11-12T18:04:00.908675+00:00",
+      "updated": "2025-11-12T18:04:00.908822+00:00"
+    },
+    "94ce4526d389b546d8dca3db2a55977fe949ab62c5db9abddfa663bf824968f2": {
+      "sha256": "94ce4526d389b546d8dca3db2a55977fe949ab62c5db9abddfa663bf824968f2",
+      "filename": "table_WASP-96-b-Radica-et-al.-2023.csv",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\94\\table_WASP-96-b-Radica-et-al.-2023.csv",
+      "original_path": "C:\\Code\\spectra-app-v2\\samples\\exoplanets\\table_WASP-96-b-Radica-et-al.-2023.csv",
+      "bytes": 43695,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Code\\spectra-app-v2\\samples\\exoplanets\\table_WASP-96-b-Radica-et-al.-2023.csv",
+          "importer": "ExoplanetCsvImporter"
+        },
+        "source_units": {
+          "x": "um",
+          "y": "absorbance"
+        }
+      },
+      "created": "2025-11-12T18:04:00.992462+00:00",
+      "updated": "2025-11-12T18:04:00.992617+00:00"
+    },
+    "22efedef2b61801290b93e59b7ca73055522fb389ad6da6c5672396f28133d6c": {
+      "sha256": "22efedef2b61801290b93e59b7ca73055522fb389ad6da6c5672396f28133d6c",
+      "filename": "table_WASP-178-b-Lothringer-et-al.-2022.csv",
+      "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\22\\table_WASP-178-b-Lothringer-et-al.-2022.csv",
+      "original_path": "C:\\Code\\spectra-app-v2\\samples\\exoplanets\\table_WASP-178-b-Lothringer-et-al.-2022.csv",
+      "bytes": 759,
+      "units": {
+        "x": "nm",
+        "y": "absorbance"
+      },
+      "source": {
+        "ingest": {
+          "source_path": "C:\\Code\\spectra-app-v2\\samples\\exoplanets\\table_WASP-178-b-Lothringer-et-al.-2022.csv",
+          "importer": "ExoplanetCsvImporter"
+        },
+        "source_units": {
+          "x": "um",
+          "y": "absorbance"
+        }
+      },
+      "created": "2025-11-12T18:04:01.061533+00:00",
+      "updated": "2025-11-12T18:04:01.061647+00:00"
     }
   }
 }
