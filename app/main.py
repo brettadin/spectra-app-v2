@@ -40,6 +40,19 @@ SAMPLES_DIR = Path(__file__).resolve().parent.parent / "samples"
 # will raise a clear NistUnavailableError handled in the UI.
 nist_asd_service = nist_asd_service_module  # provides fetch_lines(), clear_cache(), cache_stats()
 
+# Legacy launch scripts import ``app.main.theme`` before calling :func:`main`.
+# Seed the module-level export with the default palette so attribute access
+# succeeds even if the application fails to finish booting.
+theme: ThemeDefinition = get_theme_definition(None)
+
+
+def _resolve_launch_theme(theme_key: str | None) -> ThemeDefinition:
+    """Resolve ``theme_key`` and update the module-level ``theme`` export."""
+
+    global theme
+    theme = get_theme_definition(theme_key)
+    return theme
+
 
 def _install_exception_handler() -> None:
     """Show uncaught exceptions in both console and a dialog, then exit."""
