@@ -20,8 +20,6 @@ except ModuleNotFoundError as exc:
 
 from app.logging_config import setup_logging
 from app.ui.main_window import SpectraMainWindow
-from app.ui.styles import get_app_stylesheet, apply_pyqtgraph_theme
-from app.ui.themes import default_theme_key, get_theme_definition
 from app.services import nist_asd_service as nist_asd_service_module
 
 QtCore: Any
@@ -85,22 +83,6 @@ def main(argv: list[str] | None = None) -> int:
     app = QtWidgets.QApplication.instance() or QtWidgets.QApplication(argv or sys.argv)
     app.setApplicationName("Spectra App")
     app.setOrganizationName("Spectra")
-    # Apply user-selected theme (fallback to default) and matching plot palette
-    theme_key = default_theme_key()
-    try:
-        settings = QtCore.QSettings("SpectraApp", "DesktopPreview")
-        stored = settings.value("ui/theme", theme_key)
-        if isinstance(stored, str) and stored:
-            theme_key = stored
-    except Exception:
-        pass
-    theme = get_theme_definition(theme_key)
-    try:
-        app.setStyleSheet(get_app_stylesheet(theme))
-        apply_pyqtgraph_theme(theme)
-    except Exception:
-        pass
-
     try:
         window: SpectraMainWindow = SpectraMainWindow(theme_key=theme.key)
         window.show()

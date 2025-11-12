@@ -105,6 +105,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         )
         self._theme_key = self._load_theme_preference() if theme_key is None else get_theme_definition(theme_key).key
         self._theme_action_group: QtGui.QActionGroup | None = None
+        self._applied_theme_key: str | None = None
         self.overlay_service = OverlayService(self.units_service, line_shape_model=self.line_shape_model)
         # Compute persistence flags inline to avoid any bootstrap ordering issues
         _flag = os.environ.get("SPECTRA_DISABLE_PERSISTENCE")
@@ -207,8 +208,11 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self._nist_thread: Optional[QtCore.QThread] = None
         self._nist_worker: Optional[QtCore.QObject] = None
 
+        self._apply_theme_by_key(self._theme_key, persist=False)
+
         self._setup_ui()
         self._setup_menu()
+        self._apply_theme_by_key(self._theme_key, persist=False)
         self._wire_shortcuts()
         self._load_docs_if_needed()  # Pre-load documentation so it's ready immediately
         # self._load_default_samples()  # Disabled: users prefer empty workspace on launch
@@ -1114,22 +1118,26 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
     def _apply_theme_by_key(self, theme_key: str, *, persist: bool = True) -> None:
         theme = get_theme_definition(theme_key)
         app = QtWidgets.QApplication.instance()
-        if app is not None:
+        theme_changed = theme.key != self._applied_theme_key
+
+        if app is not None and theme_changed:
             try:
                 app.setStyleSheet(get_app_stylesheet(theme))
             except Exception:
                 pass
-        try:
-            apply_pyqtgraph_theme(theme)
-        except Exception:
-            pass
+        if theme_changed:
+            try:
+                apply_pyqtgraph_theme(theme)
+            except Exception:
+                pass
+            self._applied_theme_key = theme.key
         try:
             if getattr(self, "plot", None) is not None:
                 self.plot.apply_theme(theme)
         except Exception:
             pass
         self._theme_key = theme.key
-        if persist:
+        if persist and theme_changed:
             self._save_theme_preference(theme.key)
         self._sync_theme_actions(theme.key)
 
