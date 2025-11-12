@@ -20,7 +20,7 @@ except ModuleNotFoundError as exc:
 
 from app.logging_config import setup_logging
 from app.ui.main_window import SpectraMainWindow
-from app.ui.styles import get_app_stylesheet, apply_pyqtgraph_theme
+from app.ui.themes import ThemeDefinition, get_theme_definition
 from app.services import nist_asd_service as nist_asd_service_module
 
 QtCore: Any
@@ -40,6 +40,19 @@ SAMPLES_DIR = Path(__file__).resolve().parent.parent / "samples"
 # if the user triggers a NIST fetch. If astroquery is unavailable, fetch calls
 # will raise a clear NistUnavailableError handled in the UI.
 nist_asd_service = nist_asd_service_module  # provides fetch_lines(), clear_cache(), cache_stats()
+
+# Legacy launch scripts import ``app.main.theme`` before calling :func:`main`.
+# Seed the module-level export with the default palette so attribute access
+# succeeds even if the application fails to finish booting.
+theme: ThemeDefinition = get_theme_definition(None)
+
+
+def _resolve_launch_theme(theme_key: str | None) -> ThemeDefinition:
+    """Resolve ``theme_key`` and update the module-level ``theme`` export."""
+
+    global theme
+    theme = get_theme_definition(theme_key)
+    return theme
 
 
 def _install_exception_handler() -> None:
@@ -84,15 +97,13 @@ def main(argv: list[str] | None = None) -> int:
     app = QtWidgets.QApplication.instance() or QtWidgets.QApplication(argv or sys.argv)
     app.setApplicationName("Spectra App")
     app.setOrganizationName("Spectra")
-    # Apply modern dark stylesheet and matching plot theme
     try:
-        app.setStyleSheet(get_app_stylesheet())
-        apply_pyqtgraph_theme()
-    except Exception:
-        pass
-
-    try:
-        window: SpectraMainWindow = SpectraMainWindow()
+        try:
+            launch_theme_key = SpectraMainWindow.load_theme_preference()
+        except Exception:
+            launch_theme_key = None
+        theme = _resolve_launch_theme(launch_theme_key)
+        window: SpectraMainWindow = SpectraMainWindow(theme_key=theme.key)
         window.show()
         logger.info("Main window constructed and shown successfully")
     except Exception as exc:
