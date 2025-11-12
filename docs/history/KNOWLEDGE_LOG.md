@@ -38,6 +38,52 @@ This is the concise, human‑curated history for Spectra App. Routine automation
 **References**: Relative links to files, PRs, tests, or external docs.
 
 ---
+## 2025-11-12 13:23 (America/New_York) / 2025-11-12 18:23 (UTC) — Theme switcher and UI palette refresh
+
+Author: automation
+
+Why
+- Analysts asked for light-friendly palettes and quicker access to colour controls beyond the always-on dark shell.
+
+What changed
+- Added a shared theme registry (`app/ui/themes.py`) with dark, light, and midnight presets plus pyqtgraph colour metadata.
+- Updated the application stylesheet, plot pane, and pyqtgraph config to respect the active theme and refresh instantly.
+- Surfaced a View → Theme menu, persisted the choice via `QSettings`, and refreshed documentation so the workflow is discoverable.
+
+Impact
+- Operators can match the UI to their lighting conditions without restarting, and plots/table chrome stay visually consistent.
+
+References
+- Code: `app/ui/themes.py`
+- Code: `app/ui/styles.py`
+- Code: `app/ui/main_window.py`
+- Code: `app/ui/plot_pane.py`
+- Docs: `docs/user/plot_tools.md`
+
+---
+
+## 2025-11-12 14:48 (America/New_York) / 2025-11-12 19:48 (UTC) — Theme runtime responsiveness fix
+
+Author: automation
+
+Why
+- The new theming system triggered a second application-wide stylesheet polish during startup, leaving the UI sluggish while Qt repainted every widget and rebuilding the QSS string on each toggle.
+
+What changed
+- Recorded the last applied theme key so redundant `QApplication.setStyleSheet` / `apply_pyqtgraph_theme` calls are skipped, letting the main window re-theme only when the palette actually changes.
+- Moved theme bootstrap logic out of `app/main.py` and into `SpectraMainWindow` so initialization performs a single controlled pass before widgets are created, then reapplies styling to the plot without re-polishing the app.
+- Cached generated theme stylesheets via `functools.lru_cache` to avoid recomputing large QSS payloads during rapid theme switches.
+
+Impact
+- Startup latency and menu responsiveness returned to pre-theme levels while retaining live palette switching for plots and widgets.
+
+References
+- Code: `app/main.py`
+- Code: `app/ui/main_window.py`
+- Code: `app/ui/styles.py`
+
+---
+
 ## 2025-11-10 16:24 (America/New_York) / 2025-11-10 21:24 (UTC) — DAT ingest support for ASCII tables
 
 Author: automation
