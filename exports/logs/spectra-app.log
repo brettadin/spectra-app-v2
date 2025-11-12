@@ -2947,3 +2947,102 @@ AttributeError: 'ReferencePanel' object has no attribute 'nist_collections_list'
 2025-11-12 15:02:23 INFO [spectra] Max normalization: norm_val=0.000000
 2025-11-12 15:02:23 INFO [spectra]   Result range: [0.013331, 1.000000]
 2025-11-12 15:07:33 INFO [spectra] Qt event loop exited with code 0
+2025-11-12 16:05:44 INFO [spectra] Starting Spectra App desktop session
+2025-11-12 16:05:45 INFO [spectra] Main window constructed and shown successfully
+2025-11-12 16:07:45 INFO [spectra] Qt event loop exited with code 0
+2025-11-12 16:07:56 INFO [spectra] Starting Spectra App desktop session
+2025-11-12 16:07:57 INFO [spectra] Main window constructed and shown successfully
+2025-11-12 16:13:14 INFO [spectra] Starting Spectra App desktop session
+2025-11-12 16:13:14 INFO [spectra] Main window constructed and shown successfully
+2025-11-12 16:22:42 INFO [spectra] Starting Spectra App desktop session
+2025-11-12 16:22:43 INFO [spectra] Main window constructed and shown successfully
+2025-11-12 16:24:06 INFO [spectra] Qt event loop exited with code 0
+2025-11-12 16:24:57 INFO [spectra] Starting Spectra App desktop session
+2025-11-12 16:24:58 INFO [spectra] Main window constructed and shown successfully
+2025-11-12 16:27:07 INFO [spectra] Qt event loop exited with code 0
+2025-11-12 16:27:29 INFO [spectra] Starting Spectra App desktop session
+2025-11-12 16:27:30 INFO [spectra] Main window constructed and shown successfully
+2025-11-12 16:27:41 ERROR [spectra.ui] Failed to open file(s): Error calling Python override of QGraphicsObject::itemChange(): autoRangeEnabled
+2025-11-12 16:31:14 INFO [spectra] Starting Spectra App desktop session
+2025-11-12 16:31:15 INFO [spectra] Main window constructed and shown successfully
+2025-11-12 16:31:28 ERROR [spectra.ui] Failed to load sample: Error calling Python override of QGraphicsObject::itemChange(): autoRangeEnabled
+2025-11-12 16:31:31 INFO [spectra] Qt event loop exited with code 0
+2025-11-12 16:31:56 INFO [spectra] Starting Spectra App desktop session
+2025-11-12 16:31:57 INFO [spectra] Main window constructed and shown successfully
+2025-11-12 16:32:11 ERROR [spectra.ui] Failed to open file(s): Error calling Python override of QGraphicsObject::itemChange(): autoRangeEnabled
+2025-11-12 16:33:17 INFO [spectra] Starting Spectra App desktop session
+2025-11-12 16:33:17 INFO [spectra] Main window constructed and shown successfully
+2025-11-12 16:33:29 ERROR [spectra.ui] Failed to open file(s): Error calling Python override of QGraphicsObject::itemChange(): autoRangeEnabled
+2025-11-12 16:35:00 INFO [spectra] Starting Spectra App desktop session
+2025-11-12 16:35:01 INFO [spectra] Main window constructed and shown successfully
+2025-11-12 16:36:14 INFO [spectra] Qt event loop exited with code 0
+2025-11-12 16:44:40 INFO [spectra] Starting Spectra App desktop session
+2025-11-12 16:44:41 INFO [spectra] Main window constructed and shown successfully
+2025-11-12 16:45:31 INFO [spectra] Qt event loop exited with code 0
+2025-11-12 16:45:37 INFO [spectra] Starting Spectra App desktop session
+2025-11-12 16:45:37 INFO [spectra] Main window constructed and shown successfully
+2025-11-12 16:48:25 INFO [spectra] Qt event loop exited with code 0
+2025-11-12 17:19:39 INFO [spectra] Starting Spectra App desktop session
+2025-11-12 17:19:40 INFO [spectra] Main window constructed and shown successfully
+2025-11-12 17:20:29 ERROR [spectra.ui] Failed to open file(s): unhashable type: 'PySide6.QtGui.QStandardItem'
+2025-11-12 17:21:55 INFO [spectra] Qt event loop exited with code 0
+2025-11-12 17:23:18 INFO [spectra] Starting Spectra App desktop session
+2025-11-12 17:23:18 INFO [spectra] Main window constructed and shown successfully
+2025-11-12 17:23:31 ERROR [spectra.ui] Failed to open file(s): unhashable type: 'PySide6.QtGui.QStandardItem'
+2025-11-12 17:26:25 INFO [spectra] Qt event loop exited with code 0
+2025-11-12 17:29:14 INFO [spectra] Starting Spectra App desktop session
+2025-11-12 17:29:14 INFO [spectra] Main window constructed and shown successfully
+2025-11-12 17:29:53 INFO [spectra] Starting Spectra App desktop session
+2025-11-12 17:29:53 INFO [spectra] Main window constructed and shown successfully
+2025-11-12 17:31:07 INFO [spectra] Qt event loop exited with code 0
+2025-11-12 17:33:41 INFO [spectra] Starting Spectra App desktop session
+2025-11-12 17:33:42 INFO [spectra] Main window constructed and shown successfully
+2025-11-12 17:34:58 INFO [spectra] Qt event loop exited with code 0
+2025-11-12 17:35:48 INFO [spectra] Starting Spectra App desktop session
+2025-11-12 17:35:48 INFO [spectra] Main window constructed and shown successfully
+2025-11-12 17:37:33 INFO [spectra] Qt event loop exited with code 0
+2025-11-12 17:39:50 INFO [spectra] Starting Spectra App desktop session
+2025-11-12 17:39:50 INFO [spectra] Main window constructed and shown successfully
+2025-11-12 17:40:45 INFO [spectra] Qt event loop exited with code 0
+2025-11-12 17:41:26 INFO [spectra] Starting Spectra App desktop session
+2025-11-12 17:41:27 INFO [spectra] Main window constructed and shown successfully
+2025-11-12 17:42:45 INFO [spectra] Qt event loop exited with code 0
+2025-11-12 17:56:40 INFO [spectra] Starting Spectra App desktop session
+2025-11-12 17:56:40 INFO [spectra] Main window constructed and shown successfully
+2025-11-12 18:08:18 INFO [spectra] Starting Spectra App desktop session
+2025-11-12 18:08:19 INFO [spectra] Main window constructed and shown successfully
+2025-11-12 18:09:58 INFO [spectra] Qt event loop exited with code 0
+2025-11-12 18:10:45 INFO [spectra] Starting Spectra App desktop session
+2025-11-12 18:10:46 INFO [spectra] Main window constructed and shown successfully
+2025-11-12 18:11:20 INFO [spectra] Qt event loop exited with code 0
+2025-11-12 18:12:33 INFO [spectra] Starting Spectra App desktop session
+2025-11-12 18:12:34 INFO [spectra] Main window constructed and shown successfully
+2025-11-12 18:18:03 INFO [spectra] Max normalization: norm_val=2.405786
+2025-11-12 18:18:03 INFO [spectra]   Result range: [0.000875, 1.000000]
+2025-11-12 18:19:03 INFO [spectra] Area normalization: norm_val=1093369.289646
+2025-11-12 18:19:03 INFO [spectra]   Result range: [0.000000, 0.000002]
+2025-11-12 18:19:05 INFO [spectra] Max normalization: norm_val=2.405786
+2025-11-12 18:19:05 INFO [spectra]   Result range: [0.000875, 1.000000]
+2025-11-12 18:19:07 INFO [spectra] Max normalization: norm_val=2.405786
+2025-11-12 18:19:07 INFO [spectra]   Result range: [0.000875, 1.000000]
+2025-11-12 18:19:12 INFO [spectra] Max normalization: norm_val=2.405786
+2025-11-12 18:19:12 INFO [spectra]   Result range: [0.000875, 1.000000]
+2025-11-12 18:19:26 INFO [spectra] Max normalization: norm_val=2.405786
+2025-11-12 18:19:26 INFO [spectra]   Result range: [0.000875, 1.000000]
+2025-11-12 18:19:44 INFO [spectra] Max normalization: norm_val=2.405786
+2025-11-12 18:19:44 INFO [spectra]   Result range: [0.000875, 1.000000]
+2025-11-12 18:20:33 INFO [spectra] Qt event loop exited with code 0
+2025-11-12 18:21:36 INFO [spectra] Starting Spectra App desktop session
+2025-11-12 18:21:37 INFO [spectra] Main window constructed and shown successfully
+2025-11-12 18:22:31 INFO [spectra] Max normalization: norm_val=2.405786
+2025-11-12 18:22:31 INFO [spectra]   Result range: [0.000875, 1.000000]
+2025-11-12 18:28:14 INFO [spectra] Qt event loop exited with code 0
+2025-11-12 18:33:02 INFO [spectra] Starting Spectra App desktop session
+2025-11-12 18:33:03 INFO [spectra] Main window constructed and shown successfully
+2025-11-12 18:34:37 INFO [spectra] Max normalization: norm_val=2.405786
+2025-11-12 18:34:37 INFO [spectra]   Result range: [0.000875, 1.000000]
+2025-11-12 18:34:41 INFO [spectra] Max normalization: norm_val=2.405786
+2025-11-12 18:34:41 INFO [spectra]   Result range: [0.000875, 1.000000]
+2025-11-12 18:36:13 INFO [spectra] Qt event loop exited with code 0
+2025-11-12 18:51:00 INFO [spectra] Starting Spectra App desktop session
+2025-11-12 18:51:01 INFO [spectra] Main window constructed and shown successfully

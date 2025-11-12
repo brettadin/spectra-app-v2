@@ -43,7 +43,7 @@ class TraceStyle:
 class PlotPane(QtWidgets.QWidget):
     """Central plotting widget with legend, crosshair, and multi-trace support."""
 
-    DEFAULT_MAX_POINTS = 120_000
+    DEFAULT_MAX_POINTS = 50_000  # Reduced for better performance; PyQtGraph auto-downsamples beyond this
     MIN_MAX_POINTS = 1_000
     MAX_MAX_POINTS = 1_000_000
 
@@ -67,10 +67,7 @@ class PlotPane(QtWidgets.QWidget):
         self._max_points = self.normalize_max_points(max_points)
         self._crosshair_visible = True
         self._build_ui()
-        try:
-            self.apply_theme(get_theme_definition(None))
-        except Exception:
-            pass
+        # Don't apply theme during initialization - causes performance issues
 
     # ------------------------------------------------------------------
     # Public API
@@ -87,6 +84,13 @@ class PlotPane(QtWidgets.QWidget):
         theme_def = theme if isinstance(theme, ThemeDefinition) else get_theme_definition(theme)
         palette = theme_def.palette
         plot_item = self._plot.getPlotItem()
+        # Remember legend/text colours for later legend rebuilds
+        try:
+            self._legend_text_color = QtGui.QColor(palette.plot_foreground)
+            self._legend_panel_color = QtGui.QColor(palette.panel_alt)
+            self._legend_border_color = QtGui.QColor(palette.border)
+        except Exception:
+            pass
 
         # Plot background and axis colours
         try:
@@ -120,13 +124,7 @@ class PlotPane(QtWidgets.QWidget):
             pass
 
         # Legend styling: subtle panel background and readable text
-        try:
-            self._legend.setBrush(pg.mkBrush(palette.panel_alt))
-            self._legend.setPen(pg.mkPen(palette.border))
-            if hasattr(self._legend, "setLabelTextColor"):
-                self._legend.setLabelTextColor(palette.plot_foreground)
-        except Exception:
-            pass
+        self._apply_legend_theme_style()
 
     def add_trace(
         self,
@@ -153,6 +151,7 @@ class PlotPane(QtWidgets.QWidget):
             self._update_curve(key)
             return
 
+        # Create PlotDataItem without performance options that trigger bugs in pyqtgraph 0.13.7
         curve = pg.PlotDataItem()
         x_copy = np.array(x_nm, copy=True)
         y_copy = np.array(y, copy=True)
@@ -173,6 +172,21 @@ class PlotPane(QtWidgets.QWidget):
         self._update_curve(key)  # Populate data before the curve is added to the plot
         self._plot.addItem(curve)
         self._rebuild_legend()
+
+    def get_trace_stats(self) -> tuple[int, int]:
+        """Return (trace_count, total_points) using stored x_nm lengths.
+
+        Used by callers to make performance-mode decisions.
+        """
+        try:
+            count = len(self._traces)
+            total = 0
+            for t in self._traces.values():
+                arr = t.get("x_nm")
+                total += int(arr.size) if hasattr(arr, "size") else 0
+            return count, total
+        except Exception:
+            return 0, 0
 
     def remove_export_from_context_menu(self) -> None:
         """Keep pyqtgraph's context menu but strip the built-in Export entry."""
@@ -254,7 +268,8 @@ class PlotPane(QtWidgets.QWidget):
         trace["visible"] = visible
         item: pg.PlotDataItem = trace["item"]  # type: ignore[assignment]
         item.setVisible(visible)
-        self._rebuild_legend()
+        # Only update legend for this specific item instead of rebuilding everything
+        self._update_legend_item(key)
 
     def update_style(self, key: str, style: TraceStyle) -> None:
         trace = self._traces.get(key)
@@ -309,8 +324,8 @@ class PlotPane(QtWidgets.QWidget):
 
         self._plot = pg.PlotWidget()
         self._plot.setObjectName("plot-pane")
-        self._plot.setClipToView(True)
-        self._plot.setDownsampling(mode="peak")
+        # NOTE: Performance options like setClipToView and setDownsampling cause crashes 
+        # in pyqtgraph 0.13.7 with autoRangeEnabled errors - using manual downsampling only
         self._plot.showGrid(x=False, y=False, alpha=0.2)
         self._vb: pg.ViewBox = self._plot.getPlotItem().getViewBox()
         self._plot.sigRangeChanged.connect(self._on_plot_range_changed)
@@ -327,7 +342,7 @@ class PlotPane(QtWidgets.QWidget):
         self.set_crosshair_visible(self._crosshair_visible)
         self._proxy = pg.SignalProxy(
             self._plot.scene().sigMouseMoved,
-            rateLimit=60,
+            rateLimit=60,  # Back to 60Hz for smooth hover feedback
             slot=self._on_mouse_move,
         )
 
@@ -581,12 +596,53 @@ class PlotPane(QtWidgets.QWidget):
             item: pg.PlotDataItem = trace["item"]  # type: ignore[assignment]
             alias = trace.get("alias", key)
             self._legend.addItem(item, str(alias))
+        # Ensure colours are correct immediately after building
+        self._apply_legend_theme_style()
+    
+    def _update_legend_item(self, key: str) -> None:
+        """Update a single legend item without rebuilding the entire legend."""
+        trace = self._traces.get(key)
+        if not trace:
+            return
+        
+        item: pg.PlotDataItem = trace["item"]  # type: ignore[assignment]
+        style: TraceStyle = trace["style"]  # type: ignore[assignment]
+        visible = bool(trace.get("visible", True))
+        
+        # Remove item from legend if it exists
+        try:
+            self._legend.removeItem(item)
+        except Exception:
+            pass
+        
+        # Add back if it should be visible
+        if visible and style.show_in_legend:
+            alias = trace.get("alias", key)
+            self._legend.addItem(item, str(alias))
+        # Restyle labels so colours are correct without further interaction
+        self._apply_legend_theme_style()
 
     def _on_mouse_move(self, event) -> None:
+        """Handle mouse movement (rate-limited by SignalProxy to 60 Hz)."""
+        # If crosshair is hidden, skip work entirely (also suppress hover emits)
+        if not self._crosshair_visible:
+            return
+
         pos = event[0]
         if not self._plot.sceneBoundingRect().contains(pos):
             return
+
+        # Skip tiny movements (<5px) to reduce redraw churn on large scenes
+        try:
+            last = getattr(self, "_last_mouse_scene_pos", None)
+            if last is not None and (pos - last).manhattanLength() < 5:
+                return
+            self._last_mouse_scene_pos = pos
+        except Exception:
+            pass
+
         mapped = self._plot.getPlotItem().vb.mapSceneToView(pos)
+        # Update crosshair and emit hover signal (both already rate-limited by SignalProxy)
         self._vline.setPos(mapped.x())
         self._hline.setPos(mapped.y())
         self.pointHovered.emit(mapped.x(), mapped.y())
@@ -597,6 +653,40 @@ class PlotPane(QtWidgets.QWidget):
     def end_bulk_update(self) -> None:
         self._plot.setUpdatesEnabled(True)
         self.autoscale()
+
+    # ---- Legend theming -------------------------------------------------
+    def _apply_legend_theme_style(self) -> None:
+        """Apply panel, border, and text colours to the legend.
+
+        This is called from apply_theme and after legend rebuilds so that
+        startup and first-add both look correct without requiring user input.
+        """
+        if pg is None or self._legend is None:
+            return
+        try:
+            # Panel brush with a slightly opaque fill to stand off from canvas
+            panel = getattr(self, "_legend_panel_color", None)
+            border = getattr(self, "_legend_border_color", None)
+            text = getattr(self, "_legend_text_color", None)
+            if isinstance(panel, QtGui.QColor):
+                c = QtGui.QColor(panel)
+                if c.alpha() == 255:
+                    # Make it slightly translucent to contrast on white canvases
+                    c.setAlpha(230)
+                self._legend.setBrush(pg.mkBrush(c))
+            if isinstance(border, QtGui.QColor):
+                self._legend.setPen(pg.mkPen(border))
+            if isinstance(text, QtGui.QColor):
+                if hasattr(self._legend, "setLabelTextColor"):
+                    self._legend.setLabelTextColor(text)
+                for _sample, label in getattr(self._legend, "items", []) or []:
+                    try:
+                        if hasattr(label, "setDefaultTextColor"):
+                            label.setDefaultTextColor(text)
+                    except Exception:
+                        pass
+        except Exception:
+            pass
     @staticmethod
     def palette_definitions() -> Sequence[PaletteDefinition]:
         """Expose the shared palette registry to callers."""

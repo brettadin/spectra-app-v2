@@ -156,22 +156,25 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self._display_y_units: Dict[str, str] = {}
         self._line_shape_rows: List[Mapping[str, Any]] = []
         self._ir_rows: List[Mapping[str, Any]] = []
-        # Expanded high-contrast palette (16+ colours) to reduce reuse in large sessions
-        self._palette: List[QtGui.QColor] = [
-            QtGui.QColor("#4F6D7A"), QtGui.QColor("#C0D6DF"), QtGui.QColor("#C72C41"), QtGui.QColor("#2F4858"),
-            QtGui.QColor("#33658A"), QtGui.QColor("#758E4F"), QtGui.QColor("#6D597A"), QtGui.QColor("#EE964B"),
-            # Okabe–Ito additions
-            QtGui.QColor("#0072B2"), QtGui.QColor("#E69F00"), QtGui.QColor("#009E73"), QtGui.QColor("#D55E00"),
-            QtGui.QColor("#CC79A7"), QtGui.QColor("#56B4E9"), QtGui.QColor("#F0E442"), QtGui.QColor("#999999"),
-            # Bright accents suitable for dark backgrounds
-            QtGui.QColor("#F07167"), QtGui.QColor("#00AFB9"), QtGui.QColor("#06D6A0"), QtGui.QColor("#C77DFF"),
-        ]
+        # Theme-aware palettes for datasets (distinct from NIST colours)
+        self._palette: List[QtGui.QColor] = []
         self._palette_index = 0
+        self._nist_palette: List[QtGui.QColor] = []
+        self._nist_palette_index = 0
         self._nist_collection_counter = 0  # Just for unique IDs
         
         # NIST lines state: track collections and plot items
         self._nist_collections: Dict[str, Dict[str, Any]] = {}  # collection_id -> {xs, ys, color, ...}
         self._nist_plot_items: Dict[str, pg.PlotDataItem] = {}  # collection_id -> plot item
+        
+        # Merge preview state: avoid expensive recomputation on every checkbox toggle
+        self._merge_preview_stale = True
+        
+        # Deferred plot refresh: avoid blocking UI during rapid setting changes
+        self._refresh_timer = QtCore.QTimer()
+        self._refresh_timer.setSingleShot(True)
+        self._refresh_timer.setInterval(150)  # 150ms debounce
+        self._refresh_timer.timeout.connect(self._refresh_plot)
 
         self.log_view: QtWidgets.QPlainTextEdit | None = None
         self._log_buffer: list[tuple[str, str]] = []
@@ -190,6 +193,11 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.library_list: QtWidgets.QTreeWidget | None = None
         self.library_view: QtWidgets.QTreeWidget | None = None
         self.library_search: QtWidgets.QLineEdit | None = None
+        # Build palettes from current theme key
+        try:
+            self._apply_theme_palettes(self._theme_key)
+        except Exception:
+            pass
         self.library_detail: QtWidgets.QPlainTextEdit | None = None
         self.library_hint: QtWidgets.QLabel | None = None
         self._library_entries: Dict[str, Mapping[str, Any]] = {}
@@ -207,8 +215,6 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         # Async NIST fetch state
         self._nist_thread: Optional[QtCore.QThread] = None
         self._nist_worker: Optional[QtCore.QObject] = None
-
-        self._apply_theme_by_key(self._theme_key, persist=False)
 
         self._setup_ui()
         self._setup_menu()
@@ -245,7 +251,6 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.plot = PlotPane(self, max_points=self._plot_max_points)
         self.plot.remove_export_from_context_menu()
         self.central_split.addWidget(self.plot)
-        self._apply_theme_by_key(self._theme_key, persist=False)
         self.plot.autoscale()
         # Live cursor readout in status bar
         try:
@@ -276,7 +281,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         # Wire panel signals instead of direct widget connections
         self.dataset_panel.filterTextChanged.connect(self._on_dataset_filter_changed)
         self.dataset_panel.removeRequested.connect(self._remove_selected_datasets)
-        self.dataset_panel.selectionChanged.connect(self._update_merge_preview)
+        self.dataset_panel.selectionChanged.connect(self._mark_merge_preview_stale)
         self.dataset_panel.clearAllRequested.connect(self._clear_all_datasets)
         # Existing model signal (still needed for visibility checkbox changes)
         self.dataset_model.itemChanged.connect(self._on_dataset_item_changed)
@@ -300,6 +305,8 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.inspector_dock = QtWidgets.QDockWidget("Inspector", self)
         self.inspector_dock.setObjectName("dock-inspector")
         self.inspector_tabs = QtWidgets.QTabWidget()
+        # Refresh merge preview when Math tab is activated (lazy computation)
+        self.inspector_tabs.currentChanged.connect(self._on_inspector_tab_changed)
         # Documentation tab
         docs_container = QtWidgets.QWidget()
         docs_layout = QtWidgets.QHBoxLayout(docs_container)
@@ -388,7 +395,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.merge_status_label = self.merge_panel.merge_status_label
 
         # Wire existing handlers
-        self.merge_only_visible.toggled.connect(lambda _: self._update_merge_preview())
+        self.merge_only_visible.toggled.connect(lambda _: self._mark_merge_preview_stale())
         self.merge_average_button.clicked.connect(self._on_merge_average)
         self.merge_subtract_button.clicked.connect(self._on_merge_subtract)
         self.merge_ratio_button.clicked.connect(self._on_merge_ratio)
@@ -410,6 +417,8 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.log_view = QtWidgets.QPlainTextEdit(readOnly=True)
         self.log_dock.setWidget(self.log_view)
         self.addDockWidget(QtCore.Qt.DockWidgetArea.BottomDockWidgetArea, self.log_dock)
+        # Hidden by default; opt-in via View menu
+        self.log_dock.hide()
 
         # History dock (moved into HistoryPanel)
         self.history_dock = QtWidgets.QDockWidget("History", self)
@@ -420,6 +429,8 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.history_detail = self.history_panel.history_detail
         self.history_dock.setWidget(self.history_panel)
         self.addDockWidget(QtCore.Qt.DockWidgetArea.RightDockWidgetArea, self.history_dock)
+        # Hidden by default to reduce UI noise
+        self.history_dock.hide()
         # Don't auto-show History dock - let users open it via View menu when needed
         self.history_table.itemSelectionChanged.connect(self._on_history_row_selected)
         # Wire HistoryPanel signals
@@ -468,7 +479,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.norm_combo = QtWidgets.QComboBox()
         self.norm_combo.addItems(["None", "Max", "Area"])
         self.norm_combo.setCurrentText("None")
-        self.norm_combo.currentTextChanged.connect(lambda _: self._refresh_plot())
+        self.norm_combo.currentTextChanged.connect(lambda _: self._schedule_refresh())
         self.plot_toolbar.addSeparator()
         self.plot_toolbar.addWidget(QtWidgets.QLabel(" Normalize: "))
         self.plot_toolbar.addWidget(self.norm_combo)
@@ -477,14 +488,14 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.y_scale_combo.addItems(["Linear", "Log10", "Asinh"])  # Safe scales; Log10 uses signed-log
         self.y_scale_combo.setCurrentText("Linear")
         self.y_scale_combo.setToolTip("Apply Y scaling after normalization.\nLog10: sign(y)*log10(1+|y|)\nAsinh: arcsinh(y) for wider dynamic range including negatives")
-        self.y_scale_combo.currentTextChanged.connect(lambda _: self._refresh_plot())
+        self.y_scale_combo.currentTextChanged.connect(lambda _: self._schedule_refresh())
         self.plot_toolbar.addWidget(QtWidgets.QLabel(" Y-scale: "))
         self.plot_toolbar.addWidget(self.y_scale_combo)
         # Global normalization checkbox
         self.norm_global_checkbox = QtWidgets.QCheckBox("Global")
         self.norm_global_checkbox.setChecked(False)  # Default to per-spectrum normalization
         self.norm_global_checkbox.setToolTip("When checked, normalize all spectra together.\nWhen unchecked, normalize each spectrum independently.")
-        self.norm_global_checkbox.stateChanged.connect(lambda _: self._refresh_plot())
+        self.norm_global_checkbox.stateChanged.connect(lambda _: self._schedule_refresh())
         self.plot_toolbar.addWidget(self.norm_global_checkbox)
         # Max points control
         self.plot_toolbar.addSeparator()
@@ -705,43 +716,55 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         - x is already in the current display unit from PlotPane; just label it.
         - y reflects normalized + Y-scale transformed values shown on the canvas.
         """
+        # Fast path: cache widget references and only format when values change significantly
+        if not hasattr(self, '_last_hover_x'):
+            self._last_hover_x = None
+            self._last_hover_y = None
+            self._last_hover_msg = ""
+        
+        # Skip update if values haven't changed much (reduces Qt overhead)
         try:
-            unit = self.unit_combo.currentText() if hasattr(self, "unit_combo") and self.unit_combo is not None else "nm"
+            if (self._last_hover_x is not None and 
+                abs(x - self._last_hover_x) < abs(x) * 0.001 and
+                abs(y - self._last_hover_y) < abs(y) * 0.001):
+                return
         except Exception:
-            unit = "nm"
-        # Build a compact formatting with graceful handling of NaNs
-        def _fmt(val: float) -> str:
-            try:
-                if val is None or not np.isfinite(val):
-                    return "—"
-                # Use 6 significant digits for x, 6 for y
-                return f"{float(val):.6g}"
-            except Exception:
-                return "—"
-
+            pass
+        
+        self._last_hover_x = x
+        self._last_hover_y = y
+        
+        # Cache widget state (avoid repeated hasattr/currentText calls)
         try:
-            scale = self.y_scale_combo.currentText() if hasattr(self, "y_scale_combo") and self.y_scale_combo is not None else "Linear"
+            unit = self.unit_combo.currentText() if self.unit_combo is not None else "nm"
+            scale = self.y_scale_combo.currentText() if self.y_scale_combo is not None else "Linear"
+            norm_mode = self.norm_combo.currentText() if self.norm_combo is not None else "None"
+            is_global = self.norm_global_checkbox.isChecked() if self.norm_global_checkbox is not None else False
         except Exception:
-            scale = "Linear"
-        scale_suffix = "" if scale == "Linear" else f" [{scale}]"
-        # Normalization badges (mode + Global toggle)
+            unit, scale, norm_mode, is_global = "nm", "Linear", "None", False
+        
+        # Fast formatting
         try:
-            norm_mode = self.norm_combo.currentText() if hasattr(self, "norm_combo") and self.norm_combo is not None else "None"
-        except Exception:
-            norm_mode = "None"
-        try:
-            is_global = bool(self.norm_global_checkbox.isChecked()) if hasattr(self, "norm_global_checkbox") else False
-        except Exception:
-            is_global = False
-        norm_suffix = "" if norm_mode == "None" else f" [{norm_mode}{'•Global' if is_global else ''}]"
-        try:
-            # Keep it short; include units and any non-linear scale indicator
-            self.statusBar().showMessage(f"x: {_fmt(x)} {unit} | y: {_fmt(y)}{scale_suffix}{norm_suffix}")
+            if not np.isfinite(x):
+                x_str = "—"
+            else:
+                x_str = f"{float(x):.6g}"
+            
+            if not np.isfinite(y):
+                y_str = "—"
+            else:
+                y_str = f"{float(y):.6g}"
+            
+            scale_suffix = "" if scale == "Linear" else f" [{scale}]"
+            norm_suffix = "" if norm_mode == "None" else f" [{norm_mode}{'•Global' if is_global else ''}]"
+            
+            msg = f"x: {x_str} {unit} | y: {y_str}{scale_suffix}{norm_suffix}"
+            if msg != self._last_hover_msg:
+                self.statusBar().showMessage(msg)
+                self._last_hover_msg = msg
+            
             # Record last cursor x for analysis helpers
-            try:
-                self._last_cursor_x_display = float(x) if np.isfinite(x) else None
-            except Exception:
-                self._last_cursor_x_display = None
+            self._last_cursor_x_display = float(x) if np.isfinite(x) else None
         except Exception:
             pass
 
@@ -1095,6 +1118,16 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             self._theme_action_group.addAction(action)
 
         view_menu.addSeparator()
+        # Crosshair toggle
+        self.crosshair_action = QtGui.QAction("Show Crosshair", self, checkable=True)
+        try:
+            self.crosshair_action.setChecked(self.plot.is_crosshair_visible())
+        except Exception:
+            self.crosshair_action.setChecked(True)
+        self.crosshair_action.toggled.connect(lambda v: self.plot.set_crosshair_visible(bool(v)))
+        view_menu.addAction(self.crosshair_action)
+
+        view_menu.addSeparator()
         self.reset_plot_action = QtGui.QAction("Reset Plot", self)
         self.reset_plot_action.setShortcut(QtGui.QKeySequence("Ctrl+Shift+A"))
         self.reset_plot_action.triggered.connect(self.plot.autoscale)
@@ -1131,11 +1164,17 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             except Exception:
                 pass
             self._applied_theme_key = theme.key
-        try:
-            if getattr(self, "plot", None) is not None:
-                self.plot.apply_theme(theme)
-        except Exception:
-            pass
+            # Only apply plot theme when it actually changes
+            try:
+                if getattr(self, "plot", None) is not None:
+                    self.plot.apply_theme(theme)
+            except Exception:
+                pass
+            # Refresh colour palettes for new theme for future datasets/NIST sets
+            try:
+                self._apply_theme_palettes(theme.key)
+            except Exception:
+                pass
         self._theme_key = theme.key
         if persist and theme_changed:
             self._save_theme_preference(theme.key)
@@ -1594,10 +1633,14 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             pass
 
         # Double-click to ingest sample files
-        # Guard disconnect to avoid runtime warning when not previously connected
+        # Reconnect signal (disconnect first if already connected)
         try:
-            if hasattr(self.library_view.itemActivated, 'disconnect'):
+            was_blocked = self.library_view.blockSignals(True)
+            try:
                 self.library_view.itemActivated.disconnect()
+            except (TypeError, RuntimeError):
+                pass  # Not connected yet
+            self.library_view.blockSignals(was_blocked)
         except Exception:
             pass
         try:
@@ -1692,10 +1735,38 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         except Exception as exc:
             QtWidgets.QMessageBox.warning(self, "Import failed", str(exc))
             return
-        for spectrum in spectra:
-            self.overlay_service.add(spectrum)
-            self._add_spectrum(spectrum)
-        self.plot.autoscale()
+        
+        # Batch plot updates to avoid incremental redraws
+        self.plot.begin_bulk_update()
+        try:
+            for spectrum in spectra:
+                self.overlay_service.add(spectrum)
+                self._add_spectrum(spectrum, defer_refresh=True)
+            # Refresh plot once after all spectra loaded (avoid O(n²) behavior)
+            norm_mode = self.norm_combo.currentText()
+            use_global = self.norm_global_checkbox.isChecked() if hasattr(self, 'norm_global_checkbox') else False
+            if use_global and norm_mode != "None":
+                self._refresh_plot()
+        finally:
+            self.plot.end_bulk_update()  # Re-enable updates and autoscale
+
+        # If dataset is very large, disable crosshair/hover to keep interactions smooth
+        try:
+            trace_count, total_points = self.plot.get_trace_stats()
+            if trace_count >= 50 or total_points >= 500_000:
+                self.plot.set_crosshair_visible(False)
+                try:
+                    if hasattr(self, "crosshair_action") and self.crosshair_action is not None:
+                        self.crosshair_action.setChecked(False)
+                except Exception:
+                    pass
+                try:
+                    self.statusBar().showMessage("Performance mode: crosshair disabled for large dataset (hover overlay off)", 5000)
+                except Exception:
+                    pass
+        except Exception:
+            pass
+        
         # Reflow overlays against the new y-range
         try:
             self._refresh_reference_overlay_geometry()
@@ -1704,20 +1775,21 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self._refresh_library_view()
         # Record in knowledge log and update history
         try:
+            # Avoid persisting routine ingest events; keep knowledge log focused on insights
             self.knowledge_log.record_event(
                 "Ingest",
                 f"Ingested file {path.name}",
                 references=[path.name],
-                persist=True,
+                persist=False,
             )
         finally:
             self._refresh_history_view()
 
     # Public helper used by tests
-    def _add_spectrum(self, spectrum: Spectrum) -> None:
+    def _add_spectrum(self, spectrum: Spectrum, *, defer_refresh: bool = False) -> None:
         color = self._next_palette_color()
         self._spectrum_colors[spectrum.id] = color
-        style = TraceStyle(color=color, width=1.5, show_in_legend=True)
+        style = TraceStyle(color=color, width=1.0, show_in_legend=True)
         
         # Convert X to canonical nm for plotting (plot expects x_nm in nanometers)
         try:
@@ -1787,7 +1859,8 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self._append_dataset_row(spectrum)
         
         # If global normalization is enabled, refresh all spectra to apply global norm
-        if use_global and norm_mode != "None":
+        # (but only if not deferred to batch processing)
+        if use_global and norm_mode != "None" and not defer_refresh:
             try:
                 self._refresh_plot()
             except Exception:
@@ -1801,6 +1874,8 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         # to correlate entries in the Data → Datasets tree with on-canvas traces.
         alias_item = QtGui.QStandardItem(str(spectrum.name))
         alias_item.setEditable(False)
+        # Store spectrum ID directly in item data for O(1) lookup in event handlers
+        alias_item.setData(spectrum.id, QtCore.Qt.ItemDataRole.UserRole)
         visible_item = QtGui.QStandardItem("")
         visible_item.setCheckable(True)
         visible_item.setEditable(False)
@@ -1834,17 +1909,22 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
     def _on_dataset_item_changed(self, item: QtGui.QStandardItem) -> None:
         if self.dataset_model is None or self.dataset_view is None:
             return
-        # Determine which spectrum id this row corresponds to (support tree rows)
+        #  Determine which spectrum id this row corresponds to (support tree rows)
         index = item.index()
         parent = index.parent()
         row = index.row()
         alias_index = self.dataset_model.index(row, 0, parent)
         alias_item = self.dataset_model.itemFromIndex(alias_index)
-        spec_id = None
-        for sid, ali in self._dataset_items.items():
-            if ali is alias_item:
-                spec_id = sid
-                break
+        
+        # Use item's data role to store spec_id directly (avoids O(n) search)
+        spec_id = alias_item.data(QtCore.Qt.ItemDataRole.UserRole)
+        if spec_id is None:
+            # Fallback to linear search (for old items without stored ID)
+            for sid, ali in self._dataset_items.items():
+                if ali is alias_item:
+                    spec_id = sid
+                    alias_item.setData(sid, QtCore.Qt.ItemDataRole.UserRole)  # Cache for next time
+                    break
         if spec_id is None:
             return
         vis_index = self.dataset_model.index(row, 1, parent)
@@ -1855,8 +1935,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             self.plot.set_visible(spec_id, checked)
         except Exception:
             pass
-        # Update merge preview when visibility changes
-        self._update_merge_preview()
+        # Skip merge preview update - it's expensive and will update when merge tab is accessed
 
     def _on_dataset_filter_changed(self, text: str) -> None:
         """Apply dataset filter to tree view (called via panel signal)."""
@@ -1907,6 +1986,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             
             # Remove from internal tracking
             self._dataset_items.pop(spec_id, None)
+            self._dataset_color_items.pop(spec_id, None)
             self._spectrum_colors.pop(spec_id, None)
             self._visibility.pop(spec_id, None)
             self._display_y_units.pop(spec_id, None)
@@ -1950,6 +2030,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
 
         # Clear internal tracking dictionaries
         self._dataset_items.clear()
+        self._dataset_color_items.clear()
         self._spectrum_colors.clear()
         self._visibility.clear()
         self._display_y_units.clear()
@@ -2010,7 +2091,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             return
         if self.docs_list.count() > 0:
             return
-        # Prefer user-facing docs, fallback to project docs
+        # Prefer user-facing docs only (avoid surfacing outdated developer/history docs)
         root_docs = Path(__file__).resolve().parents[2] / "docs"
         user_docs = root_docs / "user"
         # Collect docs and assign categories for nicer grouping in the list
@@ -2036,9 +2117,13 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             return path.stem.replace("_", " ").replace("-", " ").strip().title()
 
         candidates: list[Path] = []
-        for folder in (user_docs, root_docs):
-            if folder.exists():
-                candidates.extend(sorted(folder.glob("*.md")))
+        if user_docs.exists():
+            candidates.extend(sorted(user_docs.glob("*.md")))
+        # If user docs are empty, fall back to a minimal curated landing page
+        if not candidates:
+            for fallback in (root_docs / "INDEX.md", root_docs / "README.md"):
+                if fallback.exists():
+                    candidates.append(fallback)
         entries: list[tuple[str, Path, str]] = [(_title_for(p), p, _category_for(p)) for p in candidates]
         # Group by category with alphabetical sort inside categories
         from collections import defaultdict as _defaultdict
@@ -2074,17 +2159,28 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.plot.set_max_points(self._plot_max_points)
         self._save_plot_max_points(self._plot_max_points)
 
+    def _schedule_refresh(self) -> None:
+        """Schedule a deferred plot refresh to avoid blocking during rapid changes."""
+        self._refresh_timer.start()  # Restarts the timer if already running
+    
     def _refresh_plot(self) -> None:
         """Refresh plot with current normalization mode."""
+        # Batch plot updates to avoid incremental redraws during refresh
+        try:
+            self.plot.begin_bulk_update()
+        except Exception:
+            pass
+
         norm_mode = self.norm_combo.currentText()
         use_global = self.norm_global_checkbox.isChecked() if hasattr(self, 'norm_global_checkbox') else False
         
         # If global normalization, compute the global max/area first
         global_norm_value = None
+        spectra_list = self.overlay_service.list()  # Cache to avoid multiple calls
         if norm_mode != "None" and use_global:
             global_norm_value = self._compute_global_normalization_value(norm_mode)
         
-        for spec in self.overlay_service.list():
+        for spec in spectra_list:
             try:
                 # Convert X to nm for plotting
                 try:
@@ -2108,14 +2204,8 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                 y_data = self._apply_normalization(y_cal, norm_mode, global_norm_value, x_nm)
                 y_data = self._apply_y_scale(y_data)
                 
-                # Debug: Log normalization results
-                import logging
-                logger = logging.getLogger("spectra")
-                if norm_mode != "None":
-                    logger.debug(f"Normalization {norm_mode} ({'global' if use_global else 'per-spectrum'}): y_cal range [{np.min(y_cal):.3e}, {np.max(y_cal):.3e}] -> y_data range [{np.min(y_data):.3e}, {np.max(y_data):.3e}]")
-                
                 color = self._spectrum_colors.get(spec.id, QtGui.QColor("white"))
-                style = TraceStyle(color=color, width=1.5, show_in_legend=True)
+                style = TraceStyle(color=color, width=1.0, show_in_legend=True)
                 self.plot.add_trace(
                     key=spec.id,
                     alias=spec.name,
@@ -2129,7 +2219,15 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                 import logging
                 logger = logging.getLogger("spectra")
                 logger.error(f"Error refreshing plot for spectrum {spec.id}: {e}", exc_info=True)
-        self.plot.autoscale()
+        # End batch and autoscale once
+        try:
+            self.plot.end_bulk_update()
+        except Exception:
+            # Fallback: ensure autoscale if bulk update unavailable
+            try:
+                self.plot.autoscale()
+            except Exception:
+                pass
     
     def _compute_global_normalization_value(self, mode: str) -> float | None:
         """Compute global normalization value across all spectra."""
@@ -2248,10 +2346,45 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         return color
 
     def _next_nist_color(self) -> QtGui.QColor:
-        """Return the next colour for NIST spectra from the main palette."""
-        color = self._palette[self._palette_index % len(self._palette)]
-        self._palette_index += 1
+        """Return the next colour for NIST spectra from the NIST palette.
+
+        Uses theme-specific, high-contrast colours distinct from dataset palette.
+        """
+        palette = self._nist_palette or self._palette
+        idx = self._nist_palette_index % max(1, len(palette))
+        color = palette[idx]
+        self._nist_palette_index += 1
         return color
+
+    def _apply_theme_palettes(self, theme_key: str) -> None:
+        """Update dataset and NIST colour palettes for the given theme key."""
+        # Colourblind-safe Okabe–Ito base set (works on both themes)
+        okabe_ito = [
+            "#E69F00", "#56B4E9", "#009E73", "#F0E442",
+            "#0072B2", "#D55E00", "#CC79A7", "#999999",
+        ]
+        if str(theme_key).lower() in ("light",):
+            # Darker, higher-contrast lines for light backgrounds
+            # Muted, eye-friendly palette tuned for white canvases
+            dataset = [
+                "#4F6D7A", "#B65E5A", "#3B8E7E", "#7A6FA1",
+                "#6E5A49", "#2C8DA8", "#808080", "#A7A842",
+            ]
+            nist = ["#C43C00", "#7F0000", "#005C7A", "#4B0082"]
+        else:
+            # Vibrant but not neon for dark theme
+            dataset = [
+                "#56B4E9", "#E69F00", "#009E73", "#D55E00",
+                "#CC79A7", "#F0E442", "#0072B2", "#999999",
+            ]
+            nist = ["#FFB000", "#FF5A5F", "#33BBC5", "#C77DFF"]
+        # Mix in Okabe–Ito to lengthen
+        def as_qcolors(hexes: list[str]) -> list[QtGui.QColor]:
+            return [QtGui.QColor(h) for h in hexes + okabe_ito]
+        self._palette = as_qcolors(dataset)
+        self._nist_palette = as_qcolors(nist)
+        self._palette_index = 0
+        self._nist_palette_index = 0
 
     # ----------------------------- Reference tab helpers -----------------
     def _update_reference_axis(self, unit: str) -> None:
@@ -3060,10 +3193,28 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             self._log("History", f"Failed to export entries: {exc}")
 
     # ----------------------------- Merge/Average helpers ----------------
+    def _mark_merge_preview_stale(self) -> None:
+        """Mark the merge preview as needing recomputation (deferred until visible)."""
+        self._merge_preview_stale = True
+    
+    def _on_inspector_tab_changed(self, index: int) -> None:
+        """Update merge preview when the Math tab becomes visible."""
+        try:
+            if self.inspector_tabs.tabText(index) == "Math":
+                self._update_merge_preview()
+        except Exception:
+            pass
+    
     def _update_merge_preview(self) -> None:
         """Update the merge preview when dataset selection or visibility changes."""
         if not hasattr(self, 'merge_preview_label') or not hasattr(self, 'merge_average_button'):
             return
+        
+        # Skip if not stale (already computed)
+        if not self._merge_preview_stale:
+            return
+        
+        self._merge_preview_stale = False
         
         # Get selected datasets
         selected_specs = self._get_merge_candidates()

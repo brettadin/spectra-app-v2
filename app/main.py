@@ -20,6 +20,7 @@ except ModuleNotFoundError as exc:
 
 from app.logging_config import setup_logging
 from app.ui.main_window import SpectraMainWindow
+from app.ui.themes import ThemeDefinition, get_theme_definition
 from app.services import nist_asd_service as nist_asd_service_module
 
 QtCore: Any

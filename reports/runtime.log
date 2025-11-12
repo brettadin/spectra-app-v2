@@ -1,10 +1,12 @@
 Traceback (most recent call last):
-  File "C:\Code\spectra-app-v2\app\ui\main_window.py", line 328, in <lambda>
-    lambda element, lower, upper: self._on_nist_fetch_clicked()
-                                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
-  File "C:\Code\spectra-app-v2\app\ui\main_window.py", line 2436, in _on_nist_fetch_clicked
-    color = self._next_nist_color()
-  File "C:\Code\spectra-app-v2\app\ui\main_window.py", line 2150, in _next_nist_color
-    color = self._palette[self._nist_palette_index % len(self._palette)]
-                          ^^^^^^^^^^^^^^^^^^^^^^^^
-AttributeError: 'SpectraMainWindow' object has no attribute '_nist_palette_index'. Did you mean: '_palette_index'?
+  File "C:\Users\brett\AppData\Local\Programs\Python\Python311\Lib\site-packages\pyqtgraph\graphicsItems\PlotDataItem.py", line 1209, in viewRangeChanged
+    self.updateItems(styleUpdate=False)
+  File "C:\Users\brett\AppData\Local\Programs\Python\Python311\Lib\site-packages\pyqtgraph\graphicsItems\PlotDataItem.py", line 879, in updateItems
+    dataset = self._getDisplayDataset()
+              ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\brett\AppData\Local\Programs\Python\Python311\Lib\site-packages\pyqtgraph\graphicsItems\PlotDataItem.py", line 1019, in _getDisplayDataset
+    if view is None or view.autoRangeEnabled()[0]:
+                       ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\brett\AppData\Local\Programs\Python\Python311\Lib\site-packages\pyqtgraph\widgets\PlotWidget.py", line 85, in __getattr__
+    raise AttributeError(attr)
+AttributeError: autoRangeEnabled

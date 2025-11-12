@@ -127,6 +127,10 @@ def apply_pyqtgraph_theme(theme: ThemeDefinition | str | None = None) -> None:
 
         pg.setConfigOption("background", palette.plot_background)
         pg.setConfigOption("foreground", palette.plot_foreground)
-        pg.setConfigOption("antialias", True)
+        # Disable global antialiasing for performance with large datasets
+        pg.setConfigOption("antialias", False)
+        # Enable OpenGL for hardware-accelerated rendering if available
+        pg.setConfigOption("useOpenGL", True)
+        pg.setConfigOption("enableExperimental", False)
     except Exception:
         pass
