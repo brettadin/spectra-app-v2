@@ -20,7 +20,6 @@ except ModuleNotFoundError as exc:
 
 from app.logging_config import setup_logging
 from app.ui.main_window import SpectraMainWindow
-from app.ui.themes import get_theme_definition
 from app.services import nist_asd_service as nist_asd_service_module
 
 QtCore: Any
@@ -85,12 +84,7 @@ def main(argv: list[str] | None = None) -> int:
     app.setApplicationName("Spectra App")
     app.setOrganizationName("Spectra")
     try:
-        try:
-            launch_theme_key = SpectraMainWindow.load_theme_preference()
-        except Exception:
-            launch_theme_key = None
-        resolved_theme = get_theme_definition(launch_theme_key)
-        window: SpectraMainWindow = SpectraMainWindow(theme_key=resolved_theme.key)
+        window: SpectraMainWindow = SpectraMainWindow(theme_key=theme.key)
         window.show()
         logger.info("Main window constructed and shown successfully")
     except Exception as exc:
