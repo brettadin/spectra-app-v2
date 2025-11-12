@@ -54,6 +54,8 @@ from app.ui.merge_panel import MergePanel
 from app.ui.history_panel import HistoryPanel
 from app.ui.calibration_panel import CalibrationPanel
 from app.ui.nist_lines_panel import NistLinesPanel
+from app.ui.styles import apply_pyqtgraph_theme, get_app_stylesheet
+from app.ui.themes import default_theme_key, get_theme_definition, iter_theme_definitions
 from app.utils.error_handling import ui_action
 
 
@@ -88,6 +90,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         container: object | None = None,
         *,
         knowledge_log_service: KnowledgeLogService | None = None,
+        theme_key: str | None = None,
     ) -> None:
         super().__init__()
         self.setWindowTitle("Spectra Desktop Preview")
@@ -100,6 +103,8 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             self.reference_library.line_shape_placeholders(),
             self.reference_library.line_shape_metadata(),
         )
+        self._theme_key = self._load_theme_preference() if theme_key is None else get_theme_definition(theme_key).key
+        self._theme_action_group: QtGui.QActionGroup | None = None
         self.overlay_service = OverlayService(self.units_service, line_shape_model=self.line_shape_model)
         # Compute persistence flags inline to avoid any bootstrap ordering issues
         _flag = os.environ.get("SPECTRA_DISABLE_PERSISTENCE")
@@ -236,6 +241,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.plot = PlotPane(self, max_points=self._plot_max_points)
         self.plot.remove_export_from_context_menu()
         self.central_split.addWidget(self.plot)
+        self._apply_theme_by_key(self._theme_key, persist=False)
         self.plot.autoscale()
         # Live cursor readout in status bar
         try:
@@ -1071,6 +1077,19 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         if self.plot_toolbar is not None:
             view_menu.addAction(self.plot_toolbar.toggleViewAction())
 
+        theme_menu = view_menu.addMenu("&Theme")
+        self._theme_action_group = QtGui.QActionGroup(self)
+        self._theme_action_group.setExclusive(True)
+        for theme in iter_theme_definitions():
+            action = QtGui.QAction(theme.label, self, checkable=True)
+            action.setData(theme.key)
+            action.setToolTip(theme.description)
+            if theme.key == self._theme_key:
+                action.setChecked(True)
+            action.triggered.connect(lambda checked, key=theme.key: self._on_theme_selected(key, checked))
+            theme_menu.addAction(action)
+            self._theme_action_group.addAction(action)
+
         view_menu.addSeparator()
         self.reset_plot_action = QtGui.QAction("Reset Plot", self)
         self.reset_plot_action.setShortcut(QtGui.QKeySequence("Ctrl+Shift+A"))
@@ -1086,6 +1105,62 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         docs_action.setShortcut("F1")
         docs_action.triggered.connect(self.show_documentation)
         help_menu.addAction(docs_action)
+
+    def _on_theme_selected(self, theme_key: str, checked: bool) -> None:
+        if not checked or theme_key == self._theme_key:
+            return
+        self._apply_theme_by_key(theme_key)
+
+    def _apply_theme_by_key(self, theme_key: str, *, persist: bool = True) -> None:
+        theme = get_theme_definition(theme_key)
+        app = QtWidgets.QApplication.instance()
+        if app is not None:
+            try:
+                app.setStyleSheet(get_app_stylesheet(theme))
+            except Exception:
+                pass
+        try:
+            apply_pyqtgraph_theme(theme)
+        except Exception:
+            pass
+        try:
+            if getattr(self, "plot", None) is not None:
+                self.plot.apply_theme(theme)
+        except Exception:
+            pass
+        self._theme_key = theme.key
+        if persist:
+            self._save_theme_preference(theme.key)
+        self._sync_theme_actions(theme.key)
+
+    def _sync_theme_actions(self, theme_key: str) -> None:
+        if self._theme_action_group is None:
+            return
+        for action in self._theme_action_group.actions():
+            try:
+                action.setChecked(action.data() == theme_key)
+            except Exception:
+                continue
+
+    def _save_theme_preference(self, theme_key: str) -> None:
+        try:
+            settings = QtCore.QSettings("SpectraApp", "DesktopPreview")
+            settings.setValue("ui/theme", theme_key)
+        except Exception:
+            pass
+
+    def _load_theme_preference(self) -> str:
+        try:
+            settings = QtCore.QSettings("SpectraApp", "DesktopPreview")
+            stored = settings.value("ui/theme", default_theme_key())
+        except Exception:
+            stored = default_theme_key()
+        if isinstance(stored, str) and stored:
+            return get_theme_definition(stored).key
+        try:
+            return get_theme_definition(str(stored)).key
+        except Exception:
+            return get_theme_definition(default_theme_key()).key
 
     def _wire_shortcuts(self) -> None:
         # Keep minimal; menu items already provide the primary access paths.

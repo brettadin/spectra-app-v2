@@ -79,6 +79,17 @@ These transforms are view‑only and are applied after normalisation. They do no
 
 Some FITS imports can contain NaNs or masked samples. The normalisation pipeline automatically ignores non‑finite values when computing scales so a few bad points don’t collapse your factors. NaNs remain in the plotted/output arrays (so you can still identify gaps) but are excluded from Max/Area calculations.
 
+## Switching the application theme
+
+Spectra now ships with multiple window themes so you can match the UI to your lighting. Open **View → Theme** on the menu bar to
+pick between:
+
+- **Dark** (default) — balanced contrast tuned for long sessions.
+- **Light** — bright chrome for daylight review, screen captures, or print alignment.
+- **Midnight** — ultra-dark teal-accented palette for dim labs and observatories.
+
+The theme change applies immediately: window chrome, dock backgrounds, and tables restyle on the spot, and the plot pane updates its axis pens, legend, crosshair, and pyqtgraph palette to keep data legible. Your selection is saved in Spectra's preferences, so the next launch resumes where you left off.
+
 ## Trace colouring modes
 
 Heavy overlay sessions can get visually noisy when every spectrum shares the same palette. The Inspector’s **Style** tab now ships
