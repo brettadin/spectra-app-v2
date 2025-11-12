@@ -1,5 +1,17 @@
 # Patch Notes
 
+## 2025-11-12 (Theme bootstrap compatibility fix) — 15:15 ET / 20:15Z UTC
+- Restored the theme bootstrap path in `app/main.py` so the launcher always resolves a palette from persisted settings before
+  constructing the main window, keeping merge retries from crashing with `NameError` when downstream callers expect a `theme`
+  object.
+- Exposed `SpectraMainWindow.load_theme_preference()` for reuse and used it to hydrate the initial palette while preserving the
+  single-pass styling workflow handled inside the window. (`app/main.py`, `app/ui/main_window.py`)
+
+## 2025-11-12 (Theme performance regression fix) — 14:48 ET / 19:48Z UTC
+- Eliminated duplicate application-wide stylesheet passes when the main window boots so Qt no longer repaints the entire widget tree twice. The window now records the active theme key and skips redundant `QApplication.setStyleSheet` / `pyqtgraph` updates unless the user actually selects a new preset. (`app/ui/main_window.py`)
+- Deferred theme orchestration out of the launcher entry point and centralised it in the main window so startup avoids extra QSettings lookups and redundant palette configuration. (`app/main.py`, `app/ui/main_window.py`)
+- Cached the generated QSS per theme key to avoid rebuilding large stylesheet strings during rapid palette switches. (`app/ui/styles.py`)
+
 ## 2025-11-06 (Math operations UI and spectral line unpin fix) — 22:15 ET / 03:15Z UTC
 - **Math operations UI**: The Merge/Average tab has been expanded and renamed to "Math" with three operations:
   - **Average**: Combine multiple spectra via interpolation onto a common wavelength grid (existing feature, now with improved UI)
@@ -891,3 +903,9 @@ See: `docs/dev/worklog/2025-10-22.md` and neurons in `docs/brains/*`.
 
 - Routed `.dat` uploads through the resilient CSV importer and added the extension to the file dialog filter and samples browser so MASCS-style tables load without renaming.
 - Documented DAT usage in the importing guide and extended ingest smoke tests with a `.dat` regression to keep the extension registered.
+
+## 2025-11-12T13:23:12-05:00 — Theme switcher and plot theming
+
+- Added a shared theme registry with light, dark, and midnight presets so the desktop shell can swap window colours without touching code.
+- Persist the selected theme in `QSettings`, surface the options under View → Theme, and reapply the stylesheet, plot colours, and pyqtgraph palette immediately when switching.
+- Synced the plot pane with the active theme so axes, legends, and crosshair accents track the window palette, keeping tables and charts visually coherent.
