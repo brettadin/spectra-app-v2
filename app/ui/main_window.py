@@ -1175,6 +1175,11 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                 self._apply_theme_palettes(theme.key)
             except Exception:
                 pass
+            # Retint existing traces and NIST collections to match the new theme
+            try:
+                self._retint_for_theme()
+            except Exception:
+                pass
         self._theme_key = theme.key
         if persist and theme_changed:
             self._save_theme_preference(theme.key)
@@ -2364,20 +2369,33 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             "#0072B2", "#D55E00", "#CC79A7", "#999999",
         ]
         if str(theme_key).lower() in ("light",):
-            # Darker, higher-contrast lines for light backgrounds
-            # Muted, eye-friendly palette tuned for white canvases
+            # Eye-friendly, non-blue starter colour (rust/brown) for better legibility on white
             dataset = [
-                "#4F6D7A", "#B65E5A", "#3B8E7E", "#7A6FA1",
-                "#6E5A49", "#2C8DA8", "#808080", "#A7A842",
+                "#7A3E2F",  # rust (primary)
+                "#2F6B4F",  # forest
+                "#7A6FA1",  # aubergine
+                "#6E5A49",  # walnut
+                "#A77C49",  # ochre
+                "#808080",  # grey
+                "#3E6A6A",  # slate green
+                "#8A5E7A",  # dusty rose
             ]
-            nist = ["#C43C00", "#7F0000", "#005C7A", "#4B0082"]
+            # For light backgrounds: avoid yellows entirely; use deep, legible accents
+            nist = [
+                "#4B3F72",  # deep aubergine
+                "#2F6B4F",  # forest
+                "#7A3E2F",  # rust
+                "#5A6B7A",  # slate
+            ]
         else:
             # Vibrant but not neon for dark theme
+            # Use a bright, readable set on dark canvases (Okabe–Ito inspired)
             dataset = [
-                "#56B4E9", "#E69F00", "#009E73", "#D55E00",
+                "#E69F00", "#56B4E9", "#009E73", "#D55E00",
                 "#CC79A7", "#F0E442", "#0072B2", "#999999",
             ]
-            nist = ["#FFB000", "#FF5A5F", "#33BBC5", "#C77DFF"]
+            # Start NIST accents with cyan; move yellow to the end
+            nist = ["#33BBC5", "#FF5A5F", "#C77DFF", "#FFB000"]
         # Mix in Okabe–Ito to lengthen
         def as_qcolors(hexes: list[str]) -> list[QtGui.QColor]:
             return [QtGui.QColor(h) for h in hexes + okabe_ito]
@@ -2385,6 +2403,58 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self._nist_palette = as_qcolors(nist)
         self._palette_index = 0
         self._nist_palette_index = 0
+
+    def _retint_for_theme(self) -> None:
+        """Re-apply palette colors to existing items when the theme changes."""
+        # Datasets: reassign colours in insertion order
+        try:
+            self._palette_index = 0
+            for spec in self.overlay_service.list():
+                color = self._next_palette_color()
+                self._spectrum_colors[spec.id] = color
+                # Update plot style
+                self.plot.update_style(spec.id, TraceStyle(color=color, width=1.0, show_in_legend=True))
+                # Update dataset chip icon if available
+                alias_item = self._dataset_items.get(spec.id)
+                if alias_item is not None:
+                    try:
+                        swatch = QtGui.QPixmap(12, 12)
+                        swatch.fill(QtCore.Qt.GlobalColor.transparent)
+                        painter = QtGui.QPainter(swatch)
+                        try:
+                            painter.setPen(QtGui.QPen(QtGui.QColor(0, 0, 0, 180)))
+                            painter.setBrush(QtGui.QBrush(color))
+                            painter.drawRect(0, 0, 11, 11)
+                        finally:
+                            painter.end()
+                        alias_item.setData(QtGui.QIcon(swatch), QtCore.Qt.ItemDataRole.DecorationRole)
+                        alias_item.setToolTip(f"Trace colour: {color.name()}")
+                    except Exception:
+                        pass
+        except Exception:
+            pass
+
+        # NIST collections: reassign colours and redraw visible sets
+        try:
+            self._nist_palette_index = 0
+            if hasattr(self, "nist_lines_panel") and self.nist_lines_panel is not None:
+                for cid in self.nist_lines_panel.get_collections():
+                    color = self._next_nist_color()
+                    if cid in self._nist_collections:
+                        self._nist_collections[cid]["color"] = color
+                    # Update panel swatch
+                    try:
+                        self.nist_lines_panel.set_color(cid, color)
+                    except Exception:
+                        pass
+                    # Redraw on plot if visible
+                    try:
+                        if self.nist_lines_panel.is_visible(cid):
+                            self._draw_nist_collection(cid)
+                    except Exception:
+                        pass
+        except Exception:
+            pass
 
     # ----------------------------- Reference tab helpers -----------------
     def _update_reference_axis(self, unit: str) -> None:

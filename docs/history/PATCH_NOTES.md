@@ -2,7 +2,7 @@
 
 ## 2025-11-12 (Legend readability & light palette) — 22:05 ET / 03:05Z UTC
 - Legend now adopts theme colours immediately at startup and after the first trace is added; no interaction needed. We restyle labels on every legend rebuild/update and use a slightly translucent panel so text remains readable on white canvases. (`app/ui/plot_pane.py`)
-- Softened the default dataset colours for the Light theme to a muted, eye‑friendly set (less harsh blue on white). NIST overlays retain distinct accents. (`app/ui/main_window.py`)
+- Default primary trace colour is now a darker, non‑blue rust tone in both Light and Dark themes; full palette reordered to warm, eye‑friendly hues. NIST overlays retain distinct accents. (`app/ui/main_window.py`)
 - In‑app Docs panel now lists only `docs/user/*.md` (plus a minimal fallback), avoiding outdated developer/history documents in the application UI. (`app/ui/main_window.py`)
 ## 2025-11-12 (Theme performance regression fix) — 14:48 ET / 19:48Z UTC
 - Eliminated duplicate application-wide stylesheet passes when the main window boots so Qt no longer repaints the entire widget tree twice. The window now records the active theme key and skips redundant `QApplication.setStyleSheet` / `pyqtgraph` updates unless the user actually selects a new preset. (`app/ui/main_window.py`)

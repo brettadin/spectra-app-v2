@@ -179,6 +179,27 @@ class NistLinesPanel(QtWidgets.QWidget):
         """Get the assigned color for a collection."""
         return self._collection_colors.get(collection_id)
 
+    def set_color(self, collection_id: str, color: QtGui.QColor) -> None:
+        """Update the color swatch for a collection."""
+        item = self._collection_items.get(collection_id)
+        if item is None:
+            return
+        try:
+            swatch = QtGui.QPixmap(12, 12)
+            swatch.fill(QtCore.Qt.GlobalColor.transparent)
+            painter = QtGui.QPainter(swatch)
+            try:
+                painter.setPen(QtGui.QPen(QtGui.QColor(0, 0, 0, 180)))
+                painter.setBrush(QtGui.QBrush(color))
+                painter.drawRect(0, 0, 11, 11)
+            finally:
+                painter.end()
+            item.setData(QtGui.QIcon(swatch), QtCore.Qt.ItemDataRole.DecorationRole)
+            item.setToolTip(f"Trace colour: {color.name()}")
+            self._collection_colors[collection_id] = color
+        except Exception:
+            pass
+
     def _on_item_changed(self, item: QtGui.QStandardItem) -> None:
         """Handle item changes (visibility checkbox toggles)."""
         if item.column() != 2:  # Only care about visibility column
