@@ -82,6 +82,8 @@ def test_fits_importer_handles_tess_lightcurve():
         pytest.skip("astropy is required for FITS ingestion tests")
 
     path = Path("samples/fits data/tess2019112060037-s0011-0000000388857263-0143-s_lc.fits")
+    if not path.exists():
+        pytest.skip("TESS sample not available in minimal repo")
     importer = FitsImporter()
     result = importer.read(path)
 

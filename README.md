@@ -174,7 +174,7 @@ Verify everything works by running the test suite:
 pytest
 ```
 
-Explore the `samples/` directory for example datasets and provenance manifests.
+Explore `samples/` for tiny, fast demos. For richer examples (IR matrices, lamp sets, Sun/Moon collections, SpeX library), open files from `storage/curated/`.
 
 ### Optional remote providers
 

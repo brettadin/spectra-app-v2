@@ -1,0 +1,7 @@
+# Sample Earth visible reflectance (demo)
+Wavelength (nm),Reflectance (arb.)
+350,0.12
+400,0.18
+500,0.23
+600,0.21
+700,0.19

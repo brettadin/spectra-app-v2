@@ -1,14 +1,12 @@
-# Samples directory
+# Samples (tiny demos only)
 
-Curated example datasets and manifests for tutorials, tests, and demos.
+This folder now holds only tiny, fast-loading examples for quick demos and smoke tests.
 
-Pending reorg (non-breaking):
-- test_fixtures/ — minimal CSV/FITS for automated tests
-- calibration_standards/ — lab standards and reference spectra
-- solar_system/ — planetary and lunar spectra (already present)
-- exoplanets/ — exoplanet spectra and catalogs (already present)
-- laboratory/ — miscellaneous lab spectra not used as standards
+What remains here:
+- A small solar CSV (sun redo)
+- One compact IR CO2 example (`IR data/IR - CO2/CO2 - 500 torr A.csv`)
+- Minimal fixtures under `test_fixtures/`
 
-Note: Existing files remain in their original locations to avoid breaking
-paths referenced by docs or tests. We will migrate incrementally and leave
-pointer READMEs in legacy folders if needed.
+Heavier datasets (full IR matrices, lamp sets, Sun/Moon collections, SpeX FITS library, planetary data) have moved to `storage/curated/` to keep the repo lightweight while preserving rich examples.
+
+See `storage/curated/README.md` for an index and how to use curated data in the app.

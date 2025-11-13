@@ -44,11 +44,13 @@ def _normalize_alias(alias: str) -> str:
 
 
 _DEFAULTS: Mapping[str, Path] = {
-    "storage://cache": _REPO_ROOT / "downloads",
-    "storage://exports": _REPO_ROOT / "exports",
+    # Consolidated storage tree (cleanup branch default)
+    "storage://cache": _REPO_ROOT / "storage" / "cache",
+    "storage://exports": _REPO_ROOT / "storage" / "exports",
     "storage://samples": _REPO_ROOT / "samples",
     "storage://docs": _REPO_ROOT / "docs",
     "storage://curated": _REPO_ROOT / "storage" / "curated",
+    # Friendly shorthand for samples
     "samples://": _REPO_ROOT / "samples",
 }
 

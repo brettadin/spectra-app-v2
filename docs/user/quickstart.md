@@ -21,6 +21,8 @@ This walkthrough gets you from launch to a complete provenance export using only
 
 Once the ingest completes, the spectrum appears in the plot pane and in the spectra list on the left-hand sidebar. The **File → Load Sample** shortcut now opens a picker that lets you queue up several bundled examples without repeating the menu action.
 
+Tip: Richer example datasets (full IR matrices, lamp sets, Sun/Moon collections, large FITS libraries) live under `storage/curated/` to keep `samples/` tiny. You can open curated files the same way when you need deeper examples.
+
 ## 3. Explore unit toggles
 
 1. Locate the **Units** toolbar dropdown above the plot.

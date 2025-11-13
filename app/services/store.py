@@ -75,10 +75,15 @@ class LocalStore:
         source: Mapping[str, Any] | None = None,
         manifest_path: Path | None = None,
         alias: str | None = None,
+        copy_to_store: bool = True,
     ) -> Dict[str, Any]:
         source_path = Path(source_path)
-        stored_path = self._copy_into_store(source_path, alias=alias)
-        checksum = self._sha256(stored_path)
+        # Optional duplication control: avoid copying local user files when requested
+        if copy_to_store:
+            stored_path = self._copy_into_store(source_path, alias=alias)
+        else:
+            stored_path = source_path
+        checksum = self._sha256(source_path)
 
         index = self.load_index()
         items: MutableMapping[str, Any] = index.setdefault("items", {})  # type: ignore[assignment]
@@ -104,10 +109,10 @@ class LocalStore:
         entry.update(
             {
                 "sha256": checksum,
-                "filename": stored_path.name,
+                "filename": (alias or source_path.name),
                 "stored_path": str(stored_path),
                 "original_path": str(source_path),
-                "bytes": stored_path.stat().st_size,
+                "bytes": (stored_path.stat().st_size if stored_path.exists() else 0),
                 "units": {"x": x_unit, "y": y_unit},
                 "source": merged_source,
                 "created": created,

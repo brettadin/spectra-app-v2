@@ -228,6 +228,7 @@ class DataIngestService:
                 y_unit=spectrum.y_unit,
                 source=source_summary,
                 alias=source_path.name,
+                copy_to_store=False,  # Local user import: reference original, avoid duplicate copy
             )
             ingest_meta = dict(spectrum.metadata.get("ingest", {}))
             ingest_meta["cache_record"] = {
@@ -294,6 +295,7 @@ class DataIngestService:
                 y_unit="absorbance",
                 source={"bundle_members": member_ids},
                 alias=bundle_path.name,
+                copy_to_store=False,  # Bundle lives locally; do not duplicate
             )
             for idx, spectrum in enumerate(spectra):
                 ingest_meta = dict(spectrum.metadata.get("ingest", {}))

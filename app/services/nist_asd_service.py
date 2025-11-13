@@ -11,6 +11,25 @@ from typing import Any, Dict, Iterable, List, Mapping, Optional, Tuple
 
 from app.services.line_list_cache import LineListCache
 
+# Exposed flags/sentinels for tests to patch
+try:
+    import importlib.util as _importlib_util  # type: ignore
+except Exception:  # pragma: no cover
+    _importlib_util = None  # type: ignore
+
+# Whether heavy deps appear available (can be patched by tests)
+ASTROQUERY_AVAILABLE: bool = False
+try:
+    if _importlib_util is not None:
+        _has_nist = _importlib_util.find_spec("astroquery.nist") is not None
+        _has_astropy = _importlib_util.find_spec("astropy.units") is not None
+        ASTROQUERY_AVAILABLE = bool(_has_nist and _has_astropy)
+except Exception:
+    ASTROQUERY_AVAILABLE = False
+
+# Placeholder symbol so tests can patch `Nist` without importing astroquery
+Nist = None  # type: ignore
+
 # Global cache instance shared across all NIST queries
 _CACHE: Optional[LineListCache] = None
 
@@ -450,23 +469,12 @@ def fetch_lines(
         Meta includes cache_hit boolean indicating whether data came from cache.
     """
 
-    # Import heavy deps lazily
-    try:
-        import astropy.units as u  # type: ignore
-        from astroquery.nist import Nist  # type: ignore
-    except Exception as exc:
-        raise NistUnavailableError(
-            "astroquery.nist (and astropy.units) are required to query the NIST ASD"
-        ) from exc
-
+    # Resolve identifiers first (no heavy imports)
     element_record, stage_value, stage_roman, spectrum, label = _resolve_spectrum(
         element=element,
         linename=identifier,
         ion_stage=ion_stage,
     )
-
-    unit, canonical_unit = _resolve_wavelength_unit(wavelength_unit)
-
     lower = lower_wavelength if lower_wavelength is not None else DEFAULT_LOWER_WAVELENGTH_NM
     upper = upper_wavelength if upper_wavelength is not None else DEFAULT_UPPER_WAVELENGTH_NM
     if lower > upper:
@@ -487,12 +495,43 @@ def fetch_lines(
                 cached_data["meta"]["cache_hit"] = True
                 return cached_data
 
+    # Import heavy deps lazily only when needed (post cache-miss)
+    # Prefer a patched Nist (from tests) if provided; otherwise import.
+    _Nist = globals().get("Nist", None)
+    try:
+        if _Nist is None:
+            if not ASTROQUERY_AVAILABLE:
+                # Attempt import anyway; ASTROQUERY_AVAILABLE may be a hint only
+                raise ImportError("astroquery not pre-validated")
+            # If available, still import to obtain class
+            from astroquery.nist import Nist as _RealNist  # type: ignore
+            _Nist = _RealNist
+    except Exception as exc:
+        # Last attempt to import without relying on ASTROQUERY_AVAILABLE
+        try:
+            from astroquery.nist import Nist as _RealNist  # type: ignore
+            _Nist = _RealNist
+        except Exception as inner_exc:
+            raise NistUnavailableError(
+                "astroquery.nist (and astropy.units) are required to query the NIST ASD"
+            ) from inner_exc
+
+    # Units import (used for query bounds and column scaling)
+    try:
+        import astropy.units as u  # type: ignore
+    except Exception as exc:  # pragma: no cover
+        raise NistUnavailableError(
+            "astropy.units is required to query the NIST ASD"
+        ) from exc
+
+    unit, canonical_unit = _resolve_wavelength_unit(wavelength_unit)
+
     # Cache miss or disabled - fetch from NIST
     min_wavelength = u.Quantity(lower, unit)
     max_wavelength = u.Quantity(upper, unit)
 
     try:
-        table = Nist.query(
+        table = _Nist.query(
             min_wavelength,
             max_wavelength,
             linename=spectrum,

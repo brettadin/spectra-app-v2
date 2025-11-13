@@ -3058,3 +3058,6 @@ AttributeError: 'ReferencePanel' object has no attribute 'nist_collections_list'
 2025-11-12 19:08:02 INFO [spectra] Starting Spectra App desktop session
 2025-11-12 19:08:02 INFO [spectra] Main window constructed and shown successfully
 2025-11-12 19:09:07 INFO [spectra] Qt event loop exited with code 0
+2025-11-12 20:01:23 INFO [spectra] Starting Spectra App desktop session
+2025-11-12 20:01:23 INFO [spectra] Main window constructed and shown successfully
+2025-11-12 20:01:52 INFO [spectra] Qt event loop exited with code 0

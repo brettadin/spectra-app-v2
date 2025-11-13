@@ -60,8 +60,22 @@ def _import_exoplanet_archive():
     return astroquery_nexsci
 
 
+# Module-level probe flags (tests monkeypatch these)
+_HAS_PANDAS = False
+
+def _initialise_dependency_flags() -> None:
+    global _HAS_PANDAS
+    try:
+        _HAS_PANDAS = _has_module("pandas")
+    except Exception:
+        _HAS_PANDAS = False
+
+
+_initialise_dependency_flags()
+
+
 def _has_pandas() -> bool:
-    return _has_module("pandas")
+    return bool(_HAS_PANDAS)
 
 
 @dataclass

@@ -8,6 +8,7 @@ Single entry point for all documentation. Prefer linking here from issues, PRs, 
 - Getting started (installation): [docs/BUILD_WINDOWS.md](./BUILD_WINDOWS.md)
 - First spectrum workflow: [START_HERE.md](../START_HERE.md)
 - Bulk data acquisition notes: [docs/QUICK_START_BULK_DATA.md](./QUICK_START_BULK_DATA.md)
+ - Curated datasets index: [storage/curated/README.md](../storage/curated/README.md)
 
 ## User Guides
 - Importing data: [docs/user/importing.md](./user/importing.md)
