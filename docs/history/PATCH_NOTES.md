@@ -1,5 +1,12 @@
 # Patch Notes
 
+## 2025-11-13 (Palette controls & persistence) — 11:10 ET / 16:10Z UTC
+- Added View → Palette menu with three controls:
+  - Use Uniform Color (toggle): render all datasets in a single color
+  - Pick Uniform Color…: choose the uniform color via a color dialog
+  - Reset to Theme Palette: restore the current theme’s multi-color palette
+- Uniform palette choice and color persist via QSettings and apply immediately to existing traces without affecting NIST overlays. (`app/ui/main_window.py`)
+
 ## 2025-11-12 (Legend readability & light palette) — 22:05 ET / 03:05Z UTC
 - Legend now adopts theme colours immediately at startup and after the first trace is added; no interaction needed. We restyle labels on every legend rebuild/update and use a slightly translucent panel so text remains readable on white canvases. (`app/ui/plot_pane.py`)
 - Default primary trace colour is now a darker, non‑blue rust tone in both Light and Dark themes; full palette reordered to warm, eye‑friendly hues. NIST overlays retain distinct accents. (`app/ui/main_window.py`)

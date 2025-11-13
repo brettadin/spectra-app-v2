@@ -219,6 +219,11 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self._setup_ui()
         self._setup_menu()
         self._apply_theme_by_key(self._theme_key, persist=False)
+        # Load palette preferences (uniform mode and color)
+        try:
+            self._load_palette_preferences()
+        except Exception:
+            pass
         self._wire_shortcuts()
         self._load_docs_if_needed()  # Pre-load documentation so it's ready immediately
         # self._load_default_samples()  # Disabled: users prefer empty workspace on launch
@@ -1118,6 +1123,22 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             self._theme_action_group.addAction(action)
 
         view_menu.addSeparator()
+        # Palette controls
+        palette_menu = view_menu.addMenu("&Palette")
+        self.uniform_palette_action = QtGui.QAction("Use Uniform Color", self, checkable=True)
+        self.uniform_palette_action.setChecked(bool(self._use_uniform_palette))
+        self.uniform_palette_action.toggled.connect(self._on_uniform_palette_toggled)
+        palette_menu.addAction(self.uniform_palette_action)
+
+        pick_color_action = QtGui.QAction("Pick Uniform Color…", self)
+        pick_color_action.triggered.connect(self._on_pick_uniform_color)
+        palette_menu.addAction(pick_color_action)
+
+        reset_palette_action = QtGui.QAction("Reset to Theme Palette", self)
+        reset_palette_action.triggered.connect(lambda: self._on_uniform_palette_toggled(False))
+        palette_menu.addAction(reset_palette_action)
+
+        view_menu.addSeparator()
         # Crosshair toggle
         self.crosshair_action = QtGui.QAction("Show Crosshair", self, checkable=True)
         try:
@@ -1535,6 +1556,30 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
     def _save_plot_max_points(self, value: int) -> None:
         settings = QtCore.QSettings("SpectraApp", "DesktopPreview")
         settings.setValue(PLOT_MAX_POINTS_KEY, int(value))
+
+    # ----------------------------- Palette preferences ---------------------
+    def _load_palette_preferences(self) -> None:
+        settings = QtCore.QSettings("SpectraApp", "DesktopPreview")
+        self._use_uniform_palette = bool(settings.value("palette/uniform_enabled", False, type=bool))
+        color_str = str(settings.value("palette/uniform_color", self._uniform_color.name()))
+        try:
+            self._uniform_color = QtGui.QColor(color_str)
+        except Exception:
+            pass
+        # If enabled, retint datasets immediately
+        if self._use_uniform_palette:
+            try:
+                self._retint_datasets_only()
+            except Exception:
+                pass
+
+    def _save_palette_preferences(self) -> None:
+        settings = QtCore.QSettings("SpectraApp", "DesktopPreview")
+        settings.setValue("palette/uniform_enabled", bool(self._use_uniform_palette))
+        try:
+            settings.setValue("palette/uniform_color", self._uniform_color.name())
+        except Exception:
+            pass
 
     def _on_persistence_toggled(self, enabled: bool) -> None:
         if self._persistence_env_disabled:
@@ -2453,6 +2498,53 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                             self._draw_nist_collection(cid)
                     except Exception:
                         pass
+        except Exception:
+            pass
+
+    def _retint_datasets_only(self) -> None:
+        """Reapply current dataset palette (uniform or theme) to existing traces."""
+        try:
+            self._palette_index = 0
+            for spec in self.overlay_service.list():
+                color = self._next_palette_color()
+                self._spectrum_colors[spec.id] = color
+                self.plot.update_style(spec.id, TraceStyle(color=color, width=1.0, show_in_legend=True))
+                alias_item = self._dataset_items.get(spec.id)
+                if alias_item is not None:
+                    try:
+                        swatch = QtGui.QPixmap(12, 12)
+                        swatch.fill(QtCore.Qt.GlobalColor.transparent)
+                        painter = QtGui.QPainter(swatch)
+                        try:
+                            painter.setPen(QtGui.QPen(QtGui.QColor(0, 0, 0, 180)))
+                            painter.setBrush(QtGui.QBrush(color))
+                            painter.drawRect(0, 0, 11, 11)
+                        finally:
+                            painter.end()
+                        alias_item.setData(QtGui.QIcon(swatch), QtCore.Qt.ItemDataRole.DecorationRole)
+                        alias_item.setToolTip(f"Trace colour: {color.name()}")
+                    except Exception:
+                        pass
+        except Exception:
+            pass
+
+    def _on_uniform_palette_toggled(self, enabled: bool) -> None:
+        self._use_uniform_palette = bool(enabled)
+        self._save_palette_preferences()
+        # Retint datasets with the chosen mode
+        self._retint_datasets_only()
+
+    def _on_pick_uniform_color(self) -> None:
+        try:
+            dlg = QtWidgets.QColorDialog(self._uniform_color, self)
+            dlg.setOption(QtWidgets.QColorDialog.ColorDialogOption.ShowAlphaChannel, False)
+            if dlg.exec() == QtWidgets.QDialog.DialogCode.Accepted:
+                color = dlg.currentColor()
+                if color.isValid():
+                    self._uniform_color = color
+                    self._save_palette_preferences()
+                    if self._use_uniform_palette:
+                        self._retint_datasets_only()
         except Exception:
             pass
 

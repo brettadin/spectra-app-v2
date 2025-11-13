@@ -107,6 +107,16 @@ The default high‑contrast palette now includes 20+ distinct colours before cyc
 Data → Datasets list shows a small colour chip next to each alias that matches the plotted trace, making it easier to correlate
 legend entries, list rows, and on‑canvas lines at a glance.
 
+### View → Palette controls
+
+When you prefer to control colouring from the menu bar, open **View → Palette**:
+
+- Use Uniform Color: toggles a single colour for all datasets (NIST overlays keep their own palette)
+- Pick Uniform Color…: selects the uniform colour; changes apply immediately when Uniform is enabled
+- Reset to Theme Palette: returns to the theme’s multi‑colour set for datasets
+
+Your selection and colour persist between sessions. These controls recolour existing traces and the Datasets list chips without altering underlying data or provenance.
+
 ## Mathematical operations on spectra
 
 The **Math** tab in the Inspector dock (previously "Merge/Average") provides tools for performing mathematical operations on selected datasets. All operations create new derived spectra while preserving the original data with full provenance tracking.
