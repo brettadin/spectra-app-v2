@@ -388,6 +388,13 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         )
         self.remote_data_panel.spectra_imported.connect(self._handle_remote_spectra_imported)
         self.remote_data_panel.status_message.connect(self._log)
+        # Mirror Remote Data progress into the global status bar
+        try:
+            self.remote_data_panel.download_started.connect(self._on_global_download_started)
+            self.remote_data_panel.download_progress.connect(self._on_global_download_progress)
+            self.remote_data_panel.download_finished.connect(self._on_global_download_finished)
+        except Exception:
+            pass
         self.inspector_tabs.addTab(self.remote_data_panel, "Remote Data")
         
         # Merge/Average tab (moved into MergePanel)
@@ -551,6 +558,20 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
 
         # Status bar
         self.statusBar().showMessage("Ready")
+        # Global progress bar to surface background work (e.g., downloads)
+        self._status_progress = QtWidgets.QProgressBar()
+        try:
+            self._status_progress.setMaximumHeight(14)
+        except Exception:
+            pass
+        self._status_progress.setVisible(False)
+        self._status_progress.setMinimum(0)
+        self._status_progress.setMaximum(1)
+        self._status_progress.setValue(0)
+        try:
+            self.statusBar().addPermanentWidget(self._status_progress, 0)
+        except Exception:
+            pass
 
     # ----------------------------- Merge / Math handlers -------------
     def _selected_dataset_ids(self) -> List[str]:
@@ -1337,13 +1358,25 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             return
         self.data_table_dock = QtWidgets.QDockWidget("Data Table", self)
         self.data_table_dock.setObjectName("dock-data-table")
+        # Compose a small panel: metadata label + table
+        container = QtWidgets.QWidget()
+        vbox = QtWidgets.QVBoxLayout(container)
+        vbox.setContentsMargins(4, 4, 4, 4)
+        self.data_table_meta = QtWidgets.QLabel("")
+        try:
+            self.data_table_meta.setWordWrap(True)
+            self.data_table_meta.setStyleSheet("color: #bbb; font-size: 11px;")
+        except Exception:
+            pass
+        vbox.addWidget(self.data_table_meta)
         self.data_table = QtWidgets.QTableWidget()
         self.data_table.setColumnCount(2)
         self.data_table.setHorizontalHeaderLabels(["Wavelength", "Value"])
         self.data_table.setAlternatingRowColors(True)
         self.data_table.setEditTriggers(QtWidgets.QAbstractItemView.EditTrigger.NoEditTriggers)
         self.data_table.setSelectionMode(QtWidgets.QAbstractItemView.SelectionMode.NoSelection)
-        self.data_table_dock.setWidget(self.data_table)
+        vbox.addWidget(self.data_table)
+        self.data_table_dock.setWidget(container)
         self.addDockWidget(QtCore.Qt.DockWidgetArea.BottomDockWidgetArea, self.data_table_dock)
         # Keep visibility action in sync with dock
         if self.data_table_action is not None:
@@ -1376,6 +1409,11 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         if len(selected) != 1:
             self.data_table.clearContents()
             self.data_table.setRowCount(0)
+            try:
+                if hasattr(self, "data_table_meta"):
+                    self.data_table_meta.setText("")
+            except Exception:
+                pass
             return
         index = selected[0]
         alias_item = self.dataset_model.itemFromIndex(self.dataset_model.index(index.row(), 0, index.parent()))
@@ -1387,6 +1425,11 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         if not spec_id:
             self.data_table.clearContents()
             self.data_table.setRowCount(0)
+            try:
+                if hasattr(self, "data_table_meta"):
+                    self.data_table_meta.setText("")
+            except Exception:
+                pass
             return
         try:
             spec = self.overlay_service.get(spec_id)
@@ -1454,6 +1497,48 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             self.data_table.setItem(r, 0, xi)
             self.data_table.setItem(r, 1, yi)
         self.data_table.resizeColumnsToContents()
+        # Update the metadata label with credits
+        try:
+            credits = []
+            meta = spec.metadata if isinstance(spec.metadata, dict) else {}
+            cache_rec = meta.get("cache_record", {}) if isinstance(meta, dict) else {}
+            src = cache_rec.get("source", {}) if isinstance(cache_rec, dict) else {}
+            remote = src.get("remote", {}) if isinstance(src, dict) else {}
+            if isinstance(remote, dict) and remote:
+                provider = str(remote.get("provider") or "Remote")
+                ident = str(remote.get("identifier") or remote.get("id") or "").strip()
+                uri = str(remote.get("uri") or "")
+                m = remote.get("metadata") if isinstance(remote.get("metadata"), dict) else {}
+                mission = str(m.get("obs_collection") or m.get("telescope_name") or "").strip()
+                instrument = str(m.get("instrument_name") or m.get("instrument") or "").strip()
+                title = str(m.get("title") or "").strip()
+                parts = [provider]
+                if mission:
+                    parts.append(mission)
+                if instrument:
+                    parts.append(instrument)
+                line = " / ".join([p for p in parts if p])
+                if ident:
+                    line = f"{line} — {ident}"
+                credits.append(line)
+                if title:
+                    credits.append(title)
+                if uri:
+                    credits.append(uri)
+            if not credits:
+                ingest = src.get("ingest", {}) if isinstance(src, dict) else {}
+                if isinstance(ingest, dict):
+                    spath = str(ingest.get("source_path") or "")
+                    if spath:
+                        credits.append(spath)
+            if hasattr(self, "data_table_meta"):
+                self.data_table_meta.setText(" \n".join([c for c in credits if c]))
+        except Exception:
+            try:
+                if hasattr(self, "data_table_meta"):
+                    self.data_table_meta.setText("")
+            except Exception:
+                pass
 
     @ui_action("Failed to show documentation")
     def show_documentation(self) -> None:
@@ -1652,6 +1737,40 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         try:
             if self.log_view is not None:
                 self.log_view.appendPlainText(line)
+        except Exception:
+            pass
+
+    # ----------------------------- Global progress bar -------------------
+    @QtCore.Slot(int)  # type: ignore[name-defined]
+    def _on_global_download_started(self, total: int) -> None:
+        try:
+            self._status_progress.setVisible(True)
+            self._status_progress.setRange(0, 0)  # indeterminate per-file
+            self._status_progress.setValue(0)
+            self.statusBar().showMessage(f"Downloading {int(total)} item(s)…")
+        except Exception:
+            pass
+
+    @QtCore.Slot(str, int, int)  # type: ignore[name-defined]
+    def _on_global_download_progress(self, label: str, received: int, total: int) -> None:
+        try:
+            if total >= 0:
+                self._status_progress.setRange(0, max(1, total))
+                self._status_progress.setValue(min(received, total))
+            else:
+                self._status_progress.setRange(0, 0)
+                self._status_progress.setValue(0)
+            self.statusBar().showMessage(f"Downloading {label}…")
+        except Exception:
+            pass
+
+    @QtCore.Slot()  # type: ignore[name-defined]
+    def _on_global_download_finished(self) -> None:
+        try:
+            self._status_progress.setVisible(False)
+            self._status_progress.setRange(0, 1)
+            self._status_progress.setValue(0)
+            self.statusBar().showMessage("Ready", 3000)
         except Exception:
             pass
 
@@ -1972,7 +2091,41 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                 finally:
                     painter.end()
                 alias_item.setData(QtGui.QIcon(swatch), QtCore.Qt.ItemDataRole.DecorationRole)
-                alias_item.setToolTip(f"Trace colour: {color.name()}")
+                # Build tooltip with colour and provenance/credits if available
+                tip_lines = [f"Trace colour: {color.name()}"]
+                try:
+                    meta = spectrum.metadata if isinstance(spectrum.metadata, dict) else {}
+                    cache_rec = meta.get("cache_record", {}) if isinstance(meta, dict) else {}
+                    src = cache_rec.get("source", {}) if isinstance(cache_rec, dict) else {}
+                    remote = src.get("remote", {}) if isinstance(src, dict) else {}
+                    if isinstance(remote, dict) and remote:
+                        provider = str(remote.get("provider") or "Remote")
+                        ident = str(remote.get("identifier") or remote.get("id") or "").strip()
+                        mission = str(remote.get("metadata", {}).get("obs_collection") if isinstance(remote.get("metadata"), dict) else "")
+                        telescope = str(remote.get("metadata", {}).get("telescope_name") if isinstance(remote.get("metadata"), dict) else "")
+                        instrument = str(remote.get("metadata", {}).get("instrument_name") if isinstance(remote.get("metadata"), dict) else "")
+                        title = str(remote.get("metadata", {}).get("title") if isinstance(remote.get("metadata"), dict) else "")
+                        uri = str(remote.get("uri") or "")
+                        # Assemble a concise credit block
+                        credits: list[str] = [provider]
+                        if mission:
+                            credits.append(mission)
+                        if telescope and telescope not in credits:
+                            credits.append(telescope)
+                        if instrument:
+                            credits.append(instrument)
+                        credit_line = " / ".join([c for c in credits if c])
+                        if ident:
+                            tip_lines.append(f"Source: {credit_line} — {ident}")
+                        else:
+                            tip_lines.append(f"Source: {credit_line}")
+                        if title:
+                            tip_lines.append(f"Title: {title}")
+                        if uri:
+                            tip_lines.append(f"URI: {uri}")
+                except Exception:
+                    pass
+                alias_item.setToolTip("\n".join([line for line in tip_lines if line]))
                 # Keep a handle so palette-mode toggles can refresh chips later if needed
                 self._dataset_color_items[spectrum.id] = alias_item
         except Exception:

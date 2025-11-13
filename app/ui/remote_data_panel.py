@@ -38,6 +38,9 @@ class RemoteDataPanel(QtWidgets.QWidget):
     
     spectra_imported = Signal(list)  # type: ignore[misc]
     status_message = Signal(str, str)  # type: ignore[misc]  # (channel, message)
+    download_started = Signal(int)  # type: ignore[misc]
+    download_progress = Signal(str, int, int)  # type: ignore[misc]
+    download_finished = Signal()  # type: ignore[misc]
     
     def __init__(
         self,
@@ -339,6 +342,8 @@ class RemoteDataPanel(QtWidgets.QWidget):
         self.progress_bar.setRange(0, 0)
         self.progress_bar.setValue(0)
         self.status_label.setText(f"Downloading {total} record(s)…")
+        # Bubble up for main window status bar integration
+        self.download_started.emit(int(total))  # type: ignore[attr-defined]
     
     def _on_download_progress(self, record: Any, received: int, total: int) -> None:
         """Handle download progress update."""
@@ -356,6 +361,7 @@ class RemoteDataPanel(QtWidgets.QWidget):
             message = f"Downloading {label}: {self._format_bytes(received)} received"
         
         self.status_label.setText(message)
+        self.download_progress.emit(str(label), int(received), int(total))  # type: ignore[attr-defined]
     
     def _on_record_ingested(self, record: Any) -> None:
         """Handle successful record ingest."""
@@ -398,6 +404,7 @@ class RemoteDataPanel(QtWidgets.QWidget):
         self.progress_bar.setRange(0, 1)
         self.progress_bar.setValue(0)
         self.import_button.setEnabled(True)
+        self.download_finished.emit()  # type: ignore[attr-defined]
         
         # Emit signal for main window to handle
         if all_spectra:
@@ -408,12 +415,14 @@ class RemoteDataPanel(QtWidgets.QWidget):
         self.status_label.setText(f"Download failed: {message}")
         self.import_button.setEnabled(True)
         self.progress_bar.setVisible(False)
+        self.download_finished.emit()  # type: ignore[attr-defined]
     
     def _on_download_cancelled(self) -> None:
         """Handle download cancellation."""
         self.status_label.setText("Download cancelled")
         self.import_button.setEnabled(True)
         self.progress_bar.setVisible(False)
+        self.download_finished.emit()  # type: ignore[attr-defined]
     
     def _on_load_solar_system_samples(self) -> None:
         """Import all bundled solar system CSV samples."""

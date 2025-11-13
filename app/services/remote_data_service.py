@@ -928,6 +928,10 @@ class RemoteDataService:
             ):
                 continue
 
+            # Only list products we can ingest/display directly (speeds up search and UI)
+            if not self._is_supported_product(merged):
+                continue
+
             data_uri = self._first_text(merged, ["dataURI", "data_uri", "ProductURI"])
             if not data_uri:
                 continue
@@ -971,6 +975,58 @@ class RemoteDataService:
             )
 
         return records
+
+    def _is_supported_product(self, metadata: Mapping[str, Any]) -> bool:
+        """Return True when the product's filename/URI matches supported importers.
+
+        We currently support FITS/CSV/JCAMP-DX spectra; skip JPEG/PNG previews and other
+        auxiliary files to keep result lists focused and imports reliable.
+        """
+        # Accepted extensions (lowercase with leading dot)
+        supported_ext = {".fits", ".fit", ".fts", ".csv", ".txt", ".dat", ".jdx", ".dx", ".jcamp"}
+        # Known non-spectral FITS variants frequently returned by MAST that our
+        # importers cannot parse as 1D spectra. These include EUVE event/images
+        # and other instrument-specific quick-look products.
+        excluded_name_suffixes = (
+            "_evt.fits",  # event lists
+            "_img.fits",  # images
+            "_lws.fits",  # long/medium/short wave segments (image tables)
+            "_mws.fits",
+            "_sws.fits",
+        )
+        excluded_keywords = (
+            "_evt", "_event", "_img", "_image", "preview", "quicklook",
+        )
+        name_candidates = [
+            self._first_text(metadata, ["productFilename", "productFilenameSource"]),
+            self._first_text(metadata, ["dataURI", "data_uri", "ProductURI"]),
+            self._first_text(metadata, ["description", "display_name"]),
+        ]
+        for raw in name_candidates:
+            if not raw:
+                continue
+            # Extract extension from URL or filename
+            try:
+                from urllib.parse import urlparse as _urlparse
+                parsed = _urlparse(raw)
+                path = parsed.path or raw
+            except Exception:
+                path = raw
+            lower_path = str(path).lower()
+            # Exclude by explicit filename suffix patterns
+            if any(lower_path.endswith(suf) for suf in excluded_name_suffixes):
+                return False
+            # Exclude by keyword tokens in name
+            if any(tok in lower_path for tok in excluded_keywords):
+                # Allow VO-formatted spectra explicitly (e.g., *_vo.fits)
+                if lower_path.endswith("_vo.fits"):
+                    pass
+                else:
+                    return False
+            ext = Path(lower_path).suffix
+            if ext in supported_ext:
+                return True
+        return False
 
     def _collect_exosystem_products(
         self,
