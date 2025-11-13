@@ -8932,6 +8932,3218 @@
       },
       "created": "2025-11-13T03:42:48.205477+00:00",
       "updated": "2025-11-13T03:42:48.205477+00:00"
+    },
+    "ebaeee06e60c9d9059bab6a2257b812697f46b6e20a5ac28289dbb8d2fdb988e": {
+      "sha256": "ebaeee06e60c9d9059bab6a2257b812697f46b6e20a5ac28289dbb8d2fdb988e",
+      "filename": "swp23661mxlo_vo.fits",
+      "stored_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\files\\eb\\swp23661mxlo_vo.fits",
+      "original_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\_incoming\\swp23661mxlo_vo.fits",
+      "bytes": 48960,
+      "units": {
+        "x": "unknown",
+        "y": "unknown"
+      },
+      "source": {
+        "remote": {
+          "provider": "MAST",
+          "uri": "mast:IUE/url/pub/vospectra/iue2/swp23661mxlo_vo.fits",
+          "identifier": "swp23661mxlo_vo.fits",
+          "fetched_at": "2025-11-13T04:06:16.464995+00:00",
+          "metadata": {
+            "obsID": "319335",
+            "obs_collection": "IUE",
+            "dataproduct_type": "spectrum",
+            "obs_id": "swp23661",
+            "description": "(extracted spectra/vo spectral container/SSAP) fits file",
+            "type": "S",
+            "dataURI": "mast:IUE/url/pub/vospectra/iue2/swp23661mxlo_vo.fits",
+            "productType": "SCIENCE",
+            "productGroupDescription": "Minimum Recommended Products",
+            "productSubGroupDescription": "(extracted spectra/vo spectral container/SSAP) fits file",
+            "productDocumentationURL": NaN,
+            "project": NaN,
+            "prvversion": NaN,
+            "proposal_id": "SJGHM",
+            "productFilename": "swp23661mxlo_vo.fits",
+            "size": 48960,
+            "parent_obsid": "319335",
+            "dataRights": "PUBLIC",
+            "calib_level": 2,
+            "filters": "LOW DISP",
+            "observation": {}
+          }
+        }
+      },
+      "created": "2025-11-13T04:06:16.486080+00:00",
+      "updated": "2025-11-13T04:06:16.487079+00:00"
+    },
+    "428c488bfdb3c0bbdb2ca5292d6182374b07618be8ff79b12e2caa0c6c366140": {
+      "sha256": "428c488bfdb3c0bbdb2ca5292d6182374b07618be8ff79b12e2caa0c6c366140",
+      "filename": "swp23663mxlo_vo.fits",
+      "stored_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\files\\42\\swp23663mxlo_vo.fits",
+      "original_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\_incoming\\swp23663mxlo_vo.fits",
+      "bytes": 48960,
+      "units": {
+        "x": "unknown",
+        "y": "unknown"
+      },
+      "source": {
+        "remote": {
+          "provider": "MAST",
+          "uri": "mast:IUE/url/pub/vospectra/iue2/swp23663mxlo_vo.fits",
+          "identifier": "swp23663mxlo_vo.fits",
+          "fetched_at": "2025-11-13T04:06:16.925332+00:00",
+          "metadata": {
+            "obsID": "319337",
+            "obs_collection": "IUE",
+            "dataproduct_type": "spectrum",
+            "obs_id": "swp23663",
+            "description": "(extracted spectra/vo spectral container/SSAP) fits file",
+            "type": "S",
+            "dataURI": "mast:IUE/url/pub/vospectra/iue2/swp23663mxlo_vo.fits",
+            "productType": "SCIENCE",
+            "productGroupDescription": "Minimum Recommended Products",
+            "productSubGroupDescription": "(extracted spectra/vo spectral container/SSAP) fits file",
+            "productDocumentationURL": NaN,
+            "project": NaN,
+            "prvversion": NaN,
+            "proposal_id": "SJGHM",
+            "productFilename": "swp23663mxlo_vo.fits",
+            "size": 48960,
+            "parent_obsid": "319337",
+            "dataRights": "PUBLIC",
+            "calib_level": 2,
+            "filters": "LOW DISP",
+            "observation": {}
+          }
+        }
+      },
+      "created": "2025-11-13T04:06:16.941920+00:00",
+      "updated": "2025-11-13T04:06:16.941920+00:00"
+    },
+    "98243716d52ad8246360e02db959e876aa9dbd9c35f95795d667cfb00fd94fed": {
+      "sha256": "98243716d52ad8246360e02db959e876aa9dbd9c35f95795d667cfb00fd94fed",
+      "filename": "swp23780mxlo_vo.fits",
+      "stored_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\files\\98\\swp23780mxlo_vo.fits",
+      "original_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\_incoming\\swp23780mxlo_vo.fits",
+      "bytes": 48960,
+      "units": {
+        "x": "unknown",
+        "y": "unknown"
+      },
+      "source": {
+        "remote": {
+          "provider": "MAST",
+          "uri": "mast:IUE/url/pub/vospectra/iue2/swp23780mxlo_vo.fits",
+          "identifier": "swp23780mxlo_vo.fits",
+          "fetched_at": "2025-11-13T04:06:21.625599+00:00",
+          "metadata": {
+            "obsID": "319419",
+            "obs_collection": "IUE",
+            "dataproduct_type": "spectrum",
+            "obs_id": "swp23780",
+            "description": "(extracted spectra/vo spectral container/SSAP) fits file",
+            "type": "S",
+            "dataURI": "mast:IUE/url/pub/vospectra/iue2/swp23780mxlo_vo.fits",
+            "productType": "SCIENCE",
+            "productGroupDescription": "Minimum Recommended Products",
+            "productSubGroupDescription": "(extracted spectra/vo spectral container/SSAP) fits file",
+            "productDocumentationURL": NaN,
+            "project": NaN,
+            "prvversion": NaN,
+            "proposal_id": "GS054",
+            "productFilename": "swp23780mxlo_vo.fits",
+            "size": 48960,
+            "parent_obsid": "319419",
+            "dataRights": "PUBLIC",
+            "calib_level": 2,
+            "filters": "LOW DISP",
+            "observation": {}
+          }
+        }
+      },
+      "created": "2025-11-13T04:06:21.642892+00:00",
+      "updated": "2025-11-13T04:06:21.642892+00:00"
+    },
+    "b1adab6560247115a04054b2bda9f4252dc609c96313812167b36372e841839e": {
+      "sha256": "b1adab6560247115a04054b2bda9f4252dc609c96313812167b36372e841839e",
+      "filename": "swp25639mxlo_vo.fits",
+      "stored_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\files\\b1\\swp25639mxlo_vo.fits",
+      "original_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\_incoming\\swp25639mxlo_vo.fits",
+      "bytes": 48960,
+      "units": {
+        "x": "unknown",
+        "y": "unknown"
+      },
+      "source": {
+        "remote": {
+          "provider": "MAST",
+          "uri": "mast:IUE/url/pub/vospectra/iue2/swp25639mxlo_vo.fits",
+          "identifier": "swp25639mxlo_vo.fits",
+          "fetched_at": "2025-11-13T04:06:22.013766+00:00",
+          "metadata": {
+            "obsID": "320710",
+            "obs_collection": "IUE",
+            "dataproduct_type": "spectrum",
+            "obs_id": "swp25639",
+            "description": "(extracted spectra/vo spectral container/SSAP) fits file",
+            "type": "S",
+            "dataURI": "mast:IUE/url/pub/vospectra/iue2/swp25639mxlo_vo.fits",
+            "productType": "SCIENCE",
+            "productGroupDescription": "Minimum Recommended Products",
+            "productSubGroupDescription": "(extracted spectra/vo spectral container/SSAP) fits file",
+            "productDocumentationURL": NaN,
+            "project": NaN,
+            "prvversion": NaN,
+            "proposal_id": "SJHDS",
+            "productFilename": "swp25639mxlo_vo.fits",
+            "size": 48960,
+            "parent_obsid": "320710",
+            "dataRights": "PUBLIC",
+            "calib_level": 2,
+            "filters": "LOW DISP",
+            "observation": {}
+          }
+        }
+      },
+      "created": "2025-11-13T04:06:22.028798+00:00",
+      "updated": "2025-11-13T04:06:22.029798+00:00"
+    },
+    "9259018f21aeb19e6b35a60b976390ba4be73f054a3812f763582985a172e694": {
+      "sha256": "9259018f21aeb19e6b35a60b976390ba4be73f054a3812f763582985a172e694",
+      "filename": "swp51808mxlo_vo.fits",
+      "stored_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\files\\92\\swp51808mxlo_vo.fits",
+      "original_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\_incoming\\swp51808mxlo_vo.fits",
+      "bytes": 48960,
+      "units": {
+        "x": "unknown",
+        "y": "unknown"
+      },
+      "source": {
+        "remote": {
+          "provider": "MAST",
+          "uri": "mast:IUE/url/pub/vospectra/iue2/swp51808mxlo_vo.fits",
+          "identifier": "swp51808mxlo_vo.fits",
+          "fetched_at": "2025-11-13T04:06:28.025441+00:00",
+          "metadata": {
+            "obsID": "338262",
+            "obs_collection": "IUE",
+            "dataproduct_type": "spectrum",
+            "obs_id": "swp51808",
+            "description": "(extracted spectra/vo spectral container/SSAP) fits file",
+            "type": "S",
+            "dataURI": "mast:IUE/url/pub/vospectra/iue2/swp51808mxlo_vo.fits",
+            "productType": "SCIENCE",
+            "productGroupDescription": "Minimum Recommended Products",
+            "productSubGroupDescription": "(extracted spectra/vo spectral container/SSAP) fits file",
+            "productDocumentationURL": NaN,
+            "project": NaN,
+            "prvversion": NaN,
+            "proposal_id": "JUQXX",
+            "productFilename": "swp51808mxlo_vo.fits",
+            "size": 48960,
+            "parent_obsid": "338262",
+            "dataRights": "PUBLIC",
+            "calib_level": 2,
+            "filters": "LOW DISP",
+            "observation": {}
+          }
+        }
+      },
+      "created": "2025-11-13T04:06:28.046083+00:00",
+      "updated": "2025-11-13T04:06:28.046083+00:00"
+    },
+    "bec0fe21915cb9117c39dd85be08598c3bef10e2963778197a2e2aba1ce96833": {
+      "sha256": "bec0fe21915cb9117c39dd85be08598c3bef10e2963778197a2e2aba1ce96833",
+      "filename": "swp55442mxlo_vo.fits",
+      "stored_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\files\\be\\swp55442mxlo_vo.fits",
+      "original_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\_incoming\\swp55442mxlo_vo.fits",
+      "bytes": 48960,
+      "units": {
+        "x": "unknown",
+        "y": "unknown"
+      },
+      "source": {
+        "remote": {
+          "provider": "MAST",
+          "uri": "mast:IUE/url/pub/vospectra/iue2/swp55442mxlo_vo.fits",
+          "identifier": "swp55442mxlo_vo.fits",
+          "fetched_at": "2025-11-13T04:06:30.325840+00:00",
+          "metadata": {
+            "obsID": "340221",
+            "obs_collection": "IUE",
+            "dataproduct_type": "spectrum",
+            "obs_id": "swp55442",
+            "description": "(extracted spectra/vo spectral container/SSAP) fits file",
+            "type": "S",
+            "dataURI": "mast:IUE/url/pub/vospectra/iue2/swp55442mxlo_vo.fits",
+            "productType": "SCIENCE",
+            "productGroupDescription": "Minimum Recommended Products",
+            "productSubGroupDescription": "(extracted spectra/vo spectral container/SSAP) fits file",
+            "productDocumentationURL": NaN,
+            "project": NaN,
+            "prvversion": NaN,
+            "proposal_id": "BLRWH",
+            "productFilename": "swp55442mxlo_vo.fits",
+            "size": 48960,
+            "parent_obsid": "340221",
+            "dataRights": "PUBLIC",
+            "calib_level": 2,
+            "filters": "LOW DISP",
+            "observation": {}
+          }
+        }
+      },
+      "created": "2025-11-13T04:06:30.346346+00:00",
+      "updated": "2025-11-13T04:06:30.347345+00:00"
+    },
+    "27593efb695eb3be67f33fd6715a7a2061ed1a0af5ccf928e035bacccbee696a": {
+      "sha256": "27593efb695eb3be67f33fd6715a7a2061ed1a0af5ccf928e035bacccbee696a",
+      "filename": "swp51648mxlo_vo.fits",
+      "stored_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\files\\27\\swp51648mxlo_vo.fits",
+      "original_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\_incoming\\swp51648mxlo_vo.fits",
+      "bytes": 48960,
+      "units": {
+        "x": "unknown",
+        "y": "unknown"
+      },
+      "source": {
+        "remote": {
+          "provider": "MAST",
+          "uri": "mast:IUE/url/pub/vospectra/iue2/swp51648mxlo_vo.fits",
+          "identifier": "swp51648mxlo_vo.fits",
+          "fetched_at": "2025-11-13T04:06:46.427168+00:00",
+          "metadata": {
+            "obsID": "338148",
+            "obs_collection": "IUE",
+            "dataproduct_type": "spectrum",
+            "obs_id": "swp51648",
+            "description": "(extracted spectra/vo spectral container/SSAP) fits file",
+            "type": "S",
+            "dataURI": "mast:IUE/url/pub/vospectra/iue2/swp51648mxlo_vo.fits",
+            "productType": "SCIENCE",
+            "productGroupDescription": "Minimum Recommended Products",
+            "productSubGroupDescription": "(extracted spectra/vo spectral container/SSAP) fits file",
+            "productDocumentationURL": NaN,
+            "project": NaN,
+            "prvversion": NaN,
+            "proposal_id": "JUQXX",
+            "productFilename": "swp51648mxlo_vo.fits",
+            "size": 48960,
+            "parent_obsid": "338148",
+            "dataRights": "PUBLIC",
+            "calib_level": 2,
+            "filters": "LOW DISP",
+            "observation": {}
+          }
+        }
+      },
+      "created": "2025-11-13T04:06:46.447862+00:00",
+      "updated": "2025-11-13T04:06:46.447862+00:00"
+    },
+    "f80629ca8308e2fee5bb344cd3a92ff03e228f822b382eb081679b5d9ade0cfc": {
+      "sha256": "f80629ca8308e2fee5bb344cd3a92ff03e228f822b382eb081679b5d9ade0cfc",
+      "filename": "swp51297mxlo_vo.fits",
+      "stored_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\files\\f8\\swp51297mxlo_vo.fits",
+      "original_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\_incoming\\swp51297mxlo_vo.fits",
+      "bytes": 48960,
+      "units": {
+        "x": "unknown",
+        "y": "unknown"
+      },
+      "source": {
+        "remote": {
+          "provider": "MAST",
+          "uri": "mast:IUE/url/pub/vospectra/iue2/swp51297mxlo_vo.fits",
+          "identifier": "swp51297mxlo_vo.fits",
+          "fetched_at": "2025-11-13T04:06:51.968471+00:00",
+          "metadata": {
+            "obsID": "337893",
+            "obs_collection": "IUE",
+            "dataproduct_type": "spectrum",
+            "obs_id": "swp51297",
+            "description": "(extracted spectra/vo spectral container/SSAP) fits file",
+            "type": "S",
+            "dataURI": "mast:IUE/url/pub/vospectra/iue2/swp51297mxlo_vo.fits",
+            "productType": "SCIENCE",
+            "productGroupDescription": "Minimum Recommended Products",
+            "productSubGroupDescription": "(extracted spectra/vo spectral container/SSAP) fits file",
+            "productDocumentationURL": NaN,
+            "project": NaN,
+            "prvversion": NaN,
+            "proposal_id": "JURWH",
+            "productFilename": "swp51297mxlo_vo.fits",
+            "size": 48960,
+            "parent_obsid": "337893",
+            "dataRights": "PUBLIC",
+            "calib_level": 2,
+            "filters": "LOW DISP",
+            "observation": {}
+          }
+        }
+      },
+      "created": "2025-11-13T04:06:51.987504+00:00",
+      "updated": "2025-11-13T04:06:51.987504+00:00"
+    },
+    "9ef492e9886ad173809baf582d60d9bbc2d46c877d185a0c84b507e2965e9f24": {
+      "sha256": "9ef492e9886ad173809baf582d60d9bbc2d46c877d185a0c84b507e2965e9f24",
+      "filename": "swp32791mxlo_vo.fits",
+      "stored_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\files\\9e\\swp32791mxlo_vo.fits",
+      "original_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\_incoming\\swp32791mxlo_vo.fits",
+      "bytes": 48960,
+      "units": {
+        "x": "unknown",
+        "y": "unknown"
+      },
+      "source": {
+        "remote": {
+          "provider": "MAST",
+          "uri": "mast:IUE/url/pub/vospectra/iue2/swp32791mxlo_vo.fits",
+          "identifier": "swp32791mxlo_vo.fits",
+          "fetched_at": "2025-11-13T04:06:58.705016+00:00",
+          "metadata": {
+            "obsID": "325287",
+            "obs_collection": "IUE",
+            "dataproduct_type": "spectrum",
+            "obs_id": "swp32791",
+            "description": "(extracted spectra/vo spectral container/SSAP) fits file",
+            "type": "S",
+            "dataURI": "mast:IUE/url/pub/vospectra/iue2/swp32791mxlo_vo.fits",
+            "productType": "SCIENCE",
+            "productGroupDescription": "Minimum Recommended Products",
+            "productSubGroupDescription": "(extracted spectra/vo spectral container/SSAP) fits file",
+            "productDocumentationURL": NaN,
+            "project": NaN,
+            "prvversion": NaN,
+            "proposal_id": "SJJHM",
+            "productFilename": "swp32791mxlo_vo.fits",
+            "size": 48960,
+            "parent_obsid": "325287",
+            "dataRights": "PUBLIC",
+            "calib_level": 2,
+            "filters": "LOW DISP",
+            "observation": {}
+          }
+        }
+      },
+      "created": "2025-11-13T04:06:58.719094+00:00",
+      "updated": "2025-11-13T04:06:58.720087+00:00"
+    },
+    "d5f412705b74e172d5999fad8a8f7dca5aaabd4e2e05be97d31e3b119638a921": {
+      "sha256": "d5f412705b74e172d5999fad8a8f7dca5aaabd4e2e05be97d31e3b119638a921",
+      "filename": "swp32813mxlo_vo.fits",
+      "stored_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\files\\d5\\swp32813mxlo_vo.fits",
+      "original_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\_incoming\\swp32813mxlo_vo.fits",
+      "bytes": 48960,
+      "units": {
+        "x": "unknown",
+        "y": "unknown"
+      },
+      "source": {
+        "remote": {
+          "provider": "MAST",
+          "uri": "mast:IUE/url/pub/vospectra/iue2/swp32813mxlo_vo.fits",
+          "identifier": "swp32813mxlo_vo.fits",
+          "fetched_at": "2025-11-13T04:06:59.066425+00:00",
+          "metadata": {
+            "obsID": "325305",
+            "obs_collection": "IUE",
+            "dataproduct_type": "spectrum",
+            "obs_id": "swp32813",
+            "description": "(extracted spectra/vo spectral container/SSAP) fits file",
+            "type": "S",
+            "dataURI": "mast:IUE/url/pub/vospectra/iue2/swp32813mxlo_vo.fits",
+            "productType": "SCIENCE",
+            "productGroupDescription": "Minimum Recommended Products",
+            "productSubGroupDescription": "(extracted spectra/vo spectral container/SSAP) fits file",
+            "productDocumentationURL": NaN,
+            "project": NaN,
+            "prvversion": NaN,
+            "proposal_id": "OD32Y",
+            "productFilename": "swp32813mxlo_vo.fits",
+            "size": 48960,
+            "parent_obsid": "325305",
+            "dataRights": "PUBLIC",
+            "calib_level": 2,
+            "filters": "LOW DISP",
+            "observation": {}
+          }
+        }
+      },
+      "created": "2025-11-13T04:06:59.081942+00:00",
+      "updated": "2025-11-13T04:06:59.081942+00:00"
+    },
+    "f4ee6bb6888fb98a2dc903255b469a4e030093f8f6ae9feaddfbda89fc92827d": {
+      "sha256": "f4ee6bb6888fb98a2dc903255b469a4e030093f8f6ae9feaddfbda89fc92827d",
+      "filename": "swp32829mxlo_vo.fits",
+      "stored_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\files\\f4\\swp32829mxlo_vo.fits",
+      "original_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\_incoming\\swp32829mxlo_vo.fits",
+      "bytes": 48960,
+      "units": {
+        "x": "unknown",
+        "y": "unknown"
+      },
+      "source": {
+        "remote": {
+          "provider": "MAST",
+          "uri": "mast:IUE/url/pub/vospectra/iue2/swp32829mxlo_vo.fits",
+          "identifier": "swp32829mxlo_vo.fits",
+          "fetched_at": "2025-11-13T04:06:59.437376+00:00",
+          "metadata": {
+            "obsID": "325319",
+            "obs_collection": "IUE",
+            "dataproduct_type": "spectrum",
+            "obs_id": "swp32829",
+            "description": "(extracted spectra/vo spectral container/SSAP) fits file",
+            "type": "S",
+            "dataURI": "mast:IUE/url/pub/vospectra/iue2/swp32829mxlo_vo.fits",
+            "productType": "SCIENCE",
+            "productGroupDescription": "Minimum Recommended Products",
+            "productSubGroupDescription": "(extracted spectra/vo spectral container/SSAP) fits file",
+            "productDocumentationURL": NaN,
+            "project": NaN,
+            "prvversion": NaN,
+            "proposal_id": "SJJHM",
+            "productFilename": "swp32829mxlo_vo.fits",
+            "size": 48960,
+            "parent_obsid": "325319",
+            "dataRights": "PUBLIC",
+            "calib_level": 2,
+            "filters": "LOW DISP",
+            "observation": {}
+          }
+        }
+      },
+      "created": "2025-11-13T04:06:59.451962+00:00",
+      "updated": "2025-11-13T04:06:59.451962+00:00"
+    },
+    "ca8cfe67972f02bb39813802cf9ae9bc3c889fa38db4b7cac6340bed77f89c52": {
+      "sha256": "ca8cfe67972f02bb39813802cf9ae9bc3c889fa38db4b7cac6340bed77f89c52",
+      "filename": "swp32830mxlo_vo.fits",
+      "stored_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\files\\ca\\swp32830mxlo_vo.fits",
+      "original_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\_incoming\\swp32830mxlo_vo.fits",
+      "bytes": 48960,
+      "units": {
+        "x": "unknown",
+        "y": "unknown"
+      },
+      "source": {
+        "remote": {
+          "provider": "MAST",
+          "uri": "mast:IUE/url/pub/vospectra/iue2/swp32830mxlo_vo.fits",
+          "identifier": "swp32830mxlo_vo.fits",
+          "fetched_at": "2025-11-13T04:06:59.793439+00:00",
+          "metadata": {
+            "obsID": "325320",
+            "obs_collection": "IUE",
+            "dataproduct_type": "spectrum",
+            "obs_id": "swp32830",
+            "description": "(extracted spectra/vo spectral container/SSAP) fits file",
+            "type": "S",
+            "dataURI": "mast:IUE/url/pub/vospectra/iue2/swp32830mxlo_vo.fits",
+            "productType": "SCIENCE",
+            "productGroupDescription": "Minimum Recommended Products",
+            "productSubGroupDescription": "(extracted spectra/vo spectral container/SSAP) fits file",
+            "productDocumentationURL": NaN,
+            "project": NaN,
+            "prvversion": NaN,
+            "proposal_id": "SJJHM",
+            "productFilename": "swp32830mxlo_vo.fits",
+            "size": 48960,
+            "parent_obsid": "325320",
+            "dataRights": "PUBLIC",
+            "calib_level": 2,
+            "filters": "LOW DISP",
+            "observation": {}
+          }
+        }
+      },
+      "created": "2025-11-13T04:06:59.808476+00:00",
+      "updated": "2025-11-13T04:06:59.808476+00:00"
+    },
+    "c5445ac1813a23c3b8b12e8b34ad1fafccfeea175630951f36d07b5b1d298998": {
+      "sha256": "c5445ac1813a23c3b8b12e8b34ad1fafccfeea175630951f36d07b5b1d298998",
+      "filename": "swp32831mxlo_vo.fits",
+      "stored_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\files\\c5\\swp32831mxlo_vo.fits",
+      "original_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\_incoming\\swp32831mxlo_vo.fits",
+      "bytes": 48960,
+      "units": {
+        "x": "unknown",
+        "y": "unknown"
+      },
+      "source": {
+        "remote": {
+          "provider": "MAST",
+          "uri": "mast:IUE/url/pub/vospectra/iue2/swp32831mxlo_vo.fits",
+          "identifier": "swp32831mxlo_vo.fits",
+          "fetched_at": "2025-11-13T04:07:00.149016+00:00",
+          "metadata": {
+            "obsID": "325321",
+            "obs_collection": "IUE",
+            "dataproduct_type": "spectrum",
+            "obs_id": "swp32831",
+            "description": "(extracted spectra/vo spectral container/SSAP) fits file",
+            "type": "S",
+            "dataURI": "mast:IUE/url/pub/vospectra/iue2/swp32831mxlo_vo.fits",
+            "productType": "SCIENCE",
+            "productGroupDescription": "Minimum Recommended Products",
+            "productSubGroupDescription": "(extracted spectra/vo spectral container/SSAP) fits file",
+            "productDocumentationURL": NaN,
+            "project": NaN,
+            "prvversion": NaN,
+            "proposal_id": "SJJHM",
+            "productFilename": "swp32831mxlo_vo.fits",
+            "size": 48960,
+            "parent_obsid": "325321",
+            "dataRights": "PUBLIC",
+            "calib_level": 2,
+            "filters": "LOW DISP",
+            "observation": {}
+          }
+        }
+      },
+      "created": "2025-11-13T04:07:00.162539+00:00",
+      "updated": "2025-11-13T04:07:00.162539+00:00"
+    },
+    "1191825db67026908a12213b083cbef73dbb4a3c58772519649cdbe4ec71dadf": {
+      "sha256": "1191825db67026908a12213b083cbef73dbb4a3c58772519649cdbe4ec71dadf",
+      "filename": "swp29722mxlo_vo.fits",
+      "stored_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\files\\11\\swp29722mxlo_vo.fits",
+      "original_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\_incoming\\swp29722mxlo_vo.fits",
+      "bytes": 48960,
+      "units": {
+        "x": "unknown",
+        "y": "unknown"
+      },
+      "source": {
+        "remote": {
+          "provider": "MAST",
+          "uri": "mast:IUE/url/pub/vospectra/iue2/swp29722mxlo_vo.fits",
+          "identifier": "swp29722mxlo_vo.fits",
+          "fetched_at": "2025-11-13T04:07:05.237031+00:00",
+          "metadata": {
+            "obsID": "323332",
+            "obs_collection": "IUE",
+            "dataproduct_type": "spectrum",
+            "obs_id": "swp29722",
+            "description": "(extracted spectra/vo spectral container/SSAP) fits file",
+            "type": "S",
+            "dataURI": "mast:IUE/url/pub/vospectra/iue2/swp29722mxlo_vo.fits",
+            "productType": "SCIENCE",
+            "productGroupDescription": "Minimum Recommended Products",
+            "productSubGroupDescription": "(extracted spectra/vo spectral container/SSAP) fits file",
+            "productDocumentationURL": NaN,
+            "project": NaN,
+            "prvversion": NaN,
+            "proposal_id": "SAITS",
+            "productFilename": "swp29722mxlo_vo.fits",
+            "size": 48960,
+            "parent_obsid": "323332",
+            "dataRights": "PUBLIC",
+            "calib_level": 2,
+            "filters": "LOW DISP",
+            "observation": {}
+          }
+        }
+      },
+      "created": "2025-11-13T04:07:05.252326+00:00",
+      "updated": "2025-11-13T04:07:05.252326+00:00"
+    },
+    "1c835a08ef024c2b506d91caa7980da3d4b1d000eca2c03ad500c6ac9b8253a8": {
+      "sha256": "1c835a08ef024c2b506d91caa7980da3d4b1d000eca2c03ad500c6ac9b8253a8",
+      "filename": "swp29723mxlo_vo.fits",
+      "stored_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\files\\1c\\swp29723mxlo_vo.fits",
+      "original_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\_incoming\\swp29723mxlo_vo.fits",
+      "bytes": 48960,
+      "units": {
+        "x": "unknown",
+        "y": "unknown"
+      },
+      "source": {
+        "remote": {
+          "provider": "MAST",
+          "uri": "mast:IUE/url/pub/vospectra/iue2/swp29723mxlo_vo.fits",
+          "identifier": "swp29723mxlo_vo.fits",
+          "fetched_at": "2025-11-13T04:07:05.607064+00:00",
+          "metadata": {
+            "obsID": "323333",
+            "obs_collection": "IUE",
+            "dataproduct_type": "spectrum",
+            "obs_id": "swp29723",
+            "description": "(extracted spectra/vo spectral container/SSAP) fits file",
+            "type": "S",
+            "dataURI": "mast:IUE/url/pub/vospectra/iue2/swp29723mxlo_vo.fits",
+            "productType": "SCIENCE",
+            "productGroupDescription": "Minimum Recommended Products",
+            "productSubGroupDescription": "(extracted spectra/vo spectral container/SSAP) fits file",
+            "productDocumentationURL": NaN,
+            "project": NaN,
+            "prvversion": NaN,
+            "proposal_id": "SAITS",
+            "productFilename": "swp29723mxlo_vo.fits",
+            "size": 48960,
+            "parent_obsid": "323333",
+            "dataRights": "PUBLIC",
+            "calib_level": 2,
+            "filters": "LOW DISP",
+            "observation": {}
+          }
+        }
+      },
+      "created": "2025-11-13T04:07:05.636652+00:00",
+      "updated": "2025-11-13T04:07:05.636652+00:00"
+    },
+    "88010323ead7a855d382acf1cf07014903bc56fdbbf557c80a9cce9dfaaf71e7": {
+      "sha256": "88010323ead7a855d382acf1cf07014903bc56fdbbf557c80a9cce9dfaaf71e7",
+      "filename": "swp29724mxlo_vo.fits",
+      "stored_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\files\\88\\swp29724mxlo_vo.fits",
+      "original_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\_incoming\\swp29724mxlo_vo.fits",
+      "bytes": 48960,
+      "units": {
+        "x": "unknown",
+        "y": "unknown"
+      },
+      "source": {
+        "remote": {
+          "provider": "MAST",
+          "uri": "mast:IUE/url/pub/vospectra/iue2/swp29724mxlo_vo.fits",
+          "identifier": "swp29724mxlo_vo.fits",
+          "fetched_at": "2025-11-13T04:07:05.971557+00:00",
+          "metadata": {
+            "obsID": "323334",
+            "obs_collection": "IUE",
+            "dataproduct_type": "spectrum",
+            "obs_id": "swp29724",
+            "description": "(extracted spectra/vo spectral container/SSAP) fits file",
+            "type": "S",
+            "dataURI": "mast:IUE/url/pub/vospectra/iue2/swp29724mxlo_vo.fits",
+            "productType": "SCIENCE",
+            "productGroupDescription": "Minimum Recommended Products",
+            "productSubGroupDescription": "(extracted spectra/vo spectral container/SSAP) fits file",
+            "productDocumentationURL": NaN,
+            "project": NaN,
+            "prvversion": NaN,
+            "proposal_id": "SAITS",
+            "productFilename": "swp29724mxlo_vo.fits",
+            "size": 48960,
+            "parent_obsid": "323334",
+            "dataRights": "PUBLIC",
+            "calib_level": 2,
+            "filters": "LOW DISP",
+            "observation": {}
+          }
+        }
+      },
+      "created": "2025-11-13T04:07:05.987111+00:00",
+      "updated": "2025-11-13T04:07:05.987111+00:00"
+    },
+    "402bcd6ec1c752db132c42e7e12916bb001f132bf1a545b5f231123fd42b95a5": {
+      "sha256": "402bcd6ec1c752db132c42e7e12916bb001f132bf1a545b5f231123fd42b95a5",
+      "filename": "swp29725mxlo_vo.fits",
+      "stored_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\files\\40\\swp29725mxlo_vo.fits",
+      "original_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\_incoming\\swp29725mxlo_vo.fits",
+      "bytes": 48960,
+      "units": {
+        "x": "unknown",
+        "y": "unknown"
+      },
+      "source": {
+        "remote": {
+          "provider": "MAST",
+          "uri": "mast:IUE/url/pub/vospectra/iue2/swp29725mxlo_vo.fits",
+          "identifier": "swp29725mxlo_vo.fits",
+          "fetched_at": "2025-11-13T04:07:06.307506+00:00",
+          "metadata": {
+            "obsID": "323335",
+            "obs_collection": "IUE",
+            "dataproduct_type": "spectrum",
+            "obs_id": "swp29725",
+            "description": "(extracted spectra/vo spectral container/SSAP) fits file",
+            "type": "S",
+            "dataURI": "mast:IUE/url/pub/vospectra/iue2/swp29725mxlo_vo.fits",
+            "productType": "SCIENCE",
+            "productGroupDescription": "Minimum Recommended Products",
+            "productSubGroupDescription": "(extracted spectra/vo spectral container/SSAP) fits file",
+            "productDocumentationURL": NaN,
+            "project": NaN,
+            "prvversion": NaN,
+            "proposal_id": "SAITS",
+            "productFilename": "swp29725mxlo_vo.fits",
+            "size": 48960,
+            "parent_obsid": "323335",
+            "dataRights": "PUBLIC",
+            "calib_level": 2,
+            "filters": "LOW DISP",
+            "observation": {}
+          }
+        }
+      },
+      "created": "2025-11-13T04:07:06.328154+00:00",
+      "updated": "2025-11-13T04:07:06.328154+00:00"
+    },
+    "029953b8581386c51ce5e0ea3ffb6010ee59ba0287793c9028c648034a5ad876": {
+      "sha256": "029953b8581386c51ce5e0ea3ffb6010ee59ba0287793c9028c648034a5ad876",
+      "filename": "swp29879mxlo_vo.fits",
+      "stored_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\files\\02\\swp29879mxlo_vo.fits",
+      "original_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\_incoming\\swp29879mxlo_vo.fits",
+      "bytes": 48960,
+      "units": {
+        "x": "unknown",
+        "y": "unknown"
+      },
+      "source": {
+        "remote": {
+          "provider": "MAST",
+          "uri": "mast:IUE/url/pub/vospectra/iue2/swp29879mxlo_vo.fits",
+          "identifier": "swp29879mxlo_vo.fits",
+          "fetched_at": "2025-11-13T04:07:06.719280+00:00",
+          "metadata": {
+            "obsID": "323442",
+            "obs_collection": "IUE",
+            "dataproduct_type": "spectrum",
+            "obs_id": "swp29879",
+            "description": "(extracted spectra/vo spectral container/SSAP) fits file",
+            "type": "S",
+            "dataURI": "mast:IUE/url/pub/vospectra/iue2/swp29879mxlo_vo.fits",
+            "productType": "SCIENCE",
+            "productGroupDescription": "Minimum Recommended Products",
+            "productSubGroupDescription": "(extracted spectra/vo spectral container/SSAP) fits file",
+            "productDocumentationURL": NaN,
+            "project": NaN,
+            "prvversion": NaN,
+            "proposal_id": "SPIJW",
+            "productFilename": "swp29879mxlo_vo.fits",
+            "size": 48960,
+            "parent_obsid": "323442",
+            "dataRights": "PUBLIC",
+            "calib_level": 2,
+            "filters": "LOW DISP",
+            "observation": {}
+          }
+        }
+      },
+      "created": "2025-11-13T04:07:06.736314+00:00",
+      "updated": "2025-11-13T04:07:06.736314+00:00"
+    },
+    "a82e76d60e634c0eaee7d170bdb0d9d1ab61d11c6490942d070b6c4abb05bce1": {
+      "sha256": "a82e76d60e634c0eaee7d170bdb0d9d1ab61d11c6490942d070b6c4abb05bce1",
+      "filename": "swp29884mxlo_vo.fits",
+      "stored_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\files\\a8\\swp29884mxlo_vo.fits",
+      "original_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\_incoming\\swp29884mxlo_vo.fits",
+      "bytes": 48960,
+      "units": {
+        "x": "unknown",
+        "y": "unknown"
+      },
+      "source": {
+        "remote": {
+          "provider": "MAST",
+          "uri": "mast:IUE/url/pub/vospectra/iue2/swp29884mxlo_vo.fits",
+          "identifier": "swp29884mxlo_vo.fits",
+          "fetched_at": "2025-11-13T04:07:07.073461+00:00",
+          "metadata": {
+            "obsID": "323446",
+            "obs_collection": "IUE",
+            "dataproduct_type": "spectrum",
+            "obs_id": "swp29884",
+            "description": "(extracted spectra/vo spectral container/SSAP) fits file",
+            "type": "S",
+            "dataURI": "mast:IUE/url/pub/vospectra/iue2/swp29884mxlo_vo.fits",
+            "productType": "SCIENCE",
+            "productGroupDescription": "Minimum Recommended Products",
+            "productSubGroupDescription": "(extracted spectra/vo spectral container/SSAP) fits file",
+            "productDocumentationURL": NaN,
+            "project": NaN,
+            "prvversion": NaN,
+            "proposal_id": "SJIHM",
+            "productFilename": "swp29884mxlo_vo.fits",
+            "size": 48960,
+            "parent_obsid": "323446",
+            "dataRights": "PUBLIC",
+            "calib_level": 2,
+            "filters": "LOW DISP",
+            "observation": {}
+          }
+        }
+      },
+      "created": "2025-11-13T04:07:07.090065+00:00",
+      "updated": "2025-11-13T04:07:07.090065+00:00"
+    },
+    "c2ba6499a6e115d2a5ef504abb1b3ead52d2b6c34b4e1b93e9f7e8a8330784ce": {
+      "sha256": "c2ba6499a6e115d2a5ef504abb1b3ead52d2b6c34b4e1b93e9f7e8a8330784ce",
+      "filename": "jupiter__9505300116N_vo.fits",
+      "stored_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\files\\c2\\jupiter__9505300116N_vo.fits",
+      "original_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\_incoming\\jupiter__9505300116N_vo.fits",
+      "bytes": 43200,
+      "units": {
+        "x": "unknown",
+        "y": "unknown"
+      },
+      "source": {
+        "remote": {
+          "provider": "MAST",
+          "uri": "mast:EUVE/url/missions/euve/vocontainer/euve2/jupiter__9505300116N_vo.fits",
+          "identifier": "jupiter__9505300116N_vo.fits",
+          "fetched_at": "2025-11-13T04:07:19.877199+00:00",
+          "metadata": {
+            "obsID": "388298",
+            "obs_collection": "EUVE",
+            "dataproduct_type": "spectrum",
+            "obs_id": "jupiter__9505300116N",
+            "description": "(extracted spectra/vo spectral container/SSAP) fits file",
+            "type": "S",
+            "dataURI": "mast:EUVE/url/missions/euve/vocontainer/euve2/jupiter__9505300116N_vo.fits",
+            "productType": "SCIENCE",
+            "productGroupDescription": "Minimum Recommended Products",
+            "productSubGroupDescription": "(extracted spectra/vo spectral container/SSAP) fits file",
+            "productDocumentationURL": NaN,
+            "project": "EUVE",
+            "prvversion": NaN,
+            "proposal_id": NaN,
+            "productFilename": "jupiter__9505300116N_vo.fits",
+            "size": null,
+            "parent_obsid": "388298",
+            "dataRights": "PUBLIC",
+            "calib_level": 2,
+            "filters": NaN,
+            "observation": {}
+          }
+        }
+      },
+      "created": "2025-11-13T04:07:19.898244+00:00",
+      "updated": "2025-11-13T04:07:19.898244+00:00"
+    },
+    "e73cddf16ebf96857824b537eacb3cc6f4314efaa38bca01f92d3fb59cb548cc": {
+      "sha256": "e73cddf16ebf96857824b537eacb3cc6f4314efaa38bca01f92d3fb59cb548cc",
+      "filename": "jupiter__9604141820N_vo.fits",
+      "stored_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\files\\e7\\jupiter__9604141820N_vo.fits",
+      "original_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\_incoming\\jupiter__9604141820N_vo.fits",
+      "bytes": 43200,
+      "units": {
+        "x": "unknown",
+        "y": "unknown"
+      },
+      "source": {
+        "remote": {
+          "provider": "MAST",
+          "uri": "mast:EUVE/url/missions/euve/vocontainer/euve2/jupiter__9604141820N_vo.fits",
+          "identifier": "jupiter__9604141820N_vo.fits",
+          "fetched_at": "2025-11-13T04:07:20.248034+00:00",
+          "metadata": {
+            "obsID": "388299",
+            "obs_collection": "EUVE",
+            "dataproduct_type": "spectrum",
+            "obs_id": "jupiter__9604141820N",
+            "description": "(extracted spectra/vo spectral container/SSAP) fits file",
+            "type": "S",
+            "dataURI": "mast:EUVE/url/missions/euve/vocontainer/euve2/jupiter__9604141820N_vo.fits",
+            "productType": "SCIENCE",
+            "productGroupDescription": "Minimum Recommended Products",
+            "productSubGroupDescription": "(extracted spectra/vo spectral container/SSAP) fits file",
+            "productDocumentationURL": NaN,
+            "project": "EUVE",
+            "prvversion": NaN,
+            "proposal_id": NaN,
+            "productFilename": "jupiter__9604141820N_vo.fits",
+            "size": null,
+            "parent_obsid": "388299",
+            "dataRights": "PUBLIC",
+            "calib_level": 2,
+            "filters": NaN,
+            "observation": {}
+          }
+        }
+      },
+      "created": "2025-11-13T04:07:20.267695+00:00",
+      "updated": "2025-11-13T04:07:20.267695+00:00"
+    },
+    "022cc732b33dfea3821ae7bf6a80f4f250edb230ee50295b53a35e005796fb3d": {
+      "sha256": "022cc732b33dfea3821ae7bf6a80f4f250edb230ee50295b53a35e005796fb3d",
+      "filename": "jupiter__9608281021N_vo.fits",
+      "stored_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\files\\02\\jupiter__9608281021N_vo.fits",
+      "original_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\_incoming\\jupiter__9608281021N_vo.fits",
+      "bytes": 43200,
+      "units": {
+        "x": "unknown",
+        "y": "unknown"
+      },
+      "source": {
+        "remote": {
+          "provider": "MAST",
+          "uri": "mast:EUVE/url/missions/euve/vocontainer/euve2/jupiter__9608281021N_vo.fits",
+          "identifier": "jupiter__9608281021N_vo.fits",
+          "fetched_at": "2025-11-13T04:07:20.612102+00:00",
+          "metadata": {
+            "obsID": "388301",
+            "obs_collection": "EUVE",
+            "dataproduct_type": "spectrum",
+            "obs_id": "jupiter__9608281021N",
+            "description": "(extracted spectra/vo spectral container/SSAP) fits file",
+            "type": "S",
+            "dataURI": "mast:EUVE/url/missions/euve/vocontainer/euve2/jupiter__9608281021N_vo.fits",
+            "productType": "SCIENCE",
+            "productGroupDescription": "Minimum Recommended Products",
+            "productSubGroupDescription": "(extracted spectra/vo spectral container/SSAP) fits file",
+            "productDocumentationURL": NaN,
+            "project": "EUVE",
+            "prvversion": NaN,
+            "proposal_id": NaN,
+            "productFilename": "jupiter__9608281021N_vo.fits",
+            "size": null,
+            "parent_obsid": "388301",
+            "dataRights": "PUBLIC",
+            "calib_level": 2,
+            "filters": NaN,
+            "observation": {}
+          }
+        }
+      },
+      "created": "2025-11-13T04:07:20.635072+00:00",
+      "updated": "2025-11-13T04:07:20.635072+00:00"
+    },
+    "4747b51737975f3f2b9af23d956434049eaca324a0c7712a83cf96e4cc789d70": {
+      "sha256": "4747b51737975f3f2b9af23d956434049eaca324a0c7712a83cf96e4cc789d70",
+      "filename": "jupiter__9609212119N_vo.fits",
+      "stored_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\files\\47\\jupiter__9609212119N_vo.fits",
+      "original_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\_incoming\\jupiter__9609212119N_vo.fits",
+      "bytes": 43200,
+      "units": {
+        "x": "unknown",
+        "y": "unknown"
+      },
+      "source": {
+        "remote": {
+          "provider": "MAST",
+          "uri": "mast:EUVE/url/missions/euve/vocontainer/euve2/jupiter__9609212119N_vo.fits",
+          "identifier": "jupiter__9609212119N_vo.fits",
+          "fetched_at": "2025-11-13T04:07:20.985636+00:00",
+          "metadata": {
+            "obsID": "388302",
+            "obs_collection": "EUVE",
+            "dataproduct_type": "spectrum",
+            "obs_id": "jupiter__9609212119N",
+            "description": "(extracted spectra/vo spectral container/SSAP) fits file",
+            "type": "S",
+            "dataURI": "mast:EUVE/url/missions/euve/vocontainer/euve2/jupiter__9609212119N_vo.fits",
+            "productType": "SCIENCE",
+            "productGroupDescription": "Minimum Recommended Products",
+            "productSubGroupDescription": "(extracted spectra/vo spectral container/SSAP) fits file",
+            "productDocumentationURL": NaN,
+            "project": "EUVE",
+            "prvversion": NaN,
+            "proposal_id": NaN,
+            "productFilename": "jupiter__9609212119N_vo.fits",
+            "size": null,
+            "parent_obsid": "388302",
+            "dataRights": "PUBLIC",
+            "calib_level": 2,
+            "filters": NaN,
+            "observation": {}
+          }
+        }
+      },
+      "created": "2025-11-13T04:07:21.002420+00:00",
+      "updated": "2025-11-13T04:07:21.002420+00:00"
+    },
+    "9c6240ed3713b64c2bf9128a91cea5617719168f527e71c5cebde1bd74f8d17f": {
+      "sha256": "9c6240ed3713b64c2bf9128a91cea5617719168f527e71c5cebde1bd74f8d17f",
+      "filename": "jupiter__9706290047N_vo.fits",
+      "stored_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\files\\9c\\jupiter__9706290047N_vo.fits",
+      "original_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\_incoming\\jupiter__9706290047N_vo.fits",
+      "bytes": 43200,
+      "units": {
+        "x": "unknown",
+        "y": "unknown"
+      },
+      "source": {
+        "remote": {
+          "provider": "MAST",
+          "uri": "mast:EUVE/url/missions/euve/vocontainer/euve2/jupiter__9706290047N_vo.fits",
+          "identifier": "jupiter__9706290047N_vo.fits",
+          "fetched_at": "2025-11-13T04:07:21.346885+00:00",
+          "metadata": {
+            "obsID": "388303",
+            "obs_collection": "EUVE",
+            "dataproduct_type": "spectrum",
+            "obs_id": "jupiter__9706290047N",
+            "description": "(extracted spectra/vo spectral container/SSAP) fits file",
+            "type": "S",
+            "dataURI": "mast:EUVE/url/missions/euve/vocontainer/euve2/jupiter__9706290047N_vo.fits",
+            "productType": "SCIENCE",
+            "productGroupDescription": "Minimum Recommended Products",
+            "productSubGroupDescription": "(extracted spectra/vo spectral container/SSAP) fits file",
+            "productDocumentationURL": NaN,
+            "project": "EUVE",
+            "prvversion": NaN,
+            "proposal_id": NaN,
+            "productFilename": "jupiter__9706290047N_vo.fits",
+            "size": null,
+            "parent_obsid": "388303",
+            "dataRights": "PUBLIC",
+            "calib_level": 2,
+            "filters": NaN,
+            "observation": {}
+          }
+        }
+      },
+      "created": "2025-11-13T04:07:21.362041+00:00",
+      "updated": "2025-11-13T04:07:21.362041+00:00"
+    },
+    "247d0f02a9a6e2452f02fe026533e7fff0642d8e8480a2aa624961796a046bbc": {
+      "sha256": "247d0f02a9a6e2452f02fe026533e7fff0642d8e8480a2aa624961796a046bbc",
+      "filename": "jupiter__9910050534N_vo.fits",
+      "stored_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\files\\24\\jupiter__9910050534N_vo.fits",
+      "original_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\_incoming\\jupiter__9910050534N_vo.fits",
+      "bytes": 43200,
+      "units": {
+        "x": "unknown",
+        "y": "unknown"
+      },
+      "source": {
+        "remote": {
+          "provider": "MAST",
+          "uri": "mast:EUVE/url/missions/euve/vocontainer/euve2/jupiter__9910050534N_vo.fits",
+          "identifier": "jupiter__9910050534N_vo.fits",
+          "fetched_at": "2025-11-13T04:07:21.706027+00:00",
+          "metadata": {
+            "obsID": "388304",
+            "obs_collection": "EUVE",
+            "dataproduct_type": "spectrum",
+            "obs_id": "jupiter__9910050534N",
+            "description": "(extracted spectra/vo spectral container/SSAP) fits file",
+            "type": "S",
+            "dataURI": "mast:EUVE/url/missions/euve/vocontainer/euve2/jupiter__9910050534N_vo.fits",
+            "productType": "SCIENCE",
+            "productGroupDescription": "Minimum Recommended Products",
+            "productSubGroupDescription": "(extracted spectra/vo spectral container/SSAP) fits file",
+            "productDocumentationURL": NaN,
+            "project": "EUVE",
+            "prvversion": NaN,
+            "proposal_id": NaN,
+            "productFilename": "jupiter__9910050534N_vo.fits",
+            "size": null,
+            "parent_obsid": "388304",
+            "dataRights": "PUBLIC",
+            "calib_level": 2,
+            "filters": NaN,
+            "observation": {}
+          }
+        }
+      },
+      "created": "2025-11-13T04:07:21.725579+00:00",
+      "updated": "2025-11-13T04:07:21.725579+00:00"
+    },
+    "880b159a3c4d7f628a6d32e0651f037082d4e6e596bc0079dd3b4d04ce19f8a4": {
+      "sha256": "880b159a3c4d7f628a6d32e0651f037082d4e6e596bc0079dd3b4d04ce19f8a4",
+      "filename": "jupiter__9910140001N_vo.fits",
+      "stored_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\files\\88\\jupiter__9910140001N_vo.fits",
+      "original_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\_incoming\\jupiter__9910140001N_vo.fits",
+      "bytes": 43200,
+      "units": {
+        "x": "unknown",
+        "y": "unknown"
+      },
+      "source": {
+        "remote": {
+          "provider": "MAST",
+          "uri": "mast:EUVE/url/missions/euve/vocontainer/euve2/jupiter__9910140001N_vo.fits",
+          "identifier": "jupiter__9910140001N_vo.fits",
+          "fetched_at": "2025-11-13T04:07:22.071660+00:00",
+          "metadata": {
+            "obsID": "388305",
+            "obs_collection": "EUVE",
+            "dataproduct_type": "spectrum",
+            "obs_id": "jupiter__9910140001N",
+            "description": "(extracted spectra/vo spectral container/SSAP) fits file",
+            "type": "S",
+            "dataURI": "mast:EUVE/url/missions/euve/vocontainer/euve2/jupiter__9910140001N_vo.fits",
+            "productType": "SCIENCE",
+            "productGroupDescription": "Minimum Recommended Products",
+            "productSubGroupDescription": "(extracted spectra/vo spectral container/SSAP) fits file",
+            "productDocumentationURL": NaN,
+            "project": "EUVE",
+            "prvversion": NaN,
+            "proposal_id": NaN,
+            "productFilename": "jupiter__9910140001N_vo.fits",
+            "size": null,
+            "parent_obsid": "388305",
+            "dataRights": "PUBLIC",
+            "calib_level": 2,
+            "filters": NaN,
+            "observation": {}
+          }
+        }
+      },
+      "created": "2025-11-13T04:07:22.093260+00:00",
+      "updated": "2025-11-13T04:07:22.093260+00:00"
+    },
+    "98f5c4d7105002ce2233e5cb7e80fb25c19fa2014393c5cfdc31fa04a9eeef35": {
+      "sha256": "98f5c4d7105002ce2233e5cb7e80fb25c19fa2014393c5cfdc31fa04a9eeef35",
+      "filename": "jupiter__9910171147N_vo.fits",
+      "stored_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\files\\98\\jupiter__9910171147N_vo.fits",
+      "original_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\_incoming\\jupiter__9910171147N_vo.fits",
+      "bytes": 43200,
+      "units": {
+        "x": "unknown",
+        "y": "unknown"
+      },
+      "source": {
+        "remote": {
+          "provider": "MAST",
+          "uri": "mast:EUVE/url/missions/euve/vocontainer/euve2/jupiter__9910171147N_vo.fits",
+          "identifier": "jupiter__9910171147N_vo.fits",
+          "fetched_at": "2025-11-13T04:07:22.434233+00:00",
+          "metadata": {
+            "obsID": "388306",
+            "obs_collection": "EUVE",
+            "dataproduct_type": "spectrum",
+            "obs_id": "jupiter__9910171147N",
+            "description": "(extracted spectra/vo spectral container/SSAP) fits file",
+            "type": "S",
+            "dataURI": "mast:EUVE/url/missions/euve/vocontainer/euve2/jupiter__9910171147N_vo.fits",
+            "productType": "SCIENCE",
+            "productGroupDescription": "Minimum Recommended Products",
+            "productSubGroupDescription": "(extracted spectra/vo spectral container/SSAP) fits file",
+            "productDocumentationURL": NaN,
+            "project": "EUVE",
+            "prvversion": NaN,
+            "proposal_id": NaN,
+            "productFilename": "jupiter__9910171147N_vo.fits",
+            "size": null,
+            "parent_obsid": "388306",
+            "dataRights": "PUBLIC",
+            "calib_level": 2,
+            "filters": NaN,
+            "observation": {}
+          }
+        }
+      },
+      "created": "2025-11-13T04:07:22.448265+00:00",
+      "updated": "2025-11-13T04:07:22.448265+00:00"
+    },
+    "b7f7703f27d4acdb23efab841444bd3f04fe306fdb587045a0efa72814169c3a": {
+      "sha256": "b7f7703f27d4acdb23efab841444bd3f04fe306fdb587045a0efa72814169c3a",
+      "filename": "z0wu0102t_cqf.fits",
+      "stored_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\files\\b7\\z0wu0102t_cqf.fits",
+      "original_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\_incoming\\z0wu0102t_cqf.fits",
+      "bytes": 80640,
+      "units": {
+        "x": "unknown",
+        "y": "unknown"
+      },
+      "source": {
+        "remote": {
+          "provider": "MAST",
+          "uri": "mast:HST/product/z0wu0102t_cqf.fits",
+          "identifier": "z0wu0102t_cqf.fits",
+          "fetched_at": "2025-11-13T04:07:22.790728+00:00",
+          "metadata": {
+            "obsID": "24775642",
+            "obs_collection": "HST",
+            "dataproduct_type": "spectrum",
+            "obs_id": "z0wu0102t",
+            "description": "DADS CQF file - Data quality GHRS/FOS",
+            "type": "S",
+            "dataURI": "mast:HST/product/z0wu0102t_cqf.fits",
+            "productType": "AUXILIARY",
+            "productGroupDescription": NaN,
+            "productSubGroupDescription": "CQF",
+            "productDocumentationURL": NaN,
+            "project": "CALHRS",
+            "prvversion": NaN,
+            "proposal_id": "2625",
+            "productFilename": "z0wu0102t_cqf.fits",
+            "size": 80640,
+            "parent_obsid": "24775642",
+            "dataRights": "PUBLIC",
+            "calib_level": 2,
+            "filters": "G160M",
+            "observation": {}
+          }
+        }
+      },
+      "created": "2025-11-13T04:07:22.806239+00:00",
+      "updated": "2025-11-13T04:07:22.806239+00:00"
+    },
+    "37d9f568eb251def77b63ec85d8c7a79d593b6be7d2a2dad042425e2c347f567": {
+      "sha256": "37d9f568eb251def77b63ec85d8c7a79d593b6be7d2a2dad042425e2c347f567",
+      "filename": "jupiter__9403221013N_vo.fits",
+      "stored_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\files\\37\\jupiter__9403221013N_vo.fits",
+      "original_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\_incoming\\jupiter__9403221013N_vo.fits",
+      "bytes": 43200,
+      "units": {
+        "x": "unknown",
+        "y": "unknown"
+      },
+      "source": {
+        "remote": {
+          "provider": "MAST",
+          "uri": "mast:EUVE/url/missions/euve/vocontainer/euve2/jupiter__9403221013N_vo.fits",
+          "identifier": "jupiter__9403221013N_vo.fits",
+          "fetched_at": "2025-11-13T04:07:31.299340+00:00",
+          "metadata": {
+            "obsID": "388288",
+            "obs_collection": "EUVE",
+            "dataproduct_type": "spectrum",
+            "obs_id": "jupiter__9403221013N",
+            "description": "(extracted spectra/vo spectral container/SSAP) fits file",
+            "type": "S",
+            "dataURI": "mast:EUVE/url/missions/euve/vocontainer/euve2/jupiter__9403221013N_vo.fits",
+            "productType": "SCIENCE",
+            "productGroupDescription": "Minimum Recommended Products",
+            "productSubGroupDescription": "(extracted spectra/vo spectral container/SSAP) fits file",
+            "productDocumentationURL": NaN,
+            "project": "EUVE",
+            "prvversion": NaN,
+            "proposal_id": NaN,
+            "productFilename": "jupiter__9403221013N_vo.fits",
+            "size": null,
+            "parent_obsid": "388288",
+            "dataRights": "PUBLIC",
+            "calib_level": 2,
+            "filters": NaN,
+            "observation": {}
+          }
+        }
+      },
+      "created": "2025-11-13T04:07:31.316386+00:00",
+      "updated": "2025-11-13T04:07:31.316386+00:00"
+    },
+    "5e428f3f36c86fbee0521dc1c5a85448f905519dda4463d9c3e8b20d8bc3e0bc": {
+      "sha256": "5e428f3f36c86fbee0521dc1c5a85448f905519dda4463d9c3e8b20d8bc3e0bc",
+      "filename": "jupiter__9404292319N_vo.fits",
+      "stored_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\files\\5e\\jupiter__9404292319N_vo.fits",
+      "original_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\_incoming\\jupiter__9404292319N_vo.fits",
+      "bytes": 43200,
+      "units": {
+        "x": "unknown",
+        "y": "unknown"
+      },
+      "source": {
+        "remote": {
+          "provider": "MAST",
+          "uri": "mast:EUVE/url/missions/euve/vocontainer/euve2/jupiter__9404292319N_vo.fits",
+          "identifier": "jupiter__9404292319N_vo.fits",
+          "fetched_at": "2025-11-13T04:07:31.654309+00:00",
+          "metadata": {
+            "obsID": "388289",
+            "obs_collection": "EUVE",
+            "dataproduct_type": "spectrum",
+            "obs_id": "jupiter__9404292319N",
+            "description": "(extracted spectra/vo spectral container/SSAP) fits file",
+            "type": "S",
+            "dataURI": "mast:EUVE/url/missions/euve/vocontainer/euve2/jupiter__9404292319N_vo.fits",
+            "productType": "SCIENCE",
+            "productGroupDescription": "Minimum Recommended Products",
+            "productSubGroupDescription": "(extracted spectra/vo spectral container/SSAP) fits file",
+            "productDocumentationURL": NaN,
+            "project": "EUVE",
+            "prvversion": NaN,
+            "proposal_id": NaN,
+            "productFilename": "jupiter__9404292319N_vo.fits",
+            "size": null,
+            "parent_obsid": "388289",
+            "dataRights": "PUBLIC",
+            "calib_level": 2,
+            "filters": NaN,
+            "observation": {}
+          }
+        }
+      },
+      "created": "2025-11-13T04:07:31.672385+00:00",
+      "updated": "2025-11-13T04:07:31.672385+00:00"
+    },
+    "841144d40023cd75707852d80f062c350d96920aee64380b52386ec28d25fc10": {
+      "sha256": "841144d40023cd75707852d80f062c350d96920aee64380b52386ec28d25fc10",
+      "filename": "jupiter__9406040420N_vo.fits",
+      "stored_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\files\\84\\jupiter__9406040420N_vo.fits",
+      "original_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\_incoming\\jupiter__9406040420N_vo.fits",
+      "bytes": 43200,
+      "units": {
+        "x": "unknown",
+        "y": "unknown"
+      },
+      "source": {
+        "remote": {
+          "provider": "MAST",
+          "uri": "mast:EUVE/url/missions/euve/vocontainer/euve2/jupiter__9406040420N_vo.fits",
+          "identifier": "jupiter__9406040420N_vo.fits",
+          "fetched_at": "2025-11-13T04:07:32.016826+00:00",
+          "metadata": {
+            "obsID": "388290",
+            "obs_collection": "EUVE",
+            "dataproduct_type": "spectrum",
+            "obs_id": "jupiter__9406040420N",
+            "description": "(extracted spectra/vo spectral container/SSAP) fits file",
+            "type": "S",
+            "dataURI": "mast:EUVE/url/missions/euve/vocontainer/euve2/jupiter__9406040420N_vo.fits",
+            "productType": "SCIENCE",
+            "productGroupDescription": "Minimum Recommended Products",
+            "productSubGroupDescription": "(extracted spectra/vo spectral container/SSAP) fits file",
+            "productDocumentationURL": NaN,
+            "project": "EUVE",
+            "prvversion": NaN,
+            "proposal_id": NaN,
+            "productFilename": "jupiter__9406040420N_vo.fits",
+            "size": null,
+            "parent_obsid": "388290",
+            "dataRights": "PUBLIC",
+            "calib_level": 2,
+            "filters": NaN,
+            "observation": {}
+          }
+        }
+      },
+      "created": "2025-11-13T04:07:32.036865+00:00",
+      "updated": "2025-11-13T04:07:32.036865+00:00"
+    },
+    "7ad1f2f1b1d581d7fc851c524e12d69019966378bfe62b5c9aedea6503140fe1": {
+      "sha256": "7ad1f2f1b1d581d7fc851c524e12d69019966378bfe62b5c9aedea6503140fe1",
+      "filename": "z0wu0106t_cqf.fits",
+      "stored_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\files\\7a\\z0wu0106t_cqf.fits",
+      "original_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\_incoming\\z0wu0106t_cqf.fits",
+      "bytes": 80640,
+      "units": {
+        "x": "unknown",
+        "y": "unknown"
+      },
+      "source": {
+        "remote": {
+          "provider": "MAST",
+          "uri": "mast:HST/product/z0wu0106t_cqf.fits",
+          "identifier": "z0wu0106t_cqf.fits",
+          "fetched_at": "2025-11-13T04:07:46.481954+00:00",
+          "metadata": {
+            "obsID": "24775646",
+            "obs_collection": "HST",
+            "dataproduct_type": "spectrum",
+            "obs_id": "z0wu0106t",
+            "description": "DADS CQF file - Data quality GHRS/FOS",
+            "type": "S",
+            "dataURI": "mast:HST/product/z0wu0106t_cqf.fits",
+            "productType": "AUXILIARY",
+            "productGroupDescription": NaN,
+            "productSubGroupDescription": "CQF",
+            "productDocumentationURL": NaN,
+            "project": "CALHRS",
+            "prvversion": NaN,
+            "proposal_id": "2625",
+            "productFilename": "z0wu0106t_cqf.fits",
+            "size": 80640,
+            "parent_obsid": "24775646",
+            "dataRights": "PUBLIC",
+            "calib_level": 2,
+            "filters": "G160M",
+            "observation": {}
+          }
+        }
+      },
+      "created": "2025-11-13T04:07:46.496464+00:00",
+      "updated": "2025-11-13T04:07:46.496464+00:00"
+    },
+    "b93cd371966b1958ca54bdc20ea92772a5ae9866ed22fe8149af85053272f9ab": {
+      "sha256": "b93cd371966b1958ca54bdc20ea92772a5ae9866ed22fe8149af85053272f9ab",
+      "filename": "z0wu0106t_c0f.fits",
+      "stored_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\files\\b9\\z0wu0106t_c0f.fits",
+      "original_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\_incoming\\z0wu0106t_c0f.fits",
+      "bytes": 112320,
+      "units": {
+        "x": "unknown",
+        "y": "unknown"
+      },
+      "source": {
+        "remote": {
+          "provider": "MAST",
+          "uri": "mast:HST/product/z0wu0106t_c0f.fits",
+          "identifier": "z0wu0106t_c0f.fits",
+          "fetched_at": "2025-11-13T04:07:46.843394+00:00",
+          "metadata": {
+            "obsID": "24775646",
+            "obs_collection": "HST",
+            "dataproduct_type": "spectrum",
+            "obs_id": "z0wu0106t",
+            "description": "DADS C0F file - Calibrated exposure WFPC/WFPC2/FOC/FOS/GHRS/HSP",
+            "type": "S",
+            "dataURI": "mast:HST/product/z0wu0106t_c0f.fits",
+            "productType": "SCIENCE",
+            "productGroupDescription": "Minimum Recommended Products",
+            "productSubGroupDescription": "C0F",
+            "productDocumentationURL": NaN,
+            "project": "CALHRS",
+            "prvversion": NaN,
+            "proposal_id": "2625",
+            "productFilename": "z0wu0106t_c0f.fits",
+            "size": 112320,
+            "parent_obsid": "24775646",
+            "dataRights": "PUBLIC",
+            "calib_level": 2,
+            "filters": "G160M",
+            "observation": {}
+          }
+        }
+      },
+      "created": "2025-11-13T04:07:46.857905+00:00",
+      "updated": "2025-11-13T04:07:46.857905+00:00"
+    },
+    "d417edd996cb4e48d2f6e64b5241b64eec2b1f3ada7e2839cd2d456573599439": {
+      "sha256": "d417edd996cb4e48d2f6e64b5241b64eec2b1f3ada7e2839cd2d456573599439",
+      "filename": "z0wu0106t_c1f.fits",
+      "stored_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\files\\d4\\z0wu0106t_c1f.fits",
+      "original_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\_incoming\\z0wu0106t_c1f.fits",
+      "bytes": 80640,
+      "units": {
+        "x": "unknown",
+        "y": "unknown"
+      },
+      "source": {
+        "remote": {
+          "provider": "MAST",
+          "uri": "mast:HST/product/z0wu0106t_c1f.fits",
+          "identifier": "z0wu0106t_c1f.fits",
+          "fetched_at": "2025-11-13T04:07:47.351321+00:00",
+          "metadata": {
+            "obsID": "24775646",
+            "obs_collection": "HST",
+            "dataproduct_type": "spectrum",
+            "obs_id": "z0wu0106t",
+            "description": "DADS C1F file - Calibrated exposure WFPC/FOC/FOS/GHRS/HSP",
+            "type": "S",
+            "dataURI": "mast:HST/product/z0wu0106t_c1f.fits",
+            "productType": "SCIENCE",
+            "productGroupDescription": "Minimum Recommended Products",
+            "productSubGroupDescription": "C1F",
+            "productDocumentationURL": NaN,
+            "project": "CALHRS",
+            "prvversion": NaN,
+            "proposal_id": "2625",
+            "productFilename": "z0wu0106t_c1f.fits",
+            "size": 80640,
+            "parent_obsid": "24775646",
+            "dataRights": "PUBLIC",
+            "calib_level": 2,
+            "filters": "G160M",
+            "observation": {}
+          }
+        }
+      },
+      "created": "2025-11-13T04:07:47.367397+00:00",
+      "updated": "2025-11-13T04:07:47.367397+00:00"
+    },
+    "fefbb1706a5de80ca61aacc5ab02c76ae4f04f87ecc725dd8ddeeaa4f98fca1c": {
+      "sha256": "fefbb1706a5de80ca61aacc5ab02c76ae4f04f87ecc725dd8ddeeaa4f98fca1c",
+      "filename": "z0wu0106t_c2f.fits",
+      "stored_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\files\\fe\\z0wu0106t_c2f.fits",
+      "original_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\_incoming\\z0wu0106t_c2f.fits",
+      "bytes": 80640,
+      "units": {
+        "x": "unknown",
+        "y": "unknown"
+      },
+      "source": {
+        "remote": {
+          "provider": "MAST",
+          "uri": "mast:HST/product/z0wu0106t_c2f.fits",
+          "identifier": "z0wu0106t_c2f.fits",
+          "fetched_at": "2025-11-13T04:07:50.736658+00:00",
+          "metadata": {
+            "obsID": "24775646",
+            "obs_collection": "HST",
+            "dataproduct_type": "spectrum",
+            "obs_id": "z0wu0106t",
+            "description": "DADS C2F file - Calibrated exposure WFPC/GHRS/FOS/HSP",
+            "type": "S",
+            "dataURI": "mast:HST/product/z0wu0106t_c2f.fits",
+            "productType": "SCIENCE",
+            "productGroupDescription": "Minimum Recommended Products",
+            "productSubGroupDescription": "C2F",
+            "productDocumentationURL": NaN,
+            "project": "CALHRS",
+            "prvversion": NaN,
+            "proposal_id": "2625",
+            "productFilename": "z0wu0106t_c2f.fits",
+            "size": 80640,
+            "parent_obsid": "24775646",
+            "dataRights": "PUBLIC",
+            "calib_level": 2,
+            "filters": "G160M",
+            "observation": {}
+          }
+        }
+      },
+      "created": "2025-11-13T04:07:50.751690+00:00",
+      "updated": "2025-11-13T04:07:50.751690+00:00"
+    },
+    "13296f6d00bbc26565a8e0d6f942ccee60e7b9502c3c72da4d4f6fadf315dd6d": {
+      "sha256": "13296f6d00bbc26565a8e0d6f942ccee60e7b9502c3c72da4d4f6fadf315dd6d",
+      "filename": "z0wu0106t_c3f.fits",
+      "stored_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\files\\13\\z0wu0106t_c3f.fits",
+      "original_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\_incoming\\z0wu0106t_c3f.fits",
+      "bytes": 57600,
+      "units": {
+        "x": "unknown",
+        "y": "unknown"
+      },
+      "source": {
+        "remote": {
+          "provider": "MAST",
+          "uri": "mast:HST/product/z0wu0106t_c3f.fits",
+          "identifier": "z0wu0106t_c3f.fits",
+          "fetched_at": "2025-11-13T04:07:51.082807+00:00",
+          "metadata": {
+            "obsID": "24775646",
+            "obs_collection": "HST",
+            "dataproduct_type": "spectrum",
+            "obs_id": "z0wu0106t",
+            "description": "DADS C3F file - Calibrated exposure GHRS/FOS/HSP",
+            "type": "S",
+            "dataURI": "mast:HST/product/z0wu0106t_c3f.fits",
+            "productType": "SCIENCE",
+            "productGroupDescription": "Minimum Recommended Products",
+            "productSubGroupDescription": "C3F",
+            "productDocumentationURL": NaN,
+            "project": "CALHRS",
+            "prvversion": NaN,
+            "proposal_id": "2625",
+            "productFilename": "z0wu0106t_c3f.fits",
+            "size": 57600,
+            "parent_obsid": "24775646",
+            "dataRights": "PUBLIC",
+            "calib_level": 2,
+            "filters": "G160M",
+            "observation": {}
+          }
+        }
+      },
+      "created": "2025-11-13T04:07:51.097884+00:00",
+      "updated": "2025-11-13T04:07:51.097884+00:00"
+    },
+    "5bd28ef3b95296886c6eade1f567b1f4c49bb4cf7bc94a323eba874df2c06051": {
+      "sha256": "5bd28ef3b95296886c6eade1f567b1f4c49bb4cf7bc94a323eba874df2c06051",
+      "filename": "z0wu0106t_c4f.fits",
+      "stored_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\files\\5b\\z0wu0106t_c4f.fits",
+      "original_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\_incoming\\z0wu0106t_c4f.fits",
+      "bytes": 57600,
+      "units": {
+        "x": "unknown",
+        "y": "unknown"
+      },
+      "source": {
+        "remote": {
+          "provider": "MAST",
+          "uri": "mast:HST/product/z0wu0106t_c4f.fits",
+          "identifier": "z0wu0106t_c4f.fits",
+          "fetched_at": "2025-11-13T04:07:51.465007+00:00",
+          "metadata": {
+            "obsID": "24775646",
+            "obs_collection": "HST",
+            "dataproduct_type": "spectrum",
+            "obs_id": "z0wu0106t",
+            "description": "DADS C4F file - Calibrated exposure GHRS/FOS",
+            "type": "S",
+            "dataURI": "mast:HST/product/z0wu0106t_c4f.fits",
+            "productType": "SCIENCE",
+            "productGroupDescription": "Minimum Recommended Products",
+            "productSubGroupDescription": "C4F",
+            "productDocumentationURL": NaN,
+            "project": "CALHRS",
+            "prvversion": NaN,
+            "proposal_id": "2625",
+            "productFilename": "z0wu0106t_c4f.fits",
+            "size": 57600,
+            "parent_obsid": "24775646",
+            "dataRights": "PUBLIC",
+            "calib_level": 2,
+            "filters": "G160M",
+            "observation": {}
+          }
+        }
+      },
+      "created": "2025-11-13T04:07:51.479553+00:00",
+      "updated": "2025-11-13T04:07:51.479553+00:00"
+    },
+    "5698bf783dfb6ac758a2ebe355c63cd1a6efac264693949d1dbe9820f713dae2": {
+      "sha256": "5698bf783dfb6ac758a2ebe355c63cd1a6efac264693949d1dbe9820f713dae2",
+      "filename": "z0wu010ct_cqf.fits",
+      "stored_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\files\\56\\z0wu010ct_cqf.fits",
+      "original_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\_incoming\\z0wu010ct_cqf.fits",
+      "bytes": 80640,
+      "units": {
+        "x": "unknown",
+        "y": "unknown"
+      },
+      "source": {
+        "remote": {
+          "provider": "MAST",
+          "uri": "mast:HST/product/z0wu010ct_cqf.fits",
+          "identifier": "z0wu010ct_cqf.fits",
+          "fetched_at": "2025-11-13T04:07:54.273240+00:00",
+          "metadata": {
+            "obsID": "24775652",
+            "obs_collection": "HST",
+            "dataproduct_type": "spectrum",
+            "obs_id": "z0wu010ct",
+            "description": "DADS CQF file - Data quality GHRS/FOS",
+            "type": "S",
+            "dataURI": "mast:HST/product/z0wu010ct_cqf.fits",
+            "productType": "AUXILIARY",
+            "productGroupDescription": NaN,
+            "productSubGroupDescription": "CQF",
+            "productDocumentationURL": NaN,
+            "project": "CALHRS",
+            "prvversion": NaN,
+            "proposal_id": "2625",
+            "productFilename": "z0wu010ct_cqf.fits",
+            "size": 80640,
+            "parent_obsid": "24775652",
+            "dataRights": "PUBLIC",
+            "calib_level": 2,
+            "filters": "G160M",
+            "observation": {}
+          }
+        }
+      },
+      "created": "2025-11-13T04:07:54.288368+00:00",
+      "updated": "2025-11-13T04:07:54.288368+00:00"
+    },
+    "d6d7c6bb33f1670bfc586549dc695c068a87b3e554c281584f27a60dea3c453b": {
+      "sha256": "d6d7c6bb33f1670bfc586549dc695c068a87b3e554c281584f27a60dea3c453b",
+      "filename": "z0wu010ct_c0f.fits",
+      "stored_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\files\\d6\\z0wu010ct_c0f.fits",
+      "original_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\_incoming\\z0wu010ct_c0f.fits",
+      "bytes": 112320,
+      "units": {
+        "x": "unknown",
+        "y": "unknown"
+      },
+      "source": {
+        "remote": {
+          "provider": "MAST",
+          "uri": "mast:HST/product/z0wu010ct_c0f.fits",
+          "identifier": "z0wu010ct_c0f.fits",
+          "fetched_at": "2025-11-13T04:07:54.640201+00:00",
+          "metadata": {
+            "obsID": "24775652",
+            "obs_collection": "HST",
+            "dataproduct_type": "spectrum",
+            "obs_id": "z0wu010ct",
+            "description": "DADS C0F file - Calibrated exposure WFPC/WFPC2/FOC/FOS/GHRS/HSP",
+            "type": "S",
+            "dataURI": "mast:HST/product/z0wu010ct_c0f.fits",
+            "productType": "SCIENCE",
+            "productGroupDescription": "Minimum Recommended Products",
+            "productSubGroupDescription": "C0F",
+            "productDocumentationURL": NaN,
+            "project": "CALHRS",
+            "prvversion": NaN,
+            "proposal_id": "2625",
+            "productFilename": "z0wu010ct_c0f.fits",
+            "size": 112320,
+            "parent_obsid": "24775652",
+            "dataRights": "PUBLIC",
+            "calib_level": 2,
+            "filters": "G160M",
+            "observation": {}
+          }
+        }
+      },
+      "created": "2025-11-13T04:07:54.653850+00:00",
+      "updated": "2025-11-13T04:07:54.653850+00:00"
+    },
+    "c50148bd934888c790ab3f661d8f6f08dc755f18f6687f5f071b384520d83a24": {
+      "sha256": "c50148bd934888c790ab3f661d8f6f08dc755f18f6687f5f071b384520d83a24",
+      "filename": "z0wu010ct_c1f.fits",
+      "stored_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\files\\c5\\z0wu010ct_c1f.fits",
+      "original_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\_incoming\\z0wu010ct_c1f.fits",
+      "bytes": 80640,
+      "units": {
+        "x": "unknown",
+        "y": "unknown"
+      },
+      "source": {
+        "remote": {
+          "provider": "MAST",
+          "uri": "mast:HST/product/z0wu010ct_c1f.fits",
+          "identifier": "z0wu010ct_c1f.fits",
+          "fetched_at": "2025-11-13T04:07:54.991960+00:00",
+          "metadata": {
+            "obsID": "24775652",
+            "obs_collection": "HST",
+            "dataproduct_type": "spectrum",
+            "obs_id": "z0wu010ct",
+            "description": "DADS C1F file - Calibrated exposure WFPC/FOC/FOS/GHRS/HSP",
+            "type": "S",
+            "dataURI": "mast:HST/product/z0wu010ct_c1f.fits",
+            "productType": "SCIENCE",
+            "productGroupDescription": "Minimum Recommended Products",
+            "productSubGroupDescription": "C1F",
+            "productDocumentationURL": NaN,
+            "project": "CALHRS",
+            "prvversion": NaN,
+            "proposal_id": "2625",
+            "productFilename": "z0wu010ct_c1f.fits",
+            "size": 80640,
+            "parent_obsid": "24775652",
+            "dataRights": "PUBLIC",
+            "calib_level": 2,
+            "filters": "G160M",
+            "observation": {}
+          }
+        }
+      },
+      "created": "2025-11-13T04:07:55.007478+00:00",
+      "updated": "2025-11-13T04:07:55.007478+00:00"
+    },
+    "75a2eb787c26cb8a98678212b559aac4d985223cd12dfb2be9ea31cd293dcf48": {
+      "sha256": "75a2eb787c26cb8a98678212b559aac4d985223cd12dfb2be9ea31cd293dcf48",
+      "filename": "z0wu010ct_c2f.fits",
+      "stored_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\files\\75\\z0wu010ct_c2f.fits",
+      "original_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\_incoming\\z0wu010ct_c2f.fits",
+      "bytes": 80640,
+      "units": {
+        "x": "unknown",
+        "y": "unknown"
+      },
+      "source": {
+        "remote": {
+          "provider": "MAST",
+          "uri": "mast:HST/product/z0wu010ct_c2f.fits",
+          "identifier": "z0wu010ct_c2f.fits",
+          "fetched_at": "2025-11-13T04:07:55.349179+00:00",
+          "metadata": {
+            "obsID": "24775652",
+            "obs_collection": "HST",
+            "dataproduct_type": "spectrum",
+            "obs_id": "z0wu010ct",
+            "description": "DADS C2F file - Calibrated exposure WFPC/GHRS/FOS/HSP",
+            "type": "S",
+            "dataURI": "mast:HST/product/z0wu010ct_c2f.fits",
+            "productType": "SCIENCE",
+            "productGroupDescription": "Minimum Recommended Products",
+            "productSubGroupDescription": "C2F",
+            "productDocumentationURL": NaN,
+            "project": "CALHRS",
+            "prvversion": NaN,
+            "proposal_id": "2625",
+            "productFilename": "z0wu010ct_c2f.fits",
+            "size": 80640,
+            "parent_obsid": "24775652",
+            "dataRights": "PUBLIC",
+            "calib_level": 2,
+            "filters": "G160M",
+            "observation": {}
+          }
+        }
+      },
+      "created": "2025-11-13T04:07:55.365376+00:00",
+      "updated": "2025-11-13T04:07:55.365376+00:00"
+    },
+    "fb6ec07e46810beaca30f97a824d390095de74aef48bcb322a741c1d338d7993": {
+      "sha256": "fb6ec07e46810beaca30f97a824d390095de74aef48bcb322a741c1d338d7993",
+      "filename": "z0wu010ct_c3f.fits",
+      "stored_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\files\\fb\\z0wu010ct_c3f.fits",
+      "original_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\_incoming\\z0wu010ct_c3f.fits",
+      "bytes": 57600,
+      "units": {
+        "x": "unknown",
+        "y": "unknown"
+      },
+      "source": {
+        "remote": {
+          "provider": "MAST",
+          "uri": "mast:HST/product/z0wu010ct_c3f.fits",
+          "identifier": "z0wu010ct_c3f.fits",
+          "fetched_at": "2025-11-13T04:07:55.785221+00:00",
+          "metadata": {
+            "obsID": "24775652",
+            "obs_collection": "HST",
+            "dataproduct_type": "spectrum",
+            "obs_id": "z0wu010ct",
+            "description": "DADS C3F file - Calibrated exposure GHRS/FOS/HSP",
+            "type": "S",
+            "dataURI": "mast:HST/product/z0wu010ct_c3f.fits",
+            "productType": "SCIENCE",
+            "productGroupDescription": "Minimum Recommended Products",
+            "productSubGroupDescription": "C3F",
+            "productDocumentationURL": NaN,
+            "project": "CALHRS",
+            "prvversion": NaN,
+            "proposal_id": "2625",
+            "productFilename": "z0wu010ct_c3f.fits",
+            "size": 57600,
+            "parent_obsid": "24775652",
+            "dataRights": "PUBLIC",
+            "calib_level": 2,
+            "filters": "G160M",
+            "observation": {}
+          }
+        }
+      },
+      "created": "2025-11-13T04:07:55.802253+00:00",
+      "updated": "2025-11-13T04:07:55.802253+00:00"
+    },
+    "9ab2bef17ea0c669d65544e9fe40db75e03718245f1822ce9fbef0fcfe2423ca": {
+      "sha256": "9ab2bef17ea0c669d65544e9fe40db75e03718245f1822ce9fbef0fcfe2423ca",
+      "filename": "z0wu010ct_c4f.fits",
+      "stored_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\files\\9a\\z0wu010ct_c4f.fits",
+      "original_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\_incoming\\z0wu010ct_c4f.fits",
+      "bytes": 57600,
+      "units": {
+        "x": "unknown",
+        "y": "unknown"
+      },
+      "source": {
+        "remote": {
+          "provider": "MAST",
+          "uri": "mast:HST/product/z0wu010ct_c4f.fits",
+          "identifier": "z0wu010ct_c4f.fits",
+          "fetched_at": "2025-11-13T04:07:56.127205+00:00",
+          "metadata": {
+            "obsID": "24775652",
+            "obs_collection": "HST",
+            "dataproduct_type": "spectrum",
+            "obs_id": "z0wu010ct",
+            "description": "DADS C4F file - Calibrated exposure GHRS/FOS",
+            "type": "S",
+            "dataURI": "mast:HST/product/z0wu010ct_c4f.fits",
+            "productType": "SCIENCE",
+            "productGroupDescription": "Minimum Recommended Products",
+            "productSubGroupDescription": "C4F",
+            "productDocumentationURL": NaN,
+            "project": "CALHRS",
+            "prvversion": NaN,
+            "proposal_id": "2625",
+            "productFilename": "z0wu010ct_c4f.fits",
+            "size": 57600,
+            "parent_obsid": "24775652",
+            "dataRights": "PUBLIC",
+            "calib_level": 2,
+            "filters": "G160M",
+            "observation": {}
+          }
+        }
+      },
+      "created": "2025-11-13T04:07:56.145251+00:00",
+      "updated": "2025-11-13T04:07:56.145251+00:00"
+    },
+    "2f9b3e88232817b94110cd00f77455c6d819da059e8cd4e08a4f826a56801d7a": {
+      "sha256": "2f9b3e88232817b94110cd00f77455c6d819da059e8cd4e08a4f826a56801d7a",
+      "filename": "z0wu010ct_c5f.fits",
+      "stored_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\files\\2f\\z0wu010ct_c5f.fits",
+      "original_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\_incoming\\z0wu010ct_c5f.fits",
+      "bytes": 80640,
+      "units": {
+        "x": "unknown",
+        "y": "unknown"
+      },
+      "source": {
+        "remote": {
+          "provider": "MAST",
+          "uri": "mast:HST/product/z0wu010ct_c5f.fits",
+          "identifier": "z0wu010ct_c5f.fits",
+          "fetched_at": "2025-11-13T04:07:56.481364+00:00",
+          "metadata": {
+            "obsID": "24775652",
+            "obs_collection": "HST",
+            "dataproduct_type": "spectrum",
+            "obs_id": "z0wu010ct",
+            "description": "DADS C5F file - Calibrated exposure GHRS/FOS",
+            "type": "S",
+            "dataURI": "mast:HST/product/z0wu010ct_c5f.fits",
+            "productType": "SCIENCE",
+            "productGroupDescription": "Minimum Recommended Products",
+            "productSubGroupDescription": "C5F",
+            "productDocumentationURL": NaN,
+            "project": "CALHRS",
+            "prvversion": NaN,
+            "proposal_id": "2625",
+            "productFilename": "z0wu010ct_c5f.fits",
+            "size": 80640,
+            "parent_obsid": "24775652",
+            "dataRights": "PUBLIC",
+            "calib_level": 2,
+            "filters": "G160M",
+            "observation": {}
+          }
+        }
+      },
+      "created": "2025-11-13T04:07:56.497912+00:00",
+      "updated": "2025-11-13T04:07:56.498912+00:00"
+    },
+    "56a5182ed5c2ead4430bc74688cfb203bc22d1bb5cda71bbe0483e873c50c5f1": {
+      "sha256": "56a5182ed5c2ead4430bc74688cfb203bc22d1bb5cda71bbe0483e873c50c5f1",
+      "filename": "o4ym01010_crj.fits",
+      "stored_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\files\\56\\o4ym01010_crj.fits",
+      "original_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\_incoming\\o4ym01010_crj.fits",
+      "bytes": 10537920,
+      "units": {
+        "x": "unknown",
+        "y": "unknown"
+      },
+      "source": {
+        "remote": {
+          "provider": "MAST",
+          "uri": "mast:HST/product/o4ym01010_crj.fits",
+          "identifier": "o4ym01010_crj.fits",
+          "fetched_at": "2025-11-13T04:08:00.161480+00:00",
+          "metadata": {
+            "obsID": "24918196",
+            "obs_collection": "HST",
+            "dataproduct_type": "spectrum",
+            "obs_id": "o4ym01010",
+            "description": "DADS CRJ file - CR-rejected image ACS/WFC3/STIS-CCD",
+            "type": "D",
+            "dataURI": "mast:HST/product/o4ym01010_crj.fits",
+            "productType": "AUXILIARY",
+            "productGroupDescription": NaN,
+            "productSubGroupDescription": "CRJ",
+            "productDocumentationURL": NaN,
+            "project": "CALSTIS",
+            "prvversion": "3.4.2 (19-Jan-2018)",
+            "proposal_id": "7717",
+            "productFilename": "o4ym01010_crj.fits",
+            "size": 10537920,
+            "parent_obsid": "24918196",
+            "dataRights": "PUBLIC",
+            "calib_level": 2,
+            "filters": "G230LB",
+            "observation": {}
+          }
+        }
+      },
+      "created": "2025-11-13T04:08:00.221444+00:00",
+      "updated": "2025-11-13T04:08:00.221444+00:00"
+    },
+    "b6f25fc0ffa5903614bbc6c053cf81f98ce44689d16fa1673e0f1778400c9c94": {
+      "sha256": "b6f25fc0ffa5903614bbc6c053cf81f98ce44689d16fa1673e0f1778400c9c94",
+      "filename": "hst_7717_stis_jupiter_g230mb_o4ym01_trl.txt",
+      "stored_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\files\\b6\\hst_7717_stis_jupiter_g230mb_o4ym01_trl.txt",
+      "original_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\_incoming\\hst_7717_stis_jupiter_g230mb_o4ym01_trl.txt",
+      "bytes": 3412,
+      "units": {
+        "x": "unknown",
+        "y": "unknown"
+      },
+      "source": {
+        "remote": {
+          "provider": "MAST",
+          "uri": "mast:HST/product/hasp/hst_7717_stis_jupiter_g230mb_o4ym01_trl.txt",
+          "identifier": "hst_7717_stis_jupiter_g230mb_o4ym01_trl.txt",
+          "fetched_at": "2025-11-13T04:08:07.107818+00:00",
+          "metadata": {
+            "obsID": "199242760",
+            "obs_collection": "HST",
+            "dataproduct_type": "spectrum",
+            "obs_id": "hst_hasp_7717_stis_jupiter_o4ym",
+            "description": "Pipeline processing logs",
+            "type": "D",
+            "dataURI": "mast:HST/product/hasp/hst_7717_stis_jupiter_g230mb_o4ym01_trl.txt",
+            "productType": "AUXILIARY",
+            "productGroupDescription": NaN,
+            "productSubGroupDescription": "TRL",
+            "productDocumentationURL": NaN,
+            "project": "HASP",
+            "prvversion": NaN,
+            "proposal_id": "7717",
+            "productFilename": "hst_7717_stis_jupiter_g230mb_o4ym01_trl.txt",
+            "size": 3412,
+            "parent_obsid": "24918196",
+            "dataRights": "PUBLIC",
+            "calib_level": 2,
+            "filters": "G230LB;G230MB",
+            "observation": {}
+          }
+        }
+      },
+      "created": "2025-11-13T04:08:06.558644+00:00",
+      "updated": "2025-11-13T04:08:07.109821+00:00"
+    },
+    "67706438fbe116dfed4714b19bf30833e81af3becc1aa52ad3346d847dffb356": {
+      "sha256": "67706438fbe116dfed4714b19bf30833e81af3becc1aa52ad3346d847dffb356",
+      "filename": "hst_7717_stis_jupiter_g230lb-g230mb_o4ym01_cspec.fits",
+      "stored_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\files\\67\\hst_7717_stis_jupiter_g230lb-g230mb_o4ym01_cspec.fits",
+      "original_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\_incoming\\hst_7717_stis_jupiter_g230lb-g230mb_o4ym01_cspec.fits",
+      "bytes": 74880,
+      "units": {
+        "x": "unknown",
+        "y": "unknown"
+      },
+      "source": {
+        "remote": {
+          "provider": "MAST",
+          "uri": "mast:HST/product/hasp/hst_7717_stis_jupiter_g230lb-g230mb_o4ym01_cspec.fits",
+          "identifier": "hst_7717_stis_jupiter_g230lb-g230mb_o4ym01_cspec.fits",
+          "fetched_at": "2025-11-13T04:08:07.413724+00:00",
+          "metadata": {
+            "obsID": "199242760",
+            "obs_collection": "HST",
+            "dataproduct_type": "spectrum",
+            "obs_id": "hst_hasp_7717_stis_jupiter_o4ym",
+            "description": "HASP coadded spectrum for singular or multiple modes",
+            "type": "D",
+            "dataURI": "mast:HST/product/hasp/hst_7717_stis_jupiter_g230lb-g230mb_o4ym01_cspec.fits",
+            "productType": "SCIENCE",
+            "productGroupDescription": "Minimum Recommended Products",
+            "productSubGroupDescription": "CSPEC",
+            "productDocumentationURL": NaN,
+            "project": "HASP",
+            "prvversion": NaN,
+            "proposal_id": "7717",
+            "productFilename": "hst_7717_stis_jupiter_g230lb-g230mb_o4ym01_cspec.fits",
+            "size": 74880,
+            "parent_obsid": "24918196",
+            "dataRights": "PUBLIC",
+            "calib_level": 2,
+            "filters": "G230LB;G230MB",
+            "observation": {}
+          }
+        }
+      },
+      "created": "2025-11-13T04:08:07.431238+00:00",
+      "updated": "2025-11-13T04:08:07.431238+00:00"
+    },
+    "518180c62cf6da8875dd5423bcde6e03777aee6a2ea23cde38c94afb9564fd17": {
+      "sha256": "518180c62cf6da8875dd5423bcde6e03777aee6a2ea23cde38c94afb9564fd17",
+      "filename": "z0wu0108t_c2f.fits",
+      "stored_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\files\\51\\z0wu0108t_c2f.fits",
+      "original_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\_incoming\\z0wu0108t_c2f.fits",
+      "bytes": 80640,
+      "units": {
+        "x": "unknown",
+        "y": "unknown"
+      },
+      "source": {
+        "remote": {
+          "provider": "MAST",
+          "uri": "mast:HST/product/z0wu0108t_c2f.fits",
+          "identifier": "z0wu0108t_c2f.fits",
+          "fetched_at": "2025-11-13T04:08:17.631858+00:00",
+          "metadata": {
+            "obsID": "24775648",
+            "obs_collection": "HST",
+            "dataproduct_type": "spectrum",
+            "obs_id": "z0wu0108t",
+            "description": "DADS C2F file - Calibrated exposure WFPC/GHRS/FOS/HSP",
+            "type": "S",
+            "dataURI": "mast:HST/product/z0wu0108t_c2f.fits",
+            "productType": "SCIENCE",
+            "productGroupDescription": "Minimum Recommended Products",
+            "productSubGroupDescription": "C2F",
+            "productDocumentationURL": NaN,
+            "project": "CALHRS",
+            "prvversion": NaN,
+            "proposal_id": "2625",
+            "productFilename": "z0wu0108t_c2f.fits",
+            "size": 80640,
+            "parent_obsid": "24775648",
+            "dataRights": "PUBLIC",
+            "calib_level": 2,
+            "filters": "G160M",
+            "observation": {}
+          }
+        }
+      },
+      "created": "2025-11-13T04:08:17.649835+00:00",
+      "updated": "2025-11-13T04:08:17.649835+00:00"
+    },
+    "7913369a4f3aceeb30ed9648f34d46d43b8e9d6b0f07f1db3fb34ee217b30f30": {
+      "sha256": "7913369a4f3aceeb30ed9648f34d46d43b8e9d6b0f07f1db3fb34ee217b30f30",
+      "filename": "z0wu0108t_c3f.fits",
+      "stored_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\files\\79\\z0wu0108t_c3f.fits",
+      "original_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\_incoming\\z0wu0108t_c3f.fits",
+      "bytes": 57600,
+      "units": {
+        "x": "unknown",
+        "y": "unknown"
+      },
+      "source": {
+        "remote": {
+          "provider": "MAST",
+          "uri": "mast:HST/product/z0wu0108t_c3f.fits",
+          "identifier": "z0wu0108t_c3f.fits",
+          "fetched_at": "2025-11-13T04:08:17.979903+00:00",
+          "metadata": {
+            "obsID": "24775648",
+            "obs_collection": "HST",
+            "dataproduct_type": "spectrum",
+            "obs_id": "z0wu0108t",
+            "description": "DADS C3F file - Calibrated exposure GHRS/FOS/HSP",
+            "type": "S",
+            "dataURI": "mast:HST/product/z0wu0108t_c3f.fits",
+            "productType": "SCIENCE",
+            "productGroupDescription": "Minimum Recommended Products",
+            "productSubGroupDescription": "C3F",
+            "productDocumentationURL": NaN,
+            "project": "CALHRS",
+            "prvversion": NaN,
+            "proposal_id": "2625",
+            "productFilename": "z0wu0108t_c3f.fits",
+            "size": 57600,
+            "parent_obsid": "24775648",
+            "dataRights": "PUBLIC",
+            "calib_level": 2,
+            "filters": "G160M",
+            "observation": {}
+          }
+        }
+      },
+      "created": "2025-11-13T04:08:17.995265+00:00",
+      "updated": "2025-11-13T04:08:17.996770+00:00"
+    },
+    "7620c546883c26600c1b68e7d26f73431b8a5f0df5ab220a818c1e615eed98e6": {
+      "sha256": "7620c546883c26600c1b68e7d26f73431b8a5f0df5ab220a818c1e615eed98e6",
+      "filename": "z0wu0108t_c4f.fits",
+      "stored_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\files\\76\\z0wu0108t_c4f.fits",
+      "original_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\_incoming\\z0wu0108t_c4f.fits",
+      "bytes": 57600,
+      "units": {
+        "x": "unknown",
+        "y": "unknown"
+      },
+      "source": {
+        "remote": {
+          "provider": "MAST",
+          "uri": "mast:HST/product/z0wu0108t_c4f.fits",
+          "identifier": "z0wu0108t_c4f.fits",
+          "fetched_at": "2025-11-13T04:08:18.322907+00:00",
+          "metadata": {
+            "obsID": "24775648",
+            "obs_collection": "HST",
+            "dataproduct_type": "spectrum",
+            "obs_id": "z0wu0108t",
+            "description": "DADS C4F file - Calibrated exposure GHRS/FOS",
+            "type": "S",
+            "dataURI": "mast:HST/product/z0wu0108t_c4f.fits",
+            "productType": "SCIENCE",
+            "productGroupDescription": "Minimum Recommended Products",
+            "productSubGroupDescription": "C4F",
+            "productDocumentationURL": NaN,
+            "project": "CALHRS",
+            "prvversion": NaN,
+            "proposal_id": "2625",
+            "productFilename": "z0wu0108t_c4f.fits",
+            "size": 57600,
+            "parent_obsid": "24775648",
+            "dataRights": "PUBLIC",
+            "calib_level": 2,
+            "filters": "G160M",
+            "observation": {}
+          }
+        }
+      },
+      "created": "2025-11-13T04:08:18.337256+00:00",
+      "updated": "2025-11-13T04:08:18.337256+00:00"
+    },
+    "6330cdc0e586359d5ea78a864fe347a99efd6d5609ea3bcb7f31f93b6fece692": {
+      "sha256": "6330cdc0e586359d5ea78a864fe347a99efd6d5609ea3bcb7f31f93b6fece692",
+      "filename": "z0wu0108t_c5f.fits",
+      "stored_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\files\\63\\z0wu0108t_c5f.fits",
+      "original_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\_incoming\\z0wu0108t_c5f.fits",
+      "bytes": 80640,
+      "units": {
+        "x": "unknown",
+        "y": "unknown"
+      },
+      "source": {
+        "remote": {
+          "provider": "MAST",
+          "uri": "mast:HST/product/z0wu0108t_c5f.fits",
+          "identifier": "z0wu0108t_c5f.fits",
+          "fetched_at": "2025-11-13T04:08:18.646105+00:00",
+          "metadata": {
+            "obsID": "24775648",
+            "obs_collection": "HST",
+            "dataproduct_type": "spectrum",
+            "obs_id": "z0wu0108t",
+            "description": "DADS C5F file - Calibrated exposure GHRS/FOS",
+            "type": "S",
+            "dataURI": "mast:HST/product/z0wu0108t_c5f.fits",
+            "productType": "SCIENCE",
+            "productGroupDescription": "Minimum Recommended Products",
+            "productSubGroupDescription": "C5F",
+            "productDocumentationURL": NaN,
+            "project": "CALHRS",
+            "prvversion": NaN,
+            "proposal_id": "2625",
+            "productFilename": "z0wu0108t_c5f.fits",
+            "size": 80640,
+            "parent_obsid": "24775648",
+            "dataRights": "PUBLIC",
+            "calib_level": 2,
+            "filters": "G160M",
+            "observation": {}
+          }
+        }
+      },
+      "created": "2025-11-13T04:08:18.662533+00:00",
+      "updated": "2025-11-13T04:08:18.662533+00:00"
+    },
+    "4a5ae7955a2fb934f24b88af55ce3f0e76504f005b31f32f7ddbd0963bf220cb": {
+      "sha256": "4a5ae7955a2fb934f24b88af55ce3f0e76504f005b31f32f7ddbd0963bf220cb",
+      "filename": "z0wu010at_cqf.fits",
+      "stored_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\files\\4a\\z0wu010at_cqf.fits",
+      "original_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\_incoming\\z0wu010at_cqf.fits",
+      "bytes": 80640,
+      "units": {
+        "x": "unknown",
+        "y": "unknown"
+      },
+      "source": {
+        "remote": {
+          "provider": "MAST",
+          "uri": "mast:HST/product/z0wu010at_cqf.fits",
+          "identifier": "z0wu010at_cqf.fits",
+          "fetched_at": "2025-11-13T04:08:18.990494+00:00",
+          "metadata": {
+            "obsID": "24775650",
+            "obs_collection": "HST",
+            "dataproduct_type": "spectrum",
+            "obs_id": "z0wu010at",
+            "description": "DADS CQF file - Data quality GHRS/FOS",
+            "type": "S",
+            "dataURI": "mast:HST/product/z0wu010at_cqf.fits",
+            "productType": "AUXILIARY",
+            "productGroupDescription": NaN,
+            "productSubGroupDescription": "CQF",
+            "productDocumentationURL": NaN,
+            "project": "CALHRS",
+            "prvversion": NaN,
+            "proposal_id": "2625",
+            "productFilename": "z0wu010at_cqf.fits",
+            "size": 80640,
+            "parent_obsid": "24775650",
+            "dataRights": "PUBLIC",
+            "calib_level": 2,
+            "filters": "G160M",
+            "observation": {}
+          }
+        }
+      },
+      "created": "2025-11-13T04:08:19.007398+00:00",
+      "updated": "2025-11-13T04:08:19.007398+00:00"
+    },
+    "66817caffe0d3772565ca8055c46a441f69b7aa63c0ce6d1fabc2feb8101ff18": {
+      "sha256": "66817caffe0d3772565ca8055c46a441f69b7aa63c0ce6d1fabc2feb8101ff18",
+      "filename": "z0wu010at_c0f.fits",
+      "stored_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\files\\66\\z0wu010at_c0f.fits",
+      "original_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\_incoming\\z0wu010at_c0f.fits",
+      "bytes": 112320,
+      "units": {
+        "x": "unknown",
+        "y": "unknown"
+      },
+      "source": {
+        "remote": {
+          "provider": "MAST",
+          "uri": "mast:HST/product/z0wu010at_c0f.fits",
+          "identifier": "z0wu010at_c0f.fits",
+          "fetched_at": "2025-11-13T04:08:19.378493+00:00",
+          "metadata": {
+            "obsID": "24775650",
+            "obs_collection": "HST",
+            "dataproduct_type": "spectrum",
+            "obs_id": "z0wu010at",
+            "description": "DADS C0F file - Calibrated exposure WFPC/WFPC2/FOC/FOS/GHRS/HSP",
+            "type": "S",
+            "dataURI": "mast:HST/product/z0wu010at_c0f.fits",
+            "productType": "SCIENCE",
+            "productGroupDescription": "Minimum Recommended Products",
+            "productSubGroupDescription": "C0F",
+            "productDocumentationURL": NaN,
+            "project": "CALHRS",
+            "prvversion": NaN,
+            "proposal_id": "2625",
+            "productFilename": "z0wu010at_c0f.fits",
+            "size": 112320,
+            "parent_obsid": "24775650",
+            "dataRights": "PUBLIC",
+            "calib_level": 2,
+            "filters": "G160M",
+            "observation": {}
+          }
+        }
+      },
+      "created": "2025-11-13T04:08:19.394009+00:00",
+      "updated": "2025-11-13T04:08:19.394009+00:00"
+    },
+    "35b2aaeaaa68e8ad4349c2f56e36d8feaf80389c9fe48f9be3a01a00778a5d25": {
+      "sha256": "35b2aaeaaa68e8ad4349c2f56e36d8feaf80389c9fe48f9be3a01a00778a5d25",
+      "filename": "z0wu010at_c1f.fits",
+      "stored_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\files\\35\\z0wu010at_c1f.fits",
+      "original_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\_incoming\\z0wu010at_c1f.fits",
+      "bytes": 80640,
+      "units": {
+        "x": "unknown",
+        "y": "unknown"
+      },
+      "source": {
+        "remote": {
+          "provider": "MAST",
+          "uri": "mast:HST/product/z0wu010at_c1f.fits",
+          "identifier": "z0wu010at_c1f.fits",
+          "fetched_at": "2025-11-13T04:08:19.746194+00:00",
+          "metadata": {
+            "obsID": "24775650",
+            "obs_collection": "HST",
+            "dataproduct_type": "spectrum",
+            "obs_id": "z0wu010at",
+            "description": "DADS C1F file - Calibrated exposure WFPC/FOC/FOS/GHRS/HSP",
+            "type": "S",
+            "dataURI": "mast:HST/product/z0wu010at_c1f.fits",
+            "productType": "SCIENCE",
+            "productGroupDescription": "Minimum Recommended Products",
+            "productSubGroupDescription": "C1F",
+            "productDocumentationURL": NaN,
+            "project": "CALHRS",
+            "prvversion": NaN,
+            "proposal_id": "2625",
+            "productFilename": "z0wu010at_c1f.fits",
+            "size": 80640,
+            "parent_obsid": "24775650",
+            "dataRights": "PUBLIC",
+            "calib_level": 2,
+            "filters": "G160M",
+            "observation": {}
+          }
+        }
+      },
+      "created": "2025-11-13T04:08:19.762354+00:00",
+      "updated": "2025-11-13T04:08:19.762354+00:00"
+    },
+    "f675a5a7a4dd72cd77c92f9c9d616edd7aac7de7b39f85045d72177d1b152983": {
+      "sha256": "f675a5a7a4dd72cd77c92f9c9d616edd7aac7de7b39f85045d72177d1b152983",
+      "filename": "HUT10370633tv.fits",
+      "stored_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\files\\f6\\HUT10370633tv.fits",
+      "original_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\_incoming\\HUT10370633tv.fits",
+      "bytes": 256320,
+      "units": {
+        "x": "unknown",
+        "y": "unknown"
+      },
+      "source": {
+        "remote": {
+          "provider": "MAST",
+          "uri": "mast:HUT/url/pub/astro/hut/newdata/astro1/JUPITER/HUT10370633tv.fits",
+          "identifier": "HUT10370633tv.fits",
+          "fetched_at": "2025-11-13T04:08:28.148210+00:00",
+          "metadata": {
+            "obsID": "389404",
+            "obs_collection": "HUT",
+            "dataproduct_type": "spectrum",
+            "obs_id": "HUT103706",
+            "description": "(TV Guilder Images) tv.fits",
+            "type": "S",
+            "dataURI": "mast:HUT/url/pub/astro/hut/newdata/astro1/JUPITER/HUT10370633tv.fits",
+            "productType": "SCIENCE",
+            "productGroupDescription": NaN,
+            "productSubGroupDescription": NaN,
+            "productDocumentationURL": "http://archive.stsci.edu/hut/file_formats.html",
+            "project": NaN,
+            "prvversion": NaN,
+            "proposal_id": NaN,
+            "productFilename": "HUT10370633tv.fits",
+            "size": 256320,
+            "parent_obsid": "389404",
+            "dataRights": "PUBLIC",
+            "calib_level": 2,
+            "filters": NaN,
+            "observation": {}
+          }
+        }
+      },
+      "created": "2025-11-13T04:08:28.166487+00:00",
+      "updated": "2025-11-13T04:08:28.167494+00:00"
+    },
+    "a61f66e094da872fa95ab07c65f0b5dcbe2835b35d455c9f41e6f47d9b341c63": {
+      "sha256": "a61f66e094da872fa95ab07c65f0b5dcbe2835b35d455c9f41e6f47d9b341c63",
+      "filename": "HUT10370634tv.fits",
+      "stored_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\files\\a6\\HUT10370634tv.fits",
+      "original_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\_incoming\\HUT10370634tv.fits",
+      "bytes": 256320,
+      "units": {
+        "x": "unknown",
+        "y": "unknown"
+      },
+      "source": {
+        "remote": {
+          "provider": "MAST",
+          "uri": "mast:HUT/url/pub/astro/hut/newdata/astro1/JUPITER/HUT10370634tv.fits",
+          "identifier": "HUT10370634tv.fits",
+          "fetched_at": "2025-11-13T04:08:28.572052+00:00",
+          "metadata": {
+            "obsID": "389404",
+            "obs_collection": "HUT",
+            "dataproduct_type": "spectrum",
+            "obs_id": "HUT103706",
+            "description": "(TV Guilder Images) tv.fits",
+            "type": "S",
+            "dataURI": "mast:HUT/url/pub/astro/hut/newdata/astro1/JUPITER/HUT10370634tv.fits",
+            "productType": "SCIENCE",
+            "productGroupDescription": NaN,
+            "productSubGroupDescription": NaN,
+            "productDocumentationURL": "http://archive.stsci.edu/hut/file_formats.html",
+            "project": NaN,
+            "prvversion": NaN,
+            "proposal_id": NaN,
+            "productFilename": "HUT10370634tv.fits",
+            "size": 256320,
+            "parent_obsid": "389404",
+            "dataRights": "PUBLIC",
+            "calib_level": 2,
+            "filters": NaN,
+            "observation": {}
+          }
+        }
+      },
+      "created": "2025-11-13T04:08:28.587793+00:00",
+      "updated": "2025-11-13T04:08:28.587793+00:00"
+    },
+    "5a386d7a812e1f0c08a6cff1f36f19f8a28f6ecf1b5693f08603f36efbfa80fb": {
+      "sha256": "5a386d7a812e1f0c08a6cff1f36f19f8a28f6ecf1b5693f08603f36efbfa80fb",
+      "filename": "HUT10370635tv.fits",
+      "stored_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\files\\5a\\HUT10370635tv.fits",
+      "original_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\_incoming\\HUT10370635tv.fits",
+      "bytes": 256320,
+      "units": {
+        "x": "unknown",
+        "y": "unknown"
+      },
+      "source": {
+        "remote": {
+          "provider": "MAST",
+          "uri": "mast:HUT/url/pub/astro/hut/newdata/astro1/JUPITER/HUT10370635tv.fits",
+          "identifier": "HUT10370635tv.fits",
+          "fetched_at": "2025-11-13T04:08:28.989840+00:00",
+          "metadata": {
+            "obsID": "389404",
+            "obs_collection": "HUT",
+            "dataproduct_type": "spectrum",
+            "obs_id": "HUT103706",
+            "description": "(TV Guilder Images) tv.fits",
+            "type": "S",
+            "dataURI": "mast:HUT/url/pub/astro/hut/newdata/astro1/JUPITER/HUT10370635tv.fits",
+            "productType": "SCIENCE",
+            "productGroupDescription": NaN,
+            "productSubGroupDescription": NaN,
+            "productDocumentationURL": "http://archive.stsci.edu/hut/file_formats.html",
+            "project": NaN,
+            "prvversion": NaN,
+            "proposal_id": NaN,
+            "productFilename": "HUT10370635tv.fits",
+            "size": 256320,
+            "parent_obsid": "389404",
+            "dataRights": "PUBLIC",
+            "calib_level": 2,
+            "filters": NaN,
+            "observation": {}
+          }
+        }
+      },
+      "created": "2025-11-13T04:08:29.007384+00:00",
+      "updated": "2025-11-13T04:08:29.007384+00:00"
+    },
+    "392b9d4f1641401af8e2955b34bd5e9c6382cf8635c8557c1c0829f23c4a7de2": {
+      "sha256": "392b9d4f1641401af8e2955b34bd5e9c6382cf8635c8557c1c0829f23c4a7de2",
+      "filename": "HUT10370636tv.fits",
+      "stored_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\files\\39\\HUT10370636tv.fits",
+      "original_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\_incoming\\HUT10370636tv.fits",
+      "bytes": 256320,
+      "units": {
+        "x": "unknown",
+        "y": "unknown"
+      },
+      "source": {
+        "remote": {
+          "provider": "MAST",
+          "uri": "mast:HUT/url/pub/astro/hut/newdata/astro1/JUPITER/HUT10370636tv.fits",
+          "identifier": "HUT10370636tv.fits",
+          "fetched_at": "2025-11-13T04:08:29.396637+00:00",
+          "metadata": {
+            "obsID": "389404",
+            "obs_collection": "HUT",
+            "dataproduct_type": "spectrum",
+            "obs_id": "HUT103706",
+            "description": "(TV Guilder Images) tv.fits",
+            "type": "S",
+            "dataURI": "mast:HUT/url/pub/astro/hut/newdata/astro1/JUPITER/HUT10370636tv.fits",
+            "productType": "SCIENCE",
+            "productGroupDescription": NaN,
+            "productSubGroupDescription": NaN,
+            "productDocumentationURL": "http://archive.stsci.edu/hut/file_formats.html",
+            "project": NaN,
+            "prvversion": NaN,
+            "proposal_id": NaN,
+            "productFilename": "HUT10370636tv.fits",
+            "size": 256320,
+            "parent_obsid": "389404",
+            "dataRights": "PUBLIC",
+            "calib_level": 2,
+            "filters": NaN,
+            "observation": {}
+          }
+        }
+      },
+      "created": "2025-11-13T04:08:29.413169+00:00",
+      "updated": "2025-11-13T04:08:29.413169+00:00"
+    },
+    "6537eaf9babc0f8d545cab8a2caa271b141844579dcac094b59f52490d0a57c4": {
+      "sha256": "6537eaf9babc0f8d545cab8a2caa271b141844579dcac094b59f52490d0a57c4",
+      "filename": "HUT10370637tv.fits",
+      "stored_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\files\\65\\HUT10370637tv.fits",
+      "original_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\_incoming\\HUT10370637tv.fits",
+      "bytes": 256320,
+      "units": {
+        "x": "unknown",
+        "y": "unknown"
+      },
+      "source": {
+        "remote": {
+          "provider": "MAST",
+          "uri": "mast:HUT/url/pub/astro/hut/newdata/astro1/JUPITER/HUT10370637tv.fits",
+          "identifier": "HUT10370637tv.fits",
+          "fetched_at": "2025-11-13T04:08:29.858159+00:00",
+          "metadata": {
+            "obsID": "389404",
+            "obs_collection": "HUT",
+            "dataproduct_type": "spectrum",
+            "obs_id": "HUT103706",
+            "description": "(TV Guilder Images) tv.fits",
+            "type": "S",
+            "dataURI": "mast:HUT/url/pub/astro/hut/newdata/astro1/JUPITER/HUT10370637tv.fits",
+            "productType": "SCIENCE",
+            "productGroupDescription": NaN,
+            "productSubGroupDescription": NaN,
+            "productDocumentationURL": "http://archive.stsci.edu/hut/file_formats.html",
+            "project": NaN,
+            "prvversion": NaN,
+            "proposal_id": NaN,
+            "productFilename": "HUT10370637tv.fits",
+            "size": 256320,
+            "parent_obsid": "389404",
+            "dataRights": "PUBLIC",
+            "calib_level": 2,
+            "filters": NaN,
+            "observation": {}
+          }
+        }
+      },
+      "created": "2025-11-13T04:08:29.875381+00:00",
+      "updated": "2025-11-13T04:08:29.875381+00:00"
+    },
+    "18f4676543e03359bc0349cf24d54f1249f922100afaae5363781b3f0be74225": {
+      "sha256": "18f4676543e03359bc0349cf24d54f1249f922100afaae5363781b3f0be74225",
+      "filename": "HUT10370638tv.fits",
+      "stored_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\files\\18\\HUT10370638tv.fits",
+      "original_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\_incoming\\HUT10370638tv.fits",
+      "bytes": 256320,
+      "units": {
+        "x": "unknown",
+        "y": "unknown"
+      },
+      "source": {
+        "remote": {
+          "provider": "MAST",
+          "uri": "mast:HUT/url/pub/astro/hut/newdata/astro1/JUPITER/HUT10370638tv.fits",
+          "identifier": "HUT10370638tv.fits",
+          "fetched_at": "2025-11-13T04:08:30.252760+00:00",
+          "metadata": {
+            "obsID": "389404",
+            "obs_collection": "HUT",
+            "dataproduct_type": "spectrum",
+            "obs_id": "HUT103706",
+            "description": "(TV Guilder Images) tv.fits",
+            "type": "S",
+            "dataURI": "mast:HUT/url/pub/astro/hut/newdata/astro1/JUPITER/HUT10370638tv.fits",
+            "productType": "SCIENCE",
+            "productGroupDescription": NaN,
+            "productSubGroupDescription": NaN,
+            "productDocumentationURL": "http://archive.stsci.edu/hut/file_formats.html",
+            "project": NaN,
+            "prvversion": NaN,
+            "proposal_id": NaN,
+            "productFilename": "HUT10370638tv.fits",
+            "size": 256320,
+            "parent_obsid": "389404",
+            "dataRights": "PUBLIC",
+            "calib_level": 2,
+            "filters": NaN,
+            "observation": {}
+          }
+        }
+      },
+      "created": "2025-11-13T04:08:30.267406+00:00",
+      "updated": "2025-11-13T04:08:30.267406+00:00"
+    },
+    "b8e98cd02d3383cf0d9e61ff1ebfc8ffb23a9db0ae253854dd8fed4339999b2b": {
+      "sha256": "b8e98cd02d3383cf0d9e61ff1ebfc8ffb23a9db0ae253854dd8fed4339999b2b",
+      "filename": "HUT10370639tv.fits",
+      "stored_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\files\\b8\\HUT10370639tv.fits",
+      "original_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\_incoming\\HUT10370639tv.fits",
+      "bytes": 256320,
+      "units": {
+        "x": "unknown",
+        "y": "unknown"
+      },
+      "source": {
+        "remote": {
+          "provider": "MAST",
+          "uri": "mast:HUT/url/pub/astro/hut/newdata/astro1/JUPITER/HUT10370639tv.fits",
+          "identifier": "HUT10370639tv.fits",
+          "fetched_at": "2025-11-13T04:08:30.670544+00:00",
+          "metadata": {
+            "obsID": "389404",
+            "obs_collection": "HUT",
+            "dataproduct_type": "spectrum",
+            "obs_id": "HUT103706",
+            "description": "(TV Guilder Images) tv.fits",
+            "type": "S",
+            "dataURI": "mast:HUT/url/pub/astro/hut/newdata/astro1/JUPITER/HUT10370639tv.fits",
+            "productType": "SCIENCE",
+            "productGroupDescription": NaN,
+            "productSubGroupDescription": NaN,
+            "productDocumentationURL": "http://archive.stsci.edu/hut/file_formats.html",
+            "project": NaN,
+            "prvversion": NaN,
+            "proposal_id": NaN,
+            "productFilename": "HUT10370639tv.fits",
+            "size": 256320,
+            "parent_obsid": "389404",
+            "dataRights": "PUBLIC",
+            "calib_level": 2,
+            "filters": NaN,
+            "observation": {}
+          }
+        }
+      },
+      "created": "2025-11-13T04:08:30.687103+00:00",
+      "updated": "2025-11-13T04:08:30.687103+00:00"
+    },
+    "e9aa3c4cb01d1a60ff7a15f3cb5c8e48ab18d99a4cc55377d920c1d29eaeec02": {
+      "sha256": "e9aa3c4cb01d1a60ff7a15f3cb5c8e48ab18d99a4cc55377d920c1d29eaeec02",
+      "filename": "HUT10370640tv.fits",
+      "stored_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\files\\e9\\HUT10370640tv.fits",
+      "original_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\_incoming\\HUT10370640tv.fits",
+      "bytes": 256320,
+      "units": {
+        "x": "unknown",
+        "y": "unknown"
+      },
+      "source": {
+        "remote": {
+          "provider": "MAST",
+          "uri": "mast:HUT/url/pub/astro/hut/newdata/astro1/JUPITER/HUT10370640tv.fits",
+          "identifier": "HUT10370640tv.fits",
+          "fetched_at": "2025-11-13T04:08:31.063919+00:00",
+          "metadata": {
+            "obsID": "389404",
+            "obs_collection": "HUT",
+            "dataproduct_type": "spectrum",
+            "obs_id": "HUT103706",
+            "description": "(TV Guilder Images) tv.fits",
+            "type": "S",
+            "dataURI": "mast:HUT/url/pub/astro/hut/newdata/astro1/JUPITER/HUT10370640tv.fits",
+            "productType": "SCIENCE",
+            "productGroupDescription": NaN,
+            "productSubGroupDescription": NaN,
+            "productDocumentationURL": "http://archive.stsci.edu/hut/file_formats.html",
+            "project": NaN,
+            "prvversion": NaN,
+            "proposal_id": NaN,
+            "productFilename": "HUT10370640tv.fits",
+            "size": 256320,
+            "parent_obsid": "389404",
+            "dataRights": "PUBLIC",
+            "calib_level": 2,
+            "filters": NaN,
+            "observation": {}
+          }
+        }
+      },
+      "created": "2025-11-13T04:08:31.080748+00:00",
+      "updated": "2025-11-13T04:08:31.080748+00:00"
+    },
+    "68c3dcd5f1eb10fb0c19ea93fa9228a134d48e22b8a5f5d852001083fa62a775": {
+      "sha256": "68c3dcd5f1eb10fb0c19ea93fa9228a134d48e22b8a5f5d852001083fa62a775",
+      "filename": "HUT10370641tv.fits",
+      "stored_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\files\\68\\HUT10370641tv.fits",
+      "original_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\_incoming\\HUT10370641tv.fits",
+      "bytes": 256320,
+      "units": {
+        "x": "unknown",
+        "y": "unknown"
+      },
+      "source": {
+        "remote": {
+          "provider": "MAST",
+          "uri": "mast:HUT/url/pub/astro/hut/newdata/astro1/JUPITER/HUT10370641tv.fits",
+          "identifier": "HUT10370641tv.fits",
+          "fetched_at": "2025-11-13T04:08:31.446486+00:00",
+          "metadata": {
+            "obsID": "389404",
+            "obs_collection": "HUT",
+            "dataproduct_type": "spectrum",
+            "obs_id": "HUT103706",
+            "description": "(TV Guilder Images) tv.fits",
+            "type": "S",
+            "dataURI": "mast:HUT/url/pub/astro/hut/newdata/astro1/JUPITER/HUT10370641tv.fits",
+            "productType": "SCIENCE",
+            "productGroupDescription": NaN,
+            "productSubGroupDescription": NaN,
+            "productDocumentationURL": "http://archive.stsci.edu/hut/file_formats.html",
+            "project": NaN,
+            "prvversion": NaN,
+            "proposal_id": NaN,
+            "productFilename": "HUT10370641tv.fits",
+            "size": 256320,
+            "parent_obsid": "389404",
+            "dataRights": "PUBLIC",
+            "calib_level": 2,
+            "filters": NaN,
+            "observation": {}
+          }
+        }
+      },
+      "created": "2025-11-13T04:08:31.464677+00:00",
+      "updated": "2025-11-13T04:08:31.464677+00:00"
+    },
+    "e7c5aab3db94918d0322a095a7a815993251f3bca531f8e439d58d811b279e41": {
+      "sha256": "e7c5aab3db94918d0322a095a7a815993251f3bca531f8e439d58d811b279e41",
+      "filename": "HUT10370642tv.fits",
+      "stored_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\files\\e7\\HUT10370642tv.fits",
+      "original_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\_incoming\\HUT10370642tv.fits",
+      "bytes": 256320,
+      "units": {
+        "x": "unknown",
+        "y": "unknown"
+      },
+      "source": {
+        "remote": {
+          "provider": "MAST",
+          "uri": "mast:HUT/url/pub/astro/hut/newdata/astro1/JUPITER/HUT10370642tv.fits",
+          "identifier": "HUT10370642tv.fits",
+          "fetched_at": "2025-11-13T04:08:31.878716+00:00",
+          "metadata": {
+            "obsID": "389404",
+            "obs_collection": "HUT",
+            "dataproduct_type": "spectrum",
+            "obs_id": "HUT103706",
+            "description": "(TV Guilder Images) tv.fits",
+            "type": "S",
+            "dataURI": "mast:HUT/url/pub/astro/hut/newdata/astro1/JUPITER/HUT10370642tv.fits",
+            "productType": "SCIENCE",
+            "productGroupDescription": NaN,
+            "productSubGroupDescription": NaN,
+            "productDocumentationURL": "http://archive.stsci.edu/hut/file_formats.html",
+            "project": NaN,
+            "prvversion": NaN,
+            "proposal_id": NaN,
+            "productFilename": "HUT10370642tv.fits",
+            "size": 256320,
+            "parent_obsid": "389404",
+            "dataRights": "PUBLIC",
+            "calib_level": 2,
+            "filters": NaN,
+            "observation": {}
+          }
+        }
+      },
+      "created": "2025-11-13T04:08:31.898754+00:00",
+      "updated": "2025-11-13T04:08:31.898754+00:00"
+    },
+    "57a011f714038e73c149b9e4d6b759e3c91b8ac6018f134690006d1fba13a6e1": {
+      "sha256": "57a011f714038e73c149b9e4d6b759e3c91b8ac6018f134690006d1fba13a6e1",
+      "filename": "HUT10370643tv.fits",
+      "stored_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\files\\57\\HUT10370643tv.fits",
+      "original_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\_incoming\\HUT10370643tv.fits",
+      "bytes": 256320,
+      "units": {
+        "x": "unknown",
+        "y": "unknown"
+      },
+      "source": {
+        "remote": {
+          "provider": "MAST",
+          "uri": "mast:HUT/url/pub/astro/hut/newdata/astro1/JUPITER/HUT10370643tv.fits",
+          "identifier": "HUT10370643tv.fits",
+          "fetched_at": "2025-11-13T04:08:32.309159+00:00",
+          "metadata": {
+            "obsID": "389404",
+            "obs_collection": "HUT",
+            "dataproduct_type": "spectrum",
+            "obs_id": "HUT103706",
+            "description": "(TV Guilder Images) tv.fits",
+            "type": "S",
+            "dataURI": "mast:HUT/url/pub/astro/hut/newdata/astro1/JUPITER/HUT10370643tv.fits",
+            "productType": "SCIENCE",
+            "productGroupDescription": NaN,
+            "productSubGroupDescription": NaN,
+            "productDocumentationURL": "http://archive.stsci.edu/hut/file_formats.html",
+            "project": NaN,
+            "prvversion": NaN,
+            "proposal_id": NaN,
+            "productFilename": "HUT10370643tv.fits",
+            "size": 256320,
+            "parent_obsid": "389404",
+            "dataRights": "PUBLIC",
+            "calib_level": 2,
+            "filters": NaN,
+            "observation": {}
+          }
+        }
+      },
+      "created": "2025-11-13T04:08:32.327195+00:00",
+      "updated": "2025-11-13T04:08:32.327195+00:00"
+    },
+    "d52c46d34e64125f72df45f0beba56d513146c1e92dbacf999cab87ba5b4cf64": {
+      "sha256": "d52c46d34e64125f72df45f0beba56d513146c1e92dbacf999cab87ba5b4cf64",
+      "filename": "lwp28573mxlo_vo.fits",
+      "stored_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\files\\d5\\lwp28573mxlo_vo.fits",
+      "original_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\_incoming\\lwp28573mxlo_vo.fits",
+      "bytes": 48960,
+      "units": {
+        "x": "unknown",
+        "y": "unknown"
+      },
+      "source": {
+        "remote": {
+          "provider": "MAST",
+          "uri": "mast:IUE/url/pub/vospectra/iue2/lwp28573mxlo_vo.fits",
+          "identifier": "lwp28573mxlo_vo.fits",
+          "fetched_at": "2025-11-13T04:08:40.969528+00:00",
+          "metadata": {
+            "obsID": "292941",
+            "obs_collection": "IUE",
+            "dataproduct_type": "spectrum",
+            "obs_id": "lwp28573",
+            "description": "(extracted spectra/vo spectral container/SSAP) fits file",
+            "type": "S",
+            "dataURI": "mast:IUE/url/pub/vospectra/iue2/lwp28573mxlo_vo.fits",
+            "productType": "SCIENCE",
+            "productGroupDescription": "Minimum Recommended Products",
+            "productSubGroupDescription": "(extracted spectra/vo spectral container/SSAP) fits file",
+            "productDocumentationURL": NaN,
+            "project": NaN,
+            "prvversion": NaN,
+            "proposal_id": "JUQXX",
+            "productFilename": "lwp28573mxlo_vo.fits",
+            "size": 48960,
+            "parent_obsid": "292941",
+            "dataRights": "PUBLIC",
+            "calib_level": 2,
+            "filters": "LOW DISP",
+            "observation": {}
+          }
+        }
+      },
+      "created": "2025-11-13T04:08:40.987864+00:00",
+      "updated": "2025-11-13T04:08:40.987864+00:00"
+    },
+    "e0135e90ccd145d408225b898014892c9674f2ebb52f2cad7043bb80210f5825": {
+      "sha256": "e0135e90ccd145d408225b898014892c9674f2ebb52f2cad7043bb80210f5825",
+      "filename": "lwp28574mxlo_vo.fits",
+      "stored_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\files\\e0\\lwp28574mxlo_vo.fits",
+      "original_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\_incoming\\lwp28574mxlo_vo.fits",
+      "bytes": 48960,
+      "units": {
+        "x": "unknown",
+        "y": "unknown"
+      },
+      "source": {
+        "remote": {
+          "provider": "MAST",
+          "uri": "mast:IUE/url/pub/vospectra/iue2/lwp28574mxlo_vo.fits",
+          "identifier": "lwp28574mxlo_vo.fits",
+          "fetched_at": "2025-11-13T04:08:41.349609+00:00",
+          "metadata": {
+            "obsID": "292942",
+            "obs_collection": "IUE",
+            "dataproduct_type": "spectrum",
+            "obs_id": "lwp28574",
+            "description": "(extracted spectra/vo spectral container/SSAP) fits file",
+            "type": "S",
+            "dataURI": "mast:IUE/url/pub/vospectra/iue2/lwp28574mxlo_vo.fits",
+            "productType": "SCIENCE",
+            "productGroupDescription": "Minimum Recommended Products",
+            "productSubGroupDescription": "(extracted spectra/vo spectral container/SSAP) fits file",
+            "productDocumentationURL": NaN,
+            "project": NaN,
+            "prvversion": NaN,
+            "proposal_id": "JUQXX",
+            "productFilename": "lwp28574mxlo_vo.fits",
+            "size": 48960,
+            "parent_obsid": "292942",
+            "dataRights": "PUBLIC",
+            "calib_level": 2,
+            "filters": "LOW DISP",
+            "observation": {}
+          }
+        }
+      },
+      "created": "2025-11-13T04:08:41.365050+00:00",
+      "updated": "2025-11-13T04:08:41.365050+00:00"
+    },
+    "bb7954c6043a1feb3061820442bb86106f466cdd5f23ce2f08e80891ca04580b": {
+      "sha256": "bb7954c6043a1feb3061820442bb86106f466cdd5f23ce2f08e80891ca04580b",
+      "filename": "lwp28575mxlo_vo.fits",
+      "stored_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\files\\bb\\lwp28575mxlo_vo.fits",
+      "original_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\_incoming\\lwp28575mxlo_vo.fits",
+      "bytes": 48960,
+      "units": {
+        "x": "unknown",
+        "y": "unknown"
+      },
+      "source": {
+        "remote": {
+          "provider": "MAST",
+          "uri": "mast:IUE/url/pub/vospectra/iue2/lwp28575mxlo_vo.fits",
+          "identifier": "lwp28575mxlo_vo.fits",
+          "fetched_at": "2025-11-13T04:08:41.719903+00:00",
+          "metadata": {
+            "obsID": "292943",
+            "obs_collection": "IUE",
+            "dataproduct_type": "spectrum",
+            "obs_id": "lwp28575",
+            "description": "(extracted spectra/vo spectral container/SSAP) fits file",
+            "type": "S",
+            "dataURI": "mast:IUE/url/pub/vospectra/iue2/lwp28575mxlo_vo.fits",
+            "productType": "SCIENCE",
+            "productGroupDescription": "Minimum Recommended Products",
+            "productSubGroupDescription": "(extracted spectra/vo spectral container/SSAP) fits file",
+            "productDocumentationURL": NaN,
+            "project": NaN,
+            "prvversion": NaN,
+            "proposal_id": "JUQXX",
+            "productFilename": "lwp28575mxlo_vo.fits",
+            "size": 48960,
+            "parent_obsid": "292943",
+            "dataRights": "PUBLIC",
+            "calib_level": 2,
+            "filters": "LOW DISP",
+            "observation": {}
+          }
+        }
+      },
+      "created": "2025-11-13T04:08:41.735993+00:00",
+      "updated": "2025-11-13T04:08:41.735993+00:00"
+    },
+    "b32580922cca034ab654ddbcf560a710e9ff0a57a309274e7859fd6aa904cc39": {
+      "sha256": "b32580922cca034ab654ddbcf560a710e9ff0a57a309274e7859fd6aa904cc39",
+      "filename": "lwp28576mxlo_vo.fits",
+      "stored_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\files\\b3\\lwp28576mxlo_vo.fits",
+      "original_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\_incoming\\lwp28576mxlo_vo.fits",
+      "bytes": 48960,
+      "units": {
+        "x": "unknown",
+        "y": "unknown"
+      },
+      "source": {
+        "remote": {
+          "provider": "MAST",
+          "uri": "mast:IUE/url/pub/vospectra/iue2/lwp28576mxlo_vo.fits",
+          "identifier": "lwp28576mxlo_vo.fits",
+          "fetched_at": "2025-11-13T04:08:42.112364+00:00",
+          "metadata": {
+            "obsID": "292944",
+            "obs_collection": "IUE",
+            "dataproduct_type": "spectrum",
+            "obs_id": "lwp28576",
+            "description": "(extracted spectra/vo spectral container/SSAP) fits file",
+            "type": "S",
+            "dataURI": "mast:IUE/url/pub/vospectra/iue2/lwp28576mxlo_vo.fits",
+            "productType": "SCIENCE",
+            "productGroupDescription": "Minimum Recommended Products",
+            "productSubGroupDescription": "(extracted spectra/vo spectral container/SSAP) fits file",
+            "productDocumentationURL": NaN,
+            "project": NaN,
+            "prvversion": NaN,
+            "proposal_id": "JUQXX",
+            "productFilename": "lwp28576mxlo_vo.fits",
+            "size": 48960,
+            "parent_obsid": "292944",
+            "dataRights": "PUBLIC",
+            "calib_level": 2,
+            "filters": "LOW DISP",
+            "observation": {}
+          }
+        }
+      },
+      "created": "2025-11-13T04:08:42.129157+00:00",
+      "updated": "2025-11-13T04:08:42.129157+00:00"
+    },
+    "fb9c6bccf9ed5ed30312527c934d150b7ef013820ad177766dd6c5d5f3427834": {
+      "sha256": "fb9c6bccf9ed5ed30312527c934d150b7ef013820ad177766dd6c5d5f3427834",
+      "filename": "lwp28577mxlo_vo.fits",
+      "stored_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\files\\fb\\lwp28577mxlo_vo.fits",
+      "original_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\_incoming\\lwp28577mxlo_vo.fits",
+      "bytes": 48960,
+      "units": {
+        "x": "unknown",
+        "y": "unknown"
+      },
+      "source": {
+        "remote": {
+          "provider": "MAST",
+          "uri": "mast:IUE/url/pub/vospectra/iue2/lwp28577mxlo_vo.fits",
+          "identifier": "lwp28577mxlo_vo.fits",
+          "fetched_at": "2025-11-13T04:08:42.474961+00:00",
+          "metadata": {
+            "obsID": "292945",
+            "obs_collection": "IUE",
+            "dataproduct_type": "spectrum",
+            "obs_id": "lwp28577",
+            "description": "(extracted spectra/vo spectral container/SSAP) fits file",
+            "type": "S",
+            "dataURI": "mast:IUE/url/pub/vospectra/iue2/lwp28577mxlo_vo.fits",
+            "productType": "SCIENCE",
+            "productGroupDescription": "Minimum Recommended Products",
+            "productSubGroupDescription": "(extracted spectra/vo spectral container/SSAP) fits file",
+            "productDocumentationURL": NaN,
+            "project": NaN,
+            "prvversion": NaN,
+            "proposal_id": "JUQXX",
+            "productFilename": "lwp28577mxlo_vo.fits",
+            "size": 48960,
+            "parent_obsid": "292945",
+            "dataRights": "PUBLIC",
+            "calib_level": 2,
+            "filters": "LOW DISP",
+            "observation": {}
+          }
+        }
+      },
+      "created": "2025-11-13T04:08:42.490686+00:00",
+      "updated": "2025-11-13T04:08:42.490686+00:00"
+    },
+    "9232907bb03c054b4bbec9d7a8836e35588b9f0dd9261f52b7f656247a73fab1": {
+      "sha256": "9232907bb03c054b4bbec9d7a8836e35588b9f0dd9261f52b7f656247a73fab1",
+      "filename": "lwp28578mxlo_vo.fits",
+      "stored_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\files\\92\\lwp28578mxlo_vo.fits",
+      "original_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\_incoming\\lwp28578mxlo_vo.fits",
+      "bytes": 54720,
+      "units": {
+        "x": "unknown",
+        "y": "unknown"
+      },
+      "source": {
+        "remote": {
+          "provider": "MAST",
+          "uri": "mast:IUE/url/pub/vospectra/iue2/lwp28578mxlo_vo.fits",
+          "identifier": "lwp28578mxlo_vo.fits",
+          "fetched_at": "2025-11-13T04:08:42.859163+00:00",
+          "metadata": {
+            "obsID": "292946",
+            "obs_collection": "IUE",
+            "dataproduct_type": "spectrum",
+            "obs_id": "lwp28578",
+            "description": "(extracted spectra/vo spectral container/SSAP) fits file",
+            "type": "S",
+            "dataURI": "mast:IUE/url/pub/vospectra/iue2/lwp28578mxlo_vo.fits",
+            "productType": "SCIENCE",
+            "productGroupDescription": "Minimum Recommended Products",
+            "productSubGroupDescription": "(extracted spectra/vo spectral container/SSAP) fits file",
+            "productDocumentationURL": NaN,
+            "project": NaN,
+            "prvversion": NaN,
+            "proposal_id": "JUQXX",
+            "productFilename": "lwp28578mxlo_vo.fits",
+            "size": 54720,
+            "parent_obsid": "292946",
+            "dataRights": "PUBLIC",
+            "calib_level": 2,
+            "filters": "LOW DISP",
+            "observation": {}
+          }
+        }
+      },
+      "created": "2025-11-13T04:08:42.874256+00:00",
+      "updated": "2025-11-13T04:08:42.874256+00:00"
+    },
+    "88e838e96adaf76a6480e2a9020d7d1639bc53441c55e26d54d40c2fb833f459": {
+      "sha256": "88e838e96adaf76a6480e2a9020d7d1639bc53441c55e26d54d40c2fb833f459",
+      "filename": "lwp28612mxlo_vo.fits",
+      "stored_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\files\\88\\lwp28612mxlo_vo.fits",
+      "original_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\_incoming\\lwp28612mxlo_vo.fits",
+      "bytes": 48960,
+      "units": {
+        "x": "unknown",
+        "y": "unknown"
+      },
+      "source": {
+        "remote": {
+          "provider": "MAST",
+          "uri": "mast:IUE/url/pub/vospectra/iue2/lwp28612mxlo_vo.fits",
+          "identifier": "lwp28612mxlo_vo.fits",
+          "fetched_at": "2025-11-13T04:08:43.255561+00:00",
+          "metadata": {
+            "obsID": "292963",
+            "obs_collection": "IUE",
+            "dataproduct_type": "spectrum",
+            "obs_id": "lwp28612",
+            "description": "(extracted spectra/vo spectral container/SSAP) fits file",
+            "type": "S",
+            "dataURI": "mast:IUE/url/pub/vospectra/iue2/lwp28612mxlo_vo.fits",
+            "productType": "SCIENCE",
+            "productGroupDescription": "Minimum Recommended Products",
+            "productSubGroupDescription": "(extracted spectra/vo spectral container/SSAP) fits file",
+            "productDocumentationURL": NaN,
+            "project": NaN,
+            "prvversion": NaN,
+            "proposal_id": "JURWH",
+            "productFilename": "lwp28612mxlo_vo.fits",
+            "size": 48960,
+            "parent_obsid": "292963",
+            "dataRights": "PUBLIC",
+            "calib_level": 2,
+            "filters": "LOW DISP",
+            "observation": {}
+          }
+        }
+      },
+      "created": "2025-11-13T04:08:43.271598+00:00",
+      "updated": "2025-11-13T04:08:43.271598+00:00"
+    },
+    "2838678d58c213ec093f72ef620b27f4024b0fd470422d32d0d2352c49f85cc9": {
+      "sha256": "2838678d58c213ec093f72ef620b27f4024b0fd470422d32d0d2352c49f85cc9",
+      "filename": "lwp28613mxlo_vo.fits",
+      "stored_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\files\\28\\lwp28613mxlo_vo.fits",
+      "original_path": "C:\\Code\\spectra-app-v2\\storage\\cache\\_incoming\\lwp28613mxlo_vo.fits",
+      "bytes": 48960,
+      "units": {
+        "x": "unknown",
+        "y": "unknown"
+      },
+      "source": {
+        "remote": {
+          "provider": "MAST",
+          "uri": "mast:IUE/url/pub/vospectra/iue2/lwp28613mxlo_vo.fits",
+          "identifier": "lwp28613mxlo_vo.fits",
+          "fetched_at": "2025-11-13T04:08:43.640058+00:00",
+          "metadata": {
+            "obsID": "292964",
+            "obs_collection": "IUE",
+            "dataproduct_type": "spectrum",
+            "obs_id": "lwp28613",
+            "description": "(extracted spectra/vo spectral container/SSAP) fits file",
+            "type": "S",
+            "dataURI": "mast:IUE/url/pub/vospectra/iue2/lwp28613mxlo_vo.fits",
+            "productType": "SCIENCE",
+            "productGroupDescription": "Minimum Recommended Products",
+            "productSubGroupDescription": "(extracted spectra/vo spectral container/SSAP) fits file",
+            "productDocumentationURL": NaN,
+            "project": NaN,
+            "prvversion": NaN,
+            "proposal_id": "JURWH",
+            "productFilename": "lwp28613mxlo_vo.fits",
+            "size": 48960,
+            "parent_obsid": "292964",
+            "dataRights": "PUBLIC",
+            "calib_level": 2,
+            "filters": "LOW DISP",
+            "observation": {}
+          }
+        }
+      },
+      "created": "2025-11-13T04:08:43.655677+00:00",
+      "updated": "2025-11-13T04:08:43.655677+00:00"
     }
   }
 }

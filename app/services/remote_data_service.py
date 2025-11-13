@@ -929,7 +929,7 @@ class RemoteDataService:
                 continue
 
             # Only list products we can ingest/display directly (speeds up search and UI)
-            if not self._is_supported_product(merged):
+            if not self._is_supported_product(merged, include_imaging=include_imaging):
                 continue
 
             data_uri = self._first_text(merged, ["dataURI", "data_uri", "ProductURI"])
@@ -976,7 +976,7 @@ class RemoteDataService:
 
         return records
 
-    def _is_supported_product(self, metadata: Mapping[str, Any]) -> bool:
+    def _is_supported_product(self, metadata: Mapping[str, Any], *, include_imaging: bool = False) -> bool:
         """Return True when the product's filename/URI matches supported importers.
 
         We currently support FITS/CSV/JCAMP-DX spectra; skip JPEG/PNG previews and other
@@ -1013,13 +1013,22 @@ class RemoteDataService:
             except Exception:
                 path = raw
             lower_path = str(path).lower()
-            # Exclude by explicit filename suffix patterns
+            # Exclude by explicit filename suffix patterns, unless caller allows imaging
             if any(lower_path.endswith(suf) for suf in excluded_name_suffixes):
-                return False
-            # Exclude by keyword tokens in name
-            if any(tok in lower_path for tok in excluded_keywords):
-                # Allow VO-formatted spectra explicitly (e.g., *_vo.fits)
+                # Still allow explicit VO spectra
                 if lower_path.endswith("_vo.fits"):
+                    pass
+                else:
+                    # If it's clearly an image and imaging is requested, allow
+                    if include_imaging and (lower_path.endswith("_img.fits") or "_img" in lower_path or "_image" in lower_path):
+                        pass
+                    else:
+                        return False
+            # Exclude by keyword tokens in name unless imaging requested
+            if any(tok in lower_path for tok in excluded_keywords):
+                if lower_path.endswith("_vo.fits"):
+                    pass
+                elif include_imaging and ("_img" in lower_path or "_image" in lower_path or "image" in lower_path):
                     pass
                 else:
                     return False

@@ -10,6 +10,7 @@ This panel provides:
 from __future__ import annotations
 
 from pathlib import Path
+import numpy as np
 from typing import Any, List
 
 from app.qt_compat import get_qt
@@ -96,8 +97,16 @@ class RemoteDataPanel(QtWidgets.QWidget):
         layout.addLayout(controls)
         
         # Results table
-        self.results_table = QtWidgets.QTableWidget(0, 4)
-        self.results_table.setHorizontalHeaderLabels(["ID", "Title", "Target", "Telescope"])
+        # Add columns for spectral range and units when available
+        self.results_table = QtWidgets.QTableWidget(0, 6)
+        self.results_table.setHorizontalHeaderLabels([
+            "ID",
+            "Title",
+            "Target",
+            "Telescope",
+            "X Range",
+            "Units",
+        ])
         self.results_table.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectionBehavior.SelectRows)
         self.results_table.setSelectionMode(QtWidgets.QAbstractItemView.SelectionMode.ExtendedSelection)
         header = self.results_table.horizontalHeader()
@@ -244,8 +253,102 @@ class RemoteDataPanel(QtWidgets.QWidget):
             item = QtWidgets.QTableWidgetItem(telescope)
             item.setFlags(item.flags() & ~QtCore.Qt.ItemFlag.ItemIsEditable)
             self.results_table.setItem(row, 3, item)
+
+            # Range + Units (best-effort from metadata)
+            x_range, units = self._format_range_and_units(record)
+            item = QtWidgets.QTableWidgetItem(x_range)
+            item.setFlags(item.flags() & ~QtCore.Qt.ItemFlag.ItemIsEditable)
+            self.results_table.setItem(row, 4, item)
+
+            item = QtWidgets.QTableWidgetItem(units)
+            item.setFlags(item.flags() & ~QtCore.Qt.ItemFlag.ItemIsEditable)
+            self.results_table.setItem(row, 5, item)
         
         QtCore.QTimer.singleShot(0, _append)
+
+    def _format_range_and_units(self, record: Any) -> tuple[str, str]:
+        """Return a human-readable X range and units string from record metadata.
+
+        Attempts common metadata keys used by MAST/Exo.MAST. Falls back to blanks
+        when unavailable to avoid misleading output.
+        """
+        try:
+            metadata = getattr(record, "metadata", {})
+        except Exception:
+            metadata = {}
+        mapping = metadata if isinstance(metadata, dict) else {}
+
+        # Resolve units (x/y) from explicit record.units first
+        units_map = None
+        try:
+            units_map = dict(getattr(record, "units", {}) or {})
+        except Exception:
+            units_map = None
+        x_unit = (units_map or {}).get("x") if isinstance(units_map, dict) else None
+        y_unit = (units_map or {}).get("y") if isinstance(units_map, dict) else None
+
+        # Fallbacks found in various provider payloads
+        if not x_unit:
+            for key in ("x_unit", "wavelength_unit", "em_unit", "spectralaxis_unit", "spectral_unit"):
+                val = mapping.get(key)
+                if isinstance(val, str) and val.strip():
+                    x_unit = val.strip()
+                    break
+        if not y_unit:
+            for key in ("y_unit", "flux_unit", "intensity_unit"):
+                val = mapping.get(key)
+                if isinstance(val, str) and val.strip():
+                    y_unit = val.strip()
+                    break
+
+        # Best-effort numeric range extraction (wavelength bounds)
+        def _to_float(v: object) -> float | None:
+            try:
+                if v is None:
+                    return None
+                f = float(v)  # type: ignore[arg-type]
+                if np.isnan(f):  # type: ignore[name-defined]
+                    return None
+                return f
+            except Exception:
+                return None
+
+        # Common key pairs used across archives
+        candidates: list[tuple[str, str]] = [
+            ("em_min", "em_max"),
+            ("emMin", "emMax"),
+            ("wavelength_min", "wavelength_max"),
+            ("spectral_min", "spectral_max"),
+            ("specstart", "specend"),
+            ("wavemin", "wavemax"),
+            ("wave_min", "wave_max"),
+        ]
+        lo: float | None = None
+        hi: float | None = None
+        for lo_key, hi_key in candidates:
+            lo = _to_float(mapping.get(lo_key))
+            hi = _to_float(mapping.get(hi_key))
+            if lo is not None and hi is not None and hi >= lo:
+                break
+            lo, hi = None, None
+
+        # Assemble return strings
+        range_str = ""
+        if lo is not None and hi is not None:
+            # Include unit only if we have one; otherwise just numbers
+            suffix = f" {x_unit}" if isinstance(x_unit, str) and x_unit else ""
+            try:
+                range_str = f"{lo:.6g}–{hi:.6g}{suffix}"
+            except Exception:
+                range_str = f"{lo}–{hi}{suffix}"
+
+        units_str = ""
+        if x_unit or y_unit:
+            xu = str(x_unit) if x_unit else "?"
+            yu = str(y_unit) if y_unit else "?"
+            units_str = f"x: {xu}; y: {yu}"
+
+        return range_str, units_str
     
     def _handle_search_finished(self, results: List[Any]) -> None:
         """Handle search completion."""
