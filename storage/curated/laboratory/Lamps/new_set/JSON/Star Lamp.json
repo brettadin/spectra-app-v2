@@ -1,0 +1,102 @@
+{
+  "version": "1.0",
+  "app": {
+    "name": "SpectraApp",
+    "version": "0.1.0",
+    "build_date": "2025-11-04",
+    "libraries": {
+      "numpy": "2.3.4",
+      "pyside6": "6.10.0",
+      "pytest": "8.4.1"
+    }
+  },
+  "timestamp_utc": "2025-11-04T15:38:52.317531+00:00",
+  "sources": [
+    {
+      "id": "01c12b8c-364f-4208-9bfd-90ef89bee491",
+      "name": "Star Lamp",
+      "units": {
+        "wavelength": "nm",
+        "intensity": "absorbance"
+      },
+      "metadata": {
+        "operation": {
+          "name": "average",
+          "parameters": {
+            "count": 10,
+            "wavelength_range": [
+              345.386,
+              1045.841
+            ],
+            "points": 3648
+          },
+          "parents": [
+            "93803d59-aff0-441c-9e2f-d13c619d7f96",
+            "1bcbd854-a1ee-407f-8d71-859bb9688865",
+            "df82f500-e268-4163-a7e0-395460846489",
+            "c449ab95-c06d-4972-82b4-ee1b59031ed5",
+            "e0fc40e0-cb8d-4369-8b50-896cff1fddc2",
+            "4162af72-2948-4cb7-aa97-0b4b2369db35",
+            "1dedcc32-bf9d-4f6e-9371-2d0fd3be85a9",
+            "c45743a1-de8b-44f0-9265-24d5790ffaba",
+            "c43cda53-c092-4320-831b-fb11e5f1cdc2",
+            "c9f83119-5675-453c-b4ae-99ac9081d0d9"
+          ]
+        },
+        "source_spectra": [
+          {
+            "id": "93803d59-aff0-441c-9e2f-d13c619d7f96",
+            "name": "H and He Mix _Subt9__0__00050"
+          },
+          {
+            "id": "1bcbd854-a1ee-407f-8d71-859bb9688865",
+            "name": "H and He Mix _Subt9__1__00051"
+          },
+          {
+            "id": "df82f500-e268-4163-a7e0-395460846489",
+            "name": "H and He Mix _Subt9__2__00052"
+          },
+          {
+            "id": "c449ab95-c06d-4972-82b4-ee1b59031ed5",
+            "name": "H and He Mix _Subt9__3__00053"
+          },
+          {
+            "id": "e0fc40e0-cb8d-4369-8b50-896cff1fddc2",
+            "name": "H and He Mix _Subt9__4__00054"
+          },
+          {
+            "id": "4162af72-2948-4cb7-aa97-0b4b2369db35",
+            "name": "H and He Mix _Subt9__5__00055"
+          },
+          {
+            "id": "1dedcc32-bf9d-4f6e-9371-2d0fd3be85a9",
+            "name": "H and He Mix _Subt9__6__00056"
+          },
+          {
+            "id": "c45743a1-de8b-44f0-9265-24d5790ffaba",
+            "name": "H and He Mix _Subt9__7__00057"
+          },
+          {
+            "id": "c43cda53-c092-4320-831b-fb11e5f1cdc2",
+            "name": "H and He Mix _Subt9__8__00058"
+          },
+          {
+            "id": "c9f83119-5675-453c-b4ae-99ac9081d0d9",
+            "name": "H and He Mix _Subt9__9__00059"
+          }
+        ],
+        "unit_conversions": {
+          "source_units": {
+            "x": "nm",
+            "y": "absorbance"
+          }
+        }
+      },
+      "parents": [],
+      "transforms": [],
+      "canonical_csv": "spectra\\star-lamp-01c12b8c-364f-4208-9bfd-90ef89bee491.csv"
+    }
+  ],
+  "transforms": [],
+  "citations": []
+}

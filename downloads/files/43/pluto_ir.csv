@@ -1,9 +1,0 @@
-# Pluto IR sample (New Horizons LEISA)
-# source: https://pds-smallbodies.astro.umd.edu/holdings/pds4-nh_leisa:pluto_cal-v1.0/SUPPORT/dataset.shtml
-wavelength_nm,reflectance
-1250,0.40
-1500,0.45
-1700,0.35
-2000,0.30
-2200,0.28
-2500,0.25

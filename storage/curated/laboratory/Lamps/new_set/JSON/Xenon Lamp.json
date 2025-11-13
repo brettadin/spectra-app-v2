@@ -1,0 +1,102 @@
+{
+  "version": "1.0",
+  "app": {
+    "name": "SpectraApp",
+    "version": "0.1.0",
+    "build_date": "2025-11-04",
+    "libraries": {
+      "numpy": "2.3.4",
+      "pyside6": "6.10.0",
+      "pytest": "8.4.1"
+    }
+  },
+  "timestamp_utc": "2025-11-04T15:44:37.593498+00:00",
+  "sources": [
+    {
+      "id": "d37b79a3-8c4f-4b8a-8508-1150e238c472",
+      "name": "Xenon Lamp",
+      "units": {
+        "wavelength": "nm",
+        "intensity": "absorbance"
+      },
+      "metadata": {
+        "operation": {
+          "name": "average",
+          "parameters": {
+            "count": 10,
+            "wavelength_range": [
+              345.386,
+              1045.841
+            ],
+            "points": 3648
+          },
+          "parents": [
+            "a8e936ac-c1c4-4cf2-b46b-bff6ba8ada7a",
+            "3f20d6f6-0fd3-4746-a840-2f1407bcb979",
+            "9fd13d1a-6257-4ae7-84d3-03466bffa9e9",
+            "ddb7510f-c73b-4fb2-854f-00570e2e1c13",
+            "42cae30f-50cb-4b29-8be3-984b2459c88e",
+            "f65c4568-654d-4c0b-bffa-4ea53d304c07",
+            "6e17105b-8580-482d-956f-5a303f169b1a",
+            "9606147f-6d2f-4543-877f-b250ace3d430",
+            "bc96d7e9-888b-4b19-80b6-9917e8a18486",
+            "55d30e17-f3e3-491b-8f33-40a561763392"
+          ]
+        },
+        "source_spectra": [
+          {
+            "id": "a8e936ac-c1c4-4cf2-b46b-bff6ba8ada7a",
+            "name": "Xenon_Subt9__0__00030"
+          },
+          {
+            "id": "3f20d6f6-0fd3-4746-a840-2f1407bcb979",
+            "name": "Xenon_Subt9__1__00031"
+          },
+          {
+            "id": "9fd13d1a-6257-4ae7-84d3-03466bffa9e9",
+            "name": "Xenon_Subt9__2__00032"
+          },
+          {
+            "id": "ddb7510f-c73b-4fb2-854f-00570e2e1c13",
+            "name": "Xenon_Subt9__3__00033"
+          },
+          {
+            "id": "42cae30f-50cb-4b29-8be3-984b2459c88e",
+            "name": "Xenon_Subt9__4__00034"
+          },
+          {
+            "id": "f65c4568-654d-4c0b-bffa-4ea53d304c07",
+            "name": "Xenon_Subt9__5__00035"
+          },
+          {
+            "id": "6e17105b-8580-482d-956f-5a303f169b1a",
+            "name": "Xenon_Subt9__6__00036"
+          },
+          {
+            "id": "9606147f-6d2f-4543-877f-b250ace3d430",
+            "name": "Xenon_Subt9__7__00037"
+          },
+          {
+            "id": "bc96d7e9-888b-4b19-80b6-9917e8a18486",
+            "name": "Xenon_Subt9__8__00038"
+          },
+          {
+            "id": "55d30e17-f3e3-491b-8f33-40a561763392",
+            "name": "Xenon_Subt9__9__00039"
+          }
+        ],
+        "unit_conversions": {
+          "source_units": {
+            "x": "nm",
+            "y": "absorbance"
+          }
+        }
+      },
+      "parents": [],
+      "transforms": [],
+      "canonical_csv": "spectra\\xenon-lamp-d37b79a3-8c4f-4b8a-8508-1150e238c472.csv"
+    }
+  ],
+  "transforms": [],
+  "citations": []
+}

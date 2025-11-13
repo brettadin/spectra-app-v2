@@ -1,0 +1,97 @@
+{
+  "version": "1.0",
+  "app": {
+    "name": "SpectraApp",
+    "version": "0.1.0",
+    "build_date": "2025-11-06",
+    "libraries": {
+      "numpy": "2.3.4",
+      "pyside6": "6.10.0",
+      "pytest": "8.4.1"
+    }
+  },
+  "timestamp_utc": "2025-11-06T17:35:55.162911+00:00",
+  "sources": [
+    {
+      "id": "afe29383-1696-4d44-970d-052d9d544c81",
+      "name": "Sun Redo",
+      "units": {
+        "wavelength": "nm",
+        "intensity": "absorbance"
+      },
+      "metadata": {
+        "operation": {
+          "name": "average",
+          "parameters": {
+            "count": 9,
+            "wavelength_range": [
+              345.39,
+              1045.8
+            ],
+            "points": 3648
+          },
+          "parents": [
+            "49d657ba-c2cd-48fd-a874-e0a37c47702c",
+            "ef71439f-24b3-49ab-9cfe-a19c406e7f97",
+            "3b0c844d-3535-45ac-8751-99ebd1bab5fc",
+            "630aaae2-b9f3-4da9-acfb-e7b51a6cc655",
+            "ef1e00db-3f61-47e5-9d13-4524d14eaca5",
+            "eb1f26a8-48c5-47fc-a9de-dd92a5e1ecdd",
+            "0acb0e8b-afc2-4319-8c8f-59220de13e82",
+            "e07a8698-bf4b-47bb-8772-6a4e4b349a3d",
+            "a8df69d2-ddc3-43e7-ab24-3b640a7c94f2"
+          ]
+        },
+        "source_spectra": [
+          {
+            "id": "49d657ba-c2cd-48fd-a874-e0a37c47702c",
+            "name": "Subt4__1__12-29-51-219"
+          },
+          {
+            "id": "ef71439f-24b3-49ab-9cfe-a19c406e7f97",
+            "name": "Subt4__2__12-29-55-323"
+          },
+          {
+            "id": "3b0c844d-3535-45ac-8751-99ebd1bab5fc",
+            "name": "Subt4__3__12-30-36-084"
+          },
+          {
+            "id": "630aaae2-b9f3-4da9-acfb-e7b51a6cc655",
+            "name": "Subt4__4__12-30-39-002"
+          },
+          {
+            "id": "ef1e00db-3f61-47e5-9d13-4524d14eaca5",
+            "name": "Subt4__5__12-30-39-838"
+          },
+          {
+            "id": "eb1f26a8-48c5-47fc-a9de-dd92a5e1ecdd",
+            "name": "Subt4__6__12-30-40-674"
+          },
+          {
+            "id": "0acb0e8b-afc2-4319-8c8f-59220de13e82",
+            "name": "Subt4__7__12-30-40-683"
+          },
+          {
+            "id": "e07a8698-bf4b-47bb-8772-6a4e4b349a3d",
+            "name": "Subt4__8__12-30-41-745"
+          },
+          {
+            "id": "a8df69d2-ddc3-43e7-ab24-3b640a7c94f2",
+            "name": "Subt4__9__12-30-41-753"
+          }
+        ],
+        "unit_conversions": {
+          "source_units": {
+            "x": "nm",
+            "y": "absorbance"
+          }
+        }
+      },
+      "parents": [],
+      "transforms": [],
+      "canonical_csv": "spectra\\sun-redo-afe29383-1696-4d44-970d-052d9d544c81.csv"
+    }
+  ],
+  "transforms": [],
+  "citations": []
+}

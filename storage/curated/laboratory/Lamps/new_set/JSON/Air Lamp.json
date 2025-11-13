@@ -1,0 +1,102 @@
+{
+  "version": "1.0",
+  "app": {
+    "name": "SpectraApp",
+    "version": "0.1.0",
+    "build_date": "2025-11-04",
+    "libraries": {
+      "numpy": "2.3.4",
+      "pyside6": "6.10.0",
+      "pytest": "8.4.1"
+    }
+  },
+  "timestamp_utc": "2025-11-04T15:35:43.292790+00:00",
+  "sources": [
+    {
+      "id": "8205422b-9eff-4701-a582-6dd473d526e9",
+      "name": "Air Lamp",
+      "units": {
+        "wavelength": "nm",
+        "intensity": "absorbance"
+      },
+      "metadata": {
+        "operation": {
+          "name": "average",
+          "parameters": {
+            "count": 10,
+            "wavelength_range": [
+              345.386,
+              1045.841
+            ],
+            "points": 3648
+          },
+          "parents": [
+            "224038ae-3d4f-42bc-b691-05097ee14d8e",
+            "0661f606-61e7-4567-8adc-d483094a0b41",
+            "9414025b-a8c8-4a42-9973-80a1bc7a9a39",
+            "1e9fe18f-9988-470b-80a9-4ff610d7b59d",
+            "8b027770-7c5c-4904-8daf-8d488f94cfdf",
+            "be6c83b1-163f-4e56-819f-151a6b00dbc1",
+            "287f62f7-bc4b-4f3c-a54e-958a31991b8d",
+            "9a915029-d70b-4993-932b-2e1a40cbd78e",
+            "dc38ce74-d5b6-4eb4-9163-8fa30994bfb4",
+            "aab4a195-26e0-4376-b1ad-a32b53dfde68"
+          ]
+        },
+        "source_spectra": [
+          {
+            "id": "224038ae-3d4f-42bc-b691-05097ee14d8e",
+            "name": "Air (1)"
+          },
+          {
+            "id": "0661f606-61e7-4567-8adc-d483094a0b41",
+            "name": "Air (2)"
+          },
+          {
+            "id": "9414025b-a8c8-4a42-9973-80a1bc7a9a39",
+            "name": "Air (3)"
+          },
+          {
+            "id": "1e9fe18f-9988-470b-80a9-4ff610d7b59d",
+            "name": "Air (4)"
+          },
+          {
+            "id": "8b027770-7c5c-4904-8daf-8d488f94cfdf",
+            "name": "Air (5)"
+          },
+          {
+            "id": "be6c83b1-163f-4e56-819f-151a6b00dbc1",
+            "name": "Air (6)"
+          },
+          {
+            "id": "287f62f7-bc4b-4f3c-a54e-958a31991b8d",
+            "name": "Air (7)"
+          },
+          {
+            "id": "9a915029-d70b-4993-932b-2e1a40cbd78e",
+            "name": "Air (8)"
+          },
+          {
+            "id": "dc38ce74-d5b6-4eb4-9163-8fa30994bfb4",
+            "name": "Air (9)"
+          },
+          {
+            "id": "aab4a195-26e0-4376-b1ad-a32b53dfde68",
+            "name": "Air (10)"
+          }
+        ],
+        "unit_conversions": {
+          "source_units": {
+            "x": "nm",
+            "y": "absorbance"
+          }
+        }
+      },
+      "parents": [],
+      "transforms": [],
+      "canonical_csv": "spectra\\air-lamp-8205422b-9eff-4701-a582-6dd473d526e9.csv"
+    }
+  ],
+  "transforms": [],
+  "citations": []
+}

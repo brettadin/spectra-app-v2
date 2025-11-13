@@ -1,0 +1,102 @@
+{
+  "version": "1.0",
+  "app": {
+    "name": "SpectraApp",
+    "version": "0.1.0",
+    "build_date": "2025-11-04",
+    "libraries": {
+      "numpy": "2.3.4",
+      "pyside6": "6.10.0",
+      "pytest": "8.4.1"
+    }
+  },
+  "timestamp_utc": "2025-11-04T15:43:29.501347+00:00",
+  "sources": [
+    {
+      "id": "4ef7a7ad-18f5-4edc-8181-d1957c45b67f",
+      "name": "Neon Lamp",
+      "units": {
+        "wavelength": "nm",
+        "intensity": "absorbance"
+      },
+      "metadata": {
+        "operation": {
+          "name": "average",
+          "parameters": {
+            "count": 10,
+            "wavelength_range": [
+              345.386,
+              1045.841
+            ],
+            "points": 3648
+          },
+          "parents": [
+            "b9db3db7-b5fa-494a-b90e-58bb6ce158fe",
+            "58ed461b-90e0-4be0-b60d-3847638ec076",
+            "b14a614d-d998-4519-8b3d-7b3f019a64b3",
+            "d9952464-6d0c-4101-a8fe-069745157b4b",
+            "ae2813dd-6e15-4d32-b126-217ebcb0df89",
+            "f867b071-3958-4614-99e1-db24d21fc60b",
+            "43247813-f4c4-4882-9368-f206f72d2e27",
+            "540fefb9-04fd-4b0d-a550-dc4f072a258e",
+            "47346ad3-046d-454f-bb8e-a1d5375a410b",
+            "4e6d842e-ea44-44f7-a82c-a559e077b56e"
+          ]
+        },
+        "source_spectra": [
+          {
+            "id": "b9db3db7-b5fa-494a-b90e-58bb6ce158fe",
+            "name": "Neon_Subt9__0__00010"
+          },
+          {
+            "id": "58ed461b-90e0-4be0-b60d-3847638ec076",
+            "name": "Neon_Subt9__1__00011"
+          },
+          {
+            "id": "b14a614d-d998-4519-8b3d-7b3f019a64b3",
+            "name": "Neon_Subt9__2__00012"
+          },
+          {
+            "id": "d9952464-6d0c-4101-a8fe-069745157b4b",
+            "name": "Neon_Subt9__3__00013"
+          },
+          {
+            "id": "ae2813dd-6e15-4d32-b126-217ebcb0df89",
+            "name": "Neon_Subt9__4__00014"
+          },
+          {
+            "id": "f867b071-3958-4614-99e1-db24d21fc60b",
+            "name": "Neon_Subt9__5__00015"
+          },
+          {
+            "id": "43247813-f4c4-4882-9368-f206f72d2e27",
+            "name": "Neon_Subt9__6__00016"
+          },
+          {
+            "id": "540fefb9-04fd-4b0d-a550-dc4f072a258e",
+            "name": "Neon_Subt9__7__00017"
+          },
+          {
+            "id": "47346ad3-046d-454f-bb8e-a1d5375a410b",
+            "name": "Neon_Subt9__8__00018"
+          },
+          {
+            "id": "4e6d842e-ea44-44f7-a82c-a559e077b56e",
+            "name": "Neon_Subt9__9__00019"
+          }
+        ],
+        "unit_conversions": {
+          "source_units": {
+            "x": "nm",
+            "y": "absorbance"
+          }
+        }
+      },
+      "parents": [],
+      "transforms": [],
+      "canonical_csv": "spectra\\neon-lamp-4ef7a7ad-18f5-4edc-8181-d1957c45b67f.csv"
+    }
+  ],
+  "transforms": [],
+  "citations": []
+}

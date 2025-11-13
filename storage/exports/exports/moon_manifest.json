@@ -1,0 +1,1110 @@
+{
+  "version": "1.0",
+  "app": {
+    "name": "SpectraApp",
+    "version": "0.1.0",
+    "build_date": "2025-10-26",
+    "libraries": {
+      "numpy": "2.3.4",
+      "pyside6": "6.10.0",
+      "pytest": "8.4.1"
+    }
+  },
+  "timestamp_utc": "2025-10-26T18:05:40.227061+00:00",
+  "sources": [
+    {
+      "id": "e0856eb2-6f97-4895-bb9a-615d24c65c13",
+      "name": "1003 pointing at moon_Subt2__0__22-05-15-398",
+      "units": {
+        "wavelength": "nm",
+        "intensity": "absorbance"
+      },
+      "metadata": {
+        "comments": [],
+        "preface": [
+          "User: brett",
+          "Trigger mode: 4",
+          "Integration Time (sec): 6.187200E0",
+          "Scans to average: 1",
+          "Electric dark correction enabled: true",
+          "Nonlinearity correction enabled: true",
+          "Boxcar width: 0",
+          "XAxis mode: Wavelengths",
+          "Number of Pixels in Spectrum: 3648",
+          ">>>>>Begin Spectral Data<<<<<"
+        ],
+        "x_label": ">>>>>Begin Spectral Data<<<<<",
+        "y_label": "Column 2",
+        "header_tokens": [
+          ">>>>>Begin Spectral Data<<<<<"
+        ],
+        "detected_units": {
+          "x": {
+            "unit": "nm",
+            "reason": "value-range"
+          },
+          "y": {
+            "unit": "absorbance",
+            "reason": "default"
+          }
+        },
+        "column_selection": {
+          "x_index": 0,
+          "y_index": 1,
+          "x_reason": "score",
+          "y_reason": "score",
+          "layout_signature": [
+            ">>>>>begin spectral data<<<<<|"
+          ],
+          "layout_cache": "miss"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "absorbance"
+        },
+        "ingest": {
+          "source_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\moon\\1003 pointing at moon_Subt2__0__22-05-15-398.txt",
+          "importer": "CsvImporter",
+          "cache_record": {
+            "sha256": "24dcb0ecdbe2c19c8c40660e937d4615115fda5e4bf51c175cb41e84c0e17d58",
+            "created": "2025-10-26T18:00:07.618449+00:00",
+            "updated": "2025-10-26T18:00:07.618449+00:00"
+          }
+        },
+        "cache_record": {
+          "sha256": "24dcb0ecdbe2c19c8c40660e937d4615115fda5e4bf51c175cb41e84c0e17d58",
+          "filename": "1003 pointing at moon_Subt2__0__22-05-15-398.txt",
+          "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\24\\1003 pointing at moon_Subt2__0__22-05-15-398.txt",
+          "original_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\moon\\1003 pointing at moon_Subt2__0__22-05-15-398.txt",
+          "bytes": 73791,
+          "units": {
+            "x": "nm",
+            "y": "absorbance"
+          },
+          "source": {
+            "ingest": {
+              "source_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\moon\\1003 pointing at moon_Subt2__0__22-05-15-398.txt",
+              "importer": "CsvImporter"
+            },
+            "source_units": {
+              "x": "nm",
+              "y": "absorbance"
+            }
+          },
+          "created": "2025-10-26T18:00:07.618449+00:00",
+          "updated": "2025-10-26T18:00:07.618449+00:00"
+        }
+      },
+      "parents": [],
+      "transforms": [],
+      "path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\moon\\1003 pointing at moon_Subt2__0__22-05-15-398.txt",
+      "size_bytes": 73791,
+      "checksum_sha256": "24dcb0ecdbe2c19c8c40660e937d4615115fda5e4bf51c175cb41e84c0e17d58",
+      "canonical_csv": "spectra\\1003-pointing-at-moon-subt2-0-22-05-15-398-e0856eb2-6f97-4895-bb9a-615d24c65c13.csv",
+      "exported_copy": "sources\\1003-pointing-at-moon-subt2-0-22-05-15-398-e0856eb2-6f97-4895-bb9a-615d24c65c13.txt"
+    },
+    {
+      "id": "e6490f07-cbde-432f-a50d-c1a3b23f2e57",
+      "name": "1003 pointing at moon_Subt2__2__22-06-33-699",
+      "units": {
+        "wavelength": "nm",
+        "intensity": "absorbance"
+      },
+      "metadata": {
+        "comments": [],
+        "preface": [
+          "User: brett",
+          "Trigger mode: 4",
+          "Integration Time (sec): 1.000000E-1",
+          "Scans to average: 1",
+          "Electric dark correction enabled: true",
+          "Nonlinearity correction enabled: true",
+          "Boxcar width: 0",
+          "XAxis mode: Wavelengths",
+          "Number of Pixels in Spectrum: 3648",
+          ">>>>>Begin Spectral Data<<<<<"
+        ],
+        "x_label": ">>>>>Begin Spectral Data<<<<<",
+        "y_label": "Column 2",
+        "header_tokens": [
+          ">>>>>Begin Spectral Data<<<<<"
+        ],
+        "detected_units": {
+          "x": {
+            "unit": "nm",
+            "reason": "value-range"
+          },
+          "y": {
+            "unit": "absorbance",
+            "reason": "default"
+          }
+        },
+        "column_selection": {
+          "x_index": 0,
+          "y_index": 1,
+          "x_reason": "score",
+          "y_reason": "score",
+          "layout_signature": [
+            ">>>>>begin spectral data<<<<<|"
+          ],
+          "layout_cache": "miss"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "absorbance"
+        },
+        "ingest": {
+          "source_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\moon\\1003 pointing at moon_Subt2__2__22-06-33-699.txt",
+          "importer": "CsvImporter",
+          "cache_record": {
+            "sha256": "48023abc397ba5d3bb9912b0b6b5403b7409244c7f10f3d2afe30ae41aa59022",
+            "created": "2025-10-26T18:00:07.763011+00:00",
+            "updated": "2025-10-26T18:00:07.763011+00:00"
+          }
+        },
+        "cache_record": {
+          "sha256": "48023abc397ba5d3bb9912b0b6b5403b7409244c7f10f3d2afe30ae41aa59022",
+          "filename": "1003 pointing at moon_Subt2__2__22-06-33-699.txt",
+          "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\48\\1003 pointing at moon_Subt2__2__22-06-33-699.txt",
+          "original_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\moon\\1003 pointing at moon_Subt2__2__22-06-33-699.txt",
+          "bytes": 69233,
+          "units": {
+            "x": "nm",
+            "y": "absorbance"
+          },
+          "source": {
+            "ingest": {
+              "source_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\moon\\1003 pointing at moon_Subt2__2__22-06-33-699.txt",
+              "importer": "CsvImporter"
+            },
+            "source_units": {
+              "x": "nm",
+              "y": "absorbance"
+            }
+          },
+          "created": "2025-10-26T18:00:07.763011+00:00",
+          "updated": "2025-10-26T18:00:07.763011+00:00"
+        }
+      },
+      "parents": [],
+      "transforms": [],
+      "path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\moon\\1003 pointing at moon_Subt2__2__22-06-33-699.txt",
+      "size_bytes": 69233,
+      "checksum_sha256": "48023abc397ba5d3bb9912b0b6b5403b7409244c7f10f3d2afe30ae41aa59022",
+      "canonical_csv": "spectra\\1003-pointing-at-moon-subt2-2-22-06-33-699-e6490f07-cbde-432f-a50d-c1a3b23f2e57.csv",
+      "exported_copy": "sources\\1003-pointing-at-moon-subt2-2-22-06-33-699-e6490f07-cbde-432f-a50d-c1a3b23f2e57.txt"
+    },
+    {
+      "id": "ac9a2b62-76ed-46f5-a828-98eaf7b2a97e",
+      "name": "1003 pointing at moon_Subt2__3__22-06-59-997",
+      "units": {
+        "wavelength": "nm",
+        "intensity": "absorbance"
+      },
+      "metadata": {
+        "comments": [],
+        "preface": [
+          "User: brett",
+          "Trigger mode: 4",
+          "Integration Time (sec): 1.000000E-1",
+          "Scans to average: 1",
+          "Electric dark correction enabled: true",
+          "Nonlinearity correction enabled: true",
+          "Boxcar width: 0",
+          "XAxis mode: Wavelengths",
+          "Number of Pixels in Spectrum: 3648",
+          ">>>>>Begin Spectral Data<<<<<"
+        ],
+        "x_label": ">>>>>Begin Spectral Data<<<<<",
+        "y_label": "Column 2",
+        "header_tokens": [
+          ">>>>>Begin Spectral Data<<<<<"
+        ],
+        "detected_units": {
+          "x": {
+            "unit": "nm",
+            "reason": "value-range"
+          },
+          "y": {
+            "unit": "absorbance",
+            "reason": "default"
+          }
+        },
+        "column_selection": {
+          "x_index": 0,
+          "y_index": 1,
+          "x_reason": "score",
+          "y_reason": "score",
+          "layout_signature": [
+            ">>>>>begin spectral data<<<<<|"
+          ],
+          "layout_cache": "miss"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "absorbance"
+        },
+        "ingest": {
+          "source_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\moon\\1003 pointing at moon_Subt2__3__22-06-59-997.txt",
+          "importer": "CsvImporter",
+          "cache_record": {
+            "sha256": "025ec784e8f73b1500b9f108435dd44ee96ac99d118425ddf4831547f4297d9c",
+            "created": "2025-10-26T18:00:07.828416+00:00",
+            "updated": "2025-10-26T18:00:07.828416+00:00"
+          }
+        },
+        "cache_record": {
+          "sha256": "025ec784e8f73b1500b9f108435dd44ee96ac99d118425ddf4831547f4297d9c",
+          "filename": "1003 pointing at moon_Subt2__3__22-06-59-997.txt",
+          "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\02\\1003 pointing at moon_Subt2__3__22-06-59-997.txt",
+          "original_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\moon\\1003 pointing at moon_Subt2__3__22-06-59-997.txt",
+          "bytes": 69230,
+          "units": {
+            "x": "nm",
+            "y": "absorbance"
+          },
+          "source": {
+            "ingest": {
+              "source_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\moon\\1003 pointing at moon_Subt2__3__22-06-59-997.txt",
+              "importer": "CsvImporter"
+            },
+            "source_units": {
+              "x": "nm",
+              "y": "absorbance"
+            }
+          },
+          "created": "2025-10-26T18:00:07.828416+00:00",
+          "updated": "2025-10-26T18:00:07.828416+00:00"
+        }
+      },
+      "parents": [],
+      "transforms": [],
+      "path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\moon\\1003 pointing at moon_Subt2__3__22-06-59-997.txt",
+      "size_bytes": 69230,
+      "checksum_sha256": "025ec784e8f73b1500b9f108435dd44ee96ac99d118425ddf4831547f4297d9c",
+      "canonical_csv": "spectra\\1003-pointing-at-moon-subt2-3-22-06-59-997-ac9a2b62-76ed-46f5-a828-98eaf7b2a97e.csv",
+      "exported_copy": "sources\\1003-pointing-at-moon-subt2-3-22-06-59-997-ac9a2b62-76ed-46f5-a828-98eaf7b2a97e.txt"
+    },
+    {
+      "id": "d7b852d5-afd3-4b59-ad5b-2d47b23c48f8",
+      "name": "1003 pointing at moon_Subt2__4__22-07-16-794",
+      "units": {
+        "wavelength": "nm",
+        "intensity": "absorbance"
+      },
+      "metadata": {
+        "comments": [],
+        "preface": [
+          "User: brett",
+          "Trigger mode: 4",
+          "Integration Time (sec): 1.000000E-1",
+          "Scans to average: 1",
+          "Electric dark correction enabled: true",
+          "Nonlinearity correction enabled: true",
+          "Boxcar width: 0",
+          "XAxis mode: Wavelengths",
+          "Number of Pixels in Spectrum: 3648",
+          ">>>>>Begin Spectral Data<<<<<"
+        ],
+        "x_label": ">>>>>Begin Spectral Data<<<<<",
+        "y_label": "Column 2",
+        "header_tokens": [
+          ">>>>>Begin Spectral Data<<<<<"
+        ],
+        "detected_units": {
+          "x": {
+            "unit": "nm",
+            "reason": "value-range"
+          },
+          "y": {
+            "unit": "absorbance",
+            "reason": "default"
+          }
+        },
+        "column_selection": {
+          "x_index": 0,
+          "y_index": 1,
+          "x_reason": "score",
+          "y_reason": "score",
+          "layout_signature": [
+            ">>>>>begin spectral data<<<<<|"
+          ],
+          "layout_cache": "miss"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "absorbance"
+        },
+        "ingest": {
+          "source_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\moon\\1003 pointing at moon_Subt2__4__22-07-16-794.txt",
+          "importer": "CsvImporter",
+          "cache_record": {
+            "sha256": "56ddf6f9c31500290c0c10ffc50a3d82938ac2389824df057f13110e6f48b553",
+            "created": "2025-10-26T18:00:07.888126+00:00",
+            "updated": "2025-10-26T18:00:07.888126+00:00"
+          }
+        },
+        "cache_record": {
+          "sha256": "56ddf6f9c31500290c0c10ffc50a3d82938ac2389824df057f13110e6f48b553",
+          "filename": "1003 pointing at moon_Subt2__4__22-07-16-794.txt",
+          "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\56\\1003 pointing at moon_Subt2__4__22-07-16-794.txt",
+          "original_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\moon\\1003 pointing at moon_Subt2__4__22-07-16-794.txt",
+          "bytes": 68491,
+          "units": {
+            "x": "nm",
+            "y": "absorbance"
+          },
+          "source": {
+            "ingest": {
+              "source_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\moon\\1003 pointing at moon_Subt2__4__22-07-16-794.txt",
+              "importer": "CsvImporter"
+            },
+            "source_units": {
+              "x": "nm",
+              "y": "absorbance"
+            }
+          },
+          "created": "2025-10-26T18:00:07.888126+00:00",
+          "updated": "2025-10-26T18:00:07.888126+00:00"
+        }
+      },
+      "parents": [],
+      "transforms": [],
+      "path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\moon\\1003 pointing at moon_Subt2__4__22-07-16-794.txt",
+      "size_bytes": 68491,
+      "checksum_sha256": "56ddf6f9c31500290c0c10ffc50a3d82938ac2389824df057f13110e6f48b553",
+      "canonical_csv": "spectra\\1003-pointing-at-moon-subt2-4-22-07-16-794-d7b852d5-afd3-4b59-ad5b-2d47b23c48f8.csv",
+      "exported_copy": "sources\\1003-pointing-at-moon-subt2-4-22-07-16-794-d7b852d5-afd3-4b59-ad5b-2d47b23c48f8.txt"
+    },
+    {
+      "id": "2ffc5847-517d-4819-bb22-9a112678900f",
+      "name": "1003 pointing at moon_Subt2__5__22-07-20-794",
+      "units": {
+        "wavelength": "nm",
+        "intensity": "absorbance"
+      },
+      "metadata": {
+        "comments": [],
+        "preface": [
+          "User: brett",
+          "Trigger mode: 4",
+          "Integration Time (sec): 1.000000E-1",
+          "Scans to average: 1",
+          "Electric dark correction enabled: true",
+          "Nonlinearity correction enabled: true",
+          "Boxcar width: 0",
+          "XAxis mode: Wavelengths",
+          "Number of Pixels in Spectrum: 3648",
+          ">>>>>Begin Spectral Data<<<<<"
+        ],
+        "x_label": ">>>>>Begin Spectral Data<<<<<",
+        "y_label": "Column 2",
+        "header_tokens": [
+          ">>>>>Begin Spectral Data<<<<<"
+        ],
+        "detected_units": {
+          "x": {
+            "unit": "nm",
+            "reason": "value-range"
+          },
+          "y": {
+            "unit": "absorbance",
+            "reason": "default"
+          }
+        },
+        "column_selection": {
+          "x_index": 0,
+          "y_index": 1,
+          "x_reason": "score",
+          "y_reason": "score",
+          "layout_signature": [
+            ">>>>>begin spectral data<<<<<|"
+          ],
+          "layout_cache": "miss"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "absorbance"
+        },
+        "ingest": {
+          "source_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\moon\\1003 pointing at moon_Subt2__5__22-07-20-794.txt",
+          "importer": "CsvImporter",
+          "cache_record": {
+            "sha256": "b4c0e18db261c3701d7fbe9f65f2dcc7e9bcd892a3add125504aa57e403293fd",
+            "created": "2025-10-26T18:00:07.956632+00:00",
+            "updated": "2025-10-26T18:00:07.956632+00:00"
+          }
+        },
+        "cache_record": {
+          "sha256": "b4c0e18db261c3701d7fbe9f65f2dcc7e9bcd892a3add125504aa57e403293fd",
+          "filename": "1003 pointing at moon_Subt2__5__22-07-20-794.txt",
+          "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\b4\\1003 pointing at moon_Subt2__5__22-07-20-794.txt",
+          "original_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\moon\\1003 pointing at moon_Subt2__5__22-07-20-794.txt",
+          "bytes": 69235,
+          "units": {
+            "x": "nm",
+            "y": "absorbance"
+          },
+          "source": {
+            "ingest": {
+              "source_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\moon\\1003 pointing at moon_Subt2__5__22-07-20-794.txt",
+              "importer": "CsvImporter"
+            },
+            "source_units": {
+              "x": "nm",
+              "y": "absorbance"
+            }
+          },
+          "created": "2025-10-26T18:00:07.956632+00:00",
+          "updated": "2025-10-26T18:00:07.956632+00:00"
+        }
+      },
+      "parents": [],
+      "transforms": [],
+      "path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\moon\\1003 pointing at moon_Subt2__5__22-07-20-794.txt",
+      "size_bytes": 69235,
+      "checksum_sha256": "b4c0e18db261c3701d7fbe9f65f2dcc7e9bcd892a3add125504aa57e403293fd",
+      "canonical_csv": "spectra\\1003-pointing-at-moon-subt2-5-22-07-20-794-2ffc5847-517d-4819-bb22-9a112678900f.csv",
+      "exported_copy": "sources\\1003-pointing-at-moon-subt2-5-22-07-20-794-2ffc5847-517d-4819-bb22-9a112678900f.txt"
+    },
+    {
+      "id": "69e4bc11-0f2a-4b4f-ae94-878285c5aaf3",
+      "name": "1003 pointing at moon_Subt2__6__22-07-21-694",
+      "units": {
+        "wavelength": "nm",
+        "intensity": "absorbance"
+      },
+      "metadata": {
+        "comments": [],
+        "preface": [
+          "User: brett",
+          "Trigger mode: 4",
+          "Integration Time (sec): 1.000000E-1",
+          "Scans to average: 1",
+          "Electric dark correction enabled: true",
+          "Nonlinearity correction enabled: true",
+          "Boxcar width: 0",
+          "XAxis mode: Wavelengths",
+          "Number of Pixels in Spectrum: 3648",
+          ">>>>>Begin Spectral Data<<<<<"
+        ],
+        "x_label": ">>>>>Begin Spectral Data<<<<<",
+        "y_label": "Column 2",
+        "header_tokens": [
+          ">>>>>Begin Spectral Data<<<<<"
+        ],
+        "detected_units": {
+          "x": {
+            "unit": "nm",
+            "reason": "value-range"
+          },
+          "y": {
+            "unit": "absorbance",
+            "reason": "default"
+          }
+        },
+        "column_selection": {
+          "x_index": 0,
+          "y_index": 1,
+          "x_reason": "score",
+          "y_reason": "score",
+          "layout_signature": [
+            ">>>>>begin spectral data<<<<<|"
+          ],
+          "layout_cache": "miss"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "absorbance"
+        },
+        "ingest": {
+          "source_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\moon\\1003 pointing at moon_Subt2__6__22-07-21-694.txt",
+          "importer": "CsvImporter",
+          "cache_record": {
+            "sha256": "a2c1e8b91959240c2efee4afeda055e9f245885a537c7924321549a7ac992af9",
+            "created": "2025-10-26T18:00:08.015853+00:00",
+            "updated": "2025-10-26T18:00:08.015853+00:00"
+          }
+        },
+        "cache_record": {
+          "sha256": "a2c1e8b91959240c2efee4afeda055e9f245885a537c7924321549a7ac992af9",
+          "filename": "1003 pointing at moon_Subt2__6__22-07-21-694.txt",
+          "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\a2\\1003 pointing at moon_Subt2__6__22-07-21-694.txt",
+          "original_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\moon\\1003 pointing at moon_Subt2__6__22-07-21-694.txt",
+          "bytes": 69211,
+          "units": {
+            "x": "nm",
+            "y": "absorbance"
+          },
+          "source": {
+            "ingest": {
+              "source_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\moon\\1003 pointing at moon_Subt2__6__22-07-21-694.txt",
+              "importer": "CsvImporter"
+            },
+            "source_units": {
+              "x": "nm",
+              "y": "absorbance"
+            }
+          },
+          "created": "2025-10-26T18:00:08.015853+00:00",
+          "updated": "2025-10-26T18:00:08.015853+00:00"
+        }
+      },
+      "parents": [],
+      "transforms": [],
+      "path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\moon\\1003 pointing at moon_Subt2__6__22-07-21-694.txt",
+      "size_bytes": 69211,
+      "checksum_sha256": "a2c1e8b91959240c2efee4afeda055e9f245885a537c7924321549a7ac992af9",
+      "canonical_csv": "spectra\\1003-pointing-at-moon-subt2-6-22-07-21-694-69e4bc11-0f2a-4b4f-ae94-878285c5aaf3.csv",
+      "exported_copy": "sources\\1003-pointing-at-moon-subt2-6-22-07-21-694-69e4bc11-0f2a-4b4f-ae94-878285c5aaf3.txt"
+    },
+    {
+      "id": "6a38ab25-5922-4e99-80c1-5a8f817998a8",
+      "name": "1003 pointing at moon_Subt2__7__22-08-57-183",
+      "units": {
+        "wavelength": "nm",
+        "intensity": "absorbance"
+      },
+      "metadata": {
+        "comments": [],
+        "preface": [
+          "User: brett",
+          "Trigger mode: 4",
+          "Integration Time (sec): 1.000000E-1",
+          "Scans to average: 1",
+          "Electric dark correction enabled: true",
+          "Nonlinearity correction enabled: true",
+          "Boxcar width: 0",
+          "XAxis mode: Wavelengths",
+          "Number of Pixels in Spectrum: 3648",
+          ">>>>>Begin Spectral Data<<<<<"
+        ],
+        "x_label": ">>>>>Begin Spectral Data<<<<<",
+        "y_label": "Column 2",
+        "header_tokens": [
+          ">>>>>Begin Spectral Data<<<<<"
+        ],
+        "detected_units": {
+          "x": {
+            "unit": "nm",
+            "reason": "value-range"
+          },
+          "y": {
+            "unit": "absorbance",
+            "reason": "default"
+          }
+        },
+        "column_selection": {
+          "x_index": 0,
+          "y_index": 1,
+          "x_reason": "score",
+          "y_reason": "score",
+          "layout_signature": [
+            ">>>>>begin spectral data<<<<<|"
+          ],
+          "layout_cache": "miss"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "absorbance"
+        },
+        "ingest": {
+          "source_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\moon\\1003 pointing at moon_Subt2__7__22-08-57-183.txt",
+          "importer": "CsvImporter",
+          "cache_record": {
+            "sha256": "54a5d7d8aaacdb8cce72de108ec5d034768d666b22ce5c36d224b7f4411fa203",
+            "created": "2025-10-26T18:00:08.079363+00:00",
+            "updated": "2025-10-26T18:00:08.079363+00:00"
+          }
+        },
+        "cache_record": {
+          "sha256": "54a5d7d8aaacdb8cce72de108ec5d034768d666b22ce5c36d224b7f4411fa203",
+          "filename": "1003 pointing at moon_Subt2__7__22-08-57-183.txt",
+          "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\54\\1003 pointing at moon_Subt2__7__22-08-57-183.txt",
+          "original_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\moon\\1003 pointing at moon_Subt2__7__22-08-57-183.txt",
+          "bytes": 69158,
+          "units": {
+            "x": "nm",
+            "y": "absorbance"
+          },
+          "source": {
+            "ingest": {
+              "source_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\moon\\1003 pointing at moon_Subt2__7__22-08-57-183.txt",
+              "importer": "CsvImporter"
+            },
+            "source_units": {
+              "x": "nm",
+              "y": "absorbance"
+            }
+          },
+          "created": "2025-10-26T18:00:08.079363+00:00",
+          "updated": "2025-10-26T18:00:08.079363+00:00"
+        }
+      },
+      "parents": [],
+      "transforms": [],
+      "path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\moon\\1003 pointing at moon_Subt2__7__22-08-57-183.txt",
+      "size_bytes": 69158,
+      "checksum_sha256": "54a5d7d8aaacdb8cce72de108ec5d034768d666b22ce5c36d224b7f4411fa203",
+      "canonical_csv": "spectra\\1003-pointing-at-moon-subt2-7-22-08-57-183-6a38ab25-5922-4e99-80c1-5a8f817998a8.csv",
+      "exported_copy": "sources\\1003-pointing-at-moon-subt2-7-22-08-57-183-6a38ab25-5922-4e99-80c1-5a8f817998a8.txt"
+    },
+    {
+      "id": "a5412186-2bea-49b1-bbf5-f685cf78323c",
+      "name": "1003 pointing at moon_Subt2__8__22-09-25-280",
+      "units": {
+        "wavelength": "nm",
+        "intensity": "absorbance"
+      },
+      "metadata": {
+        "comments": [],
+        "preface": [
+          "User: brett",
+          "Trigger mode: 4",
+          "Integration Time (sec): 1.000000E-1",
+          "Scans to average: 1",
+          "Electric dark correction enabled: true",
+          "Nonlinearity correction enabled: true",
+          "Boxcar width: 0",
+          "XAxis mode: Wavelengths",
+          "Number of Pixels in Spectrum: 3648",
+          ">>>>>Begin Spectral Data<<<<<"
+        ],
+        "x_label": ">>>>>Begin Spectral Data<<<<<",
+        "y_label": "Column 2",
+        "header_tokens": [
+          ">>>>>Begin Spectral Data<<<<<"
+        ],
+        "detected_units": {
+          "x": {
+            "unit": "nm",
+            "reason": "value-range"
+          },
+          "y": {
+            "unit": "absorbance",
+            "reason": "default"
+          }
+        },
+        "column_selection": {
+          "x_index": 0,
+          "y_index": 1,
+          "x_reason": "score",
+          "y_reason": "score",
+          "layout_signature": [
+            ">>>>>begin spectral data<<<<<|"
+          ],
+          "layout_cache": "miss"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "absorbance"
+        },
+        "ingest": {
+          "source_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\moon\\1003 pointing at moon_Subt2__8__22-09-25-280.txt",
+          "importer": "CsvImporter",
+          "cache_record": {
+            "sha256": "10bfc83554e8f13abec2eb4d9a8dc4f18af224e097289c8c4db52b506c25a1fb",
+            "created": "2025-10-26T18:00:08.155066+00:00",
+            "updated": "2025-10-26T18:00:08.155066+00:00"
+          }
+        },
+        "cache_record": {
+          "sha256": "10bfc83554e8f13abec2eb4d9a8dc4f18af224e097289c8c4db52b506c25a1fb",
+          "filename": "1003 pointing at moon_Subt2__8__22-09-25-280.txt",
+          "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\10\\1003 pointing at moon_Subt2__8__22-09-25-280.txt",
+          "original_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\moon\\1003 pointing at moon_Subt2__8__22-09-25-280.txt",
+          "bytes": 69467,
+          "units": {
+            "x": "nm",
+            "y": "absorbance"
+          },
+          "source": {
+            "ingest": {
+              "source_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\moon\\1003 pointing at moon_Subt2__8__22-09-25-280.txt",
+              "importer": "CsvImporter"
+            },
+            "source_units": {
+              "x": "nm",
+              "y": "absorbance"
+            }
+          },
+          "created": "2025-10-26T18:00:08.155066+00:00",
+          "updated": "2025-10-26T18:00:08.155066+00:00"
+        }
+      },
+      "parents": [],
+      "transforms": [],
+      "path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\moon\\1003 pointing at moon_Subt2__8__22-09-25-280.txt",
+      "size_bytes": 69467,
+      "checksum_sha256": "10bfc83554e8f13abec2eb4d9a8dc4f18af224e097289c8c4db52b506c25a1fb",
+      "canonical_csv": "spectra\\1003-pointing-at-moon-subt2-8-22-09-25-280-a5412186-2bea-49b1-bbf5-f685cf78323c.csv",
+      "exported_copy": "sources\\1003-pointing-at-moon-subt2-8-22-09-25-280-a5412186-2bea-49b1-bbf5-f685cf78323c.txt"
+    },
+    {
+      "id": "a44b5f13-6fdd-432b-a79b-53fa09d6099f",
+      "name": "1003 pointing at moon_Subt2__9__22-09-26-080",
+      "units": {
+        "wavelength": "nm",
+        "intensity": "absorbance"
+      },
+      "metadata": {
+        "comments": [],
+        "preface": [
+          "User: brett",
+          "Trigger mode: 4",
+          "Integration Time (sec): 1.000000E-1",
+          "Scans to average: 1",
+          "Electric dark correction enabled: true",
+          "Nonlinearity correction enabled: true",
+          "Boxcar width: 0",
+          "XAxis mode: Wavelengths",
+          "Number of Pixels in Spectrum: 3648",
+          ">>>>>Begin Spectral Data<<<<<"
+        ],
+        "x_label": ">>>>>Begin Spectral Data<<<<<",
+        "y_label": "Column 2",
+        "header_tokens": [
+          ">>>>>Begin Spectral Data<<<<<"
+        ],
+        "detected_units": {
+          "x": {
+            "unit": "nm",
+            "reason": "value-range"
+          },
+          "y": {
+            "unit": "absorbance",
+            "reason": "default"
+          }
+        },
+        "column_selection": {
+          "x_index": 0,
+          "y_index": 1,
+          "x_reason": "score",
+          "y_reason": "score",
+          "layout_signature": [
+            ">>>>>begin spectral data<<<<<|"
+          ],
+          "layout_cache": "miss"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "absorbance"
+        },
+        "ingest": {
+          "source_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\moon\\1003 pointing at moon_Subt2__9__22-09-26-080.txt",
+          "importer": "CsvImporter",
+          "cache_record": {
+            "sha256": "9f0a2565a559adc8374ad2ac28e8da709f735c08b3b99e57ef53fb1028ad34d3",
+            "created": "2025-10-26T18:00:08.222619+00:00",
+            "updated": "2025-10-26T18:00:08.222619+00:00"
+          }
+        },
+        "cache_record": {
+          "sha256": "9f0a2565a559adc8374ad2ac28e8da709f735c08b3b99e57ef53fb1028ad34d3",
+          "filename": "1003 pointing at moon_Subt2__9__22-09-26-080.txt",
+          "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\9f\\1003 pointing at moon_Subt2__9__22-09-26-080.txt",
+          "original_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\moon\\1003 pointing at moon_Subt2__9__22-09-26-080.txt",
+          "bytes": 69343,
+          "units": {
+            "x": "nm",
+            "y": "absorbance"
+          },
+          "source": {
+            "ingest": {
+              "source_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\moon\\1003 pointing at moon_Subt2__9__22-09-26-080.txt",
+              "importer": "CsvImporter"
+            },
+            "source_units": {
+              "x": "nm",
+              "y": "absorbance"
+            }
+          },
+          "created": "2025-10-26T18:00:08.222619+00:00",
+          "updated": "2025-10-26T18:00:08.222619+00:00"
+        }
+      },
+      "parents": [],
+      "transforms": [],
+      "path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\moon\\1003 pointing at moon_Subt2__9__22-09-26-080.txt",
+      "size_bytes": 69343,
+      "checksum_sha256": "9f0a2565a559adc8374ad2ac28e8da709f735c08b3b99e57ef53fb1028ad34d3",
+      "canonical_csv": "spectra\\1003-pointing-at-moon-subt2-9-22-09-26-080-a44b5f13-6fdd-432b-a79b-53fa09d6099f.csv",
+      "exported_copy": "sources\\1003-pointing-at-moon-subt2-9-22-09-26-080-a44b5f13-6fdd-432b-a79b-53fa09d6099f.txt"
+    },
+    {
+      "id": "a5d5f41f-f73d-4f1b-92a8-13e54ed0c8d0",
+      "name": "1003 pointing at moon_Subt2__10__22-10-16-917",
+      "units": {
+        "wavelength": "nm",
+        "intensity": "absorbance"
+      },
+      "metadata": {
+        "comments": [],
+        "preface": [
+          "User: brett",
+          "Trigger mode: 4",
+          "Integration Time (sec): 1.659560E0",
+          "Scans to average: 1",
+          "Electric dark correction enabled: true",
+          "Nonlinearity correction enabled: true",
+          "Boxcar width: 0",
+          "XAxis mode: Wavelengths",
+          "Number of Pixels in Spectrum: 3648",
+          ">>>>>Begin Spectral Data<<<<<"
+        ],
+        "x_label": ">>>>>Begin Spectral Data<<<<<",
+        "y_label": "Column 2",
+        "header_tokens": [
+          ">>>>>Begin Spectral Data<<<<<"
+        ],
+        "detected_units": {
+          "x": {
+            "unit": "nm",
+            "reason": "value-range"
+          },
+          "y": {
+            "unit": "absorbance",
+            "reason": "default"
+          }
+        },
+        "column_selection": {
+          "x_index": 0,
+          "y_index": 1,
+          "x_reason": "score",
+          "y_reason": "score",
+          "layout_signature": [
+            ">>>>>begin spectral data<<<<<|"
+          ],
+          "layout_cache": "miss"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "absorbance"
+        },
+        "ingest": {
+          "source_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\moon\\1003 pointing at moon_Subt2__10__22-10-16-917.txt",
+          "importer": "CsvImporter",
+          "cache_record": {
+            "sha256": "265032f2ef3fd61f1a4b16e8339740925a0003bfe4868b4d55618478c0a7d8f8",
+            "created": "2025-10-26T18:00:08.302397+00:00",
+            "updated": "2025-10-26T18:00:08.302397+00:00"
+          }
+        },
+        "cache_record": {
+          "sha256": "265032f2ef3fd61f1a4b16e8339740925a0003bfe4868b4d55618478c0a7d8f8",
+          "filename": "1003 pointing at moon_Subt2__10__22-10-16-917.txt",
+          "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\26\\1003 pointing at moon_Subt2__10__22-10-16-917.txt",
+          "original_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\moon\\1003 pointing at moon_Subt2__10__22-10-16-917.txt",
+          "bytes": 72970,
+          "units": {
+            "x": "nm",
+            "y": "absorbance"
+          },
+          "source": {
+            "ingest": {
+              "source_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\moon\\1003 pointing at moon_Subt2__10__22-10-16-917.txt",
+              "importer": "CsvImporter"
+            },
+            "source_units": {
+              "x": "nm",
+              "y": "absorbance"
+            }
+          },
+          "created": "2025-10-26T18:00:08.302397+00:00",
+          "updated": "2025-10-26T18:00:08.302397+00:00"
+        }
+      },
+      "parents": [],
+      "transforms": [],
+      "path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\moon\\1003 pointing at moon_Subt2__10__22-10-16-917.txt",
+      "size_bytes": 72970,
+      "checksum_sha256": "265032f2ef3fd61f1a4b16e8339740925a0003bfe4868b4d55618478c0a7d8f8",
+      "canonical_csv": "spectra\\1003-pointing-at-moon-subt2-10-22-10-16-917-a5d5f41f-f73d-4f1b-92a8-13e54ed0c8d0.csv",
+      "exported_copy": "sources\\1003-pointing-at-moon-subt2-10-22-10-16-917-a5d5f41f-f73d-4f1b-92a8-13e54ed0c8d0.txt"
+    },
+    {
+      "id": "87fe6e0c-bb89-4cfe-8ec0-0d2ef1631b30",
+      "name": "1003 pointing at moon_Subt2__11__22-12-59-897",
+      "units": {
+        "wavelength": "nm",
+        "intensity": "absorbance"
+      },
+      "metadata": {
+        "comments": [],
+        "preface": [
+          "User: brett",
+          "Trigger mode: 4",
+          "Integration Time (sec): 2.000000E-1",
+          "Scans to average: 1",
+          "Electric dark correction enabled: true",
+          "Nonlinearity correction enabled: true",
+          "Boxcar width: 0",
+          "XAxis mode: Wavelengths",
+          "Number of Pixels in Spectrum: 3648",
+          ">>>>>Begin Spectral Data<<<<<"
+        ],
+        "x_label": ">>>>>Begin Spectral Data<<<<<",
+        "y_label": "Column 2",
+        "header_tokens": [
+          ">>>>>Begin Spectral Data<<<<<"
+        ],
+        "detected_units": {
+          "x": {
+            "unit": "nm",
+            "reason": "value-range"
+          },
+          "y": {
+            "unit": "absorbance",
+            "reason": "default"
+          }
+        },
+        "column_selection": {
+          "x_index": 0,
+          "y_index": 1,
+          "x_reason": "score",
+          "y_reason": "score",
+          "layout_signature": [
+            ">>>>>begin spectral data<<<<<|"
+          ],
+          "layout_cache": "miss"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "absorbance"
+        },
+        "ingest": {
+          "source_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\moon\\1003 pointing at moon_Subt2__11__22-12-59-897.txt",
+          "importer": "CsvImporter",
+          "cache_record": {
+            "sha256": "10472f431c33189a4e86afa200f447e5e59864fb0631521ae6e2e7478dfdd4d3",
+            "created": "2025-10-26T18:00:08.372808+00:00",
+            "updated": "2025-10-26T18:00:08.372808+00:00"
+          }
+        },
+        "cache_record": {
+          "sha256": "10472f431c33189a4e86afa200f447e5e59864fb0631521ae6e2e7478dfdd4d3",
+          "filename": "1003 pointing at moon_Subt2__11__22-12-59-897.txt",
+          "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\10\\1003 pointing at moon_Subt2__11__22-12-59-897.txt",
+          "original_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\moon\\1003 pointing at moon_Subt2__11__22-12-59-897.txt",
+          "bytes": 70071,
+          "units": {
+            "x": "nm",
+            "y": "absorbance"
+          },
+          "source": {
+            "ingest": {
+              "source_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\moon\\1003 pointing at moon_Subt2__11__22-12-59-897.txt",
+              "importer": "CsvImporter"
+            },
+            "source_units": {
+              "x": "nm",
+              "y": "absorbance"
+            }
+          },
+          "created": "2025-10-26T18:00:08.372808+00:00",
+          "updated": "2025-10-26T18:00:08.372808+00:00"
+        }
+      },
+      "parents": [],
+      "transforms": [],
+      "path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\moon\\1003 pointing at moon_Subt2__11__22-12-59-897.txt",
+      "size_bytes": 70071,
+      "checksum_sha256": "10472f431c33189a4e86afa200f447e5e59864fb0631521ae6e2e7478dfdd4d3",
+      "canonical_csv": "spectra\\1003-pointing-at-moon-subt2-11-22-12-59-897-87fe6e0c-bb89-4cfe-8ec0-0d2ef1631b30.csv",
+      "exported_copy": "sources\\1003-pointing-at-moon-subt2-11-22-12-59-897-87fe6e0c-bb89-4cfe-8ec0-0d2ef1631b30.txt"
+    },
+    {
+      "id": "f00399d6-af1c-494e-9014-ded72a45a0e4",
+      "name": "1003 pointing at moon_Subt2__12__22-14-42-087",
+      "units": {
+        "wavelength": "nm",
+        "intensity": "absorbance"
+      },
+      "metadata": {
+        "comments": [],
+        "preface": [
+          "User: brett",
+          "Trigger mode: 4",
+          "Integration Time (sec): 2.000000E-1",
+          "Scans to average: 1",
+          "Electric dark correction enabled: true",
+          "Nonlinearity correction enabled: true",
+          "Boxcar width: 0",
+          "XAxis mode: Wavelengths",
+          "Number of Pixels in Spectrum: 3648",
+          ">>>>>Begin Spectral Data<<<<<"
+        ],
+        "x_label": ">>>>>Begin Spectral Data<<<<<",
+        "y_label": "Column 2",
+        "header_tokens": [
+          ">>>>>Begin Spectral Data<<<<<"
+        ],
+        "detected_units": {
+          "x": {
+            "unit": "nm",
+            "reason": "value-range"
+          },
+          "y": {
+            "unit": "absorbance",
+            "reason": "default"
+          }
+        },
+        "column_selection": {
+          "x_index": 0,
+          "y_index": 1,
+          "x_reason": "score",
+          "y_reason": "score",
+          "layout_signature": [
+            ">>>>>begin spectral data<<<<<|"
+          ],
+          "layout_cache": "miss"
+        },
+        "source_units": {
+          "x": "nm",
+          "y": "absorbance"
+        },
+        "ingest": {
+          "source_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\moon\\1003 pointing at moon_Subt2__12__22-14-42-087.txt",
+          "importer": "CsvImporter",
+          "cache_record": {
+            "sha256": "e1ccc1f6a61f114675cd9e69cea0e712c9a292e22815b9d5a089aab65009937a",
+            "created": "2025-10-26T18:00:08.445353+00:00",
+            "updated": "2025-10-26T18:00:08.445353+00:00"
+          }
+        },
+        "cache_record": {
+          "sha256": "e1ccc1f6a61f114675cd9e69cea0e712c9a292e22815b9d5a089aab65009937a",
+          "filename": "1003 pointing at moon_Subt2__12__22-14-42-087.txt",
+          "stored_path": "C:\\Code\\spectra-app-v2\\downloads\\files\\e1\\1003 pointing at moon_Subt2__12__22-14-42-087.txt",
+          "original_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\moon\\1003 pointing at moon_Subt2__12__22-14-42-087.txt",
+          "bytes": 69974,
+          "units": {
+            "x": "nm",
+            "y": "absorbance"
+          },
+          "source": {
+            "ingest": {
+              "source_path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\moon\\1003 pointing at moon_Subt2__12__22-14-42-087.txt",
+              "importer": "CsvImporter"
+            },
+            "source_units": {
+              "x": "nm",
+              "y": "absorbance"
+            }
+          },
+          "created": "2025-10-26T18:00:08.445353+00:00",
+          "updated": "2025-10-26T18:00:08.445353+00:00"
+        }
+      },
+      "parents": [],
+      "transforms": [],
+      "path": "C:\\Users\\brett\\OneDrive - Georgia Gwinnett College\\---  SCHOOL ---\\STEC\\DATA\\moon\\1003 pointing at moon_Subt2__12__22-14-42-087.txt",
+      "size_bytes": 69974,
+      "checksum_sha256": "e1ccc1f6a61f114675cd9e69cea0e712c9a292e22815b9d5a089aab65009937a",
+      "canonical_csv": "spectra\\1003-pointing-at-moon-subt2-12-22-14-42-087-f00399d6-af1c-494e-9014-ded72a45a0e4.csv",
+      "exported_copy": "sources\\1003-pointing-at-moon-subt2-12-22-14-42-087-f00399d6-af1c-494e-9014-ded72a45a0e4.txt"
+    }
+  ],
+  "transforms": [],
+  "citations": []
+}
