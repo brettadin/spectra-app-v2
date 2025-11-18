@@ -22,6 +22,7 @@ preserving behavior.
 from __future__ import annotations
 
 import os
+import csv
 from collections import OrderedDict
 from pathlib import Path
 from typing import Any, Dict, List, Mapping, Optional, Sequence
@@ -234,6 +235,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             pass
         self._wire_shortcuts()
         self._load_docs_if_needed()  # Pre-load documentation so it's ready immediately
+        self._load_reference_lines_data()  # Pre-load curated spectral lines for Reference tab
         # self._load_default_samples()  # Disabled: users prefer empty workspace on launch
         # Ensure visibility in offscreen test environments so isVisible() checks pass
         try:
@@ -274,7 +276,8 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self._last_cursor_x_display: float | None = None
         # Keep reference overlays in sync with view changes (zoom/pan)
         try:
-            self.plot.rangeChanged.connect(lambda *_: self._refresh_reference_overlay_geometry())
+            # Refresh both reference overlay geometry and reposition user-imported line markers
+            self.plot.rangeChanged.connect(lambda *_: (self._refresh_reference_overlay_geometry(), self._update_line_marker_positions()))
         except Exception:
             pass
 
@@ -366,6 +369,9 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.reference_panel.tabChanged.connect(lambda _: self._refresh_reference_view())
         # Cache management
         self.reference_panel.nist_cache_button.clicked.connect(self._on_nist_cache_clear_clicked)
+        # Reference Lines tab signals
+        self.reference_panel.referenceLinesToggled.connect(self._on_reference_line_element_toggled)
+        self.reference_panel.referenceLinesRefreshRequested.connect(self._refresh_reference_lines_table)
         # Table selection changes still wired directly (more complex to decouple without rewriting handlers)
         self.ir_table.itemSelectionChanged.connect(self._on_ir_row_selected)
         self.ls_table.itemSelectionChanged.connect(self._on_line_shape_row_selected)
@@ -388,6 +394,13 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         )
         self.remote_data_panel.spectra_imported.connect(self._handle_remote_spectra_imported)
         self.remote_data_panel.status_message.connect(self._log)
+        # Mirror Remote Data progress into the global status bar
+        try:
+            self.remote_data_panel.download_started.connect(self._on_global_download_started)
+            self.remote_data_panel.download_progress.connect(self._on_global_download_progress)
+            self.remote_data_panel.download_finished.connect(self._on_global_download_finished)
+        except Exception:
+            pass
         self.inspector_tabs.addTab(self.remote_data_panel, "Remote Data")
         
         # Merge/Average tab (moved into MergePanel)
@@ -551,6 +564,28 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
 
         # Status bar
         self.statusBar().showMessage("Ready")
+        # Global progress bar to surface background work (e.g., downloads)
+        self._status_progress = QtWidgets.QProgressBar()
+        try:
+            self._status_progress.setMaximumHeight(14)
+        except Exception:
+            pass
+        self._status_progress.setVisible(False)
+        self._status_progress.setMinimum(0)
+        self._status_progress.setMaximum(1)
+        self._status_progress.setValue(0)
+        try:
+            self.statusBar().addPermanentWidget(self._status_progress, 0)
+        except Exception:
+            pass
+
+        # User-imported and reference spectral line markers (vertical lines + labels)
+        # Dict of element/group -> list of markers
+        # Each marker: {'x_nm': float, 'line': pg.InfiniteLine, 'text': pg.TextItem, 'color': QtGui.QColor, 'label': str}
+        self._line_markers_by_element: Dict[str, List[Dict[str, Any]]] = {}
+        self._line_labels_visible = True  # Global toggle for all labels
+        # Curated reference lines loaded from samples/reference_lines/
+        self._reference_lines_data: List[Dict[str, str]] = []
 
     # ----------------------------- Merge / Math handlers -------------
     def _selected_dataset_ids(self) -> List[str]:
@@ -806,6 +841,78 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         for collection_id in list(self._nist_plot_items.keys()):
             if self.nist_lines_panel.is_visible(collection_id):
                 self._draw_nist_collection(collection_id)
+        # Reposition custom line list markers in new display units
+        try:
+            self._update_line_marker_positions()
+        except Exception:
+            pass
+
+    def _update_line_marker_positions(self) -> None:
+        """Update positions of all spectral line markers after unit or view change.
+        
+        When markers are very close (overlapping), vertically stagger their labels
+        to prevent text collision.
+        """
+        # Collect all markers across all element groups
+        all_markers: List[Dict[str, Any]] = []
+        for element_markers in self._line_markers_by_element.values():
+            all_markers.extend(element_markers)
+        
+        if not all_markers:
+            return
+        try:
+            (x_range, y_range) = self.plot.view_range()
+            y0, y1 = float(y_range[0]), float(y_range[1])
+            y_span = y1 - y0
+            # Base label position: near top with small margin
+            y_base = y1 - y_span * 0.04
+        except Exception:
+            y_base = 0.0
+            y_span = 1.0
+        
+        # First pass: convert all markers to display units and sort by x position
+        display_positions: List[tuple[float, Dict[str, Any]]] = []
+        for marker in all_markers:
+            try:
+                x_nm = float(marker.get('x_nm'))
+                disp = float(self.plot._x_nm_to_disp(np.array([x_nm]))[0])  # type: ignore[attr-defined]
+                marker['line'].setPos(disp)
+                display_positions.append((disp, marker))
+            except Exception:
+                continue
+        
+        # Sort by x position to process overlaps in order
+        display_positions.sort(key=lambda t: t[0])
+        
+        # Second pass: detect overlaps and assign stagger levels
+        # Overlap threshold: ~4% of current view width (accounts for typical label text width)
+        try:
+            x_view_span = float(x_range[1] - x_range[0])
+            overlap_threshold = abs(x_view_span) * 0.04
+        except Exception:
+            overlap_threshold = 10.0  # fallback
+        
+        stagger_levels: List[int] = []
+        for i, (x_pos, marker) in enumerate(display_positions):
+            level = 0
+            # Check against all previous markers to find first free level
+            for j in range(i):
+                prev_x, prev_marker = display_positions[j]
+                if abs(x_pos - prev_x) < overlap_threshold:
+                    # Overlapping: ensure we're at a different level
+                    if stagger_levels[j] == level:
+                        level += 1
+            stagger_levels.append(level)
+        
+        # Third pass: position labels with vertical stagger
+        # Each level shifts down by 3.5% of y-span (tighter packing)
+        stagger_step = y_span * 0.035
+        for (x_pos, marker), level in zip(display_positions, stagger_levels):
+            y_label = y_base - (level * stagger_step)
+            try:
+                marker['text'].setPos(x_pos, y_label)
+            except Exception:
+                continue
 
     # ----------------------------- Analysis helpers -------------------
     def _get_selected_spec_and_display_arrays(self) -> tuple[str | None, np.ndarray, np.ndarray, str]:
@@ -1097,6 +1204,12 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         sample_action.triggered.connect(self.load_sample_via_menu)
         file_menu.addAction(sample_action)
 
+        # Line list import moved to Reference tab; keep legacy action for custom imports
+        line_list_action = QtGui.QAction("Import Custom Line List…", self)
+        line_list_action.setToolTip("Import a custom CSV of spectral lines (wavelength_nm,label,element,...)")
+        line_list_action.triggered.connect(self.import_line_list_via_menu)
+        file_menu.addAction(line_list_action)
+
         # Remote Data action now opens Remote Data tab in inspector
         remote_action = QtGui.QAction("Show &Remote Data Tab…", self)
         remote_action.setShortcut("Ctrl+Shift+R")
@@ -1179,6 +1292,12 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.reset_plot_action.setShortcut(QtGui.QKeySequence("Ctrl+Shift+A"))
         self.reset_plot_action.triggered.connect(self.plot.autoscale)
         view_menu.addAction(self.reset_plot_action)
+
+        # Toggle for spectral line labels (text items only, lines remain visible)
+        self.line_labels_action = QtGui.QAction("Show Line Labels", self, checkable=True)
+        self.line_labels_action.setChecked(True)
+        self.line_labels_action.toggled.connect(self._on_line_labels_toggled)
+        view_menu.addAction(self.line_labels_action)
         view_menu.addSeparator()
         self.data_table_action = QtGui.QAction("Show Data Table", self, checkable=True)
         self.data_table_action.triggered.connect(self._toggle_data_table)
@@ -1337,13 +1456,25 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             return
         self.data_table_dock = QtWidgets.QDockWidget("Data Table", self)
         self.data_table_dock.setObjectName("dock-data-table")
+        # Compose a small panel: metadata label + table
+        container = QtWidgets.QWidget()
+        vbox = QtWidgets.QVBoxLayout(container)
+        vbox.setContentsMargins(4, 4, 4, 4)
+        self.data_table_meta = QtWidgets.QLabel("")
+        try:
+            self.data_table_meta.setWordWrap(True)
+            self.data_table_meta.setStyleSheet("color: #bbb; font-size: 11px;")
+        except Exception:
+            pass
+        vbox.addWidget(self.data_table_meta)
         self.data_table = QtWidgets.QTableWidget()
         self.data_table.setColumnCount(2)
         self.data_table.setHorizontalHeaderLabels(["Wavelength", "Value"])
         self.data_table.setAlternatingRowColors(True)
         self.data_table.setEditTriggers(QtWidgets.QAbstractItemView.EditTrigger.NoEditTriggers)
         self.data_table.setSelectionMode(QtWidgets.QAbstractItemView.SelectionMode.NoSelection)
-        self.data_table_dock.setWidget(self.data_table)
+        vbox.addWidget(self.data_table)
+        self.data_table_dock.setWidget(container)
         self.addDockWidget(QtCore.Qt.DockWidgetArea.BottomDockWidgetArea, self.data_table_dock)
         # Keep visibility action in sync with dock
         if self.data_table_action is not None:
@@ -1376,6 +1507,11 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         if len(selected) != 1:
             self.data_table.clearContents()
             self.data_table.setRowCount(0)
+            try:
+                if hasattr(self, "data_table_meta"):
+                    self.data_table_meta.setText("")
+            except Exception:
+                pass
             return
         index = selected[0]
         alias_item = self.dataset_model.itemFromIndex(self.dataset_model.index(index.row(), 0, index.parent()))
@@ -1387,6 +1523,11 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         if not spec_id:
             self.data_table.clearContents()
             self.data_table.setRowCount(0)
+            try:
+                if hasattr(self, "data_table_meta"):
+                    self.data_table_meta.setText("")
+            except Exception:
+                pass
             return
         try:
             spec = self.overlay_service.get(spec_id)
@@ -1454,6 +1595,48 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             self.data_table.setItem(r, 0, xi)
             self.data_table.setItem(r, 1, yi)
         self.data_table.resizeColumnsToContents()
+        # Update the metadata label with credits
+        try:
+            credits = []
+            meta = spec.metadata if isinstance(spec.metadata, dict) else {}
+            cache_rec = meta.get("cache_record", {}) if isinstance(meta, dict) else {}
+            src = cache_rec.get("source", {}) if isinstance(cache_rec, dict) else {}
+            remote = src.get("remote", {}) if isinstance(src, dict) else {}
+            if isinstance(remote, dict) and remote:
+                provider = str(remote.get("provider") or "Remote")
+                ident = str(remote.get("identifier") or remote.get("id") or "").strip()
+                uri = str(remote.get("uri") or "")
+                m = remote.get("metadata") if isinstance(remote.get("metadata"), dict) else {}
+                mission = str(m.get("obs_collection") or m.get("telescope_name") or "").strip()
+                instrument = str(m.get("instrument_name") or m.get("instrument") or "").strip()
+                title = str(m.get("title") or "").strip()
+                parts = [provider]
+                if mission:
+                    parts.append(mission)
+                if instrument:
+                    parts.append(instrument)
+                line = " / ".join([p for p in parts if p])
+                if ident:
+                    line = f"{line} — {ident}"
+                credits.append(line)
+                if title:
+                    credits.append(title)
+                if uri:
+                    credits.append(uri)
+            if not credits:
+                ingest = src.get("ingest", {}) if isinstance(src, dict) else {}
+                if isinstance(ingest, dict):
+                    spath = str(ingest.get("source_path") or "")
+                    if spath:
+                        credits.append(spath)
+            if hasattr(self, "data_table_meta"):
+                self.data_table_meta.setText(" \n".join([c for c in credits if c]))
+        except Exception:
+            try:
+                if hasattr(self, "data_table_meta"):
+                    self.data_table_meta.setText("")
+            except Exception:
+                pass
 
     @ui_action("Failed to show documentation")
     def show_documentation(self) -> None:
@@ -1501,6 +1684,195 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         if not path_str:
             return
         self._ingest_path(Path(path_str))
+
+    @ui_action("Failed to import line list")
+    def import_line_list_via_menu(self) -> None:
+        """Prompt for a CSV file containing labeled spectral lines and overlay them.
+
+        Expected columns (case-insensitive):
+        - wavelength_nm (numeric)
+        - label (string)
+        Optional columns used for tooltip grouping: ion, note.
+        """
+        # Default to samples directory to encourage using bundled example
+        start_dir = str(SAMPLES_DIR) if SAMPLES_DIR.exists() else str(Path.home())
+        path_str, _ = QtWidgets.QFileDialog.getOpenFileName(
+            self,
+            "Import Line List",
+            start_dir,
+            "CSV files (*.csv);;All files (*.*)",
+        )
+        if not path_str:
+            return
+        self._import_line_list_csv(Path(path_str))
+
+    def _import_line_list_csv(self, path: Path) -> None:
+        """Parse a labeled line CSV and create vertical markers with colored labels."""
+        if not path.exists():
+            QtWidgets.QMessageBox.warning(self, "Line list", f"File not found: {path}")
+            return
+        try:
+            rows: List[Dict[str, Any]] = []
+            with path.open("r", encoding="utf-8", newline="") as handle:
+                import csv as _csv
+                reader = _csv.DictReader(handle)
+                for raw in reader:
+                    if not isinstance(raw, dict):
+                        continue
+                    rows.append({k.lower(): v for k, v in raw.items()})
+        except Exception as exc:
+            QtWidgets.QMessageBox.warning(self, "Line list", f"Failed to read CSV: {exc}")
+            return
+        if not rows:
+            QtWidgets.QMessageBox.information(self, "Line list", "No rows found in CSV.")
+            return
+        added = 0
+        # Heuristic helpers for unit detection
+        def _convert_to_nm(raw_val: float, unit_hint: str | None) -> tuple[float, str]:
+            u = (unit_hint or "").strip().lower()
+            if u in {"nm", "nanometer", "nanometre", "nanometers", "nanometres"}:
+                return raw_val, "nm"
+            if u in {"m", "meter", "meters"}:
+                return raw_val * 1e9, "m"
+            if u in {"um", "µm", "micron", "micrometer", "micrometre"}:
+                return raw_val * 1000.0, "µm"
+            if u in {"angstrom", "ångström", "å", "a"}:
+                return raw_val * 0.1, "Å"
+            if u in {"cm^-1", "cm⁻¹", "cm-1"}:  # wavenumber to nm (λ_nm = 1e7 / ν_cm^-1)
+                if raw_val > 0:
+                    return 1e7 / raw_val, "cm⁻¹"
+                return raw_val, "cm⁻¹"
+            # Unspecified: apply numeric heuristic
+            # Typical meters representation of visible lines ~5e-7; microns ~0.5; nm ~500
+            if raw_val < 1e-3:  # assume meters
+                return raw_val * 1e9, "(assumed m)"
+            if 0.05 <= raw_val <= 50.0:  # could be µm range
+                # If median later appears ~0.x treat as µm; for single pass assume µm if < 25
+                if raw_val < 25.0:
+                    return raw_val * 1000.0, "(assumed µm)"
+            return raw_val, "(assumed nm)"
+
+        for row in rows:
+            # Accept multiple wavelength column variants
+            wl_fields = [
+                "wavelength_nm", "wavelength", "wavelength_m", "wavelength_um", "wavelength_angstrom", "wavelength_Å", "wavenumber", "wavenumber_cm-1", "wavenumber_cm^-1"
+            ]
+            wl_text = ""
+            for key in wl_fields:
+                if key in row and str(row.get(key)).strip():
+                    wl_text = str(row.get(key)).strip()
+                    break
+            if not wl_text:
+                continue
+            try:
+                raw_val = float(wl_text)
+            except Exception:
+                continue
+            # Determine explicit unit hint from columns
+            unit_hint = None
+            for ukey in ["unit", "wavelength_unit", "x_unit"]:
+                if ukey in row and str(row.get(ukey)).strip():
+                    unit_hint = str(row.get(ukey)).strip()
+                    break
+            # If column name itself encodes unit
+            if wl_text and unit_hint is None:
+                for cname in wl_fields:
+                    if cname in row and row.get(cname) == wl_text:
+                        if cname.endswith("_m"):
+                            unit_hint = "m"
+                        elif cname.endswith("_um"):
+                            unit_hint = "µm"
+                        elif "angstrom" in cname.lower() or "å" in cname.lower():
+                            unit_hint = "angstrom"
+                        elif "wavenumber" in cname.lower():
+                            unit_hint = "cm^-1"
+                        elif cname.endswith("_nm"):
+                            unit_hint = "nm"
+                        break
+            wavelength_nm, assumed = _convert_to_nm(raw_val, unit_hint)
+            label = str(row.get("label") or row.get("name") or f"{wavelength_nm:.6g} nm").strip()
+            ion = str(row.get("ion") or "").strip()
+            note = str(row.get("note") or row.get("comment") or "").strip()
+            color = self._next_palette_color()
+            pen = pg.mkPen(color, width=1.2)
+            try:
+                disp = float(self.plot._x_nm_to_disp(np.array([wavelength_nm]))[0])  # type: ignore[attr-defined]
+            except Exception:
+                disp = wavelength_nm
+            # Get current Y position for label
+            try:
+                (_, y_range) = self.plot.view_range()
+                y0, y1 = float(y_range[0]), float(y_range[1])
+                y_pos = y1 - (y1 - y0) * 0.04
+            except Exception:
+                y_pos = 0.0
+            line_item = pg.InfiniteLine(pos=disp, angle=90, pen=pen, movable=False)
+            text_item = pg.TextItem(text=label, color=color)
+            text_item.setPos(disp, y_pos)  # Set initial position
+            tooltip_bits = [f"{wavelength_nm:.6g} nm", f"src={assumed}"]
+            if ion:
+                tooltip_bits.append(ion)
+            if note:
+                tooltip_bits.append(note)
+            line_item.setToolTip(" | ".join(tooltip_bits))
+            text_item.setToolTip(" | ".join(tooltip_bits))
+            try:
+                self.plot._plot.addItem(line_item)
+                self.plot._plot.addItem(text_item)
+            except Exception:
+                continue
+            # Store in "Custom" element group
+            custom_markers = self._line_markers_by_element.setdefault("Custom", [])
+            custom_markers.append({
+                'x_nm': wavelength_nm,
+                'line': line_item,
+                'text': text_item,
+                'color': color,
+                'label': label,
+                'source_unit': assumed,
+            })
+            added += 1
+        # Position labels vertically and refresh
+        try:
+            self._update_line_marker_positions()
+        except Exception:
+            pass
+        if added:
+            self.statusBar().showMessage(f"Added {added} spectral line(s) from '{path.name}'", 5000)
+        else:
+            QtWidgets.QMessageBox.information(self, "Line list", "No valid wavelength rows found.")
+
+    def _clear_line_list_markers(self) -> None:
+        """Remove all user-imported and reference spectral line markers from the plot."""
+        total = sum(len(markers) for markers in self._line_markers_by_element.values())
+        if total == 0:
+            self.statusBar().showMessage("No line markers to clear", 3000)
+            return
+        removed = 0
+        for element, markers in list(self._line_markers_by_element.items()):
+            for marker in markers:
+                try:
+                    self.plot._plot.removeItem(marker.get('line'))
+                    self.plot._plot.removeItem(marker.get('text'))
+                    removed += 1
+                except Exception:
+                    pass
+        self._line_markers_by_element.clear()
+        self.statusBar().showMessage(f"Cleared {removed} line marker(s)", 5000)
+
+    def _on_line_labels_toggled(self, visible: bool) -> None:
+        """Show or hide textual labels for all spectral line markers."""
+        self._line_labels_visible = bool(visible)
+        for element_markers in self._line_markers_by_element.values():
+            for marker in element_markers:
+                try:
+                    text_item = marker.get('text')
+                    if text_item is not None:
+                        text_item.setVisible(self._line_labels_visible)
+                except Exception:
+                    continue
+        # No status spam; brief confirmation
+        self.statusBar().showMessage("Line labels {}".format("shown" if visible else "hidden"), 3000)
 
     @ui_action("Export failed")
     def export_center(self) -> None:
@@ -1652,6 +2024,40 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         try:
             if self.log_view is not None:
                 self.log_view.appendPlainText(line)
+        except Exception:
+            pass
+
+    # ----------------------------- Global progress bar -------------------
+    @QtCore.Slot(int)  # type: ignore[name-defined]
+    def _on_global_download_started(self, total: int) -> None:
+        try:
+            self._status_progress.setVisible(True)
+            self._status_progress.setRange(0, 0)  # indeterminate per-file
+            self._status_progress.setValue(0)
+            self.statusBar().showMessage(f"Downloading {int(total)} item(s)…")
+        except Exception:
+            pass
+
+    @QtCore.Slot(str, int, int)  # type: ignore[name-defined]
+    def _on_global_download_progress(self, label: str, received: int, total: int) -> None:
+        try:
+            if total >= 0:
+                self._status_progress.setRange(0, max(1, total))
+                self._status_progress.setValue(min(received, total))
+            else:
+                self._status_progress.setRange(0, 0)
+                self._status_progress.setValue(0)
+            self.statusBar().showMessage(f"Downloading {label}…")
+        except Exception:
+            pass
+
+    @QtCore.Slot()  # type: ignore[name-defined]
+    def _on_global_download_finished(self) -> None:
+        try:
+            self._status_progress.setVisible(False)
+            self._status_progress.setRange(0, 1)
+            self._status_progress.setValue(0)
+            self.statusBar().showMessage("Ready", 3000)
         except Exception:
             pass
 
@@ -1972,7 +2378,41 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                 finally:
                     painter.end()
                 alias_item.setData(QtGui.QIcon(swatch), QtCore.Qt.ItemDataRole.DecorationRole)
-                alias_item.setToolTip(f"Trace colour: {color.name()}")
+                # Build tooltip with colour and provenance/credits if available
+                tip_lines = [f"Trace colour: {color.name()}"]
+                try:
+                    meta = spectrum.metadata if isinstance(spectrum.metadata, dict) else {}
+                    cache_rec = meta.get("cache_record", {}) if isinstance(meta, dict) else {}
+                    src = cache_rec.get("source", {}) if isinstance(cache_rec, dict) else {}
+                    remote = src.get("remote", {}) if isinstance(src, dict) else {}
+                    if isinstance(remote, dict) and remote:
+                        provider = str(remote.get("provider") or "Remote")
+                        ident = str(remote.get("identifier") or remote.get("id") or "").strip()
+                        mission = str(remote.get("metadata", {}).get("obs_collection") if isinstance(remote.get("metadata"), dict) else "")
+                        telescope = str(remote.get("metadata", {}).get("telescope_name") if isinstance(remote.get("metadata"), dict) else "")
+                        instrument = str(remote.get("metadata", {}).get("instrument_name") if isinstance(remote.get("metadata"), dict) else "")
+                        title = str(remote.get("metadata", {}).get("title") if isinstance(remote.get("metadata"), dict) else "")
+                        uri = str(remote.get("uri") or "")
+                        # Assemble a concise credit block
+                        credits: list[str] = [provider]
+                        if mission:
+                            credits.append(mission)
+                        if telescope and telescope not in credits:
+                            credits.append(telescope)
+                        if instrument:
+                            credits.append(instrument)
+                        credit_line = " / ".join([c for c in credits if c])
+                        if ident:
+                            tip_lines.append(f"Source: {credit_line} — {ident}")
+                        else:
+                            tip_lines.append(f"Source: {credit_line}")
+                        if title:
+                            tip_lines.append(f"Title: {title}")
+                        if uri:
+                            tip_lines.append(f"URI: {uri}")
+                except Exception:
+                    pass
+                alias_item.setToolTip("\n".join([line for line in tip_lines if line]))
                 # Keep a handle so palette-mode toggles can refresh chips later if needed
                 self._dataset_color_items[spectrum.id] = alias_item
         except Exception:
@@ -3125,6 +3565,142 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         except Exception as exc:
             self.reference_status_label.setText(f"Cache clear failed: {exc}")
 
+    # ----------------------------- Reference Lines ---------------------
+    def _load_reference_lines_data(self) -> None:
+        """Load curated reference spectral lines from samples/reference_lines/."""
+        try:
+            ref_lines_path = SAMPLES_DIR / "reference_lines" / "common_elements.csv"
+            if not ref_lines_path.exists():
+                return
+            import csv
+            with ref_lines_path.open("r", encoding="utf-8", newline="") as f:
+                reader = csv.DictReader(f)
+                self._reference_lines_data = [row for row in reader if row.get("wavelength_nm")]
+            # Populate table on Reference Lines tab
+            self._refresh_reference_lines_table()
+        except Exception as exc:
+            self._log("RefLines", f"Failed to load reference lines: {exc}", level="WARN")
+
+    def _refresh_reference_lines_table(self) -> None:
+        """Populate the Reference Lines table with currently visible elements."""
+        if not hasattr(self.reference_panel, "reflines_table"):
+            return
+        table = self.reference_panel.reflines_table
+        # Get checked elements
+        checked_elements = {
+            elem for elem, cb in self.reference_panel.reflines_checkboxes.items() if cb.isChecked()
+        }
+        # Filter lines (exact element match only)
+        filtered = [
+            row for row in self._reference_lines_data
+            if row.get("element", "").strip() in checked_elements
+        ]
+        # Populate table
+        table.setRowCount(len(filtered))
+        for idx, row in enumerate(filtered):
+            wl = row.get("wavelength_nm", "")
+            lbl = row.get("label", "")
+            elem = row.get("element", "")
+            note = row.get("note", "")
+            table.setItem(idx, 0, QtWidgets.QTableWidgetItem(wl))
+            table.setItem(idx, 1, QtWidgets.QTableWidgetItem(lbl))
+            table.setItem(idx, 2, QtWidgets.QTableWidgetItem(elem))
+            table.setItem(idx, 3, QtWidgets.QTableWidgetItem(note))
+        table.resizeColumnsToContents()
+
+    def _on_reference_line_element_toggled(self, element: str, visible: bool) -> None:
+        """Show or hide reference lines for a specific element."""
+        if visible:
+            # Add lines for this element
+            self._add_reference_lines_for_element(element)
+        else:
+            # Remove lines for this element
+            self._remove_reference_lines_for_element(element)
+        # Refresh table
+        self._refresh_reference_lines_table()
+        # Reposition all markers
+        try:
+            self._update_line_marker_positions()
+        except Exception:
+            pass
+
+    def _add_reference_lines_for_element(self, element: str) -> None:
+        """Add spectral line markers for a specific element from curated data."""
+        # Filter reference lines for this element (exact match only)
+        lines_for_element = [
+            row for row in self._reference_lines_data
+            if row.get("element", "").strip() == element
+        ]
+        if not lines_for_element:
+            return
+        
+        # Get current view range for initial label positioning
+        try:
+            (x_range, y_range) = self.plot.view_range()
+            y0, y1 = float(y_range[0]), float(y_range[1])
+            y_span = y1 - y0
+            y_label_base = y1 - y_span * 0.04
+        except Exception:
+            y_label_base = 0.0
+        
+        # Track already-added wavelengths to avoid duplicates
+        added_wavelengths = set()
+        
+        # Create markers
+        markers = self._line_markers_by_element.setdefault(element, [])
+        for row in lines_for_element:
+            try:
+                wl_nm = float(row.get("wavelength_nm", 0))
+                if wl_nm <= 0:
+                    continue
+                # Skip if we already added this wavelength for this element
+                if wl_nm in added_wavelengths:
+                    continue
+                added_wavelengths.add(wl_nm)
+            except Exception:
+                continue
+            label = row.get("label", f"{wl_nm:.3f} nm")
+            note = row.get("note", "")
+            # Use consistent color per element
+            color = self._next_palette_color()
+            pen = pg.mkPen(color, width=1.2)
+            try:
+                disp = float(self.plot._x_nm_to_disp(np.array([wl_nm]))[0])  # type: ignore[attr-defined]
+            except Exception:
+                disp = wl_nm
+            line_item = pg.InfiniteLine(pos=disp, angle=90, pen=pen, movable=False)
+            text_item = pg.TextItem(text=label, color=color)
+            text_item.setPos(disp, y_label_base)  # Set initial position
+            text_item.setVisible(self._line_labels_visible)
+            tooltip = f"{wl_nm:.3f} nm | {element}"
+            if note:
+                tooltip += f" | {note}"
+            line_item.setToolTip(tooltip)
+            text_item.setToolTip(tooltip)
+            try:
+                self.plot._plot.addItem(line_item)
+                self.plot._plot.addItem(text_item)
+            except Exception:
+                continue
+            markers.append({
+                'x_nm': wl_nm,
+                'line': line_item,
+                'text': text_item,
+                'color': color,
+                'label': label,
+            })
+
+    def _remove_reference_lines_for_element(self, element: str) -> None:
+        """Remove all spectral line markers for a specific element."""
+        markers = self._line_markers_by_element.get(element, [])
+        for marker in markers:
+            try:
+                self.plot._plot.removeItem(marker.get('line'))
+                self.plot._plot.removeItem(marker.get('text'))
+            except Exception:
+                pass
+        self._line_markers_by_element.pop(element, None)
+
     def _refresh_reference_overlay_geometry(self) -> None:
         """Re-apply overlay items with the current view's y-range.
 
@@ -3133,6 +3709,11 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         try:
             if self.reference_overlay_checkbox.isChecked() and self._reference_overlay_payload:
                 self._apply_reference_overlay()
+        except Exception:
+            pass
+        # Also reposition any custom line list labels against new y-range
+        try:
+            self._update_line_marker_positions()
         except Exception:
             pass
 

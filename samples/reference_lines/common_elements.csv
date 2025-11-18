@@ -1,0 +1,47 @@
+wavelength_nm,label,element,line_width_nm,note
+393.3682,Ca II H,Ca,2.0253,Calcium H line (ionized)
+394.4016,Al I,Al,0.0488,Aluminum neutral
+396.1535,Al I,Al,0.0621,Aluminum neutral
+396.8492,Ca II K,Ca,1.5467,Calcium K line (ionized)
+404.5825,Fe I,Fe,0.1174,Neutral iron
+406.3605,Fe I,Fe,0.0787,Neutral iron
+407.1749,Fe I,Fe,0.0723,Neutral iron
+407.7724,Sr II,Sr,0.0428,Strontium (ionized)
+410.1748,H δ,H,0.3133,Balmer series (delta)
+413.2067,Fe I,Fe,0.0404,Neutral iron
+414.3878,Fe I,Fe,0.0466,Neutral iron
+416.7277,Mg I,Mg,0.0200,Magnesium neutral
+420.2040,Fe I,Fe,0.0326,Neutral iron
+422.6740,Ca I,Ca,0.1476,Neutral calcium
+423.5949,Fe I,Fe,0.0385,Neutral iron
+425.0130,Fe I,Fe,0.0342,Neutral iron
+425.0797,Fe I,Fe,0.0400,Neutral iron
+425.4346,Cr I,Cr,0.0393,Chromium neutral
+426.0486,Fe I,Fe,0.0595,Neutral iron
+427.1774,Fe I,Fe,0.0756,Neutral iron
+432.5775,Fe I,Fe,0.0793,Neutral iron
+434.0475,H γ,H,0.2855,Balmer series (gamma)
+438.3557,Fe I,Fe,0.1008,Neutral iron
+440.4761,Fe I,Fe,0.0898,Neutral iron
+441.5135,Fe I,Fe,0.0417,Neutral iron
+452.8627,Fe I,Fe,0.0275,Neutral iron
+455.4036,Ba II,Ba,0.0159,Barium (ionized)
+470.3003,Mg I,Mg,0.0326,Magnesium neutral
+486.1342,H β,H,0.3680,Balmer series (beta)
+489.1502,Fe I,Fe,0.0312,Neutral iron
+492.0514,Fe I,Fe,0.0471,Neutral iron
+495.7613,Fe I,Fe,0.0696,Neutral iron
+516.7327,Mg I b₁,Mg,0.0935,Magnesium b-triplet
+517.2698,Mg I b₂,Mg,0.1259,Magnesium b-triplet
+518.3619,Mg I b₃,Mg,0.1584,Magnesium b-triplet
+525.0216,Fe I,Fe,0.0062,Neutral iron
+526.9550,Fe I,Fe,0.0478,Neutral iron
+532.8051,Fe I,Fe,0.0375,Neutral iron
+552.8418,Mg I,Mg,0.0293,Magnesium neutral
+588.9973,Na I D₂,Na,0.0752,Sodium D-line doublet
+589.5940,Na I D₁,Na,0.0564,Sodium D-line doublet
+610.2727,Ca I,Ca,0.0135,Neutral calcium
+612.2226,Ca I,Ca,0.0222,Neutral calcium
+616.2180,Ca O,Ca,0.0222,Calcium oxide
+630.2499,Fe I,Fe,0.0083,Neutral iron
+656.2808,H α,H,0.1020,Balmer series (alpha, red)

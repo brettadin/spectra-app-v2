@@ -1,0 +1,58 @@
+2025273101732 INFO src=hasp_retrieve_inputs.filter_out_low_quality_datasets msg="Removed STIS HASP product o4yma3010"
+2025273101732 INFO src=hasp_retrieve_inputs.filter_out_low_quality_inputs fsn=4ym msg="Removed 1 entry due to low quality"
+2025273101732 INFO src=hasp_retrieve_inputs-hap_verify_poller_file.remove_entries_to_skip msg="Checking whether any ipppssoots are in the SkipAlignment table"
+2025273101732 INFO src=hasp_retrieve_inputs-hap_verify_poller_file.remove_entries_to_skip msg="No exposures for this visit are in the SkipAlignment table. This visit will be processed fully."
+
+2025273101755 INFO src=hasp_coadds.get_resource_path_values msg="Using haspsp.resource and repro_sci.path"
+2025273101755 INFO src=hasp_coadds-run_swrapper.run_swrapper_script fsn=4ym msg="Running swrapper -i ...4ym -o ...4ym in the calibration software conda environment: caldp_202503v1"
+HASP version 1.2.4
+Ullyses version 4.1.0
+File ...o4yma2010_sx1.fits removed from products because FGSLOCK = FINE/GYRO
+File ...o4yma2020_sx1.fits removed from products because FGSLOCK = FINE/GYRO
+File ...o4ymb2010_sx1.fits removed from products because FGSLOCK = FINE/GYRO
+Creating list of unique modes from these files:
+...o4ym01010_sx1.fits JUPITER STIS CCD G230LB 52X0.1 0 7717 (7717, '01')
+...o4ym01020_sx1.fits JUPITER STIS CCD G230MB 52X0.2 0 7717 (7717, '01')
+...o4ym01030_sx1.fits JUPITER STIS CCD G230MB 52X0.2 0 7717 (7717, '01')
+Looping over visits
+Processing product (7717, '01')
+Targets in visit (7717, '01'): ['JUPITER']
+Processing target JUPITER in visit (7717, '01')
+Processing grating STIS/G230LB
+Importing files ['...o4ym01010_sx1.fits']
+Processing file ...o4ym01010_sx1.fits
+Using a maximum SNR of 20.0 in flux-based filtering
+   Wrote ...hst_7717_stis_jupiter_g230lb_o4ym01_cspec.fits
+Processing grating STIS/G230MB
+Importing files ['...o4ym01020_sx1.fits', '...o4ym01030_sx1.fits']
+Processing file ...o4ym01020_sx1.fits
+Processing file ...o4ym01030_sx1.fits
+Using a maximum SNR of 20.0 in flux-based filtering
+   Wrote ...hst_7717_stis_jupiter_g230mb_o4ym01_cspec.fits
+Making a product from these gratings
+STIS/G230MB 1635.0-3184.5 (Actual: 2479.8-2774.0)
+STIS/G230LB 1667.1-3071.6 (Actual: 1674.0-3075.9)
+Minimum wavelength of STIS/G230MB tweaked to 2479.755128646067
+Maximum wavelength of STIS/G230MB tweaked to 2773.9532491538007
+Minimum wavelength of STIS/G230LB tweaked to 1674.0280881689573
+Starting at the short wavelength end with grating STIS/G230LB
+Abutting STIS/G230MB product to current result
+With a transition wavelength of 2479.755128646067
+Abutting STIS/G230LB product to current result
+With a transition wavelength of 2773.9532491538007
+Truncating current grating at 3071.6
+   Wrote ...hst_7717_stis_jupiter_g230lb-g230mb_o4ym01_cspec.fits
+Looping over proposals
+Processing product 7717
+Targets in proposal 7717: ['JUPITER']
+Processing target JUPITER in proposal 7717
+Processing grating STIS/G230LB
+File ...o4ym01010_sx1.fits removed from program products because JUPITER is a moving target
+No good files
+Processing grating STIS/G230MB
+File ...o4ym01020_sx1.fits removed from program products because JUPITER is a moving target
+File ...o4ym01030_sx1.fits removed from program products because JUPITER is a moving target
+No good files
+No products to abut for this setting
+
+2025273101756 INFO src=hasp_coadds-run_swrapper.run_swrapper_script fsn=4ym msg="swrapper -i ...4ym -o ...4ym returned 0"

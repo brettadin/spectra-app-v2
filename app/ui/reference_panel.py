@@ -45,6 +45,8 @@ class ReferencePanel(QtWidgets.QWidget):
     nistFetchRequested = Signal(str, float, float)  # element, lower, upper
     tabChanged = Signal(int)
     irFilterChanged = Signal(str)
+    referenceLinesToggled = Signal(str, bool)  # element, visible
+    referenceLinesRefreshRequested = Signal()
 
     def __init__(self, parent: Optional[QtWidgets.QWidget] = None) -> None:
         super().__init__(parent)
@@ -64,6 +66,9 @@ class ReferencePanel(QtWidgets.QWidget):
         self.ir_table: QtWidgets.QTableWidget
         # Line Shapes
         self.ls_table: QtWidgets.QTableWidget
+        # Reference Lines
+        self.reflines_table: QtWidgets.QTableWidget
+        self.reflines_checkboxes: dict[str, QtWidgets.QCheckBox]  # element -> checkbox
         self._build_ui()
 
     def _build_ui(self) -> None:
@@ -166,6 +171,70 @@ class ReferencePanel(QtWidgets.QWidget):
         self.ls_table.horizontalHeader().setStretchLastSection(True)
         ls_layout.addWidget(self.ls_table, 1)
         self.reference_tabs.addTab(ls_tab, "Line Shapes")
+
+        # --- Reference Lines tab (curated spectral lines with element filtering)
+        reflines_tab = QtWidgets.QWidget()
+        reflines_layout = QtWidgets.QVBoxLayout(reflines_tab)
+        
+        # Element filter checkboxes (common elements)
+        filter_label = QtWidgets.QLabel("Show elements:")
+        filter_label.setStyleSheet("font-weight: bold;")
+        reflines_layout.addWidget(filter_label)
+        
+        filter_grid = QtWidgets.QGridLayout()
+        filter_grid.setContentsMargins(4, 4, 4, 4)
+        self.reflines_checkboxes = {}
+        
+        # Common elements organized in grid (4 columns)
+        elements = [
+            ("H", "Hydrogen"), ("He", "Helium"), ("Ca", "Calcium"), ("Fe", "Iron"),
+            ("Mg", "Magnesium"), ("Na", "Sodium"), ("O2", "Oxygen"), ("Ba", "Barium"),
+            ("Sr", "Strontium"), ("Cr", "Chromium"), ("Hg", "Mercury"), ("Ni", "Nickel"),
+        ]
+        
+        for idx, (elem_key, elem_label) in enumerate(elements):
+            cb = QtWidgets.QCheckBox(f"{elem_key} ({elem_label})")
+            cb.setChecked(False)  # Default: all off
+            cb.toggled.connect(lambda checked, e=elem_key: self.referenceLinesToggled.emit(e, checked))
+            self.reflines_checkboxes[elem_key] = cb
+            row, col = divmod(idx, 4)
+            filter_grid.addWidget(cb, row, col)
+        
+        reflines_layout.addLayout(filter_grid)
+        
+        # Quick actions
+        actions_row = QtWidgets.QHBoxLayout()
+        select_all_btn = QtWidgets.QPushButton("Select All")
+        select_all_btn.clicked.connect(lambda: self._set_all_reflines_checkboxes(True))
+        clear_all_btn = QtWidgets.QPushButton("Clear All")
+        clear_all_btn.clicked.connect(lambda: self._set_all_reflines_checkboxes(False))
+        refresh_btn = QtWidgets.QPushButton("Refresh Lines")
+        refresh_btn.clicked.connect(lambda: self.referenceLinesRefreshRequested.emit())
+        actions_row.addWidget(select_all_btn)
+        actions_row.addWidget(clear_all_btn)
+        actions_row.addWidget(refresh_btn)
+        actions_row.addStretch(1)
+        reflines_layout.addLayout(actions_row)
+        
+        # Table showing filtered lines
+        self.reflines_table = QtWidgets.QTableWidget(0, 4)
+        self.reflines_table.setHorizontalHeaderLabels(["Wavelength (nm)", "Label", "Element", "Note"])
+        self.reflines_table.horizontalHeader().setStretchLastSection(True)
+        self.reflines_table.setAlternatingRowColors(True)
+        self.reflines_table.setEditTriggers(QtWidgets.QAbstractItemView.EditTrigger.NoEditTriggers)
+        reflines_layout.addWidget(self.reflines_table, 1)
+        
+        info = QtWidgets.QLabel("Check elements above to display their spectral lines on the main plot.")
+        info.setWordWrap(True)
+        info.setStyleSheet("QLabel { color: #888; font-size: 10pt; padding: 4px; }")
+        reflines_layout.addWidget(info)
+        
+        self.reference_tabs.addTab(reflines_tab, "Reference Lines")
+
+    def _set_all_reflines_checkboxes(self, checked: bool) -> None:
+        """Helper to check/uncheck all element filters at once."""
+        for cb in self.reflines_checkboxes.values():
+            cb.setChecked(checked)
 
     def _on_nist_fetch_clicked(self) -> None:
         """Emit signal when NIST fetch is requested."""
