@@ -3590,10 +3590,10 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         checked_elements = {
             elem for elem, cb in self.reference_panel.reflines_checkboxes.items() if cb.isChecked()
         }
-        # Filter lines
+        # Filter lines (exact element match only)
         filtered = [
             row for row in self._reference_lines_data
-            if row.get("element", "").strip() in checked_elements or row.get("element", "").strip().replace("*", "") in checked_elements
+            if row.get("element", "").strip() in checked_elements
         ]
         # Populate table
         table.setRowCount(len(filtered))
@@ -3626,11 +3626,10 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
 
     def _add_reference_lines_for_element(self, element: str) -> None:
         """Add spectral line markers for a specific element from curated data."""
-        # Filter reference lines for this element (handle Ca* -> Ca mapping)
-        elem_normalized = element.replace("*", "")
+        # Filter reference lines for this element (exact match only)
         lines_for_element = [
             row for row in self._reference_lines_data
-            if row.get("element", "").strip() == element or row.get("element", "").strip().replace("*", "") == elem_normalized
+            if row.get("element", "").strip() == element
         ]
         if not lines_for_element:
             return
@@ -3644,6 +3643,9 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         except Exception:
             y_label_base = 0.0
         
+        # Track already-added wavelengths to avoid duplicates
+        added_wavelengths = set()
+        
         # Create markers
         markers = self._line_markers_by_element.setdefault(element, [])
         for row in lines_for_element:
@@ -3651,6 +3653,10 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                 wl_nm = float(row.get("wavelength_nm", 0))
                 if wl_nm <= 0:
                     continue
+                # Skip if we already added this wavelength for this element
+                if wl_nm in added_wavelengths:
+                    continue
+                added_wavelengths.add(wl_nm)
             except Exception:
                 continue
             label = row.get("label", f"{wl_nm:.3f} nm")
