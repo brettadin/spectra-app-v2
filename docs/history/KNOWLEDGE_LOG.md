@@ -4647,3 +4647,351 @@ THE KNOWLEDGE LOG IS JUST FOR AGENTS TO WRITE IMPORTANT SHIT INTO
 - okay sun file.csv
 
 ---
+## 2025-11-12 22:01 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file earth_visible.csv
+
+**References**:
+- earth_visible.csv
+
+---
+## 2025-11-12 22:01 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file table_HAT-P-18-b-Fournier-Tondreau-et-al.-2024.csv
+
+**References**:
+- table_HAT-P-18-b-Fournier-Tondreau-et-al.-2024.csv
+
+---
+## 2025-11-12 22:01 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file table_Luhman-16-b-Biller-et-al.-2024.csv
+
+**References**:
+- table_Luhman-16-b-Biller-et-al.-2024.csv
+
+---
+## 2025-11-12 22:01 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file table_TRAPPIST-1-b-Rathcke-et-al.-2025.csv
+
+**References**:
+- table_TRAPPIST-1-b-Rathcke-et-al.-2025.csv
+
+---
+## 2025-11-12 22:01 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file table_WASP-17-b-Louie-et-al.-2025.csv
+
+**References**:
+- table_WASP-17-b-Louie-et-al.-2025.csv
+
+---
+## 2025-11-12 22:01 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file table_WASP-39-b-Rustamkulov-et-al.-2023.csv
+
+**References**:
+- table_WASP-39-b-Rustamkulov-et-al.-2023.csv
+
+---
+## 2025-11-12 22:01 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file table_WASP-96-b-Radica-et-al.-2023.csv
+
+**References**:
+- table_WASP-96-b-Radica-et-al.-2023.csv
+
+---
+## 2025-11-12 22:01 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file table_WASP-178-b-Lothringer-et-al.-2022.csv
+
+**References**:
+- table_WASP-178-b-Lothringer-et-al.-2022.csv
+
+---
+## 2025-11-12 22:01 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file earth_infrared.csv
+
+**References**:
+- earth_infrared.csv
+
+---
+## 2025-11-12 22:01 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file earth_modis_reflectance_example.csv
+
+**References**:
+- earth_modis_reflectance_example.csv
+
+---
+## 2025-11-12 22:01 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file earth_visible.csv
+
+**References**:
+- earth_visible.csv
+
+---
+## 2025-11-12 22:01 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file mock_MODIS_reflectance_sample.csv
+
+**References**:
+- mock_MODIS_reflectance_sample.csv
+
+---
+## 2025-11-12 22:03 – Remote Import
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Imported remote data from Remote
+
+**References**:
+- Remote
+
+---
+## 2025-11-12 22:03 – Remote Import
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Imported remote data from Remote
+
+**References**:
+- Remote
+
+---
+## 2025-11-12 22:03 – Remote Import
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Imported remote data from Remote
+
+**References**:
+- Remote
+
+---
+## 2025-11-12 22:03 – Remote Import
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Imported remote data from Remote
+
+**References**:
+- Remote
+
+---
+## 2025-11-12 22:03 – Remote Import
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Imported remote data from Remote
+
+**References**:
+- Remote
+
+---
+## 2025-11-12 22:04 – Remote Import
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Imported remote data from Remote
+
+**References**:
+- Remote
+
+---
+## 2025-11-12 22:04 – Remote Import
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Imported remote data from Remote
+
+**References**:
+- Remote
+
+---
+## 2025-11-12 22:05 – Remote Import
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Imported remote data from Remote
+
+**References**:
+- Remote
+
+---
+## 2025-11-12 22:05 – Remote Import
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Imported 5 remote dataset(s) from Remote
+
+**References**:
+- Remote
+
+---
+## 2025-11-12 22:07 – Remote Import
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Imported 4 remote dataset(s) from Remote
+
+**References**:
+- Remote
+
+---
+## 2025-11-12 22:08 – Remote Import
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Imported remote data from Remote
+
+**References**:
+- Remote
+
+---
+## 2025-11-12 22:10 – Remote Import
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Imported remote data from Remote
+
+**References**:
+- Remote
+
+---
+## 2025-11-12 22:11 – Remote Import
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Imported remote data from Remote
+
+**References**:
+- Remote
+
+---
+## 2025-11-12 22:11 – Remote Import
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Imported remote data from Remote
+
+**References**:
+- Remote
+
+---
+## 2025-11-12 22:12 – Remote Import
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Imported remote data from Remote
+
+**References**:
+- Remote
+
+---
+## 2025-11-12 22:12 – Remote Import
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Imported remote data from Remote
+
+**References**:
+- Remote
+
+---
+## 2025-11-12 22:12 – Remote Import
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Imported remote data from Remote
+
+**References**:
+- Remote
+
+---

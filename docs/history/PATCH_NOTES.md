@@ -1,5 +1,16 @@
 # Patch Notes
 
+## 2025-11-12 (Samples trimmed; curated datasets added) — 21:17 ET / 02:17Z UTC
+- Moved large lab datasets to `storage/curated/` with a clear taxonomy:
+  - `laboratory/IR/{CO2,H2O}/CSV` and `.../Raw` (instrument `.sp` exports)
+  - `laboratory/IR/Lab/{CSV,Raw}` for as-recorded runs
+  - `laboratory/Lamps/{new_set,old_set,from_phys_dpt}` with CSV/JSON split
+  - `laboratory/SunMoon/{CSV,JSON,PNG,TXT}` (kept only `sun redo.csv` in samples)
+  - `fits_data/spex_library/` (entire SpeX library moved from samples)
+- Kept tiny demos in `samples/` only: `sun redo.csv`, one compact IR CO₂ CSV, and fixtures.
+- Deleted obvious temp dups (`*- Copy.csv`) and a stray placeholder (`Lab/.csv`).
+- Updated docs: `samples/README.md`, `storage/curated/README.md`, `docs/INDEX.md`, `docs/user/quickstart.md`, and top-level `README.md` to describe tiny samples vs curated datasets.
+
 ## 2025-11-13 (Palette controls & persistence) — 11:10 ET / 16:10Z UTC
 - Added View → Palette menu with three controls:
   - Use Uniform Color (toggle): render all datasets in a single color
