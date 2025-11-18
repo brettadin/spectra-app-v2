@@ -1,0 +1,73 @@
+wavelength_nm,label,element,line_width_nm,note
+656.281,H α,H,0.0621,Balmer series
+486.134,H β,H,0.0488,Balmer series
+434.047,H γ,H,0.0404,Balmer series
+410.175,H δ,H,0.0313,Balmer series
+396.847,H ε,Ca*,1.5467,Ca II H line (often labeled H)
+393.366,K,Ca*,2.0253,Ca II K line
+656.281,Hα,H,0.0621,Hydrogen alpha
+656.281,H alpha,H,0.0621,Hydrogen alpha
+898.765,O₂ y,O2,0.02,Atmospheric oxygen
+822.696,O₂ Z,O2,0.02,Atmospheric oxygen
+759.370,O₂ A,O2,0.02,Atmospheric oxygen A-band
+686.719,O₂ B,O2,0.03,Atmospheric oxygen B-band
+627.661,O₂ a,O2,0.02,Atmospheric oxygen
+589.592,D₁,Na,0.0174,Sodium D1
+588.995,D₂,Na,0.0326,Sodium D2
+587.5618,D₃ (or d),He,0.02,Helium
+546.073,e,Hg,0.02,Mercury
+527.039,E₂,Fe,0.0935,Iron
+518.362,b₁,Mg,0.1584,Magnesium
+517.270,b₂,Mg,0.1259,Magnesium
+516.891,b₃,Fe,0.0393,Iron
+516.733,b₄,Mg,0.0200,Magnesium
+495.761,F,Fe,0.0696,Iron (Fraunhofer F)
+466.814,d,Fe,0.0159,Iron
+438.355,e,Fe,0.1008,Iron
+430.790,G,Fe,0.0793,Iron (Fraunhofer G)
+430.774,G,Ca,0.0222,Calcium
+393.682,Ca II,Ca,2.0253,Ionized calcium
+396.153,Ca II,Ca,0.0621,Ionized calcium
+396.847,Ca II H,Ca,1.5467,Calcium H line
+393.366,Ca II K,Ca,2.0253,Calcium K line
+422.674,Ca I,Ca,0.1476,Neutral calcium
+404.582,Fe I,Fe,0.0174,Neutral iron
+406.360,Fe I,Fe,0.0787,Neutral iron
+407.174,Fe I,Fe,0.0723,Neutral iron
+407.772,Sr II,Sr,0.0428,Strontium
+410.174,H δ,H,0.0313,Hydrogen delta
+413.206,Fe I,Fe,0.0404,Neutral iron
+414.387,Fe I,Fe,0.0466,Neutral iron
+416.727,Mg I,Mg,0.0200,Magnesium
+420.204,Fe I,Fe,0.0326,Neutral iron
+425.013,Fe I,Fe,0.0342,Neutral iron
+425.079,Fe I,Fe,0.0400,Neutral iron
+425.434,Cr I,Cr,0.0393,Chromium
+426.048,Fe I,Fe,0.0595,Neutral iron
+427.177,Fe I,Fe,0.0756,Neutral iron
+432.577,Fe I,Fe,0.0793,Neutral iron
+434.047,H γ,H,0.0404,Hydrogen gamma
+438.355,Fe I,Fe,0.1008,Neutral iron
+440.476,Fe I,Fe,0.0898,Neutral iron
+441.513,Fe I,Ba,0.0417,Barium II
+452.862,Fe I,Fe,0.0275,Neutral iron
+455.403,Ba II,Ba,0.0159,Barium
+470.300,Mg I,Mg,0.0326,Magnesium
+486.134,H β,H,0.0488,Hydrogen beta (Fraunhofer F)
+489.150,Fe I,Fe,0.0312,Neutral iron
+492.051,Fe I,Fe,0.0471,Neutral iron
+495.761,Fe I,Fe,0.0696,Neutral iron
+516.732,Mg I,Mg,0.0935,Magnesium triplet
+517.269,Mg I,Mg,0.1259,Magnesium triplet
+518.361,Mg I,Mg,0.1584,Magnesium triplet
+525.021,Fe I,Fe,0.0062,Neutral iron
+526.955,Fe I,Fe,0.0478,Neutral iron
+532.805,Fe I,Fe,0.0375,Neutral iron
+552.841,Mg I,Mg,0.0293,Magnesium
+588.997,Na I (D₂),Na,0.0752,Sodium D-line doublet
+589.594,Na I (D₁),Na,0.0564,Sodium D-line doublet
+610.272,Ca I,Ca,0.0135,Neutral calcium
+612.222,Ca I,Ca,0.0222,Neutral calcium
+616.218,Ca O,Ca,0.0222,Calcium-oxygen molecular band
+630.249,Fe I,Fe,0.0083,Neutral iron
+656.280,H α,H,0.1020,Hydrogen alpha (Fraunhofer C)
