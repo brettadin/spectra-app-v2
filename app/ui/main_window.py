@@ -22,6 +22,7 @@ preserving behavior.
 from __future__ import annotations
 
 import os
+import csv
 from collections import OrderedDict
 from pathlib import Path
 from typing import Any, Dict, List, Mapping, Optional, Sequence
@@ -274,7 +275,8 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self._last_cursor_x_display: float | None = None
         # Keep reference overlays in sync with view changes (zoom/pan)
         try:
-            self.plot.rangeChanged.connect(lambda *_: self._refresh_reference_overlay_geometry())
+            # Refresh both reference overlay geometry and reposition user-imported line markers
+            self.plot.rangeChanged.connect(lambda *_: (self._refresh_reference_overlay_geometry(), self._update_line_marker_positions()))
         except Exception:
             pass
 
@@ -573,6 +575,10 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         except Exception:
             pass
 
+        # User-imported spectral line markers (vertical lines + labels)
+        # Each entry: {'x_nm': float, 'line': pg.InfiniteLine, 'text': pg.TextItem, 'color': QtGui.QColor}
+        self._line_list_markers: List[Dict[str, Any]] = []
+
     # ----------------------------- Merge / Math handlers -------------
     def _selected_dataset_ids(self) -> List[str]:
         """Return the list of selected dataset IDs from the dataset panel.
@@ -827,6 +833,73 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         for collection_id in list(self._nist_plot_items.keys()):
             if self.nist_lines_panel.is_visible(collection_id):
                 self._draw_nist_collection(collection_id)
+        # Reposition custom line list markers in new display units
+        try:
+            self._update_line_marker_positions()
+        except Exception:
+            pass
+
+    def _update_line_marker_positions(self) -> None:
+        """Update positions of user-imported line markers after unit or view change.
+        
+        When markers are very close (overlapping), vertically stagger their labels
+        to prevent text collision.
+        """
+        if not self._line_list_markers:
+            return
+        try:
+            (x_range, y_range) = self.plot.view_range()
+            y0, y1 = float(y_range[0]), float(y_range[1])
+            y_span = y1 - y0
+            # Base label position: near top with small margin
+            y_base = y1 - y_span * 0.04
+        except Exception:
+            y_base = 0.0
+            y_span = 1.0
+        
+        # First pass: convert all markers to display units and sort by x position
+        display_positions: List[tuple[float, Dict[str, Any]]] = []
+        for marker in self._line_list_markers:
+            try:
+                x_nm = float(marker.get('x_nm'))
+                disp = float(self.plot._x_nm_to_disp(np.array([x_nm]))[0])  # type: ignore[attr-defined]
+                marker['line'].setPos(disp)
+                display_positions.append((disp, marker))
+            except Exception:
+                continue
+        
+        # Sort by x position to process overlaps in order
+        display_positions.sort(key=lambda t: t[0])
+        
+        # Second pass: detect overlaps and assign stagger levels
+        # Overlap threshold: ~4% of current view width (accounts for typical label text width)
+        try:
+            x_view_span = float(x_range[1] - x_range[0])
+            overlap_threshold = abs(x_view_span) * 0.04
+        except Exception:
+            overlap_threshold = 10.0  # fallback
+        
+        stagger_levels: List[int] = []
+        for i, (x_pos, marker) in enumerate(display_positions):
+            level = 0
+            # Check against all previous markers to find first free level
+            for j in range(i):
+                prev_x, prev_marker = display_positions[j]
+                if abs(x_pos - prev_x) < overlap_threshold:
+                    # Overlapping: ensure we're at a different level
+                    if stagger_levels[j] == level:
+                        level += 1
+            stagger_levels.append(level)
+        
+        # Third pass: position labels with vertical stagger
+        # Each level shifts down by 3.5% of y-span (tighter packing)
+        stagger_step = y_span * 0.035
+        for (x_pos, marker), level in zip(display_positions, stagger_levels):
+            y_label = y_base - (level * stagger_step)
+            try:
+                marker['text'].setPos(x_pos, y_label)
+            except Exception:
+                continue
 
     # ----------------------------- Analysis helpers -------------------
     def _get_selected_spec_and_display_arrays(self) -> tuple[str | None, np.ndarray, np.ndarray, str]:
@@ -1118,6 +1191,16 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         sample_action.triggered.connect(self.load_sample_via_menu)
         file_menu.addAction(sample_action)
 
+        line_list_action = QtGui.QAction("Import &Line List…", self)
+        line_list_action.setToolTip("Import a CSV of labeled spectral lines (wavelength_nm,label,ion,...) and overlay markers")
+        line_list_action.triggered.connect(self.import_line_list_via_menu)
+        file_menu.addAction(line_list_action)
+
+        clear_line_list_action = QtGui.QAction("Clear Line &Markers", self)
+        clear_line_list_action.setToolTip("Remove all imported spectral line markers from the plot")
+        clear_line_list_action.triggered.connect(self._clear_line_list_markers)
+        file_menu.addAction(clear_line_list_action)
+
         # Remote Data action now opens Remote Data tab in inspector
         remote_action = QtGui.QAction("Show &Remote Data Tab…", self)
         remote_action.setShortcut("Ctrl+Shift+R")
@@ -1200,6 +1283,12 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.reset_plot_action.setShortcut(QtGui.QKeySequence("Ctrl+Shift+A"))
         self.reset_plot_action.triggered.connect(self.plot.autoscale)
         view_menu.addAction(self.reset_plot_action)
+
+        # Toggle for spectral line labels (text items only, lines remain visible)
+        self.line_labels_action = QtGui.QAction("Show Line Labels", self, checkable=True)
+        self.line_labels_action.setChecked(True)
+        self.line_labels_action.toggled.connect(self._on_line_labels_toggled)
+        view_menu.addAction(self.line_labels_action)
         view_menu.addSeparator()
         self.data_table_action = QtGui.QAction("Show Data Table", self, checkable=True)
         self.data_table_action.triggered.connect(self._toggle_data_table)
@@ -1586,6 +1675,180 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         if not path_str:
             return
         self._ingest_path(Path(path_str))
+
+    @ui_action("Failed to import line list")
+    def import_line_list_via_menu(self) -> None:
+        """Prompt for a CSV file containing labeled spectral lines and overlay them.
+
+        Expected columns (case-insensitive):
+        - wavelength_nm (numeric)
+        - label (string)
+        Optional columns used for tooltip grouping: ion, note.
+        """
+        # Default to samples directory to encourage using bundled example
+        start_dir = str(SAMPLES_DIR) if SAMPLES_DIR.exists() else str(Path.home())
+        path_str, _ = QtWidgets.QFileDialog.getOpenFileName(
+            self,
+            "Import Line List",
+            start_dir,
+            "CSV files (*.csv);;All files (*.*)",
+        )
+        if not path_str:
+            return
+        self._import_line_list_csv(Path(path_str))
+
+    def _import_line_list_csv(self, path: Path) -> None:
+        """Parse a labeled line CSV and create vertical markers with colored labels."""
+        if not path.exists():
+            QtWidgets.QMessageBox.warning(self, "Line list", f"File not found: {path}")
+            return
+        try:
+            rows: List[Dict[str, Any]] = []
+            with path.open("r", encoding="utf-8", newline="") as handle:
+                import csv as _csv
+                reader = _csv.DictReader(handle)
+                for raw in reader:
+                    if not isinstance(raw, dict):
+                        continue
+                    rows.append({k.lower(): v for k, v in raw.items()})
+        except Exception as exc:
+            QtWidgets.QMessageBox.warning(self, "Line list", f"Failed to read CSV: {exc}")
+            return
+        if not rows:
+            QtWidgets.QMessageBox.information(self, "Line list", "No rows found in CSV.")
+            return
+        added = 0
+        # Heuristic helpers for unit detection
+        def _convert_to_nm(raw_val: float, unit_hint: str | None) -> tuple[float, str]:
+            u = (unit_hint or "").strip().lower()
+            if u in {"nm", "nanometer", "nanometre", "nanometers", "nanometres"}:
+                return raw_val, "nm"
+            if u in {"m", "meter", "meters"}:
+                return raw_val * 1e9, "m"
+            if u in {"um", "µm", "micron", "micrometer", "micrometre"}:
+                return raw_val * 1000.0, "µm"
+            if u in {"angstrom", "ångström", "å", "a"}:
+                return raw_val * 0.1, "Å"
+            if u in {"cm^-1", "cm⁻¹", "cm-1"}:  # wavenumber to nm (λ_nm = 1e7 / ν_cm^-1)
+                if raw_val > 0:
+                    return 1e7 / raw_val, "cm⁻¹"
+                return raw_val, "cm⁻¹"
+            # Unspecified: apply numeric heuristic
+            # Typical meters representation of visible lines ~5e-7; microns ~0.5; nm ~500
+            if raw_val < 1e-3:  # assume meters
+                return raw_val * 1e9, "(assumed m)"
+            if 0.05 <= raw_val <= 50.0:  # could be µm range
+                # If median later appears ~0.x treat as µm; for single pass assume µm if < 25
+                if raw_val < 25.0:
+                    return raw_val * 1000.0, "(assumed µm)"
+            return raw_val, "(assumed nm)"
+
+        for row in rows:
+            # Accept multiple wavelength column variants
+            wl_fields = [
+                "wavelength_nm", "wavelength", "wavelength_m", "wavelength_um", "wavelength_angstrom", "wavelength_Å", "wavenumber", "wavenumber_cm-1", "wavenumber_cm^-1"
+            ]
+            wl_text = ""
+            for key in wl_fields:
+                if key in row and str(row.get(key)).strip():
+                    wl_text = str(row.get(key)).strip()
+                    break
+            if not wl_text:
+                continue
+            try:
+                raw_val = float(wl_text)
+            except Exception:
+                continue
+            # Determine explicit unit hint from columns
+            unit_hint = None
+            for ukey in ["unit", "wavelength_unit", "x_unit"]:
+                if ukey in row and str(row.get(ukey)).strip():
+                    unit_hint = str(row.get(ukey)).strip()
+                    break
+            # If column name itself encodes unit
+            if wl_text and unit_hint is None:
+                for cname in wl_fields:
+                    if cname in row and row.get(cname) == wl_text:
+                        if cname.endswith("_m"):
+                            unit_hint = "m"
+                        elif cname.endswith("_um"):
+                            unit_hint = "µm"
+                        elif "angstrom" in cname.lower() or "å" in cname.lower():
+                            unit_hint = "angstrom"
+                        elif "wavenumber" in cname.lower():
+                            unit_hint = "cm^-1"
+                        elif cname.endswith("_nm"):
+                            unit_hint = "nm"
+                        break
+            wavelength_nm, assumed = _convert_to_nm(raw_val, unit_hint)
+            label = str(row.get("label") or row.get("name") or f"{wavelength_nm:.6g} nm").strip()
+            ion = str(row.get("ion") or "").strip()
+            note = str(row.get("note") or row.get("comment") or "").strip()
+            color = self._next_palette_color()
+            pen = pg.mkPen(color, width=1.2)
+            try:
+                disp = float(self.plot._x_nm_to_disp(np.array([wavelength_nm]))[0])  # type: ignore[attr-defined]
+            except Exception:
+                disp = wavelength_nm
+            line_item = pg.InfiniteLine(pos=disp, angle=90, pen=pen, movable=False)
+            text_item = pg.TextItem(text=label, color=color)
+            tooltip_bits = [f"{wavelength_nm:.6g} nm", f"src={assumed}"]
+            if ion:
+                tooltip_bits.append(ion)
+            if note:
+                tooltip_bits.append(note)
+            line_item.setToolTip(" | ".join(tooltip_bits))
+            text_item.setToolTip(" | ".join(tooltip_bits))
+            try:
+                self.plot._plot.addItem(line_item)
+                self.plot._plot.addItem(text_item)
+            except Exception:
+                continue
+            self._line_list_markers.append({
+                'x_nm': wavelength_nm,
+                'line': line_item,
+                'text': text_item,
+                'color': color,
+                'source_unit': assumed,
+            })
+            added += 1
+        # Position labels vertically and refresh
+        try:
+            self._update_line_marker_positions()
+        except Exception:
+            pass
+        if added:
+            self.statusBar().showMessage(f"Added {added} spectral line(s) from '{path.name}'", 5000)
+        else:
+            QtWidgets.QMessageBox.information(self, "Line list", "No valid wavelength rows found.")
+
+    def _clear_line_list_markers(self) -> None:
+        """Remove all user-imported spectral line markers and labels from the plot."""
+        if not self._line_list_markers:
+            self.statusBar().showMessage("No line markers to clear", 3000)
+            return
+        removed = 0
+        for marker in list(self._line_list_markers):
+            try:
+                self.plot._plot.removeItem(marker.get('line'))
+                self.plot._plot.removeItem(marker.get('text'))
+                removed += 1
+            except Exception:
+                pass
+        self._line_list_markers.clear()
+        self.statusBar().showMessage(f"Cleared {removed} line marker(s)", 5000)
+
+    def _on_line_labels_toggled(self, visible: bool) -> None:
+        """Show or hide textual labels for imported spectral line markers."""
+        for marker in self._line_list_markers:
+            try:
+                text_item = marker.get('text')
+                if text_item is not None:
+                    text_item.setVisible(bool(visible))
+            except Exception:
+                continue
+        # No status spam; brief confirmation
+        self.statusBar().showMessage("Line labels {}".format("shown" if visible else "hidden"), 3000)
 
     @ui_action("Export failed")
     def export_center(self) -> None:
@@ -3286,6 +3549,11 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         try:
             if self.reference_overlay_checkbox.isChecked() and self._reference_overlay_payload:
                 self._apply_reference_overlay()
+        except Exception:
+            pass
+        # Also reposition any custom line list labels against new y-range
+        try:
+            self._update_line_marker_positions()
         except Exception:
             pass
 
