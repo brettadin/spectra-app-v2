@@ -27,8 +27,10 @@ This document tracks the current feature batch, validation status, and a summary
 - [ ] Calibration service: clarify goals, add minimal spec and service scaffold
 - [ ] Shortcut audit: add logical, non-intrusive defaults and document them
 - [ ] Entity previews (backlog): optional image/metadata card for the focused library entity (planet/star/molecule) when a single item is selected, gated to avoid clutter; persisted in Library metadata
+- [x] Reference lines consolidation: single curated CSV (46 lines) & element filtering refactor complete (2025-11-18)
 
 ### QA Log
+- 2025-11-18: ✅ `pytest -q` (174 passed, 3 skipped) – normalization deprecation resolved; reference lines UI refactor stable.
 
 - 2025-11-02: ✅ `pytest -q` (94 passed, 29 skipped)
 

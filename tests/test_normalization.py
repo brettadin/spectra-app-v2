@@ -116,8 +116,8 @@ def test_normalization_area(tmp_path: Path) -> None:
         assert trace is not None
         y_plotted = trace["y"]
         
-        # With Area normalization, the integral should be 1.0
-        area = np.trapz(np.abs(y_plotted))
+        # With Area normalization, the integral should be 1.0 (NumPy 2.x: use trapezoid)
+        area = np.trapezoid(np.abs(y_plotted))
         assert area == pytest.approx(1.0, abs=1e-6)
         
     finally:

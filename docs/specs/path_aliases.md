@@ -28,10 +28,10 @@ imports, exports, or links. Aliases decouple documentation and feature plans fro
   - Backed by: `docs/` (unchanged). Used in link-checking and index generation.
 
 ## Runtime resolution (code contract)
-- LocalStore.base_path MUST default to resolve(storage://cache) and create subfolders on demand.
-- Export centers MUST resolve(storage://exports) for default destinations; UI should reflect this path.
+- LocalStore.base_path SHOULD default to resolve(storage://cache) (PENDING MIGRATION – currently still uses platform AppData path). Task tracked in cleanup backlog.
+- Export centers SHOULD resolve(storage://exports) for default destinations; UI currently points at legacy `exports/` root (migration scheduling required).
 - Tests and fixtures SHOULD use samples:// unless the test explicitly targets curated data.
-- Providers and caches MUST NOT hardcode `downloads/` or `exports/`.
+- Providers and caches MUST NOT hardcode `downloads/` or `exports/` for new code; legacy references remain in historical docs until alias soak completes.
 
 Suggested interface (Python):
 
@@ -44,9 +44,10 @@ Suggested interface (Python):
 - When linking to files in-repo, use the current physical path but add a parenthetical alias for clarity during cleanup.
 
 ## Acceptance criteria
-- No in-repo docs or code refer directly to `downloads/` or `exports/` for post-migration behavior.
-- CI link checker finds zero broken links after moving the trees.
-- A grep for `downloads/` or `exports/` in code shows only redirect stubs/archives, not live references.
+- (Phase 1 complete) Alias helper shipped.
+- (Phase 2 pending) LocalStore & export workflows migrated to aliases (no direct AppData / root folder coupling).
+- (Phase 3 pending) Docs updated to prefer alias notation; residual historical references annotated as legacy.
+- (Final) Grep for `downloads/` / `exports/` shows only redirect stubs or archived notes; active runtime code uses aliases exclusively.
 
 ## Migration sequencing
 1) Land this spec and add a minimal `PathAlias` helper in code (backward-compatible to current paths).

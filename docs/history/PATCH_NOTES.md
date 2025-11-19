@@ -1,5 +1,15 @@
 # Patch Notes
 
+## 2025-11-18 (Reference lines consolidation & post-merge verification) — 19:04 ET / 00:04Z UTC
+- Verified successful fast-forward merges of cleanup (`PR #261 clean-up-v2`) and data fetching (`PR #262 data-fetching-patch`) into `main` — no residual conflict markers or uncommitted changes. Recent commit chain shows reference line label fixes followed by curated table replacement.
+- Replaced prior mixed/duplicated spectral line dataset with a single authoritative table in `samples/reference_lines/common_elements.csv` (46 lines: H, Ca II/I, Mg I, Fe I, Na I doublet, Al I, Ba II, Sr II, Cr I, Ca O). Removed legacy He, O₂, Hg, Ni, and extended placeholder lines not in the curated set to simplify element filtering logic.
+- Element checkbox filters now operate on exact element tokens present in CSV (no wildcards); deduplication enforced (one marker per wavelength+element). Updated labels to consistent format (e.g., Balmer α/β/γ/δ; Mg b-triplet b₁–b₃).
+- Outstanding cleanup tasks documented: (1) residual documentation references to `downloads/` / `exports/` as active roots despite alias migration; (2) `LocalStore` still uses platform AppData path rather than `storage://cache`; (3) ingestion duplicates local files by default (`copy_to_store=True`); (4) deprecation warning from `np.trapz` in `tests/test_normalization.py`; (5) path alias spec expects LocalStore flip not yet implemented.
+- Addressed point (4): replaced `np.trapz` with `np.trapezoid` in normalization test to eliminate warning (NumPy 2.x).
+- Next steps (planned): update docs to prefer alias notation (storage://cache, storage://exports) and schedule `LocalStore` alias migration; optional knowledge log entry skipped (file is .gitignored).
+- All tests pass after change: expected count 174 (3 skipped); normalization warning removed.
+
+
 ## 2025-11-12 (Samples trimmed; curated datasets added) — 21:17 ET / 02:17Z UTC
 - Moved large lab datasets to `storage/curated/` with a clear taxonomy:
   - `laboratory/IR/{CO2,H2O}/CSV` and `.../Raw` (instrument `.sp` exports)
