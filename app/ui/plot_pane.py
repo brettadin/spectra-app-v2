@@ -66,6 +66,9 @@ class PlotPane(QtWidgets.QWidget):
         self._order: list[str] = []
         self._max_points = self.normalize_max_points(max_points)
         self._crosshair_visible = True
+        self._title_visible = False
+        self._axis_label_font_size = "14pt"
+        self._title_font_size = "16pt"
         self._build_ui()
         # Don't apply theme during initialization - causes performance issues
 
@@ -106,9 +109,12 @@ class PlotPane(QtWidgets.QWidget):
                     axis_item.setPen(axis_pen)
                 if hasattr(axis_item, "setTextPen"):
                     axis_item.setTextPen(axis_pen)
-            label_style = {"color": palette.plot_foreground}
-            self._plot.setLabel("bottom", "Wavelength", units=self._display_unit, **label_style)
+            label_style = {"color": palette.plot_foreground, "font-size": self._axis_label_font_size}
+            label = "Wavenumber" if self._display_unit == "cm⁻¹" else "Wavelength"
+            self._plot.setLabel("bottom", label, units=self._display_unit, **label_style)
             self._plot.setLabel("left", self._y_label, **label_style)
+            # Update title with current theme color
+            self._update_title()
         except Exception:
             pass
 
@@ -250,7 +256,8 @@ class PlotPane(QtWidgets.QWidget):
         if label == self._y_label:
             return
         self._y_label = label
-        self._plot.setLabel("left", label)
+        self._update_axis_labels()
+        self._update_title()
 
     def remove_trace(self, key: str) -> None:
         trace = self._traces.pop(key, None)
@@ -313,6 +320,29 @@ class PlotPane(QtWidgets.QWidget):
 
         return self._crosshair_visible
 
+    def set_title_visible(self, visible: bool) -> None:
+        """Show or hide the plot title."""
+
+        self._title_visible = bool(visible)
+        self._update_title()
+
+    def is_title_visible(self) -> bool:
+        """Return True when the plot title is visible."""
+
+        return self._title_visible
+
+    def set_axis_label_font_size(self, size: str) -> None:
+        """Set the font size for axis labels (e.g., '12pt', '14pt', '16pt')."""
+
+        self._axis_label_font_size = size
+        self._update_axis_labels()
+
+    def set_title_font_size(self, size: str) -> None:
+        """Set the font size for the plot title (e.g., '14pt', '16pt', '18pt')."""
+
+        self._title_font_size = size
+        self._update_title()
+
     # ------------------------------------------------------------------
     # Internal helpers
     def _build_ui(self) -> None:
@@ -348,8 +378,8 @@ class PlotPane(QtWidgets.QWidget):
 
         layout.addWidget(self._plot)
 
-        self._plot.setLabel("bottom", "Wavelength", units=self._display_unit)
-        self._plot.setLabel("left", self._y_label)
+        # Set initial axis labels with font sizing
+        self._update_axis_labels()
         for axis in ("bottom", "left"):
             axis_item = self._plot.getPlotItem().getAxis(axis)
             if hasattr(axis_item, "enableAutoSIPrefix"):
@@ -564,8 +594,8 @@ class PlotPane(QtWidgets.QWidget):
     def _redraw_units(self) -> None:
         for key in self._traces:
             self._update_curve(key)
-        label = "Wavenumber" if self._display_unit == "cm⁻¹" else "Wavelength"
-        self._plot.setLabel("bottom", label, units=self._display_unit)
+        self._update_axis_labels()
+        self._update_title()
 
     def map_nm_to_display(self, value_nm: float) -> float:
         """Convert a canonical wavelength (nm) to the current display unit."""
@@ -583,6 +613,41 @@ class PlotPane(QtWidgets.QWidget):
         """Detach a previously added graphics item."""
 
         self._plot.removeItem(item)
+
+    def _update_axis_labels(self) -> None:
+        """Update axis labels with current units and font size."""
+
+        label = "Wavenumber" if self._display_unit == "cm⁻¹" else "Wavelength"
+        label_style = {"font-size": self._axis_label_font_size}
+        self._plot.setLabel("bottom", label, units=self._display_unit, **label_style)
+        self._plot.setLabel("left", self._y_label, **label_style)
+
+    def _update_title(self) -> None:
+        """Update plot title based on current y_label and visibility."""
+
+        if not self._title_visible:
+            self._plot.setTitle("", size=self._title_font_size)
+            return
+
+        # Generate intelligent title based on y_label
+        y_lower = self._y_label.lower()
+        if "intensity" in y_lower:
+            title = "Spectral Intensity"
+        elif "absorbance" in y_lower:
+            title = "Absorbance Spectrum"
+        elif "transmittance" in y_lower:
+            title = "Transmittance Spectrum"
+        elif "reflectance" in y_lower:
+            title = "Reflectance Spectrum"
+        elif "flux" in y_lower:
+            title = "Spectral Flux"
+        elif "radiance" in y_lower:
+            title = "Spectral Radiance"
+        else:
+            # Generic fallback
+            title = "Spectral Data"
+
+        self._plot.setTitle(title, size=self._title_font_size)
 
     def _rebuild_legend(self) -> None:
         self._legend.clear()

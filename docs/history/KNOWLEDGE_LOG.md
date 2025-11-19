@@ -10095,3 +10095,339 @@ THE KNOWLEDGE LOG IS JUST FOR AGENTS TO WRITE IMPORTANT SHIT INTO
 - okay sun file.csv
 
 ---
+## 2025-11-18 21:20 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Air Lamp_calibrated.csv
+
+**References**:
+- Air Lamp_calibrated.csv
+
+---
+## 2025-11-18 21:20 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file CO2 Lamp_calibrated.csv
+
+**References**:
+- CO2 Lamp_calibrated.csv
+
+---
+## 2025-11-18 21:20 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file H2O Lamp_calibrated.csv
+
+**References**:
+- H2O Lamp_calibrated.csv
+
+---
+## 2025-11-18 21:20 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Helium Lamp_calibrated.csv
+
+**References**:
+- Helium Lamp_calibrated.csv
+
+---
+## 2025-11-18 21:20 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Hydrogen Lamp_calibrated.csv
+
+**References**:
+- Hydrogen Lamp_calibrated.csv
+
+---
+## 2025-11-18 21:20 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Mercury Lamp_calibrated.csv
+
+**References**:
+- Mercury Lamp_calibrated.csv
+
+---
+## 2025-11-18 21:20 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Neon Lamp_calibrated.csv
+
+**References**:
+- Neon Lamp_calibrated.csv
+
+---
+## 2025-11-18 21:20 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Star Lamp_calibrated.csv
+
+**References**:
+- Star Lamp_calibrated.csv
+
+---
+## 2025-11-18 21:20 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Xenon Lamp_calibrated.csv
+
+**References**:
+- Xenon Lamp_calibrated.csv
+
+---
+## 2025-11-18 21:31 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Air Lamp_calibrated.csv
+
+**References**:
+- Air Lamp_calibrated.csv
+
+---
+## 2025-11-18 21:31 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file CO2 Lamp_calibrated.csv
+
+**References**:
+- CO2 Lamp_calibrated.csv
+
+---
+## 2025-11-18 21:31 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file H2O Lamp_calibrated.csv
+
+**References**:
+- H2O Lamp_calibrated.csv
+
+---
+## 2025-11-18 21:31 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Helium Lamp_calibrated.csv
+
+**References**:
+- Helium Lamp_calibrated.csv
+
+---
+## 2025-11-18 21:31 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Hydrogen Lamp_calibrated.csv
+
+**References**:
+- Hydrogen Lamp_calibrated.csv
+
+---
+## 2025-11-18 21:31 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Mercury Lamp_calibrated.csv
+
+**References**:
+- Mercury Lamp_calibrated.csv
+
+---
+## 2025-11-18 21:31 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Neon Lamp_calibrated.csv
+
+**References**:
+- Neon Lamp_calibrated.csv
+
+---
+## 2025-11-18 21:31 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Star Lamp_calibrated.csv
+
+**References**:
+- Star Lamp_calibrated.csv
+
+---
+## 2025-11-18 21:31 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Xenon Lamp_calibrated.csv
+
+**References**:
+- Xenon Lamp_calibrated.csv
+
+---
+## 2025-11-18 21:48 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file okay sun file.csv
+
+**References**:
+- okay sun file.csv
+
+---
+## 2025-11-18 21:49 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file jupiter__9408090029N_vo.fits
+
+**References**:
+- jupiter__9408090029N_vo.fits
+
+---
+## 2025-11-18 21:51 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file sample_spectrum.csv
+
+**References**:
+- sample_spectrum.csv
+
+---
+## 2025-11-18 21:52 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file lines labeled.csv
+
+**References**:
+- lines labeled.csv
+
+---
+## 2025-11-18 21:52 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file jupiter__9408090029N_vo.fits
+
+**References**:
+- jupiter__9408090029N_vo.fits
+
+---
+## 2025-11-18 21:53 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file okay sun file.csv
+
+**References**:
+- okay sun file.csv
+
+---
+## 2025-11-18 21:56 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Solar Irradiance.csv
+
+**References**:
+- Solar Irradiance.csv
+
+---
+## 2025-11-18 22:08 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Hydrogen Lamp_calibrated.csv
+
+**References**:
+- Hydrogen Lamp_calibrated.csv
+
+---
+## 2025-11-18 22:09 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Helium Lamp_calibrated.csv
+
+**References**:
+- Helium Lamp_calibrated.csv
+
+---
+## 2025-11-18 22:09 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Mercury Lamp_calibrated.csv
+
+**References**:
+- Mercury Lamp_calibrated.csv
+
+---

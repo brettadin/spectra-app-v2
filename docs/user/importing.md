@@ -18,6 +18,14 @@ cache for provenance-aware reuse.
   surrounds the table. Units can be provided inline (e.g. `wavelength(nm)`), in
   square brackets, or in the preamble text; otherwise the importer estimates
   sensible defaults from value ranges (e.g. 400–2500 ≈ nanometres).
+  
+  **Calibrated wavelength support**: If your CSV includes a `wavelength_calibrated_nm` 
+  column (alongside the standard `wavelength_nm` column), the importer automatically 
+  uses the calibrated values. This is useful for lab workflows where instruments record 
+  both raw and wavelength-calibrated data (e.g., lamp spectra with known emission lines 
+  used for wavelength calibration). Files without the calibration column continue to 
+  work as before using `wavelength_nm`.
+  
 - **DAT** – Uses the same resilient parser as CSV/TXT for ASCII or delimited
   science tables. MASCS-style label pairs (`*.lbl` + `*.dat`) work when the data
   section is plain text; binary PDS tables still need pre-processing via the

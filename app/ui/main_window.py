@@ -1287,6 +1287,43 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.crosshair_action.toggled.connect(lambda v: self.plot.set_crosshair_visible(bool(v)))
         view_menu.addAction(self.crosshair_action)
 
+        # Plot title toggle
+        self.title_action = QtGui.QAction("Show Plot Title", self, checkable=True)
+        try:
+            self.title_action.setChecked(self.plot.is_title_visible())
+        except Exception:
+            self.title_action.setChecked(False)
+        self.title_action.toggled.connect(lambda v: self.plot.set_title_visible(bool(v)))
+        view_menu.addAction(self.title_action)
+
+        view_menu.addSeparator()
+        # Font size submenu
+        font_menu = view_menu.addMenu("&Font Sizes")
+        
+        label_size_menu = font_menu.addMenu("Axis Labels")
+        label_sizes = [("Small (12pt)", "12pt"), ("Medium (14pt)", "14pt"), ("Large (16pt)", "16pt"), ("Extra Large (18pt)", "18pt")]
+        label_group = QtGui.QActionGroup(self)
+        for size_name, size_value in label_sizes:
+            action = QtGui.QAction(size_name, self, checkable=True)
+            action.setData(size_value)
+            if size_value == "14pt":  # Default
+                action.setChecked(True)
+            action.triggered.connect(lambda checked, s=size_value: self.plot.set_axis_label_font_size(s) if checked else None)
+            label_group.addAction(action)
+            label_size_menu.addAction(action)
+        
+        title_size_menu = font_menu.addMenu("Plot Title")
+        title_sizes = [("Small (14pt)", "14pt"), ("Medium (16pt)", "16pt"), ("Large (18pt)", "18pt"), ("Extra Large (20pt)", "20pt")]
+        title_group = QtGui.QActionGroup(self)
+        for size_name, size_value in title_sizes:
+            action = QtGui.QAction(size_name, self, checkable=True)
+            action.setData(size_value)
+            if size_value == "16pt":  # Default
+                action.setChecked(True)
+            action.triggered.connect(lambda checked, s=size_value: self.plot.set_title_font_size(s) if checked else None)
+            title_group.addAction(action)
+            title_size_menu.addAction(action)
+
         view_menu.addSeparator()
         self.reset_plot_action = QtGui.QAction("Reset Plot", self)
         self.reset_plot_action.setShortcut(QtGui.QKeySequence("Ctrl+Shift+A"))
@@ -2854,7 +2891,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                 if not np.any(finite_y):
                     return y
                 # Index-based area to match existing behavior/tests
-                norm_val = float(np.trapz(np.abs(y[finite_y])))
+                norm_val = float(np.trapezoid(np.abs(y[finite_y])))
 
             logger.info(f"Area normalization: norm_val={norm_val:.6f}")
             if norm_val > 0:

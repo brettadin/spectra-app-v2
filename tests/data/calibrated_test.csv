@@ -1,0 +1,4 @@
+wavelength_nm,intensity,spectrum_id,spectrum_name,wavelength_calibrated_nm,x_unit,y_unit
+400.0,1.5,test1,Test Spectrum,398.5,nm,absorbance
+410.0,2.3,test1,Test Spectrum,408.3,nm,absorbance
+420.0,1.8,test1,Test Spectrum,418.2,nm,absorbance

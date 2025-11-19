@@ -1,5 +1,30 @@
 # Patch Notes
 
+## 2025-11-18 (Larger axis labels & toggleable plot title) — 21:45 ET / 02:45Z UTC
+- **Enhanced plot readability**: Added configurable font sizes for axis labels and plot title via **View → Font Sizes** menu.
+  - Axis Labels: Small (12pt), **Medium (14pt, default)**, Large (16pt), Extra Large (18pt)
+  - Plot Title: Small (14pt), **Medium (16pt, default)**, Large (18pt), Extra Large (20pt)
+- **Intelligent plot titles**: Added toggleable plot title (**View → Show Plot Title**) that automatically adapts to data type:
+  - "Spectral Intensity" for intensity data
+  - "Absorbance Spectrum" for absorbance measurements
+  - "Transmittance Spectrum" for transmittance data
+  - "Reflectance Spectrum" for reflectance measurements
+  - "Spectral Flux" / "Spectral Radiance" for flux/radiance data
+  - "Spectral Data" as generic fallback
+- Title and font size settings persist between sessions for consistent workflow.
+- Fixed remaining `np.trapz` deprecation warning in `main_window.py` (NumPy 2.x compatibility).
+- Updated `docs/user/plot_tools.md` with new customization options.
+- All tests pass: 177 passed, 3 skipped (no new warnings).
+
+## 2025-11-18 (Calibrated wavelength column support) — 21:28 ET / 02:28Z UTC
+- **CSV importer now reads calibrated wavelength data**: Added support for `wavelength_calibrated_nm` column in CSV files. When present, the importer automatically uses calibrated wavelengths instead of the original `wavelength_nm` values.
+- Graceful fallback: Files without calibration column continue to work exactly as before using `wavelength_nm`.
+- Supports both single-spectrum and multi-spectrum bundle formats (provenance export CSVs).
+- Use case: Lab calibration workflows where instruments record both raw and calibrated wavelengths (e.g., lamp spectra with known emission lines used for wavelength calibration).
+- Added 3 new regression tests covering calibrated-only, fallback, and multi-spectrum scenarios.
+- All tests pass: 177 passed (3 new), 3 skipped, backward compatibility confirmed.
+- Updated importing guide with calibrated wavelength column documentation.
+
 ## 2025-11-18 (Reference lines consolidation & post-merge verification) — 19:04 ET / 00:04Z UTC
 - Verified successful fast-forward merges of cleanup (`PR #261 clean-up-v2`) and data fetching (`PR #262 data-fetching-patch`) into `main` — no residual conflict markers or uncommitted changes. Recent commit chain shows reference line label fixes followed by curated table replacement.
 - Replaced prior mixed/duplicated spectral line dataset with a single authoritative table in `samples/reference_lines/common_elements.csv` (46 lines: H, Ca II/I, Mg I, Fe I, Na I doublet, Al I, Ba II, Sr II, Cr I, Ca O). Removed legacy He, O₂, Hg, Ni, and extended placeholder lines not in the curated set to simplify element filtering logic.

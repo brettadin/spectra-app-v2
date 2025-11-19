@@ -446,7 +446,9 @@ class CsvImporter:
             if not spectrum_id:
                 continue
             try:
-                wavelength = float(row.get("wavelength_nm", ""))
+                # Prefer calibrated wavelength if available, fall back to original
+                wavelength_str = row.get("wavelength_calibrated_nm") or row.get("wavelength_nm", "")
+                wavelength = float(wavelength_str)
                 intensity = float(row.get("intensity", ""))
             except (TypeError, ValueError):
                 continue

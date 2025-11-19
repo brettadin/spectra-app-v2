@@ -90,6 +90,27 @@ pick between:
 
 The theme change applies immediately: window chrome, dock backgrounds, and tables restyle on the spot, and the plot pane updates its axis pens, legend, crosshair, and pyqtgraph palette to keep data legible. Your selection is saved in Spectra's preferences, so the next launch resumes where you left off.
 
+## Plot appearance customization
+
+### Axis labels and title
+
+The plot now supports larger, more readable axis labels and an optional plot title via **View → Font Sizes**:
+
+- **Axis Labels**: Choose from Small (12pt), **Medium (14pt, default)**, Large (16pt), or Extra Large (18pt)
+- **Plot Title**: Choose from Small (14pt), **Medium (16pt, default)**, Large (18pt), or Extra Large (20pt)
+
+The plot title can be toggled on/off via **View → Show Plot Title**. When enabled, the title automatically adapts to the data being displayed:
+- "Spectral Intensity" for intensity data
+- "Absorbance Spectrum" for absorbance measurements
+- "Transmittance Spectrum" for transmittance data
+- "Reflectance Spectrum" for reflectance measurements
+- "Spectral Flux" or "Spectral Radiance" for flux/radiance data
+- "Spectral Data" as a generic fallback
+
+This helps identify the type of data being plotted at a glance, especially useful when switching between different measurement types or when sharing plots with collaborators who may not be familiar with your specific datasets.
+
+Both font size settings and title visibility persist between sessions.
+
 ## Trace colouring modes
 
 Heavy overlay sessions can get visually noisy when every spectrum shares the same palette. The Inspector’s **Style** tab now ships
