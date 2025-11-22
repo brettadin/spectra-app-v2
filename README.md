@@ -8,7 +8,7 @@
 A modern, modular **Windows desktop application** for spectroscopic analysis of stellar, planetary, and exoplanet data. Built with PySide6/Qt for performance and reliability, featuring clean UI, robust provenance tracking, and offline-first caching.
 
 > Documentation Hub: For all docs, start at `docs/INDEX.md`. It’s the canonical map linking user guides, developer specs, history, and packaging.
-
+**needs revision as of 11/21/25**
 > Cleanup Dashboard (Nov 2025):
 > - Where we are now: [docs/history/2025-11-03_cleanup_branch_summary.md](docs/history/2025-11-03_cleanup_branch_summary.md)
 > - Master plan & progress log: [docs/dev/CLEANUP_MASTER_PLAN.md](docs/dev/CLEANUP_MASTER_PLAN.md)
