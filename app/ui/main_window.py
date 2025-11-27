@@ -1700,7 +1700,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             self,
             "Open Spectrum(s)",
             str(SAMPLES_DIR),
-            "Data files (*.csv *.txt *.dat *.fits *.fit *.fts *.jdx *.dx *.jcamp);;All files (*.*)",
+            "Data files (*.csv *.txt *.dat *.fits *.fit *.fts *.jdx *.dx *.jcamp *.h5 *.hdf5);;All files (*.*)",
         )
         if not path_strs:
             return
@@ -1716,7 +1716,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             self,
             "Load Sample",
             str(SAMPLES_DIR),
-            "Data files (*.csv *.txt *.dat *.fits *.fit *.fts *.jdx *.dx *.jcamp);;All files (*.*)",
+            "Data files (*.csv *.txt *.dat *.fits *.fit *.fts *.jdx *.dx *.jcamp *.h5 *.hdf5);;All files (*.*)",
         )
         if not path_str:
             return
@@ -2137,7 +2137,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                 # Only surface the Samples root when at least one eligible file exists
                 eligible: list[Path] = []
                 for p in sorted(Path(samples_dir).glob("*")):
-                    if p.is_file() and p.suffix.lower() in {".csv", ".txt", ".dat", ".fits", ".fit", ".fts", ".jdx", ".dx", ".jcamp"}:
+                    if p.is_file() and p.suffix.lower() in {".csv", ".txt", ".dat", ".fits", ".fit", ".fts", ".jdx", ".dx", ".jcamp", ".h5", ".hdf5"}:
                         eligible.append(p)
                 if eligible:
                     samples_root = QtWidgets.QTreeWidgetItem(["Samples", ""]) 

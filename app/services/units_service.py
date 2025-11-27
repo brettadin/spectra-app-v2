@@ -197,6 +197,9 @@ class UnitsService:
         meta = metadata if metadata is not None else None
         if unit in {"absorbance", "a10"}:
             return data.copy()
+        # Transit depth, arbitrary units, and other ratio measurements: preserve as-is
+        if unit in {"transit_depth", "percent", "%", "arbitrary", "a.u.", "counts"}:
+            return data.copy()
         if unit in {"transmittance", "t"}:
             if meta is not None:
                 meta.setdefault("intensity_conversion", {})
@@ -221,6 +224,9 @@ class UnitsService:
     def _from_canonical_intensity(self, data: np.ndarray, dst: str) -> np.ndarray:
         unit = self._normalise_y_unit(dst)
         if unit in {"absorbance", "a10"}:
+            return np.array(data, dtype=self.float_dtype, copy=True)
+        # Transit depth, arbitrary units, and other ratio measurements: preserve as-is
+        if unit in {"transit_depth", "percent", "%", "arbitrary", "a.u.", "counts"}:
             return np.array(data, dtype=self.float_dtype, copy=True)
         if unit in {"transmittance", "t"}:
             return np.array(10 ** (-data), dtype=self.float_dtype)
@@ -248,4 +254,8 @@ class UnitsService:
             return "absorbance"
         if u in {"ae", "a_e", "absorbance(e)", "absorbancee"}:
             return "absorbance_e"
+        if u in {"transitdepth", "transit_depth", "trandep", "pl_trandep"}:
+            return "transit_depth"
+        if u in {"a.u.", "a.u", "au", "arb", "arb.units", "arbitrary"}:
+            return "arbitrary"
         return u

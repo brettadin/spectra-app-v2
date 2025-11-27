@@ -7,3 +7,4 @@ astroquery==0.4.7
 pandas==2.2.3
 requests>=2.32.3,<3
 pyhdf>=0.11.6  # Optional: MODIS HDF4 ingestion. Install via: conda install -c conda-forge pyhdf
+h5py>=3.10.0  # Optional: HDF5 support for JWST/Eureka pipeline outputs

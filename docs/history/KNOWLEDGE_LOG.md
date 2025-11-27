@@ -10431,3 +10431,1995 @@ THE KNOWLEDGE LOG IS JUST FOR AGENTS TO WRITE IMPORTANT SHIT INTO
 - Mercury Lamp_calibrated.csv
 
 ---
+## 2025-11-19 14:53 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file H2O Nist.jdx
+
+**References**:
+- H2O Nist.jdx
+
+---
+## 2025-11-19 14:53 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file CO2 Nist.jdx
+
+**References**:
+- CO2 Nist.jdx
+
+---
+## 2025-11-19 14:58 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file .880torr~ w low vol h2o vapor.csv
+
+**References**:
+- .880torr~ w low vol h2o vapor.csv
+
+---
+## 2025-11-19 14:58 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file _880torr~ w low vol h2o vapor.csv
+
+**References**:
+- _880torr~ w low vol h2o vapor.csv
+
+---
+## 2025-11-19 14:58 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file 7ish torr w h2o vapor.csv
+
+**References**:
+- 7ish torr w h2o vapor.csv
+
+---
+## 2025-11-19 14:58 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file 10.8 Test 1.csv
+
+**References**:
+- 10.8 Test 1.csv
+
+---
+## 2025-11-19 14:58 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file 10.8 Test 2.csv
+
+**References**:
+- 10.8 Test 2.csv
+
+---
+## 2025-11-19 14:58 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file 100 torr cold water.csv
+
+**References**:
+- 100 torr cold water.csv
+
+---
+## 2025-11-19 14:58 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file 100 torr h2o 4-1k.csv
+
+**References**:
+- 100 torr h2o 4-1k.csv
+
+---
+## 2025-11-19 14:58 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file bkgrd 10 16 VAC.csv
+
+**References**:
+- bkgrd 10 16 VAC.csv
+
+---
+## 2025-11-19 14:58 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file cold water test 1.csv
+
+**References**:
+- cold water test 1.csv
+
+---
+## 2025-11-19 14:58 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file goodo vapor run i think.csv
+
+**References**:
+- goodo vapor run i think.csv
+
+---
+## 2025-11-19 14:58 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file h2o all runs avg-composite.csv
+
+**References**:
+- h2o all runs avg-composite.csv
+
+---
+## 2025-11-19 14:58 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file h2o run 1 10 27.csv
+
+**References**:
+- h2o run 1 10 27.csv
+
+---
+## 2025-11-19 14:58 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file h2o run 3 good i think 10 27.csv
+
+**References**:
+- h2o run 3 good i think 10 27.csv
+
+---
+## 2025-11-19 14:58 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file h2o v2 10 27.csv
+
+**References**:
+- h2o v2 10 27.csv
+
+---
+## 2025-11-19 14:58 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file h2o vapor test 1.csv
+
+**References**:
+- h2o vapor test 1.csv
+
+---
+## 2025-11-19 14:58 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file i froze h2o in the schlenk line oopsie.csv
+
+**References**:
+- i froze h2o in the schlenk line oopsie.csv
+
+---
+## 2025-11-19 14:58 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file low vapor for the road.csv
+
+**References**:
+- low vapor for the road.csv
+
+---
+## 2025-11-19 14:58 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file sketchy vapor test.csv
+
+**References**:
+- sketchy vapor test.csv
+
+---
+## 2025-11-19 14:58 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file vacc'd again 244 pm.csv
+
+**References**:
+- vacc'd again 244 pm.csv
+
+---
+## 2025-11-19 15:20 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file CO2 - 500 torr A.csv
+
+**References**:
+- CO2 - 500 torr A.csv
+
+---
+## 2025-11-19 15:20 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file CO2 - 500 torr.csv
+
+**References**:
+- CO2 - 500 torr.csv
+
+---
+## 2025-11-19 15:20 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file goodo vapor run i think.csv
+
+**References**:
+- goodo vapor run i think.csv
+
+---
+## 2025-11-19 15:59 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file CO2_300torr_NIST_norm_on_sample_grid.csv
+
+**References**:
+- CO2_300torr_NIST_norm_on_sample_grid.csv
+
+---
+## 2025-11-19 15:59 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file CO2_300torr_sample_norm.csv
+
+**References**:
+- CO2_300torr_sample_norm.csv
+
+---
+## 2025-11-19 15:59 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file CO2_300torr_vs_NIST_norm.csv
+
+**References**:
+- CO2_300torr_vs_NIST_norm.csv
+
+---
+## 2025-11-19 15:59 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file CO2_500torr_NIST_norm_on_sample_grid.csv
+
+**References**:
+- CO2_500torr_NIST_norm_on_sample_grid.csv
+
+---
+## 2025-11-19 15:59 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file CO2_500torr_sample_norm.csv
+
+**References**:
+- CO2_500torr_sample_norm.csv
+
+---
+## 2025-11-19 15:59 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file CO2_500torr_vs_NIST_norm.csv
+
+**References**:
+- CO2_500torr_vs_NIST_norm.csv
+
+---
+## 2025-11-19 15:59 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file CO2_NIST_norm.csv
+
+**References**:
+- CO2_NIST_norm.csv
+
+---
+## 2025-11-19 15:59 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file H2O_NIST_norm.csv
+
+**References**:
+- H2O_NIST_norm.csv
+
+---
+## 2025-11-19 15:59 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file H2O_vapor_NIST_norm_on_sample_grid.csv
+
+**References**:
+- H2O_vapor_NIST_norm_on_sample_grid.csv
+
+---
+## 2025-11-19 15:59 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file H2O_vapor_sample_norm.csv
+
+**References**:
+- H2O_vapor_sample_norm.csv
+
+---
+## 2025-11-19 15:59 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file H2O_vapor_vs_NIST_norm.csv
+
+**References**:
+- H2O_vapor_vs_NIST_norm.csv
+
+---
+## 2025-11-19 16:01 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file CO2_300torr_NIST_norm_on_sample_grid.csv
+
+**References**:
+- CO2_300torr_NIST_norm_on_sample_grid.csv
+
+---
+## 2025-11-19 16:01 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file CO2_300torr_sample_norm.csv
+
+**References**:
+- CO2_300torr_sample_norm.csv
+
+---
+## 2025-11-19 16:01 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file CO2_300torr_vs_NIST_norm.csv
+
+**References**:
+- CO2_300torr_vs_NIST_norm.csv
+
+---
+## 2025-11-19 16:01 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file CO2_500torr_NIST_norm_on_sample_grid.csv
+
+**References**:
+- CO2_500torr_NIST_norm_on_sample_grid.csv
+
+---
+## 2025-11-19 16:01 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file CO2_500torr_sample_norm.csv
+
+**References**:
+- CO2_500torr_sample_norm.csv
+
+---
+## 2025-11-19 16:01 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file CO2_500torr_vs_NIST_norm.csv
+
+**References**:
+- CO2_500torr_vs_NIST_norm.csv
+
+---
+## 2025-11-19 16:01 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file CO2_NIST_norm.csv
+
+**References**:
+- CO2_NIST_norm.csv
+
+---
+## 2025-11-19 16:03 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file CO2 Nist.jdx
+
+**References**:
+- CO2 Nist.jdx
+
+---
+## 2025-11-19 16:05 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file CO2 - 500 torr A.csv
+
+**References**:
+- CO2 - 500 torr A.csv
+
+---
+## 2025-11-19 16:06 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file H2O Nist.jdx
+
+**References**:
+- H2O Nist.jdx
+
+---
+## 2025-11-19 16:13 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file H2O_NIST_norm.csv
+
+**References**:
+- H2O_NIST_norm.csv
+
+---
+## 2025-11-19 16:13 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file H2O_vapor_NIST_norm_on_sample_grid.csv
+
+**References**:
+- H2O_vapor_NIST_norm_on_sample_grid.csv
+
+---
+## 2025-11-19 16:13 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file H2O_vapor_sample_norm.csv
+
+**References**:
+- H2O_vapor_sample_norm.csv
+
+---
+## 2025-11-19 16:13 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file H2O_vapor_vs_NIST_norm.csv
+
+**References**:
+- H2O_vapor_vs_NIST_norm.csv
+
+---
+## 2025-11-19 16:14 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file goodo vapor run i think.csv
+
+**References**:
+- goodo vapor run i think.csv
+
+---
+## 2025-11-19 16:57 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file BestFitModel.txt
+
+**References**:
+- BestFitModel.txt
+
+---
+## 2025-11-19 17:25 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file S4_wasp39b_ap0_bg0_LCData.h5
+
+**References**:
+- S4_wasp39b_ap0_bg0_LCData.h5
+
+---
+## 2025-11-19 18:30 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file S4_wasp39b_ap0_bg0_LCData.h5
+
+**References**:
+- S4_wasp39b_ap0_bg0_LCData.h5
+
+---
+## 2025-11-19 19:13 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file CO2 - 500 torr A.csv
+
+**References**:
+- CO2 - 500 torr A.csv
+
+---
+## 2025-11-19 19:14 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file CO2 Nist.jdx
+
+**References**:
+- CO2 Nist.jdx
+
+---
+## 2025-11-19 19:14 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file run2.csv
+
+**References**:
+- run2.csv
+
+---
+## 2025-11-19 19:14 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file run4.csv
+
+**References**:
+- run4.csv
+
+---
+## 2025-11-19 19:18 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file bkgrd A.csv
+
+**References**:
+- bkgrd A.csv
+
+---
+## 2025-11-19 19:20 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file open air.csv
+
+**References**:
+- open air.csv
+
+---
+## 2025-11-19 19:20 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Run1 no co2.csv
+
+**References**:
+- Run1 no co2.csv
+
+---
+## 2025-11-19 19:33 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file H2O Nist.jdx
+
+**References**:
+- H2O Nist.jdx
+
+---
+## 2025-11-19 19:34 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file table_2MASS-J12073346-3932539-b-Luhman-et-al.-2023(1).csv
+
+**References**:
+- table_2MASS-J12073346-3932539-b-Luhman-et-al.-2023(1).csv
+
+---
+## 2025-11-19 19:35 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file H2O Nist.jdx
+
+**References**:
+- H2O Nist.jdx
+
+---
+## 2025-11-20 10:59 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file table_HAT-P-18-b-Fournier-Tondreau-et-al.-2024.csv
+
+**References**:
+- table_HAT-P-18-b-Fournier-Tondreau-et-al.-2024.csv
+
+---
+## 2025-11-20 10:59 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file table_WASP-69-b-Schlawin-et-al.-2024.csv
+
+**References**:
+- table_WASP-69-b-Schlawin-et-al.-2024.csv
+
+---
+## 2025-11-20 10:59 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file table_2MASS-J12073346-3932539-b-Luhman-et-al.-2023.csv
+
+**References**:
+- table_2MASS-J12073346-3932539-b-Luhman-et-al.-2023.csv
+
+---
+## 2025-11-20 10:59 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file table_HAT-P-18-b-Fournier-Tondreau-et-al.-2024.csv
+
+**References**:
+- table_HAT-P-18-b-Fournier-Tondreau-et-al.-2024.csv
+
+---
+## 2025-11-20 10:59 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file table_Luhman-16-b-Biller-et-al.-2024.csv
+
+**References**:
+- table_Luhman-16-b-Biller-et-al.-2024.csv
+
+---
+## 2025-11-20 10:59 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file table_TRAPPIST-1-b-Rathcke-et-al.-2025.csv
+
+**References**:
+- table_TRAPPIST-1-b-Rathcke-et-al.-2025.csv
+
+---
+## 2025-11-20 10:59 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file table_VHS-J125601.92-125723.9-b-Miles-et-al.-2023.csv
+
+**References**:
+- table_VHS-J125601.92-125723.9-b-Miles-et-al.-2023.csv
+
+---
+## 2025-11-20 10:59 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file table_WASP-17-b-Louie-et-al.-2025.csv
+
+**References**:
+- table_WASP-17-b-Louie-et-al.-2025.csv
+
+---
+## 2025-11-20 10:59 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file table_WASP-39-b-Rustamkulov-et-al.-2023.csv
+
+**References**:
+- table_WASP-39-b-Rustamkulov-et-al.-2023.csv
+
+---
+## 2025-11-20 10:59 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file table_WASP-69-b-Schlawin-et-al.-2024.csv
+
+**References**:
+- table_WASP-69-b-Schlawin-et-al.-2024.csv
+
+---
+## 2025-11-20 10:59 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file table_WASP-96-b-Radica-et-al.-2023.csv
+
+**References**:
+- table_WASP-96-b-Radica-et-al.-2023.csv
+
+---
+## 2025-11-20 10:59 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file table_WASP-178-b-Lothringer-et-al.-2022.csv
+
+**References**:
+- table_WASP-178-b-Lothringer-et-al.-2022.csv
+
+---
+## 2025-11-20 11:00 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file CO2 - 500 torr A.csv
+
+**References**:
+- CO2 - 500 torr A.csv
+
+---
+## 2025-11-20 11:01 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file CO2 Nist.jdx
+
+**References**:
+- CO2 Nist.jdx
+
+---
+## 2025-11-20 11:01 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file H2O Nist.jdx
+
+**References**:
+- H2O Nist.jdx
+
+---
+## 2025-11-20 11:05 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file table_WASP-39-b-Ahrer-et-al.-2022.csv
+
+**References**:
+- table_WASP-39-b-Ahrer-et-al.-2022.csv
+
+---
+## 2025-11-20 11:14 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file table_WASP-39-b-Ahrer-et-al.-2022.csv
+
+**References**:
+- table_WASP-39-b-Ahrer-et-al.-2022.csv
+
+---
+## 2025-11-20 11:15 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file table_WASP-39-b-Carter-et-al.-2024.csv
+
+**References**:
+- table_WASP-39-b-Carter-et-al.-2024.csv
+
+---
+## 2025-11-20 11:18 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file table_WASP-39-b-Carter-et-al.-2024.csv
+
+**References**:
+- table_WASP-39-b-Carter-et-al.-2024.csv
+
+---
+## 2025-11-20 11:19 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file table_WASP-39-b-Carter-et-al.-2024.csv
+
+**References**:
+- table_WASP-39-b-Carter-et-al.-2024.csv
+
+---
+## 2025-11-20 11:22 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file table_WASP-39-b-Carter-et-al.-2024.csv
+
+**References**:
+- table_WASP-39-b-Carter-et-al.-2024.csv
+
+---
+## 2025-11-20 11:23 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file table_WASP-39-b-Carter-et-al.-2024.csv
+
+**References**:
+- table_WASP-39-b-Carter-et-al.-2024.csv
+
+---
+## 2025-11-20 11:23 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file table_WASP-39-b-Ahrer-et-al.-2022.csv
+
+**References**:
+- table_WASP-39-b-Ahrer-et-al.-2022.csv
+
+---
+## 2025-11-20 11:23 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file table_WASP-69-b-Schlawin-et-al.-2024.csv
+
+**References**:
+- table_WASP-69-b-Schlawin-et-al.-2024.csv
+
+---
+## 2025-11-20 11:28 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file table_HAT-P-18-b-Fournier-Tondreau-et-al.-2024.csv
+
+**References**:
+- table_HAT-P-18-b-Fournier-Tondreau-et-al.-2024.csv
+
+---
+## 2025-11-20 11:28 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file table_WASP-39-b-Ahrer-et-al.-2022.csv
+
+**References**:
+- table_WASP-39-b-Ahrer-et-al.-2022.csv
+
+---
+## 2025-11-20 11:28 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file table_WASP-39-b-Carter-et-al.-2024.csv
+
+**References**:
+- table_WASP-39-b-Carter-et-al.-2024.csv
+
+---
+## 2025-11-20 11:28 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file table_WASP-69-b-Schlawin-et-al.-2024.csv
+
+**References**:
+- table_WASP-69-b-Schlawin-et-al.-2024.csv
+
+---
+## 2025-11-20 11:29 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file CO2 Nist.jdx
+
+**References**:
+- CO2 Nist.jdx
+
+---
+## 2025-11-20 11:29 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file H2O Nist.jdx
+
+**References**:
+- H2O Nist.jdx
+
+---
+## 2025-11-20 11:42 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file table_2MASS-J12073346-3932539-b-Luhman-et-al.-2023(1).csv
+
+**References**:
+- table_2MASS-J12073346-3932539-b-Luhman-et-al.-2023(1).csv
+
+---
+## 2025-11-20 11:42 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file table_2MASS-J12073346-3932539-b-Luhman-et-al.-2023.csv
+
+**References**:
+- table_2MASS-J12073346-3932539-b-Luhman-et-al.-2023.csv
+
+---
+## 2025-11-20 11:42 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file table_HAT-P-18-b-Fournier-Tondreau-et-al.-2024.csv
+
+**References**:
+- table_HAT-P-18-b-Fournier-Tondreau-et-al.-2024.csv
+
+---
+## 2025-11-20 11:42 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file table_Luhman-16-b-Biller-et-al.-2024.csv
+
+**References**:
+- table_Luhman-16-b-Biller-et-al.-2024.csv
+
+---
+## 2025-11-20 11:42 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file table_TRAPPIST-1-b-Rathcke-et-al.-2025.csv
+
+**References**:
+- table_TRAPPIST-1-b-Rathcke-et-al.-2025.csv
+
+---
+## 2025-11-20 11:42 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file table_VHS-J125601.92-125723.9-b-Miles-et-al.-2023.csv
+
+**References**:
+- table_VHS-J125601.92-125723.9-b-Miles-et-al.-2023.csv
+
+---
+## 2025-11-20 11:42 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file table_WASP-17-b-Louie-et-al.-2025.csv
+
+**References**:
+- table_WASP-17-b-Louie-et-al.-2025.csv
+
+---
+## 2025-11-20 11:42 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file table_WASP-39-b-Rustamkulov-et-al.-2023.csv
+
+**References**:
+- table_WASP-39-b-Rustamkulov-et-al.-2023.csv
+
+---
+## 2025-11-20 11:42 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file table_WASP-69-b-Schlawin-et-al.-2024.csv
+
+**References**:
+- table_WASP-69-b-Schlawin-et-al.-2024.csv
+
+---
+## 2025-11-20 11:42 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file table_WASP-96-b-Radica-et-al.-2023.csv
+
+**References**:
+- table_WASP-96-b-Radica-et-al.-2023.csv
+
+---
+## 2025-11-20 11:42 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file table_WASP-178-b-Lothringer-et-al.-2022.csv
+
+**References**:
+- table_WASP-178-b-Lothringer-et-al.-2022.csv
+
+---
+## 2025-11-20 11:42 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file table_2MASS-J12073346-3932539-b-Luhman-et-al.-2023(1).csv
+
+**References**:
+- table_2MASS-J12073346-3932539-b-Luhman-et-al.-2023(1).csv
+
+---
+## 2025-11-20 11:42 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file table_2MASS-J12073346-3932539-b-Luhman-et-al.-2023.csv
+
+**References**:
+- table_2MASS-J12073346-3932539-b-Luhman-et-al.-2023.csv
+
+---
+## 2025-11-20 11:42 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file table_HAT-P-18-b-Fournier-Tondreau-et-al.-2024.csv
+
+**References**:
+- table_HAT-P-18-b-Fournier-Tondreau-et-al.-2024.csv
+
+---
+## 2025-11-20 11:43 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file table_WASP-17-b-Louie-et-al.-2025.csv
+
+**References**:
+- table_WASP-17-b-Louie-et-al.-2025.csv
+
+---
+## 2025-11-20 11:43 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file table_WASP-39-b-Rustamkulov-et-al.-2023.csv
+
+**References**:
+- table_WASP-39-b-Rustamkulov-et-al.-2023.csv
+
+---
+## 2025-11-20 11:44 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file C7,6e(N4)_HD31996.fits
+
+**References**:
+- C7,6e(N4)_HD31996.fits
+
+---
+## 2025-11-20 11:44 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file C-J4.5IIIa_C26j6_HD70138.fits
+
+**References**:
+- C-J4.5IIIa_C26j6_HD70138.fits
+
+---
+## 2025-11-20 11:44 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file C-J5-C25-j4_HD57160.fits
+
+**References**:
+- C-J5-C25-j4_HD57160.fits
+
+---
+## 2025-11-20 11:44 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file C-N4.5C24.5_HD92055.fits
+
+**References**:
+- C-N4.5C24.5_HD92055.fits
+
+---
+## 2025-11-20 11:44 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file C-N4.5C25.5MS3_HD76221.fits
+
+**References**:
+- C-N4.5C25.5MS3_HD76221.fits
+
+---
+## 2025-11-20 11:44 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file C-N4C23.5_HD44984.fits
+
+**References**:
+- C-N4C23.5_HD44984.fits
+
+---
+## 2025-11-20 11:44 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file C-N5C26-_HD48664.fits
+
+**References**:
+- C-N5C26-_HD48664.fits
+
+---
+## 2025-11-20 11:44 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file C-R2+IIIa_C22.5_HD76846.fits
+
+**References**:
+- C-R2+IIIa_C22.5_HD76846.fits
+
+---
+## 2025-11-20 11:44 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file CO2 Nist.jdx
+
+**References**:
+- CO2 Nist.jdx
+
+---
+## 2025-11-20 11:44 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file H2O Nist.jdx
+
+**References**:
+- H2O Nist.jdx
+
+---
+## 2025-11-25 14:36 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file i froze h2o in the schlenk line oopsie.csv
+
+**References**:
+- i froze h2o in the schlenk line oopsie.csv
+
+---
+## 2025-11-25 14:37 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file H2O Nist.jdx
+
+**References**:
+- H2O Nist.jdx
+
+---
+## 2025-11-25 14:38 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file _880torr~ w low vol h2o vapor.csv
+
+**References**:
+- _880torr~ w low vol h2o vapor.csv
+
+---
+## 2025-11-25 14:38 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file 7ish torr w h2o vapor.csv
+
+**References**:
+- 7ish torr w h2o vapor.csv
+
+---
+## 2025-11-25 14:38 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file 10.8 Test 2.csv
+
+**References**:
+- 10.8 Test 2.csv
+
+---
+## 2025-11-25 14:38 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file 100 torr cold water.csv
+
+**References**:
+- 100 torr cold water.csv
+
+---
+## 2025-11-25 14:39 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file .880torr~ w low vol h2o vapor.csv
+
+**References**:
+- .880torr~ w low vol h2o vapor.csv
+
+---
+## 2025-11-25 14:39 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file _880torr~ w low vol h2o vapor.csv
+
+**References**:
+- _880torr~ w low vol h2o vapor.csv
+
+---
+## 2025-11-25 14:39 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file 7ish torr w h2o vapor.csv
+
+**References**:
+- 7ish torr w h2o vapor.csv
+
+---
+## 2025-11-25 14:39 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file 10.8 Test 1.csv
+
+**References**:
+- 10.8 Test 1.csv
+
+---
+## 2025-11-25 14:39 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file 10.8 Test 2.csv
+
+**References**:
+- 10.8 Test 2.csv
+
+---
+## 2025-11-25 14:39 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file 100 torr cold water.csv
+
+**References**:
+- 100 torr cold water.csv
+
+---
+## 2025-11-25 14:39 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file 100 torr h2o 4-1k.csv
+
+**References**:
+- 100 torr h2o 4-1k.csv
+
+---
+## 2025-11-25 14:39 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file bkgrd 10 16 VAC.csv
+
+**References**:
+- bkgrd 10 16 VAC.csv
+
+---
+## 2025-11-25 14:39 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file cold water test 1.csv
+
+**References**:
+- cold water test 1.csv
+
+---
+## 2025-11-25 14:40 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file goodo vapor run i think.csv
+
+**References**:
+- goodo vapor run i think.csv
+
+---
+## 2025-11-25 14:40 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file h2o all runs avg-composite.csv
+
+**References**:
+- h2o all runs avg-composite.csv
+
+---
+## 2025-11-25 14:40 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file h2o run 1 10 27.csv
+
+**References**:
+- h2o run 1 10 27.csv
+
+---
+## 2025-11-25 14:40 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file h2o run 3 good i think 10 27.csv
+
+**References**:
+- h2o run 3 good i think 10 27.csv
+
+---
+## 2025-11-25 14:40 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file h2o v2 10 27.csv
+
+**References**:
+- h2o v2 10 27.csv
+
+---
+## 2025-11-25 14:40 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file h2o vapor test 1.csv
+
+**References**:
+- h2o vapor test 1.csv
+
+---
+## 2025-11-25 14:40 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file i froze h2o in the schlenk line oopsie.csv
+
+**References**:
+- i froze h2o in the schlenk line oopsie.csv
+
+---
+## 2025-11-25 14:40 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file low vapor for the road.csv
+
+**References**:
+- low vapor for the road.csv
+
+---
+## 2025-11-25 14:40 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file sketchy vapor test.csv
+
+**References**:
+- sketchy vapor test.csv
+
+---
+## 2025-11-25 14:40 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file vacc'd again 244 pm.csv
+
+**References**:
+- vacc'd again 244 pm.csv
+
+---
+## 2025-11-25 14:45 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file .880torr~ w low vol h2o vapor.csv
+
+**References**:
+- .880torr~ w low vol h2o vapor.csv
+
+---
+## 2025-11-25 14:45 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file _880torr~ w low vol h2o vapor.csv
+
+**References**:
+- _880torr~ w low vol h2o vapor.csv
+
+---
+## 2025-11-25 14:45 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file 7ish torr w h2o vapor.csv
+
+**References**:
+- 7ish torr w h2o vapor.csv
+
+---
+## 2025-11-25 14:45 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file 10.8 Test 1.csv
+
+**References**:
+- 10.8 Test 1.csv
+
+---
+## 2025-11-25 14:45 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file 10.8 Test 2.csv
+
+**References**:
+- 10.8 Test 2.csv
+
+---
+## 2025-11-25 14:45 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file 100 torr cold water.csv
+
+**References**:
+- 100 torr cold water.csv
+
+---
+## 2025-11-25 14:45 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file 100 torr h2o 4-1k.csv
+
+**References**:
+- 100 torr h2o 4-1k.csv
+
+---
+## 2025-11-25 14:45 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file bkgrd 10 16 VAC.csv
+
+**References**:
+- bkgrd 10 16 VAC.csv
+
+---
+## 2025-11-25 14:45 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file cold water test 1.csv
+
+**References**:
+- cold water test 1.csv
+
+---
+## 2025-11-25 14:45 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file goodo vapor run i think.csv
+
+**References**:
+- goodo vapor run i think.csv
+
+---
+## 2025-11-25 14:45 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file h2o run 1 10 27.csv
+
+**References**:
+- h2o run 1 10 27.csv
+
+---
+## 2025-11-25 14:45 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file h2o run 3 good i think 10 27.csv
+
+**References**:
+- h2o run 3 good i think 10 27.csv
+
+---
+## 2025-11-25 14:45 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file h2o v2 10 27.csv
+
+**References**:
+- h2o v2 10 27.csv
+
+---
+## 2025-11-25 14:45 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file h2o vapor test 1.csv
+
+**References**:
+- h2o vapor test 1.csv
+
+---
+## 2025-11-25 14:45 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file i froze h2o in the schlenk line oopsie.csv
+
+**References**:
+- i froze h2o in the schlenk line oopsie.csv
+
+---
+## 2025-11-25 14:45 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file low vapor for the road.csv
+
+**References**:
+- low vapor for the road.csv
+
+---
+## 2025-11-25 14:45 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file sketchy vapor test.csv
+
+**References**:
+- sketchy vapor test.csv
+
+---
+## 2025-11-25 14:45 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file vacc'd again 244 pm.csv
+
+**References**:
+- vacc'd again 244 pm.csv
+
+---
+## 2025-11-25 16:40 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file bkgrd 10 16 VAC.csv
+
+**References**:
+- bkgrd 10 16 VAC.csv
+
+---
+## 2025-11-25 16:43 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file bckgr.csv
+
+**References**:
+- bckgr.csv
+
+---
+## 2025-11-25 16:43 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file bkgrd A.csv
+
+**References**:
+- bkgrd A.csv
+
+---
+## 2025-11-25 16:43 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file bkgrd.csv
+
+**References**:
+- bkgrd.csv
+
+---

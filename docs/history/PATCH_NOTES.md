@@ -1,5 +1,18 @@
 # Patch Notes
 
+## 2025-11-19 (HDF5 support for JWST/Eureka data) — 17:09 ET / 22:09Z UTC
+- **HDF5 file support added**: New `Hdf5Importer` handles `.h5` and `.hdf5` files without breaking existing functionality.
+- **JWST/Eureka! pipeline compatibility**: Automatically detects and imports Eureka! Stage 4 light curve outputs (wavelength, spectrum, errors datasets).
+- **Generic HDF5 support**: Falls back to generic wavelength/flux detection for non-Eureka files.
+- **2D data handling**: Automatically collapses time-series data (e.g., transit light curves) to 1D via median.
+- **Uncertainty preservation**: Stores error arrays in metadata for future analysis features.
+- **Graceful degradation**: h5py is optional—importer safely skips if not installed, zero impact on existing workflows.
+- **Safe implementation**: Separate from HDF4 importer (MODIS data), no changes to existing import logic.
+- Added dependency: `h5py>=3.10.0` (optional, install with: `pip install h5py`)
+- File extensions: `.h5`, `.hdf5` now recognized alongside `.fits`, `.csv`, `.jdx`, `.hdf` (HDF4)
+- All existing tests pass (185 passed, 3 skipped); new HDF5 tests added.
+- Use case: Import JWST exoplanet transmission spectra from Eureka! pipeline, multi-instrument spectroscopic surveys.
+
 ## 2025-11-18 (Larger axis labels & toggleable plot title) — 21:45 ET / 02:45Z UTC
 - **Enhanced plot readability**: Added configurable font sizes for axis labels and plot title via **View → Font Sizes** menu.
   - Axis Labels: Small (12pt), **Medium (14pt, default)**, Large (16pt), Extra Large (18pt)

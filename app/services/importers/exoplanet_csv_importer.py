@@ -82,7 +82,7 @@ class ExoplanetCsvImporter:
         
         # Find flux column (optional)
         flux_col = None
-        for candidate in ["FLAM", "FLUX", "INTENSITY", "F_LAMBDA", "SPECTRUM"]:
+        for candidate in ["FLAM", "FLUX", "INTENSITY", "F_LAMBDA", "SPECTRUM", "TRANDEP", "PL_TRANDEP", "TRANSIT_DEPTH", "TRANSITDEPTH"]:
             if candidate in field_map:
                 flux_col = field_map[candidate]
                 break
@@ -167,6 +167,9 @@ class ExoplanetCsvImporter:
             if "FLAM" in flux_upper:
                 # FLAM = erg/s/cm²/Å or similar flux density
                 y_unit = "flux_density"
+            elif "TRANDEP" in flux_upper or "TRANSIT" in flux_upper:
+                # Transit depth percentage
+                y_unit = "transit_depth"
             else:
                 y_unit = "flux"
         else:

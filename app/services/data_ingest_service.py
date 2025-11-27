@@ -8,7 +8,7 @@ from typing import Any, Dict, Iterable, List, Sequence, cast
 
 import numpy as np
 
-from .importers import CsvImporter, ExoplanetCsvImporter, FitsImporter, JcampImporter, SupportsImport, ModisHdfImporter
+from .importers import CsvImporter, ExoplanetCsvImporter, FitsImporter, JcampImporter, SupportsImport, ModisHdfImporter, Hdf5Importer
 from .spectrum import Spectrum
 from .store import LocalStore
 from .units_service import UnitsService
@@ -43,6 +43,8 @@ class DataIngestService:
             self.register_importer({'.jdx', '.dx', '.jcamp'}, JcampImporter())
             # HDF4 (MODIS Surface Reflectance) via dedicated importer
             self.register_importer({'.hdf'}, ModisHdfImporter())
+            # HDF5 (JWST/Eureka pipeline outputs) via h5py importer
+            self.register_importer({'.h5', '.hdf5'}, Hdf5Importer())
         
         # Keep a reference to specialized importers for format detection
         self._exoplanet_csv_importer = ExoplanetCsvImporter()

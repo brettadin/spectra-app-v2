@@ -37,6 +37,12 @@ cache for provenance-aware reuse.
   machines; without it the menu item remains but attempting to load FITS files
   will raise a helpful error.
 - **JCAMP-DX** – Compact infrared/UV spectral files using `##XYDATA` blocks.
+- **HDF5** (`.h5`, `.hdf5`) – JWST/Eureka! pipeline outputs and generic HDF5 spectral data.
+  Automatically detects Eureka! Stage 4 light curve format (`wavelength`, `spectrum`, 
+  `errors` datasets) and collapses time-series data to 1D spectra via median. Also supports 
+  generic wavelength/flux dataset structures. Requires optional `h5py` dependency 
+  (`pip install h5py`). Error arrays are preserved in metadata for future analysis features.
+  Use case: JWST exoplanet transmission spectra, multi-instrument spectroscopic surveys.
 
 ## How to import
 
