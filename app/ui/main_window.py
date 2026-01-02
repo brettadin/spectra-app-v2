@@ -47,6 +47,9 @@ from app.services import (
     RemoteDataService,
         CalibrationService,
 )
+from app.services.time_series import TimeSeries
+from app.services.importers.time_series_csv_importer import TimeSeriesCsvImporter
+from app.services.importers.time_series_fits_importer import TimeSeriesFitsImporter
 from app.ui.plot_pane import PlotPane, TraceStyle
 from app.ui.remote_data_panel import RemoteDataPanel
 from app.ui.dataset_panel import DatasetPanel
@@ -199,6 +202,15 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.data_tabs: QtWidgets.QTabWidget | None = None
         self.dataset_view: QtWidgets.QTreeView | None = None
         self.dataset_model: QtGui.QStandardItemModel | None = None
+        self.time_series_view: QtWidgets.QTreeWidget | None = None
+        self.time_series_filter: QtWidgets.QLineEdit | None = None
+        self.time_series_tab: QtWidgets.QWidget | None = None
+        self._time_series_items: Dict[str, QtWidgets.QTreeWidgetItem] = {}
+        self._time_series_colors: Dict[str, QtGui.QColor] = {}
+        self._time_series_visibility: Dict[str, bool] = {}
+        self._time_series: Dict[str, TimeSeries] = {}
+        self.plot_stack: QtWidgets.QStackedWidget | None = None
+        self.time_plot: PlotPane | None = None
         self.library_list: QtWidgets.QTreeWidget | None = None
         self.library_view: QtWidgets.QTreeWidget | None = None
         self.library_search: QtWidgets.QLineEdit | None = None
@@ -262,12 +274,24 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.central_split.setOrientation(QtCore.Qt.Orientation.Horizontal)
         self.setCentralWidget(self.central_split)
 
-        # Plot pane
+        # Plot panes (spectra + time series) stacked in central area
+        self.plot_stack = QtWidgets.QStackedWidget()
+        self.central_split.addWidget(self.plot_stack)
+
+        # Spectral plot
         self.plot = PlotPane(self, max_points=self._plot_max_points)
         self.plot.remove_export_from_context_menu()
-        self.central_split.addWidget(self.plot)
+        self.plot_stack.addWidget(self.plot)
         self.plot.autoscale()
-        # Live cursor readout in status bar
+        # Time-series plot (separate axis labeling and units)
+        self.time_plot = PlotPane(self, max_points=self._plot_max_points)
+        self.time_plot.set_x_mode("time", label="Time", unit="day")
+        self.time_plot.set_y_label("Flux")
+        self.time_plot.remove_export_from_context_menu()
+        self.time_plot.autoscale()
+        self.plot_stack.addWidget(self.time_plot)
+        self.plot_stack.setCurrentWidget(self.plot)
+        # Live cursor readout in status bar (spectral plot only for now)
         try:
             self.plot.pointHovered.connect(self._on_plot_point_hovered)
         except Exception:
@@ -303,6 +327,54 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.dataset_model.itemChanged.connect(self._on_dataset_item_changed)
 
         self.data_tabs.addTab(self.dataset_panel, "Datasets")
+
+        # Time Series tab content
+        self.time_series_tab = QtWidgets.QWidget()
+        ts_layout = QtWidgets.QVBoxLayout(self.time_series_tab)
+        ts_layout.setContentsMargins(4, 4, 4, 4)
+        self.time_series_filter = QtWidgets.QLineEdit()
+        self.time_series_filter.setPlaceholderText("Filter time series…")
+        self.time_series_filter.setClearButtonEnabled(True)
+        self.time_series_filter.textChanged.connect(self._on_time_series_filter_changed)
+        ts_layout.addWidget(self.time_series_filter)
+
+        ts_toolbar = QtWidgets.QToolBar()
+        ts_toolbar.setToolButtonStyle(QtCore.Qt.ToolButtonStyle.ToolButtonTextBesideIcon)
+        ts_toolbar.setIconSize(QtCore.QSize(16, 16))
+        self.time_series_remove_action = QtGui.QAction(self)
+        self.time_series_remove_action.setText("Remove Selected")
+        try:
+            self.time_series_remove_action.setIcon(self.style().standardIcon(QtWidgets.QStyle.StandardPixmap.SP_TrashIcon))
+        except Exception:
+            pass
+        self.time_series_remove_action.setShortcut(QtGui.QKeySequence.StandardKey.Delete)
+        self.time_series_remove_action.triggered.connect(self._remove_selected_time_series)
+        ts_toolbar.addAction(self.time_series_remove_action)
+
+        self.time_series_clear_action = QtGui.QAction(self)
+        self.time_series_clear_action.setText("Clear All")
+        try:
+            self.time_series_clear_action.setIcon(self.style().standardIcon(QtWidgets.QStyle.StandardPixmap.SP_DialogDiscardButton))
+        except Exception:
+            pass
+        self.time_series_clear_action.setShortcut(QtGui.QKeySequence("Ctrl+Shift+L"))
+        self.time_series_clear_action.triggered.connect(self._clear_all_time_series)
+        ts_toolbar.addAction(self.time_series_clear_action)
+        ts_layout.addWidget(ts_toolbar)
+
+        self.time_series_view = QtWidgets.QTreeWidget()
+        self.time_series_view.setHeaderLabels(["Time Series", "Visible"])
+        self.time_series_view.setRootIsDecorated(False)
+        self.time_series_view.setSelectionMode(QtWidgets.QAbstractItemView.SelectionMode.ExtendedSelection)
+        self.time_series_view.setAlternatingRowColors(True)
+        self.time_series_view.setColumnCount(2)
+        self.time_series_view.setContextMenuPolicy(QtCore.Qt.ContextMenuPolicy.CustomContextMenu)
+        self.time_series_view.itemChanged.connect(self._on_time_series_item_changed)
+        self.time_series_view.customContextMenuRequested.connect(self._on_time_series_context_menu)
+        ts_layout.addWidget(self.time_series_view)
+
+        self.data_tabs.addTab(self.time_series_tab, "Time Series")
+        self.data_tabs.currentChanged.connect(self._on_data_tab_changed)
 
         # Library tab placeholder (built on demand)
         library_container = QtWidgets.QWidget()
@@ -1200,6 +1272,11 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         open_action.triggered.connect(self.open_file)
         file_menu.addAction(open_action)
 
+        open_ts_action = QtGui.QAction("Open &Time Series…", self)
+        open_ts_action.setShortcut("Ctrl+Shift+O")
+        open_ts_action.triggered.connect(self.open_time_series)
+        file_menu.addAction(open_ts_action)
+
         sample_action = QtGui.QAction("Load &Sample", self)
         sample_action.triggered.connect(self.load_sample_via_menu)
         file_menu.addAction(sample_action)
@@ -1371,6 +1448,11 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             try:
                 if getattr(self, "plot", None) is not None:
                     self.plot.apply_theme(theme)
+            except Exception:
+                pass
+            try:
+                if getattr(self, "time_plot", None) is not None:
+                    self.time_plot.apply_theme(theme)
             except Exception:
                 pass
             # Refresh colour palettes for new theme for future datasets/NIST sets
@@ -1706,6 +1788,32 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             return
         for path_str in path_strs:
             self._ingest_path(Path(path_str))
+
+    @ui_action("Failed to open time series")
+    def open_time_series(self) -> None:
+        path_strs, _ = QtWidgets.QFileDialog.getOpenFileNames(
+            self,
+            "Open Time Series",
+            str(SAMPLES_DIR),
+            "Time series (*.csv *.txt *.dat *.fits *.fit *.fts *.h5 *.hdf5);;All files (*.*)",
+        )
+        if not path_strs:
+            return
+        for path_str in path_strs:
+            self._ingest_time_series_path(Path(path_str))
+
+    @ui_action("Failed to open time series")
+    def open_time_series(self) -> None:
+        path_strs, _ = QtWidgets.QFileDialog.getOpenFileNames(
+            self,
+            "Open Time Series",
+            str(SAMPLES_DIR),
+            "Time series files (*.csv *.txt *.dat *.fits *.fit *.fts *.h5 *.hdf5);;All files (*.*)",
+        )
+        if not path_strs:
+            return
+        for path_str in path_strs:
+            self._ingest_time_series_path(Path(path_str))
 
     @ui_action("Failed to load sample")
     def load_sample_via_menu(self) -> None:
@@ -2304,6 +2412,173 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         finally:
             self._refresh_history_view()
 
+    def _read_time_series(self, path: Path) -> TimeSeries:
+        suffix = path.suffix.lower()
+        if suffix in {".csv", ".txt", ".dat"}:
+            return TimeSeriesCsvImporter().read(path)
+        if suffix in {".fits", ".fit", ".fts", ".h5", ".hdf5"}:
+            return TimeSeriesFitsImporter().read(path)
+        raise ValueError(f"Unsupported time-series extension: {suffix}")
+
+    def _ingest_time_series_path(self, path: Path) -> None:
+        try:
+            ts = self._read_time_series(path)
+        except Exception as exc:
+            QtWidgets.QMessageBox.warning(self, "Import failed", str(exc))
+            return
+
+        self._add_time_series(ts)
+        if self.time_plot is not None:
+            try:
+                self.time_plot.autoscale()
+            except Exception:
+                pass
+        # Switch to Time Series tab when importing a light curve
+        if self.data_tabs is not None and self.time_series_tab is not None:
+            try:
+                idx = self.data_tabs.indexOf(self.time_series_tab)
+                if idx != -1:
+                    self.data_tabs.setCurrentIndex(idx)
+            except Exception:
+                pass
+        self._log("Time Series", f"Loaded {path.name}")
+
+    def _add_time_series(self, ts: TimeSeries) -> None:
+        if self.time_plot is None or self.time_series_view is None:
+            return
+
+        ts_id = getattr(ts, "id", None) or ts.name
+        # Replace any existing trace with the same id
+        if ts_id in self._time_series_items:
+            self._remove_time_series_by_id(ts_id)
+
+        color = self._next_palette_color()
+        self._time_series_colors[ts_id] = color
+        self._time_series_visibility[ts_id] = True
+        self._time_series[ts_id] = ts
+
+        style = TraceStyle(color=color, width=1.2, show_in_legend=True)
+        x_vals = np.asarray(ts.time, dtype=float)
+        y_vals = np.asarray(ts.values, dtype=float)
+        sigma = np.asarray(ts.errors, dtype=float) if ts.errors is not None else None
+        flags = np.asarray(ts.quality, dtype=int) if ts.quality is not None else None
+
+        x_unit = getattr(ts, "time_unit", None) or "day"
+        value_unit = getattr(ts, "value_unit", None) or "flux"
+        self.time_plot.set_x_mode("time", label="Time", unit=x_unit)
+        self.time_plot.set_y_label(f"Flux ({value_unit})" if value_unit else "Flux")
+
+        self.time_plot.add_trace(
+            key=str(ts_id),
+            alias=ts.name,
+            x_nm=x_vals,
+            y=y_vals,
+            style=style,
+            uncertainty=sigma,
+            quality_flags=flags,
+        )
+        self._append_time_series_row(ts, color)
+
+    def _append_time_series_row(self, ts: TimeSeries, color: QtGui.QColor) -> None:
+        if self.time_series_view is None:
+            return
+        item = QtWidgets.QTreeWidgetItem([ts.name, ""])
+        item.setData(0, QtCore.Qt.ItemDataRole.UserRole, getattr(ts, "id", ts.name))
+        item.setFlags(item.flags() | QtCore.Qt.ItemFlag.ItemIsUserCheckable | QtCore.Qt.ItemFlag.ItemIsSelectable | QtCore.Qt.ItemFlag.ItemIsEnabled)
+        item.setCheckState(1, QtCore.Qt.CheckState.Checked)
+        try:
+            swatch = QtGui.QPixmap(12, 12)
+            swatch.fill(QtCore.Qt.GlobalColor.transparent)
+            painter = QtGui.QPainter(swatch)
+            try:
+                painter.setPen(QtGui.QPen(QtGui.QColor(0, 0, 0, 180)))
+                painter.setBrush(QtGui.QBrush(color))
+                painter.drawRect(0, 0, 11, 11)
+            finally:
+                painter.end()
+            item.setIcon(0, QtGui.QIcon(swatch))
+        except Exception:
+            pass
+        self.time_series_view.addTopLevelItem(item)
+        self._time_series_items[str(getattr(ts, "id", ts.name))] = item
+
+    def _remove_time_series_by_id(self, ts_id: str) -> None:
+        try:
+            if self.time_plot is not None:
+                self.time_plot.remove_trace(ts_id)
+        except Exception:
+            pass
+        self._time_series.pop(ts_id, None)
+        self._time_series_colors.pop(ts_id, None)
+        self._time_series_visibility.pop(ts_id, None)
+        item = self._time_series_items.pop(ts_id, None)
+        if item is not None and self.time_series_view is not None:
+            idx = self.time_series_view.indexOfTopLevelItem(item)
+            if idx != -1:
+                self.time_series_view.takeTopLevelItem(idx)
+
+    def _remove_selected_time_series(self) -> None:
+        if self.time_series_view is None:
+            return
+        selected = [it for it in self.time_series_view.selectedItems() if it is not None]
+        if not selected:
+            return
+        for item in selected:
+            ts_id = item.data(0, QtCore.Qt.ItemDataRole.UserRole)
+            if ts_id:
+                self._remove_time_series_by_id(str(ts_id))
+        self._log("Time Series", f"Removed {len(selected)} entr{'y' if len(selected)==1 else 'ies'}")
+
+    def _clear_all_time_series(self) -> None:
+        for ts_id in list(self._time_series_items.keys()):
+            self._remove_time_series_by_id(ts_id)
+        if self.time_plot is not None:
+            try:
+                self.time_plot.autoscale()
+            except Exception:
+                pass
+        self._log("Time Series", "Cleared all time-series entries")
+
+    def _on_time_series_filter_changed(self, text: str) -> None:
+        if self.time_series_view is None:
+            return
+        needle = (text or "").strip().lower()
+        for i in range(self.time_series_view.topLevelItemCount()):
+            item = self.time_series_view.topLevelItem(i)
+            if item is None:
+                continue
+            item.setHidden(needle not in item.text(0).lower())
+
+    def _on_time_series_item_changed(self, item: QtWidgets.QTreeWidgetItem, column: int) -> None:
+        if column != 1 or self.time_plot is None:
+            return
+        ts_id = item.data(0, QtCore.Qt.ItemDataRole.UserRole)
+        if ts_id is None:
+            return
+        visible = item.checkState(1) == QtCore.Qt.CheckState.Checked
+        self._time_series_visibility[str(ts_id)] = visible
+        try:
+            self.time_plot.set_visible(str(ts_id), visible)
+        except Exception:
+            pass
+
+    def _on_time_series_context_menu(self, position: QtCore.QPoint) -> None:
+        if self.time_series_view is None:
+            return
+        index = self.time_series_view.indexAt(position)
+        if not index.isValid():
+            return
+        selected = self.time_series_view.selectedItems()
+        if not selected:
+            return
+        menu = QtWidgets.QMenu(self.time_series_view)
+        if len(selected) == 1:
+            remove_action = menu.addAction("Remove Time Series")
+        else:
+            remove_action = menu.addAction(f"Remove {len(selected)} Time Series")
+        remove_action.triggered.connect(self._remove_selected_time_series)
+        menu.exec(self.time_series_view.viewport().mapToGlobal(position))
+
     # Public helper used by tests
     def _add_spectrum(self, spectrum: Spectrum, *, defer_refresh: bool = False) -> None:
         color = self._next_palette_color()
@@ -2506,6 +2781,21 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             match = needle in alias_item.text().lower()
             # Hide or show the child row relative to the parent
             self.dataset_tree.setRowHidden(row, parent_index, not match)
+
+    def _on_data_tab_changed(self, index: int) -> None:
+        """Swap central plot when switching between spectra and time-series tabs."""
+        if self.data_tabs is None or self.plot_stack is None:
+            return
+        widget = self.data_tabs.widget(index)
+        if widget is self.time_series_tab:
+            target = self.time_plot
+        else:
+            target = self.plot
+        if target is not None:
+            try:
+                self.plot_stack.setCurrentWidget(target)
+            except Exception:
+                pass
 
     def _remove_selected_datasets(self, indexes: list[QtCore.QModelIndex]) -> None:
         """Remove selected datasets from the overlay and UI (called via panel signal)."""
@@ -2891,7 +3181,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                 if not np.any(finite_y):
                     return y
                 # Index-based area to match existing behavior/tests
-                norm_val = float(np.trapezoid(np.abs(y[finite_y])))
+                    norm_val = float(np.trapz(np.abs(y[finite_y])))
 
             logger.info(f"Area normalization: norm_val={norm_val:.6f}")
             if norm_val > 0:
@@ -2990,6 +3280,28 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                         alias_item.setToolTip(f"Trace colour: {color.name()}")
                     except Exception:
                         pass
+        except Exception:
+            pass
+
+        # Time-series traces: reassign colours and restyle
+        try:
+            for ts_id, ts in self._time_series.items():
+                color = self._next_palette_color()
+                self._time_series_colors[ts_id] = color
+                if self.time_plot is not None:
+                    self.time_plot.update_style(ts_id, TraceStyle(color=color, width=1.2, show_in_legend=True))
+                item = self._time_series_items.get(ts_id)
+                if item is not None:
+                    swatch = QtGui.QPixmap(12, 12)
+                    swatch.fill(QtCore.Qt.GlobalColor.transparent)
+                    painter = QtGui.QPainter(swatch)
+                    try:
+                        painter.setPen(QtGui.QPen(QtGui.QColor(0, 0, 0, 180)))
+                        painter.setBrush(QtGui.QBrush(color))
+                        painter.drawRect(0, 0, 11, 11)
+                    finally:
+                        painter.end()
+                    item.setIcon(0, QtGui.QIcon(swatch))
         except Exception:
             pass
 

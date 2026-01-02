@@ -61,6 +61,9 @@ class PlotPane(QtWidgets.QWidget):
         if pg is None:
             raise RuntimeError("pyqtgraph is required for PlotPane")
         self._display_unit = "nm"
+        self._x_mode = "wavelength"  # wavelength|time|custom
+        self._custom_x_label: str | None = None
+        self._custom_x_unit: str | None = None
         self._y_label = "Intensity"
         self._traces: Dict[str, Dict[str, object]] = {}
         self._order: list[str] = []
@@ -80,6 +83,24 @@ class PlotPane(QtWidgets.QWidget):
         self._display_unit = unit
         self._redraw_units()
         self.unitChanged.emit(unit)
+
+    def set_x_mode(self, mode: str, *, label: str | None = None, unit: str | None = None) -> None:
+        """Switch the x-axis interpretation.
+
+        ``mode`` accepts "wavelength" (default spectral view) or any other
+        value to treat the x-axis as a generic/time axis (no unit conversion).
+        ``label`` and ``unit`` override the bottom axis text for non-spectral
+        modes.
+        """
+
+        normalized = mode.lower()
+        self._x_mode = "wavelength" if normalized == "wavelength" else normalized
+        if unit is not None:
+            self._display_unit = unit
+            self._custom_x_unit = unit
+        if label is not None:
+            self._custom_x_label = label
+        self._redraw_units()
 
     def apply_theme(self, theme: ThemeDefinition | str | None) -> None:
         """Apply widget-level styling for the provided theme."""
@@ -110,8 +131,8 @@ class PlotPane(QtWidgets.QWidget):
                 if hasattr(axis_item, "setTextPen"):
                     axis_item.setTextPen(axis_pen)
             label_style = {"color": palette.plot_foreground, "font-size": self._axis_label_font_size}
-            label = "Wavenumber" if self._display_unit == "cm⁻¹" else "Wavelength"
-            self._plot.setLabel("bottom", label, units=self._display_unit, **label_style)
+            bottom_label, bottom_unit = self._bottom_axis_text()
+            self._plot.setLabel("bottom", bottom_label, units=bottom_unit, **label_style)
             self._plot.setLabel("left", self._y_label, **label_style)
             # Update title with current theme color
             self._update_title()
@@ -427,6 +448,8 @@ class PlotPane(QtWidgets.QWidget):
                 item.setFillLevel(None)
 
     def _x_nm_to_disp(self, x_nm: np.ndarray) -> np.ndarray:
+        if self._x_mode != "wavelength":
+            return np.array(x_nm, copy=True)
         unit = self._display_unit
         if unit == "nm":
             return x_nm
@@ -617,10 +640,17 @@ class PlotPane(QtWidgets.QWidget):
     def _update_axis_labels(self) -> None:
         """Update axis labels with current units and font size."""
 
-        label = "Wavenumber" if self._display_unit == "cm⁻¹" else "Wavelength"
+        bottom_label, bottom_unit = self._bottom_axis_text()
         label_style = {"font-size": self._axis_label_font_size}
-        self._plot.setLabel("bottom", label, units=self._display_unit, **label_style)
+        self._plot.setLabel("bottom", bottom_label, units=bottom_unit, **label_style)
         self._plot.setLabel("left", self._y_label, **label_style)
+
+    def _bottom_axis_text(self) -> tuple[str, str | None]:
+        if self._x_mode == "wavelength":
+            return ("Wavenumber" if self._display_unit == "cm⁻¹" else "Wavelength", self._display_unit)
+        label = self._custom_x_label or "Time"
+        unit = self._custom_x_unit if self._custom_x_unit is not None else self._display_unit
+        return (label, unit)
 
     def _update_title(self) -> None:
         """Update plot title based on current y_label and visibility."""

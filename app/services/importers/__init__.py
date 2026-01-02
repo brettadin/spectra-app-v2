@@ -7,6 +7,8 @@ from .fits_importer import FitsImporter
 from .jcamp_importer import JcampImporter
 from .modis_hdf_importer import ModisHdfImporter
 from .hdf5_importer import Hdf5Importer
+from .time_series_csv_importer import TimeSeriesCsvImporter
+from .time_series_fits_importer import TimeSeriesFitsImporter
 
 __all__ = [
     "ImporterResult",
@@ -17,4 +19,6 @@ __all__ = [
     "JcampImporter",
     "ModisHdfImporter",
     "Hdf5Importer",
+    "TimeSeriesCsvImporter",
+    "TimeSeriesFitsImporter",
 ]

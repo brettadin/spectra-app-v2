@@ -839,7 +839,7 @@ class MathService:
         
         elif method == 'total':
             # Single value: total area under curve
-            total = np.trapezoid(y_canon, x_canon)
+            total = np.trapz(y_canon, x_canon)
             
             metadata: Dict[str, Any] = {
                 'operation': {

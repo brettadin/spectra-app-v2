@@ -974,6 +974,17 @@ class CsvImporter:
         if explicit:
             normalised = self._normalise_intensity_unit(explicit)
             if normalised:
+                # If the header label itself strongly indicates a particular
+                # intensity semantic (e.g. 'Absorbance (a.u.)'), prefer that
+                # over an ambiguous unit token such as 'a.u.' which maps to
+                # 'arbitrary'. This preserves the author's intent when both
+                # label and unit are present.
+                if index < len(headers):
+                    token = headers[index]
+                    if "absorbance" in token.normalised_label and normalised == "arbitrary":
+                        return "absorbance", "header"
+                    if "transmittance" in token.normalised_label and normalised == "arbitrary":
+                        return "transmittance", "header"
                 return normalised, "header"
 
         ctx_lower = context.lower()
