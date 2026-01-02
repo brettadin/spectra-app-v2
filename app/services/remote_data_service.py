@@ -773,9 +773,9 @@ class RemoteDataService:
         # Default to calibrated spectroscopic products so search results focus on
         # slit/grism/cube observations that pair with laboratory references.
         if include_imaging:
-            criteria.setdefault("dataproduct_type", ["spectrum", "image"])
+            criteria.setdefault("dataproduct_type", ["spectrum", "timeseries", "image"])
         else:
-            criteria.setdefault("dataproduct_type", "spectrum")
+            criteria.setdefault("dataproduct_type", ["spectrum", "timeseries"])
         criteria.setdefault("intentType", "SCIENCE")
         if "calib_level" not in criteria:
             criteria["calib_level"] = [2, 3]
@@ -839,6 +839,18 @@ class RemoteDataService:
 
         return False
 
+    def _is_timeseries(self, metadata: Mapping[str, Any]) -> bool:
+        product = str(metadata.get("dataproduct_type") or "").lower()
+        if product in {"timeseries", "time_series", "lightcurve", "light_curve"}:
+            return True
+        product_type = str(metadata.get("productType") or "").lower()
+        if "timeseries" in product_type or "time series" in product_type or "lightcurve" in product_type:
+            return True
+        description = str(metadata.get("description") or metadata.get("display_name") or "").lower()
+        if "time series" in description or "timeseries" in description or "lightcurve" in description:
+            return True
+        return False
+
     def _normalise_calib_levels(self, value: Any) -> list[int]:
         if value is None:
             return []
@@ -871,7 +883,7 @@ class RemoteDataService:
                 return False
 
         dataproduct = str(metadata.get("dataproduct_type") or "").lower()
-        if dataproduct and dataproduct not in {"spectrum", "spectral_energy_distribution"}:
+        if dataproduct and dataproduct not in {"spectrum", "spectral_energy_distribution", "timeseries", "time_series"}:
             # Allow imaging products only when the caller explicitly widens the
             # search. The imaging flag is handled separately in
             # ``_records_from_mast_products``.
@@ -918,9 +930,9 @@ class RemoteDataService:
             merged: Dict[str, Any] = {**observation_meta, **metadata}
 
             if include_imaging:
-                if not (self._is_spectroscopic(merged) or self._is_imaging(merged)):
+                if not (self._is_spectroscopic(merged) or self._is_timeseries(merged) or self._is_imaging(merged)):
                     continue
-            elif not self._is_spectroscopic(merged):
+            elif not (self._is_spectroscopic(merged) or self._is_timeseries(merged)):
                 continue
 
             if not self._is_science_ready(merged) and not (

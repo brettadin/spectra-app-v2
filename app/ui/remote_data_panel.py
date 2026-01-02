@@ -97,13 +97,15 @@ class RemoteDataPanel(QtWidgets.QWidget):
         layout.addLayout(controls)
         
         # Results table
-        # Add columns for spectral range and units when available
-        self.results_table = QtWidgets.QTableWidget(0, 6)
+        # Columns: ID, Title, Target, Telescope, Instrument, Product, X Range, Units
+        self.results_table = QtWidgets.QTableWidget(0, 8)
         self.results_table.setHorizontalHeaderLabels([
             "ID",
             "Title",
             "Target",
             "Telescope",
+            "Instrument",
+            "Product",
             "X Range",
             "Units",
         ])
@@ -243,26 +245,38 @@ class RemoteDataPanel(QtWidgets.QWidget):
             
             # Target
             metadata = getattr(record, 'metadata', {}) if isinstance(getattr(record, 'metadata', {}), dict) else {}
-            target = str(metadata.get("target_name", ""))
+            target = str(metadata.get("target_name") or metadata.get("target_display") or metadata.get("object_name") or metadata.get("host_name") or metadata.get("target") or "")
             item = QtWidgets.QTableWidgetItem(target)
             item.setFlags(item.flags() & ~QtCore.Qt.ItemFlag.ItemIsEditable)
             self.results_table.setItem(row, 2, item)
             
             # Telescope
-            telescope = str(metadata.get("obs_collection", metadata.get("telescope_name", "")))
+            telescope = str(metadata.get("obs_collection") or metadata.get("telescope_name") or metadata.get("facility_name") or "")
             item = QtWidgets.QTableWidgetItem(telescope)
             item.setFlags(item.flags() & ~QtCore.Qt.ItemFlag.ItemIsEditable)
             self.results_table.setItem(row, 3, item)
+
+            # Instrument
+            instrument = str(metadata.get("instrument_name") or metadata.get("instrume") or metadata.get("instrument") or "")
+            item = QtWidgets.QTableWidgetItem(instrument)
+            item.setFlags(item.flags() & ~QtCore.Qt.ItemFlag.ItemIsEditable)
+            self.results_table.setItem(row, 4, item)
+
+            # Product type
+            product = str(metadata.get("dataproduct_type") or metadata.get("productType") or metadata.get("product_type") or "")
+            item = QtWidgets.QTableWidgetItem(product)
+            item.setFlags(item.flags() & ~QtCore.Qt.ItemFlag.ItemIsEditable)
+            self.results_table.setItem(row, 5, item)
 
             # Range + Units (best-effort from metadata)
             x_range, units = self._format_range_and_units(record)
             item = QtWidgets.QTableWidgetItem(x_range)
             item.setFlags(item.flags() & ~QtCore.Qt.ItemFlag.ItemIsEditable)
-            self.results_table.setItem(row, 4, item)
+            self.results_table.setItem(row, 6, item)
 
             item = QtWidgets.QTableWidgetItem(units)
             item.setFlags(item.flags() & ~QtCore.Qt.ItemFlag.ItemIsEditable)
-            self.results_table.setItem(row, 5, item)
+            self.results_table.setItem(row, 7, item)
         
         QtCore.QTimer.singleShot(0, _append)
 
@@ -284,6 +298,12 @@ class RemoteDataPanel(QtWidgets.QWidget):
             units_map = dict(getattr(record, "units", {}) or {})
         except Exception:
             units_map = None
+        if units_map is None:
+            try:
+                obs_meta = mapping.get("observation") if isinstance(mapping.get("observation"), dict) else {}
+                units_map = dict(obs_meta.get("units") or {}) if isinstance(obs_meta.get("units"), dict) else None
+            except Exception:
+                pass
         x_unit = (units_map or {}).get("x") if isinstance(units_map, dict) else None
         y_unit = (units_map or {}).get("y") if isinstance(units_map, dict) else None
 
@@ -331,6 +351,16 @@ class RemoteDataPanel(QtWidgets.QWidget):
             if lo is not None and hi is not None and hi >= lo:
                 break
             lo, hi = None, None
+
+        # If still missing, try nested observation metadata
+        if lo is None or hi is None:
+            obs_meta = mapping.get("observation") if isinstance(mapping.get("observation"), dict) else {}
+            for lo_key, hi_key in candidates:
+                lo = _to_float(obs_meta.get(lo_key))
+                hi = _to_float(obs_meta.get(hi_key))
+                if lo is not None and hi is not None and hi >= lo:
+                    break
+                lo, hi = None, None
 
         # Assemble return strings
         range_str = ""

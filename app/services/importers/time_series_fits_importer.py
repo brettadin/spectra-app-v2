@@ -11,7 +11,7 @@ from astropy.io import fits
 
 from .base import SupportsImport  # type: ignore
 from ..time_series import TimeSeries
-from ..passband import find_passband_file, effective_wavelength_from_passband
+from ..passband import ensure_passband_file, effective_wavelength_from_passband
 
 
 @dataclass
@@ -113,7 +113,7 @@ class TimeSeriesFitsImporter(SupportsImport):
                         instrument = header.get("INSTRUME")
                     except Exception:
                         instrument = None
-                    passband_path = find_passband_file(band, instrument)
+                    passband_path = ensure_passband_file(band, instrument)
                     if passband_path is not None:
                         eff = effective_wavelength_from_passband(passband_path)
                         if eff is not None:

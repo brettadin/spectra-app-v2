@@ -9,12 +9,22 @@ nanometres; throughputs are arbitrary linear weights. Comments starting with
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Iterable, Optional
+from typing import Optional
+import urllib.request
 
 import numpy as np
 
 
 PASSBAND_DIR = Path(__file__).resolve().parents[3] / "storage" / "passbands"
+
+# Known public passband sources keyed by normalized names.
+# Kepler: official Kepler response curve (nm vs. throughput)
+# TESS: STScI TESS full-system transmission (wavelength in microns, converted later by callers)
+KNOWN_PASSBANDS = {
+    "kepler_photometer": "https://keplergo.arc.nasa.gov/KeplerResponse.txt",
+    "kepler": "https://keplergo.arc.nasa.gov/KeplerResponse.txt",
+    "tess": "https://archive.stsci.edu/missions/tess/models/TESS_Transmission_20181119.csv",
+}
 
 
 def _normalize_name(text: str) -> str:
@@ -41,6 +51,49 @@ def find_passband_file(band: Optional[str], instrument: Optional[str]) -> Option
             path = PASSBAND_DIR / f"{stem}.{ext}"
             if path.exists():
                 return path
+    return None
+
+
+def _download_url(url: str, dest: Path) -> bool:
+    try:
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        with urllib.request.urlopen(url) as resp, dest.open("wb") as fh:
+            fh.write(resp.read())
+        return True
+    except Exception:
+        try:
+            if dest.exists():
+                dest.unlink()
+        except Exception:
+            pass
+        return False
+
+
+def ensure_passband_file(band: Optional[str], instrument: Optional[str]) -> Optional[Path]:
+    """Find or download a passband file using known sources and naming rules."""
+    existing = find_passband_file(band, instrument)
+    if existing is not None:
+        return existing
+
+    candidates: list[str] = []
+    if instrument:
+        candidates.append(_normalize_name(instrument))
+    if band:
+        candidates.append(_normalize_name(band))
+    if instrument and band:
+        candidates.append(_normalize_name(f"{instrument}_{band}"))
+        candidates.append(_normalize_name(f"{band}_{instrument}"))
+
+    for stem in candidates:
+        if not stem:
+            continue
+        url = KNOWN_PASSBANDS.get(stem)
+        if url:
+            # Use URL extension when possible; fall back to .csv
+            ext = Path(url).suffix or ".csv"
+            dest = PASSBAND_DIR / f"{stem}{ext}"
+            if _download_url(url, dest):
+                return dest
     return None
 
 

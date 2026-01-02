@@ -18,4 +18,10 @@ Examples:
 - `tess.csv` covers band or instrument containing "TESS".
 - `jwst_nircam_f444w.csv` covers band="F444W" + instrument="NIRCam".
 
+Auto-downloads
+--------------
+If a passband is missing locally, known public curves are downloaded automatically:
+- Kepler: https://keplergo.arc.nasa.gov/KeplerResponse.txt
+- TESS: https://archive.stsci.edu/missions/tess/models/TESS_Transmission_20181119.csv
+
 Sample file included: `kepler_photometer.csv` (coarse throughput curve) for testing.

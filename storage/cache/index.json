@@ -12144,6 +12144,1546 @@
       },
       "created": "2025-11-13T04:08:43.655677+00:00",
       "updated": "2025-11-13T04:08:43.655677+00:00"
+    },
+    "b4d41c377bf88df8f778909f74b21df7bbba97cf5eb3967c3d4f92c5089c1ff0": {
+      "sha256": "b4d41c377bf88df8f778909f74b21df7bbba97cf5eb3967c3d4f92c5089c1ff0",
+      "filename": "lwp16872mxlo_vo.fits",
+      "stored_path": "C:\\Code\\spectra-app-beta\\storage\\cache\\files\\b4\\lwp16872mxlo_vo.fits",
+      "original_path": "C:\\Code\\spectra-app-beta\\storage\\cache\\_incoming\\lwp16872mxlo_vo.fits",
+      "bytes": 48960,
+      "units": {
+        "x": "unknown",
+        "y": "unknown"
+      },
+      "source": {
+        "remote": {
+          "provider": "MAST",
+          "uri": "mast:IUE/url/pub/vospectra/iue2/lwp16872mxlo_vo.fits",
+          "identifier": "lwp16872mxlo_vo.fits",
+          "fetched_at": "2026-01-02T17:16:25.166222+00:00",
+          "metadata": {
+            "obsID": "285177",
+            "obs_collection": "IUE",
+            "dataproduct_type": "spectrum",
+            "obs_id": "lwp16872",
+            "description": "(extracted spectra/vo spectral container/SSAP) fits file",
+            "type": "S",
+            "dataURI": "mast:IUE/url/pub/vospectra/iue2/lwp16872mxlo_vo.fits",
+            "productType": "SCIENCE",
+            "productGroupDescription": "Minimum Recommended Products",
+            "productSubGroupDescription": "(extracted spectra/vo spectral container/SSAP) fits file",
+            "productDocumentationURL": NaN,
+            "project": NaN,
+            "prvversion": NaN,
+            "proposal_id": "IMLAW",
+            "productFilename": "lwp16872mxlo_vo.fits",
+            "size": 48960,
+            "parent_obsid": "285177",
+            "dataRights": "PUBLIC",
+            "calib_level": 2,
+            "filters": "LOW DISP",
+            "observation": {}
+          }
+        }
+      },
+      "created": "2026-01-02T17:16:25.181965+00:00",
+      "updated": "2026-01-02T17:16:25.181965+00:00"
+    },
+    "a70d7f72532cf25efe306753aed93df088bc3fe00a25c86ac5c5f6d4f8bf0d5f": {
+      "sha256": "a70d7f72532cf25efe306753aed93df088bc3fe00a25c86ac5c5f6d4f8bf0d5f",
+      "filename": "lwp16873mxlo_vo.fits",
+      "stored_path": "C:\\Code\\spectra-app-beta\\storage\\cache\\files\\a7\\lwp16873mxlo_vo.fits",
+      "original_path": "C:\\Code\\spectra-app-beta\\storage\\cache\\_incoming\\lwp16873mxlo_vo.fits",
+      "bytes": 48960,
+      "units": {
+        "x": "unknown",
+        "y": "unknown"
+      },
+      "source": {
+        "remote": {
+          "provider": "MAST",
+          "uri": "mast:IUE/url/pub/vospectra/iue2/lwp16873mxlo_vo.fits",
+          "identifier": "lwp16873mxlo_vo.fits",
+          "fetched_at": "2026-01-02T17:16:25.890337+00:00",
+          "metadata": {
+            "obsID": "285178",
+            "obs_collection": "IUE",
+            "dataproduct_type": "spectrum",
+            "obs_id": "lwp16873",
+            "description": "(extracted spectra/vo spectral container/SSAP) fits file",
+            "type": "S",
+            "dataURI": "mast:IUE/url/pub/vospectra/iue2/lwp16873mxlo_vo.fits",
+            "productType": "SCIENCE",
+            "productGroupDescription": "Minimum Recommended Products",
+            "productSubGroupDescription": "(extracted spectra/vo spectral container/SSAP) fits file",
+            "productDocumentationURL": NaN,
+            "project": NaN,
+            "prvversion": NaN,
+            "proposal_id": "IMLAW",
+            "productFilename": "lwp16873mxlo_vo.fits",
+            "size": 48960,
+            "parent_obsid": "285178",
+            "dataRights": "PUBLIC",
+            "calib_level": 2,
+            "filters": "LOW DISP",
+            "observation": {}
+          }
+        }
+      },
+      "created": "2026-01-02T17:16:25.905022+00:00",
+      "updated": "2026-01-02T17:16:25.905022+00:00"
+    },
+    "7d6db56374d36c92bba53f12e97773eb0dcc959eabbf29b7cd555aa966b7b078": {
+      "sha256": "7d6db56374d36c92bba53f12e97773eb0dcc959eabbf29b7cd555aa966b7b078",
+      "filename": "lwp16886mxlo_vo.fits",
+      "stored_path": "C:\\Code\\spectra-app-beta\\storage\\cache\\files\\7d\\lwp16886mxlo_vo.fits",
+      "original_path": "C:\\Code\\spectra-app-beta\\storage\\cache\\_incoming\\lwp16886mxlo_vo.fits",
+      "bytes": 54720,
+      "units": {
+        "x": "unknown",
+        "y": "unknown"
+      },
+      "source": {
+        "remote": {
+          "provider": "MAST",
+          "uri": "mast:IUE/url/pub/vospectra/iue2/lwp16886mxlo_vo.fits",
+          "identifier": "lwp16886mxlo_vo.fits",
+          "fetched_at": "2026-01-02T17:16:26.591771+00:00",
+          "metadata": {
+            "obsID": "285182",
+            "obs_collection": "IUE",
+            "dataproduct_type": "spectrum",
+            "obs_id": "lwp16886",
+            "description": "(extracted spectra/vo spectral container/SSAP) fits file",
+            "type": "S",
+            "dataURI": "mast:IUE/url/pub/vospectra/iue2/lwp16886mxlo_vo.fits",
+            "productType": "SCIENCE",
+            "productGroupDescription": "Minimum Recommended Products",
+            "productSubGroupDescription": "(extracted spectra/vo spectral container/SSAP) fits file",
+            "productDocumentationURL": NaN,
+            "project": NaN,
+            "prvversion": NaN,
+            "proposal_id": "IMLAW",
+            "productFilename": "lwp16886mxlo_vo.fits",
+            "size": 54720,
+            "parent_obsid": "285182",
+            "dataRights": "PUBLIC",
+            "calib_level": 2,
+            "filters": "LOW DISP",
+            "observation": {}
+          }
+        }
+      },
+      "created": "2026-01-02T17:16:26.615346+00:00",
+      "updated": "2026-01-02T17:16:26.615346+00:00"
+    },
+    "676b9a548a9f67708aacae5976d06cc01f4e5aac63719ff42e27719d94f7b9ec": {
+      "sha256": "676b9a548a9f67708aacae5976d06cc01f4e5aac63719ff42e27719d94f7b9ec",
+      "filename": "lwr05177mxlo_vo.fits",
+      "stored_path": "C:\\Code\\spectra-app-beta\\storage\\cache\\files\\67\\lwr05177mxlo_vo.fits",
+      "original_path": "C:\\Code\\spectra-app-beta\\storage\\cache\\_incoming\\lwr05177mxlo_vo.fits",
+      "bytes": 48960,
+      "units": {
+        "x": "unknown",
+        "y": "unknown"
+      },
+      "source": {
+        "remote": {
+          "provider": "MAST",
+          "uri": "mast:IUE/url/pub/vospectra/iue2/lwr05177mxlo_vo.fits",
+          "identifier": "lwr05177mxlo_vo.fits",
+          "fetched_at": "2026-01-02T17:16:27.352286+00:00",
+          "metadata": {
+            "obsID": "297447",
+            "obs_collection": "IUE",
+            "dataproduct_type": "spectrum",
+            "obs_id": "lwr05177",
+            "description": "(extracted spectra/vo spectral container/SSAP) fits file",
+            "type": "S",
+            "dataURI": "mast:IUE/url/pub/vospectra/iue2/lwr05177mxlo_vo.fits",
+            "productType": "SCIENCE",
+            "productGroupDescription": "Minimum Recommended Products",
+            "productSubGroupDescription": "(extracted spectra/vo spectral container/SSAP) fits file",
+            "productDocumentationURL": NaN,
+            "project": NaN,
+            "prvversion": NaN,
+            "proposal_id": "NRBAW",
+            "productFilename": "lwr05177mxlo_vo.fits",
+            "size": 48960,
+            "parent_obsid": "297447",
+            "dataRights": "PUBLIC",
+            "calib_level": 2,
+            "filters": "LOW DISP",
+            "observation": {}
+          }
+        }
+      },
+      "created": "2026-01-02T17:16:27.366783+00:00",
+      "updated": "2026-01-02T17:16:27.366783+00:00"
+    },
+    "ba8e08382a694f99be9630c6bac0846dc2ba2bed233cf9d12aef4f1ea2def38b": {
+      "sha256": "ba8e08382a694f99be9630c6bac0846dc2ba2bed233cf9d12aef4f1ea2def38b",
+      "filename": "swp05965mxlo_vo.fits",
+      "stored_path": "C:\\Code\\spectra-app-beta\\storage\\cache\\files\\ba\\swp05965mxlo_vo.fits",
+      "original_path": "C:\\Code\\spectra-app-beta\\storage\\cache\\_incoming\\swp05965mxlo_vo.fits",
+      "bytes": 48960,
+      "units": {
+        "x": "unknown",
+        "y": "unknown"
+      },
+      "source": {
+        "remote": {
+          "provider": "MAST",
+          "uri": "mast:IUE/url/pub/vospectra/iue2/swp05965mxlo_vo.fits",
+          "identifier": "swp05965mxlo_vo.fits",
+          "fetched_at": "2026-01-02T17:16:28.071956+00:00",
+          "metadata": {
+            "obsID": "308796",
+            "obs_collection": "IUE",
+            "dataproduct_type": "spectrum",
+            "obs_id": "swp05965",
+            "description": "(extracted spectra/vo spectral container/SSAP) fits file",
+            "type": "S",
+            "dataURI": "mast:IUE/url/pub/vospectra/iue2/swp05965mxlo_vo.fits",
+            "productType": "SCIENCE",
+            "productGroupDescription": "Minimum Recommended Products",
+            "productSubGroupDescription": "(extracted spectra/vo spectral container/SSAP) fits file",
+            "productDocumentationURL": NaN,
+            "project": NaN,
+            "prvversion": NaN,
+            "proposal_id": "NRBAW",
+            "productFilename": "swp05965mxlo_vo.fits",
+            "size": 48960,
+            "parent_obsid": "308796",
+            "dataRights": "PUBLIC",
+            "calib_level": 2,
+            "filters": "LOW DISP",
+            "observation": {}
+          }
+        }
+      },
+      "created": "2026-01-02T17:16:28.092039+00:00",
+      "updated": "2026-01-02T17:16:28.092039+00:00"
+    },
+    "fa6c8097f23dfef3d0128ea851d8a5a364c72e0cd0de48381f822fb0aef325dd": {
+      "sha256": "fa6c8097f23dfef3d0128ea851d8a5a364c72e0cd0de48381f822fb0aef325dd",
+      "filename": "swp05966mxlo_vo.fits",
+      "stored_path": "C:\\Code\\spectra-app-beta\\storage\\cache\\files\\fa\\swp05966mxlo_vo.fits",
+      "original_path": "C:\\Code\\spectra-app-beta\\storage\\cache\\_incoming\\swp05966mxlo_vo.fits",
+      "bytes": 48960,
+      "units": {
+        "x": "unknown",
+        "y": "unknown"
+      },
+      "source": {
+        "remote": {
+          "provider": "MAST",
+          "uri": "mast:IUE/url/pub/vospectra/iue2/swp05966mxlo_vo.fits",
+          "identifier": "swp05966mxlo_vo.fits",
+          "fetched_at": "2026-01-02T17:16:28.755678+00:00",
+          "metadata": {
+            "obsID": "308797",
+            "obs_collection": "IUE",
+            "dataproduct_type": "spectrum",
+            "obs_id": "swp05966",
+            "description": "(extracted spectra/vo spectral container/SSAP) fits file",
+            "type": "S",
+            "dataURI": "mast:IUE/url/pub/vospectra/iue2/swp05966mxlo_vo.fits",
+            "productType": "SCIENCE",
+            "productGroupDescription": "Minimum Recommended Products",
+            "productSubGroupDescription": "(extracted spectra/vo spectral container/SSAP) fits file",
+            "productDocumentationURL": NaN,
+            "project": NaN,
+            "prvversion": NaN,
+            "proposal_id": "NRBAW",
+            "productFilename": "swp05966mxlo_vo.fits",
+            "size": 48960,
+            "parent_obsid": "308797",
+            "dataRights": "PUBLIC",
+            "calib_level": 2,
+            "filters": "LOW DISP",
+            "observation": {}
+          }
+        }
+      },
+      "created": "2026-01-02T17:16:28.775612+00:00",
+      "updated": "2026-01-02T17:16:28.775612+00:00"
+    },
+    "f4aca249216009e6f1bee251a2498de99c93f4f770f89a8a48e59f417f8e618b": {
+      "sha256": "f4aca249216009e6f1bee251a2498de99c93f4f770f89a8a48e59f417f8e618b",
+      "filename": "swp37714mxlo_vo.fits",
+      "stored_path": "C:\\Code\\spectra-app-beta\\storage\\cache\\files\\f4\\swp37714mxlo_vo.fits",
+      "original_path": "C:\\Code\\spectra-app-beta\\storage\\cache\\_incoming\\swp37714mxlo_vo.fits",
+      "bytes": 54720,
+      "units": {
+        "x": "unknown",
+        "y": "unknown"
+      },
+      "source": {
+        "remote": {
+          "provider": "MAST",
+          "uri": "mast:IUE/url/pub/vospectra/iue2/swp37714mxlo_vo.fits",
+          "identifier": "swp37714mxlo_vo.fits",
+          "fetched_at": "2026-01-02T17:16:29.504045+00:00",
+          "metadata": {
+            "obsID": "328585",
+            "obs_collection": "IUE",
+            "dataproduct_type": "spectrum",
+            "obs_id": "swp37714",
+            "description": "(extracted spectra/vo spectral container/SSAP) fits file",
+            "type": "S",
+            "dataURI": "mast:IUE/url/pub/vospectra/iue2/swp37714mxlo_vo.fits",
+            "productType": "SCIENCE",
+            "productGroupDescription": "Minimum Recommended Products",
+            "productSubGroupDescription": "(extracted spectra/vo spectral container/SSAP) fits file",
+            "productDocumentationURL": NaN,
+            "project": NaN,
+            "prvversion": NaN,
+            "proposal_id": "IMLAW",
+            "productFilename": "swp37714mxlo_vo.fits",
+            "size": 54720,
+            "parent_obsid": "328585",
+            "dataRights": "PUBLIC",
+            "calib_level": 2,
+            "filters": "LOW DISP",
+            "observation": {}
+          }
+        }
+      },
+      "created": "2026-01-02T17:16:29.522547+00:00",
+      "updated": "2026-01-02T17:16:29.522547+00:00"
+    },
+    "00e1a84bf4b9556683e83b11735e14f0c12f988877a3547b90160936f8b10cff": {
+      "sha256": "00e1a84bf4b9556683e83b11735e14f0c12f988877a3547b90160936f8b10cff",
+      "filename": "swp37729mxlo_vo.fits",
+      "stored_path": "C:\\Code\\spectra-app-beta\\storage\\cache\\files\\00\\swp37729mxlo_vo.fits",
+      "original_path": "C:\\Code\\spectra-app-beta\\storage\\cache\\_incoming\\swp37729mxlo_vo.fits",
+      "bytes": 48960,
+      "units": {
+        "x": "unknown",
+        "y": "unknown"
+      },
+      "source": {
+        "remote": {
+          "provider": "MAST",
+          "uri": "mast:IUE/url/pub/vospectra/iue2/swp37729mxlo_vo.fits",
+          "identifier": "swp37729mxlo_vo.fits",
+          "fetched_at": "2026-01-02T17:16:31.182772+00:00",
+          "metadata": {
+            "obsID": "328587",
+            "obs_collection": "IUE",
+            "dataproduct_type": "spectrum",
+            "obs_id": "swp37729",
+            "description": "(extracted spectra/vo spectral container/SSAP) fits file",
+            "type": "S",
+            "dataURI": "mast:IUE/url/pub/vospectra/iue2/swp37729mxlo_vo.fits",
+            "productType": "SCIENCE",
+            "productGroupDescription": "Minimum Recommended Products",
+            "productSubGroupDescription": "(extracted spectra/vo spectral container/SSAP) fits file",
+            "productDocumentationURL": NaN,
+            "project": NaN,
+            "prvversion": NaN,
+            "proposal_id": "IMLAW",
+            "productFilename": "swp37729mxlo_vo.fits",
+            "size": 48960,
+            "parent_obsid": "328587",
+            "dataRights": "PUBLIC",
+            "calib_level": 2,
+            "filters": "LOW DISP",
+            "observation": {}
+          }
+        }
+      },
+      "created": "2026-01-02T17:16:31.197081+00:00",
+      "updated": "2026-01-02T17:16:31.197081+00:00"
+    },
+    "455a06399bbf62011427a13a5e6b82f8a42fadedefb9a23406650baa84a7aa20": {
+      "sha256": "455a06399bbf62011427a13a5e6b82f8a42fadedefb9a23406650baa84a7aa20",
+      "filename": "hst_stis_sirius--5587_g750m_cspec.fits",
+      "stored_path": "C:\\Code\\spectra-app-beta\\storage\\cache\\files\\45\\hst_stis_sirius--5587_g750m_cspec.fits",
+      "original_path": "C:\\Code\\spectra-app-beta\\storage\\cache\\_incoming\\hst_stis_sirius--5587_g750m_cspec.fits",
+      "bytes": 40320,
+      "units": {
+        "x": "unknown",
+        "y": "unknown"
+      },
+      "source": {
+        "remote": {
+          "provider": "MAST",
+          "uri": "mast:HST/product/hsla/hst_sirius--5587/hst_stis_sirius--5587_g750m_cspec.fits",
+          "identifier": "hst_stis_sirius--5587_g750m_cspec.fits",
+          "fetched_at": "2026-01-02T17:16:50.381215+00:00",
+          "metadata": {
+            "obsID": "349726315",
+            "obs_collection": "HST",
+            "dataproduct_type": "spectrum",
+            "obs_id": "hst_hsla_sirius--5587",
+            "description": "HSLA coadded spectrum for a singular grating and/or COS lifetime position",
+            "type": "S",
+            "dataURI": "mast:HST/product/hsla/hst_sirius--5587/hst_stis_sirius--5587_g750m_cspec.fits",
+            "productType": "SCIENCE",
+            "productGroupDescription": "Minimum Recommended Products",
+            "productSubGroupDescription": "CSPEC",
+            "productDocumentationURL": NaN,
+            "project": "HSLA",
+            "prvversion": "HSLA Cal 1.2.5",
+            "proposal_id": "MULTI",
+            "productFilename": "hst_stis_sirius--5587_g750m_cspec.fits",
+            "size": 40320,
+            "parent_obsid": "349726315",
+            "dataRights": "PUBLIC",
+            "calib_level": 3,
+            "filters": "E140H;E140M;G230LB;G430L;G750L;G750M",
+            "observation": {}
+          }
+        }
+      },
+      "created": "2026-01-02T17:16:50.398757+00:00",
+      "updated": "2026-01-02T17:16:50.398757+00:00"
+    },
+    "b2310b60895fb603a7db0748747f3f859206905b953cc1dcdf28f107628fc1be": {
+      "sha256": "b2310b60895fb603a7db0748747f3f859206905b953cc1dcdf28f107628fc1be",
+      "filename": "lwp10666mxlo_vo.fits",
+      "stored_path": "C:\\Code\\spectra-app-beta\\storage\\cache\\files\\b2\\lwp10666mxlo_vo.fits",
+      "original_path": "C:\\Code\\spectra-app-beta\\storage\\cache\\_incoming\\lwp10666mxlo_vo.fits",
+      "bytes": 48960,
+      "units": {
+        "x": "unknown",
+        "y": "unknown"
+      },
+      "source": {
+        "remote": {
+          "provider": "MAST",
+          "uri": "mast:IUE/url/pub/vospectra/iue2/lwp10666mxlo_vo.fits",
+          "identifier": "lwp10666mxlo_vo.fits",
+          "fetched_at": "2026-01-02T17:16:53.299861+00:00",
+          "metadata": {
+            "obsID": "281011",
+            "obs_collection": "IUE",
+            "dataproduct_type": "spectrum",
+            "obs_id": "lwp10666",
+            "description": "(extracted spectra/vo spectral container/SSAP) fits file",
+            "type": "S",
+            "dataURI": "mast:IUE/url/pub/vospectra/iue2/lwp10666mxlo_vo.fits",
+            "productType": "SCIENCE",
+            "productGroupDescription": "Minimum Recommended Products",
+            "productSubGroupDescription": "(extracted spectra/vo spectral container/SSAP) fits file",
+            "productDocumentationURL": NaN,
+            "project": NaN,
+            "prvversion": NaN,
+            "proposal_id": "PHCAL",
+            "productFilename": "lwp10666mxlo_vo.fits",
+            "size": 48960,
+            "parent_obsid": "281011",
+            "dataRights": "PUBLIC",
+            "calib_level": 2,
+            "filters": "LOW DISP",
+            "observation": {}
+          }
+        }
+      },
+      "created": "2026-01-02T17:16:53.305223+00:00",
+      "updated": "2026-01-02T17:16:53.305223+00:00"
+    },
+    "5c164907e8f44d0dfdd734152621b894ad02bf9e064a3246781be21fe74abc8a": {
+      "sha256": "5c164907e8f44d0dfdd734152621b894ad02bf9e064a3246781be21fe74abc8a",
+      "filename": "hst_12682_stis_sirius_g750l_obto12_cspec.fits",
+      "stored_path": "C:\\Code\\spectra-app-beta\\storage\\cache\\files\\5c\\hst_12682_stis_sirius_g750l_obto12_cspec.fits",
+      "original_path": "C:\\Code\\spectra-app-beta\\storage\\cache\\_incoming\\hst_12682_stis_sirius_g750l_obto12_cspec.fits",
+      "bytes": 20160,
+      "units": {
+        "x": "unknown",
+        "y": "unknown"
+      },
+      "source": {
+        "remote": {
+          "provider": "MAST",
+          "uri": "mast:HST/product/hasp/hst_12682_stis_sirius_g750l_obto12_cspec.fits",
+          "identifier": "hst_12682_stis_sirius_g750l_obto12_cspec.fits",
+          "fetched_at": "2026-01-02T17:16:58.075766+00:00",
+          "metadata": {
+            "obsID": "199098747",
+            "obs_collection": "HST",
+            "dataproduct_type": "spectrum",
+            "obs_id": "hst_hasp_12682_stis_sirius_obto",
+            "description": "HASP coadded spectrum for singular or multiple modes",
+            "type": "D",
+            "dataURI": "mast:HST/product/hasp/hst_12682_stis_sirius_g750l_obto12_cspec.fits",
+            "productType": "SCIENCE",
+            "productGroupDescription": "Minimum Recommended Products",
+            "productSubGroupDescription": "CSPEC",
+            "productDocumentationURL": NaN,
+            "project": "HASP",
+            "prvversion": NaN,
+            "proposal_id": "12682",
+            "productFilename": "hst_12682_stis_sirius_g750l_obto12_cspec.fits",
+            "size": 20160,
+            "parent_obsid": "24965035",
+            "dataRights": "PUBLIC",
+            "calib_level": 2,
+            "filters": "G230LB;G430L;G750L",
+            "observation": {}
+          }
+        }
+      },
+      "created": "2026-01-02T17:16:58.088811+00:00",
+      "updated": "2026-01-02T17:16:58.088811+00:00"
+    },
+    "79173730b549decbac032bcecd1ee46a2c4b55316ec4ddca265daae512d5aa81": {
+      "sha256": "79173730b549decbac032bcecd1ee46a2c4b55316ec4ddca265daae512d5aa81",
+      "filename": "hst_12682_stis_sirius_g230lb_obto12_cspec.fits",
+      "stored_path": "C:\\Code\\spectra-app-beta\\storage\\cache\\files\\79\\hst_12682_stis_sirius_g230lb_obto12_cspec.fits",
+      "original_path": "C:\\Code\\spectra-app-beta\\storage\\cache\\_incoming\\hst_12682_stis_sirius_g230lb_obto12_cspec.fits",
+      "bytes": 40320,
+      "units": {
+        "x": "unknown",
+        "y": "unknown"
+      },
+      "source": {
+        "remote": {
+          "provider": "MAST",
+          "uri": "mast:HST/product/hasp/hst_12682_stis_sirius_g230lb_obto12_cspec.fits",
+          "identifier": "hst_12682_stis_sirius_g230lb_obto12_cspec.fits",
+          "fetched_at": "2026-01-02T17:17:02.079087+00:00",
+          "metadata": {
+            "obsID": "199098747",
+            "obs_collection": "HST",
+            "dataproduct_type": "spectrum",
+            "obs_id": "hst_hasp_12682_stis_sirius_obto",
+            "description": "HASP coadded spectrum for singular or multiple modes",
+            "type": "D",
+            "dataURI": "mast:HST/product/hasp/hst_12682_stis_sirius_g230lb_obto12_cspec.fits",
+            "productType": "SCIENCE",
+            "productGroupDescription": "Minimum Recommended Products",
+            "productSubGroupDescription": "CSPEC",
+            "productDocumentationURL": NaN,
+            "project": "HASP",
+            "prvversion": NaN,
+            "proposal_id": "12682",
+            "productFilename": "hst_12682_stis_sirius_g230lb_obto12_cspec.fits",
+            "size": 40320,
+            "parent_obsid": "24965035",
+            "dataRights": "PUBLIC",
+            "calib_level": 2,
+            "filters": "G230LB;G430L;G750L",
+            "observation": {}
+          }
+        }
+      },
+      "created": "2026-01-02T17:17:02.094937+00:00",
+      "updated": "2026-01-02T17:17:02.096442+00:00"
+    },
+    "d83aee7ae2eec07a568d337fdf729e13e8b8f7c51f34d0191e9268570ee0ee61": {
+      "sha256": "d83aee7ae2eec07a568d337fdf729e13e8b8f7c51f34d0191e9268570ee0ee61",
+      "filename": "obto12020_asn.fits",
+      "stored_path": "C:\\Code\\spectra-app-beta\\storage\\cache\\files\\d8\\obto12020_asn.fits",
+      "original_path": "C:\\Code\\spectra-app-beta\\storage\\cache\\_incoming\\obto12020_asn.fits",
+      "bytes": 11520,
+      "units": {
+        "x": "unknown",
+        "y": "unknown"
+      },
+      "source": {
+        "remote": {
+          "provider": "MAST",
+          "uri": "mast:HST/product/obto12020_asn.fits",
+          "identifier": "obto12020_asn.fits",
+          "fetched_at": "2026-01-02T17:17:34.873588+00:00",
+          "metadata": {
+            "obsID": "24965043",
+            "obs_collection": "HST",
+            "dataproduct_type": "spectrum",
+            "obs_id": "obto12020",
+            "description": "DADS ASN file - Association ACS/WFC3/STIS",
+            "type": "D",
+            "dataURI": "mast:HST/product/obto12020_asn.fits",
+            "productType": "AUXILIARY",
+            "productGroupDescription": "Minimum Recommended Products",
+            "productSubGroupDescription": "ASN",
+            "productDocumentationURL": NaN,
+            "project": "CALSTIS",
+            "prvversion": "3.4.2 (19-Jan-2018)",
+            "proposal_id": "12682",
+            "productFilename": "obto12020_asn.fits",
+            "size": 11520,
+            "parent_obsid": "24965043",
+            "dataRights": "PUBLIC",
+            "calib_level": 3,
+            "filters": "G230LB",
+            "observation": {}
+          }
+        }
+      },
+      "created": "2026-01-02T17:17:34.880084+00:00",
+      "updated": "2026-01-02T17:17:34.880084+00:00"
+    },
+    "e60e14e8837f8b7706eb65357d2a29681312ed148c2ffea1e465fae49b7f576d": {
+      "sha256": "e60e14e8837f8b7706eb65357d2a29681312ed148c2ffea1e465fae49b7f576d",
+      "filename": "obto12040_asn.fits",
+      "stored_path": "C:\\Code\\spectra-app-beta\\storage\\cache\\files\\e6\\obto12040_asn.fits",
+      "original_path": "C:\\Code\\spectra-app-beta\\storage\\cache\\_incoming\\obto12040_asn.fits",
+      "bytes": 11520,
+      "units": {
+        "x": "unknown",
+        "y": "unknown"
+      },
+      "source": {
+        "remote": {
+          "provider": "MAST",
+          "uri": "mast:HST/product/obto12040_asn.fits",
+          "identifier": "obto12040_asn.fits",
+          "fetched_at": "2026-01-02T17:17:38.042580+00:00",
+          "metadata": {
+            "obsID": "24965045",
+            "obs_collection": "HST",
+            "dataproduct_type": "spectrum",
+            "obs_id": "obto12040",
+            "description": "DADS ASN file - Association ACS/WFC3/STIS",
+            "type": "D",
+            "dataURI": "mast:HST/product/obto12040_asn.fits",
+            "productType": "AUXILIARY",
+            "productGroupDescription": "Minimum Recommended Products",
+            "productSubGroupDescription": "ASN",
+            "productDocumentationURL": NaN,
+            "project": "CALSTIS",
+            "prvversion": "3.4.2 (19-Jan-2018)",
+            "proposal_id": "12682",
+            "productFilename": "obto12040_asn.fits",
+            "size": 11520,
+            "parent_obsid": "24965045",
+            "dataRights": "PUBLIC",
+            "calib_level": 3,
+            "filters": "G430L",
+            "observation": {}
+          }
+        }
+      },
+      "created": "2026-01-02T17:17:38.054461+00:00",
+      "updated": "2026-01-02T17:17:38.054461+00:00"
+    },
+    "cd24dd750450076060e3eb1ecafa1783d924abfe6d336e8dddbd3b8ff9d6d5b7": {
+      "sha256": "cd24dd750450076060e3eb1ecafa1783d924abfe6d336e8dddbd3b8ff9d6d5b7",
+      "filename": "swp30883mxlo_vo.fits",
+      "stored_path": "C:\\Code\\spectra-app-beta\\storage\\cache\\files\\cd\\swp30883mxlo_vo.fits",
+      "original_path": "C:\\Code\\spectra-app-beta\\storage\\cache\\_incoming\\swp30883mxlo_vo.fits",
+      "bytes": 54720,
+      "units": {
+        "x": "unknown",
+        "y": "unknown"
+      },
+      "source": {
+        "remote": {
+          "provider": "MAST",
+          "uri": "mast:IUE/url/pub/vospectra/iue2/swp30883mxlo_vo.fits",
+          "identifier": "swp30883mxlo_vo.fits",
+          "fetched_at": "2026-01-02T17:22:06.252360+00:00",
+          "metadata": {
+            "obsID": "324023",
+            "obs_collection": "IUE",
+            "dataproduct_type": "spectrum",
+            "obs_id": "swp30883",
+            "description": "(extracted spectra/vo spectral container/SSAP) fits file",
+            "type": "S",
+            "dataURI": "mast:IUE/url/pub/vospectra/iue2/swp30883mxlo_vo.fits",
+            "productType": "SCIENCE",
+            "productGroupDescription": "Minimum Recommended Products",
+            "productSubGroupDescription": "(extracted spectra/vo spectral container/SSAP) fits file",
+            "productDocumentationURL": NaN,
+            "project": NaN,
+            "prvversion": NaN,
+            "proposal_id": "PHCAL",
+            "productFilename": "swp30883mxlo_vo.fits",
+            "size": 54720,
+            "parent_obsid": "324023",
+            "dataRights": "PUBLIC",
+            "calib_level": 2,
+            "filters": "LOW DISP",
+            "observation": {}
+          }
+        }
+      },
+      "created": "2026-01-02T17:22:06.262687+00:00",
+      "updated": "2026-01-02T17:22:06.262687+00:00"
+    },
+    "2c88de75d6470624834746bae30376b474387e6ef160ea5762f0356512638540": {
+      "sha256": "2c88de75d6470624834746bae30376b474387e6ef160ea5762f0356512638540",
+      "filename": "hst_12682_stis_sirius_g750l_obto12_trl.txt",
+      "stored_path": "C:\\Code\\spectra-app-beta\\storage\\cache\\files\\2c\\hst_12682_stis_sirius_g750l_obto12_trl.txt",
+      "original_path": "C:\\Code\\spectra-app-beta\\storage\\cache\\_incoming\\hst_12682_stis_sirius_g750l_obto12_trl.txt",
+      "bytes": 50600,
+      "units": {
+        "x": "unknown",
+        "y": "unknown"
+      },
+      "source": {
+        "remote": {
+          "provider": "MAST",
+          "uri": "mast:HST/product/hasp/hst_12682_stis_sirius_g750l_obto12_trl.txt",
+          "identifier": "hst_12682_stis_sirius_g750l_obto12_trl.txt",
+          "fetched_at": "2026-01-02T17:22:10.938895+00:00",
+          "metadata": {
+            "obsID": "199098747",
+            "obs_collection": "HST",
+            "dataproduct_type": "spectrum",
+            "obs_id": "hst_hasp_12682_stis_sirius_obto",
+            "description": "Pipeline processing logs",
+            "type": "D",
+            "dataURI": "mast:HST/product/hasp/hst_12682_stis_sirius_g750l_obto12_trl.txt",
+            "productType": "AUXILIARY",
+            "productGroupDescription": NaN,
+            "productSubGroupDescription": "TRL",
+            "productDocumentationURL": NaN,
+            "project": "HASP",
+            "prvversion": NaN,
+            "proposal_id": "12682",
+            "productFilename": "hst_12682_stis_sirius_g750l_obto12_trl.txt",
+            "size": 50600,
+            "parent_obsid": "24965035",
+            "dataRights": "PUBLIC",
+            "calib_level": 2,
+            "filters": "G230LB;G430L;G750L",
+            "observation": {}
+          }
+        }
+      },
+      "created": "2026-01-02T17:22:09.543163+00:00",
+      "updated": "2026-01-02T17:22:10.954960+00:00"
+    },
+    "d0d1d92dd0247b7b8865f768e9f64ab6d641d5ecfb19864cfe8b361bc3b4cfb9": {
+      "sha256": "d0d1d92dd0247b7b8865f768e9f64ab6d641d5ecfb19864cfe8b361bc3b4cfb9",
+      "filename": "hst_12682_stis_sirius_g230lb-g430l-g750l_obto_cspec.fits",
+      "stored_path": "C:\\Code\\spectra-app-beta\\storage\\cache\\files\\d0\\hst_12682_stis_sirius_g230lb-g430l-g750l_obto_cspec.fits",
+      "original_path": "C:\\Code\\spectra-app-beta\\storage\\cache\\_incoming\\hst_12682_stis_sirius_g230lb-g430l-g750l_obto_cspec.fits",
+      "bytes": 63360,
+      "units": {
+        "x": "unknown",
+        "y": "unknown"
+      },
+      "source": {
+        "remote": {
+          "provider": "MAST",
+          "uri": "mast:HST/product/hasp/hst_12682_stis_sirius_g230lb-g430l-g750l_obto_cspec.fits",
+          "identifier": "hst_12682_stis_sirius_g230lb-g430l-g750l_obto_cspec.fits",
+          "fetched_at": "2026-01-02T17:22:11.636663+00:00",
+          "metadata": {
+            "obsID": "199098747",
+            "obs_collection": "HST",
+            "dataproduct_type": "spectrum",
+            "obs_id": "hst_hasp_12682_stis_sirius_obto",
+            "description": "HASP coadded spectrum for singular or multiple modes",
+            "type": "D",
+            "dataURI": "mast:HST/product/hasp/hst_12682_stis_sirius_g230lb-g430l-g750l_obto_cspec.fits",
+            "productType": "SCIENCE",
+            "productGroupDescription": "Minimum Recommended Products",
+            "productSubGroupDescription": "CSPEC",
+            "productDocumentationURL": NaN,
+            "project": "HASP",
+            "prvversion": NaN,
+            "proposal_id": "12682",
+            "productFilename": "hst_12682_stis_sirius_g230lb-g430l-g750l_obto_cspec.fits",
+            "size": 63360,
+            "parent_obsid": "24965035",
+            "dataRights": "PUBLIC",
+            "calib_level": 2,
+            "filters": "G230LB;G430L;G750L",
+            "observation": {}
+          }
+        }
+      },
+      "created": "2026-01-02T17:22:11.656655+00:00",
+      "updated": "2026-01-02T17:22:11.656655+00:00"
+    },
+    "d6ce108060331d421d5b1c46439c838eb00a0ea1dd173ba0756ed982374be54d": {
+      "sha256": "d6ce108060331d421d5b1c46439c838eb00a0ea1dd173ba0756ed982374be54d",
+      "filename": "hst_12682_stis_sirius_g230lb-g430l-g750l_obto11_cspec.fits",
+      "stored_path": "C:\\Code\\spectra-app-beta\\storage\\cache\\files\\d6\\hst_12682_stis_sirius_g230lb-g430l-g750l_obto11_cspec.fits",
+      "original_path": "C:\\Code\\spectra-app-beta\\storage\\cache\\_incoming\\hst_12682_stis_sirius_g230lb-g430l-g750l_obto11_cspec.fits",
+      "bytes": 60480,
+      "units": {
+        "x": "unknown",
+        "y": "unknown"
+      },
+      "source": {
+        "remote": {
+          "provider": "MAST",
+          "uri": "mast:HST/product/hasp/hst_12682_stis_sirius_g230lb-g430l-g750l_obto11_cspec.fits",
+          "identifier": "hst_12682_stis_sirius_g230lb-g430l-g750l_obto11_cspec.fits",
+          "fetched_at": "2026-01-02T17:22:12.323148+00:00",
+          "metadata": {
+            "obsID": "199098747",
+            "obs_collection": "HST",
+            "dataproduct_type": "spectrum",
+            "obs_id": "hst_hasp_12682_stis_sirius_obto",
+            "description": "HASP coadded spectrum for singular or multiple modes",
+            "type": "D",
+            "dataURI": "mast:HST/product/hasp/hst_12682_stis_sirius_g230lb-g430l-g750l_obto11_cspec.fits",
+            "productType": "SCIENCE",
+            "productGroupDescription": "Minimum Recommended Products",
+            "productSubGroupDescription": "CSPEC",
+            "productDocumentationURL": NaN,
+            "project": "HASP",
+            "prvversion": NaN,
+            "proposal_id": "12682",
+            "productFilename": "hst_12682_stis_sirius_g230lb-g430l-g750l_obto11_cspec.fits",
+            "size": 60480,
+            "parent_obsid": "24965035",
+            "dataRights": "PUBLIC",
+            "calib_level": 2,
+            "filters": "G230LB;G430L;G750L",
+            "observation": {}
+          }
+        }
+      },
+      "created": "2026-01-02T17:22:12.343411+00:00",
+      "updated": "2026-01-02T17:22:12.343411+00:00"
+    },
+    "a32a8b2925709aeed795d5e158333fc162c7260aa0095c7dc731f3c3ee406c3a": {
+      "sha256": "a32a8b2925709aeed795d5e158333fc162c7260aa0095c7dc731f3c3ee406c3a",
+      "filename": "hst_12682_stis_sirius_g230lb-g430l-g750l_obto12_cspec.fits",
+      "stored_path": "C:\\Code\\spectra-app-beta\\storage\\cache\\files\\a3\\hst_12682_stis_sirius_g230lb-g430l-g750l_obto12_cspec.fits",
+      "original_path": "C:\\Code\\spectra-app-beta\\storage\\cache\\_incoming\\hst_12682_stis_sirius_g230lb-g430l-g750l_obto12_cspec.fits",
+      "bytes": 60480,
+      "units": {
+        "x": "unknown",
+        "y": "unknown"
+      },
+      "source": {
+        "remote": {
+          "provider": "MAST",
+          "uri": "mast:HST/product/hasp/hst_12682_stis_sirius_g230lb-g430l-g750l_obto12_cspec.fits",
+          "identifier": "hst_12682_stis_sirius_g230lb-g430l-g750l_obto12_cspec.fits",
+          "fetched_at": "2026-01-02T17:22:13.017589+00:00",
+          "metadata": {
+            "obsID": "199098747",
+            "obs_collection": "HST",
+            "dataproduct_type": "spectrum",
+            "obs_id": "hst_hasp_12682_stis_sirius_obto",
+            "description": "HASP coadded spectrum for singular or multiple modes",
+            "type": "D",
+            "dataURI": "mast:HST/product/hasp/hst_12682_stis_sirius_g230lb-g430l-g750l_obto12_cspec.fits",
+            "productType": "SCIENCE",
+            "productGroupDescription": "Minimum Recommended Products",
+            "productSubGroupDescription": "CSPEC",
+            "productDocumentationURL": NaN,
+            "project": "HASP",
+            "prvversion": NaN,
+            "proposal_id": "12682",
+            "productFilename": "hst_12682_stis_sirius_g230lb-g430l-g750l_obto12_cspec.fits",
+            "size": 60480,
+            "parent_obsid": "24965035",
+            "dataRights": "PUBLIC",
+            "calib_level": 2,
+            "filters": "G230LB;G430L;G750L",
+            "observation": {}
+          }
+        }
+      },
+      "created": "2026-01-02T17:22:13.033659+00:00",
+      "updated": "2026-01-02T17:22:13.033659+00:00"
+    },
+    "3c05654be6560f5ae2c5393f60f9d77dba4dc0b553c312533b0bfcff3e6686c2": {
+      "sha256": "3c05654be6560f5ae2c5393f60f9d77dba4dc0b553c312533b0bfcff3e6686c2",
+      "filename": "hst_12682_stis_sirius_g230lb_obto_cspec.fits",
+      "stored_path": "C:\\Code\\spectra-app-beta\\storage\\cache\\files\\3c\\hst_12682_stis_sirius_g230lb_obto_cspec.fits",
+      "original_path": "C:\\Code\\spectra-app-beta\\storage\\cache\\_incoming\\hst_12682_stis_sirius_g230lb_obto_cspec.fits",
+      "bytes": 40320,
+      "units": {
+        "x": "unknown",
+        "y": "unknown"
+      },
+      "source": {
+        "remote": {
+          "provider": "MAST",
+          "uri": "mast:HST/product/hasp/hst_12682_stis_sirius_g230lb_obto_cspec.fits",
+          "identifier": "hst_12682_stis_sirius_g230lb_obto_cspec.fits",
+          "fetched_at": "2026-01-02T17:22:13.704854+00:00",
+          "metadata": {
+            "obsID": "199098747",
+            "obs_collection": "HST",
+            "dataproduct_type": "spectrum",
+            "obs_id": "hst_hasp_12682_stis_sirius_obto",
+            "description": "HASP coadded spectrum for singular or multiple modes",
+            "type": "D",
+            "dataURI": "mast:HST/product/hasp/hst_12682_stis_sirius_g230lb_obto_cspec.fits",
+            "productType": "SCIENCE",
+            "productGroupDescription": "Minimum Recommended Products",
+            "productSubGroupDescription": "CSPEC",
+            "productDocumentationURL": NaN,
+            "project": "HASP",
+            "prvversion": NaN,
+            "proposal_id": "12682",
+            "productFilename": "hst_12682_stis_sirius_g230lb_obto_cspec.fits",
+            "size": 40320,
+            "parent_obsid": "24965035",
+            "dataRights": "PUBLIC",
+            "calib_level": 2,
+            "filters": "G230LB;G430L;G750L",
+            "observation": {}
+          }
+        }
+      },
+      "created": "2026-01-02T17:22:13.723375+00:00",
+      "updated": "2026-01-02T17:22:13.723375+00:00"
+    },
+    "68afc583070851ae5bdead073965a6cb6e40ea41cff9111a344f4c9bd093ac2c": {
+      "sha256": "68afc583070851ae5bdead073965a6cb6e40ea41cff9111a344f4c9bd093ac2c",
+      "filename": "hst_12682_stis_sirius_g230lb_obto11_cspec.fits",
+      "stored_path": "C:\\Code\\spectra-app-beta\\storage\\cache\\files\\68\\hst_12682_stis_sirius_g230lb_obto11_cspec.fits",
+      "original_path": "C:\\Code\\spectra-app-beta\\storage\\cache\\_incoming\\hst_12682_stis_sirius_g230lb_obto11_cspec.fits",
+      "bytes": 40320,
+      "units": {
+        "x": "unknown",
+        "y": "unknown"
+      },
+      "source": {
+        "remote": {
+          "provider": "MAST",
+          "uri": "mast:HST/product/hasp/hst_12682_stis_sirius_g230lb_obto11_cspec.fits",
+          "identifier": "hst_12682_stis_sirius_g230lb_obto11_cspec.fits",
+          "fetched_at": "2026-01-02T17:22:14.406496+00:00",
+          "metadata": {
+            "obsID": "199098747",
+            "obs_collection": "HST",
+            "dataproduct_type": "spectrum",
+            "obs_id": "hst_hasp_12682_stis_sirius_obto",
+            "description": "HASP coadded spectrum for singular or multiple modes",
+            "type": "D",
+            "dataURI": "mast:HST/product/hasp/hst_12682_stis_sirius_g230lb_obto11_cspec.fits",
+            "productType": "SCIENCE",
+            "productGroupDescription": "Minimum Recommended Products",
+            "productSubGroupDescription": "CSPEC",
+            "productDocumentationURL": NaN,
+            "project": "HASP",
+            "prvversion": NaN,
+            "proposal_id": "12682",
+            "productFilename": "hst_12682_stis_sirius_g230lb_obto11_cspec.fits",
+            "size": 40320,
+            "parent_obsid": "24965035",
+            "dataRights": "PUBLIC",
+            "calib_level": 2,
+            "filters": "G230LB;G430L;G750L",
+            "observation": {}
+          }
+        }
+      },
+      "created": "2026-01-02T17:22:14.423365+00:00",
+      "updated": "2026-01-02T17:22:14.423365+00:00"
+    },
+    "398ce8135e8fbeb1ca41448307e1f08670546119de4183dfc3104f286ecd523c": {
+      "sha256": "398ce8135e8fbeb1ca41448307e1f08670546119de4183dfc3104f286ecd523c",
+      "filename": "hst_12682_stis_sirius_g430l_obto_cspec.fits",
+      "stored_path": "C:\\Code\\spectra-app-beta\\storage\\cache\\files\\39\\hst_12682_stis_sirius_g430l_obto_cspec.fits",
+      "original_path": "C:\\Code\\spectra-app-beta\\storage\\cache\\_incoming\\hst_12682_stis_sirius_g430l_obto_cspec.fits",
+      "bytes": 37440,
+      "units": {
+        "x": "unknown",
+        "y": "unknown"
+      },
+      "source": {
+        "remote": {
+          "provider": "MAST",
+          "uri": "mast:HST/product/hasp/hst_12682_stis_sirius_g430l_obto_cspec.fits",
+          "identifier": "hst_12682_stis_sirius_g430l_obto_cspec.fits",
+          "fetched_at": "2026-01-02T17:22:15.068516+00:00",
+          "metadata": {
+            "obsID": "199098747",
+            "obs_collection": "HST",
+            "dataproduct_type": "spectrum",
+            "obs_id": "hst_hasp_12682_stis_sirius_obto",
+            "description": "HASP coadded spectrum for singular or multiple modes",
+            "type": "D",
+            "dataURI": "mast:HST/product/hasp/hst_12682_stis_sirius_g430l_obto_cspec.fits",
+            "productType": "SCIENCE",
+            "productGroupDescription": "Minimum Recommended Products",
+            "productSubGroupDescription": "CSPEC",
+            "productDocumentationURL": NaN,
+            "project": "HASP",
+            "prvversion": NaN,
+            "proposal_id": "12682",
+            "productFilename": "hst_12682_stis_sirius_g430l_obto_cspec.fits",
+            "size": 37440,
+            "parent_obsid": "24965035",
+            "dataRights": "PUBLIC",
+            "calib_level": 2,
+            "filters": "G230LB;G430L;G750L",
+            "observation": {}
+          }
+        }
+      },
+      "created": "2026-01-02T17:22:15.083660+00:00",
+      "updated": "2026-01-02T17:22:15.083660+00:00"
+    },
+    "b1eed7aa2a8903c70cf56dde525db1550c4d1ec85fe8323e8a4636a02995e150": {
+      "sha256": "b1eed7aa2a8903c70cf56dde525db1550c4d1ec85fe8323e8a4636a02995e150",
+      "filename": "hst_12682_stis_sirius_g430l_obto11_cspec.fits",
+      "stored_path": "C:\\Code\\spectra-app-beta\\storage\\cache\\files\\b1\\hst_12682_stis_sirius_g430l_obto11_cspec.fits",
+      "original_path": "C:\\Code\\spectra-app-beta\\storage\\cache\\_incoming\\hst_12682_stis_sirius_g430l_obto11_cspec.fits",
+      "bytes": 37440,
+      "units": {
+        "x": "unknown",
+        "y": "unknown"
+      },
+      "source": {
+        "remote": {
+          "provider": "MAST",
+          "uri": "mast:HST/product/hasp/hst_12682_stis_sirius_g430l_obto11_cspec.fits",
+          "identifier": "hst_12682_stis_sirius_g430l_obto11_cspec.fits",
+          "fetched_at": "2026-01-02T17:22:15.763953+00:00",
+          "metadata": {
+            "obsID": "199098747",
+            "obs_collection": "HST",
+            "dataproduct_type": "spectrum",
+            "obs_id": "hst_hasp_12682_stis_sirius_obto",
+            "description": "HASP coadded spectrum for singular or multiple modes",
+            "type": "D",
+            "dataURI": "mast:HST/product/hasp/hst_12682_stis_sirius_g430l_obto11_cspec.fits",
+            "productType": "SCIENCE",
+            "productGroupDescription": "Minimum Recommended Products",
+            "productSubGroupDescription": "CSPEC",
+            "productDocumentationURL": NaN,
+            "project": "HASP",
+            "prvversion": NaN,
+            "proposal_id": "12682",
+            "productFilename": "hst_12682_stis_sirius_g430l_obto11_cspec.fits",
+            "size": 37440,
+            "parent_obsid": "24965035",
+            "dataRights": "PUBLIC",
+            "calib_level": 2,
+            "filters": "G230LB;G430L;G750L",
+            "observation": {}
+          }
+        }
+      },
+      "created": "2026-01-02T17:22:15.775060+00:00",
+      "updated": "2026-01-02T17:22:15.775060+00:00"
+    },
+    "5b4af517de4722d48c74a67ed182ff0b6bb5c501b2c8a45323b5a3fd8eb84429": {
+      "sha256": "5b4af517de4722d48c74a67ed182ff0b6bb5c501b2c8a45323b5a3fd8eb84429",
+      "filename": "hst_12682_stis_sirius_g430l_obto12_cspec.fits",
+      "stored_path": "C:\\Code\\spectra-app-beta\\storage\\cache\\files\\5b\\hst_12682_stis_sirius_g430l_obto12_cspec.fits",
+      "original_path": "C:\\Code\\spectra-app-beta\\storage\\cache\\_incoming\\hst_12682_stis_sirius_g430l_obto12_cspec.fits",
+      "bytes": 37440,
+      "units": {
+        "x": "unknown",
+        "y": "unknown"
+      },
+      "source": {
+        "remote": {
+          "provider": "MAST",
+          "uri": "mast:HST/product/hasp/hst_12682_stis_sirius_g430l_obto12_cspec.fits",
+          "identifier": "hst_12682_stis_sirius_g430l_obto12_cspec.fits",
+          "fetched_at": "2026-01-02T17:22:16.434761+00:00",
+          "metadata": {
+            "obsID": "199098747",
+            "obs_collection": "HST",
+            "dataproduct_type": "spectrum",
+            "obs_id": "hst_hasp_12682_stis_sirius_obto",
+            "description": "HASP coadded spectrum for singular or multiple modes",
+            "type": "D",
+            "dataURI": "mast:HST/product/hasp/hst_12682_stis_sirius_g430l_obto12_cspec.fits",
+            "productType": "SCIENCE",
+            "productGroupDescription": "Minimum Recommended Products",
+            "productSubGroupDescription": "CSPEC",
+            "productDocumentationURL": NaN,
+            "project": "HASP",
+            "prvversion": NaN,
+            "proposal_id": "12682",
+            "productFilename": "hst_12682_stis_sirius_g430l_obto12_cspec.fits",
+            "size": 37440,
+            "parent_obsid": "24965035",
+            "dataRights": "PUBLIC",
+            "calib_level": 2,
+            "filters": "G230LB;G430L;G750L",
+            "observation": {}
+          }
+        }
+      },
+      "created": "2026-01-02T17:22:16.448747+00:00",
+      "updated": "2026-01-02T17:22:16.448747+00:00"
+    },
+    "86c28e74b8a58274505b0304c0b875de3ebb81bb517574e4258b479229a36105": {
+      "sha256": "86c28e74b8a58274505b0304c0b875de3ebb81bb517574e4258b479229a36105",
+      "filename": "hst_12682_stis_sirius_g750l_obto_cspec.fits",
+      "stored_path": "C:\\Code\\spectra-app-beta\\storage\\cache\\files\\86\\hst_12682_stis_sirius_g750l_obto_cspec.fits",
+      "original_path": "C:\\Code\\spectra-app-beta\\storage\\cache\\_incoming\\hst_12682_stis_sirius_g750l_obto_cspec.fits",
+      "bytes": 20160,
+      "units": {
+        "x": "unknown",
+        "y": "unknown"
+      },
+      "source": {
+        "remote": {
+          "provider": "MAST",
+          "uri": "mast:HST/product/hasp/hst_12682_stis_sirius_g750l_obto_cspec.fits",
+          "identifier": "hst_12682_stis_sirius_g750l_obto_cspec.fits",
+          "fetched_at": "2026-01-02T17:22:17.094545+00:00",
+          "metadata": {
+            "obsID": "199098747",
+            "obs_collection": "HST",
+            "dataproduct_type": "spectrum",
+            "obs_id": "hst_hasp_12682_stis_sirius_obto",
+            "description": "HASP coadded spectrum for singular or multiple modes",
+            "type": "D",
+            "dataURI": "mast:HST/product/hasp/hst_12682_stis_sirius_g750l_obto_cspec.fits",
+            "productType": "SCIENCE",
+            "productGroupDescription": "Minimum Recommended Products",
+            "productSubGroupDescription": "CSPEC",
+            "productDocumentationURL": NaN,
+            "project": "HASP",
+            "prvversion": NaN,
+            "proposal_id": "12682",
+            "productFilename": "hst_12682_stis_sirius_g750l_obto_cspec.fits",
+            "size": 20160,
+            "parent_obsid": "24965035",
+            "dataRights": "PUBLIC",
+            "calib_level": 2,
+            "filters": "G230LB;G430L;G750L",
+            "observation": {}
+          }
+        }
+      },
+      "created": "2026-01-02T17:22:17.113685+00:00",
+      "updated": "2026-01-02T17:22:17.113685+00:00"
+    },
+    "d2bca60e8e020adec2b7b94acb7edc03d1c3d33b620fc26673f35c25946abd45": {
+      "sha256": "d2bca60e8e020adec2b7b94acb7edc03d1c3d33b620fc26673f35c25946abd45",
+      "filename": "hst_12682_stis_sirius_g750l_obto11_cspec.fits",
+      "stored_path": "C:\\Code\\spectra-app-beta\\storage\\cache\\files\\d2\\hst_12682_stis_sirius_g750l_obto11_cspec.fits",
+      "original_path": "C:\\Code\\spectra-app-beta\\storage\\cache\\_incoming\\hst_12682_stis_sirius_g750l_obto11_cspec.fits",
+      "bytes": 20160,
+      "units": {
+        "x": "unknown",
+        "y": "unknown"
+      },
+      "source": {
+        "remote": {
+          "provider": "MAST",
+          "uri": "mast:HST/product/hasp/hst_12682_stis_sirius_g750l_obto11_cspec.fits",
+          "identifier": "hst_12682_stis_sirius_g750l_obto11_cspec.fits",
+          "fetched_at": "2026-01-02T17:22:17.768010+00:00",
+          "metadata": {
+            "obsID": "199098747",
+            "obs_collection": "HST",
+            "dataproduct_type": "spectrum",
+            "obs_id": "hst_hasp_12682_stis_sirius_obto",
+            "description": "HASP coadded spectrum for singular or multiple modes",
+            "type": "D",
+            "dataURI": "mast:HST/product/hasp/hst_12682_stis_sirius_g750l_obto11_cspec.fits",
+            "productType": "SCIENCE",
+            "productGroupDescription": "Minimum Recommended Products",
+            "productSubGroupDescription": "CSPEC",
+            "productDocumentationURL": NaN,
+            "project": "HASP",
+            "prvversion": NaN,
+            "proposal_id": "12682",
+            "productFilename": "hst_12682_stis_sirius_g750l_obto11_cspec.fits",
+            "size": 20160,
+            "parent_obsid": "24965035",
+            "dataRights": "PUBLIC",
+            "calib_level": 2,
+            "filters": "G230LB;G430L;G750L",
+            "observation": {}
+          }
+        }
+      },
+      "created": "2026-01-02T17:22:17.783801+00:00",
+      "updated": "2026-01-02T17:22:17.783801+00:00"
+    },
+    "7aa03160fde63a541cb4ebffecf14712c81f8d4eb720eea3af7fcbd6298a5b74": {
+      "sha256": "7aa03160fde63a541cb4ebffecf14712c81f8d4eb720eea3af7fcbd6298a5b74",
+      "filename": "hst_stis_sirius--5587_g750m_trl.txt",
+      "stored_path": "C:\\Code\\spectra-app-beta\\storage\\cache\\files\\7a\\hst_stis_sirius--5587_g750m_trl.txt",
+      "original_path": "C:\\Code\\spectra-app-beta\\storage\\cache\\_incoming\\hst_stis_sirius--5587_g750m_trl.txt",
+      "bytes": 8573,
+      "units": {
+        "x": "unknown",
+        "y": "unknown"
+      },
+      "source": {
+        "remote": {
+          "provider": "MAST",
+          "uri": "mast:HST/product/hsla/hst_sirius--5587/hst_stis_sirius--5587_g750m_trl.txt",
+          "identifier": "hst_stis_sirius--5587_g750m_trl.txt",
+          "fetched_at": "2026-01-02T17:22:21.428413+00:00",
+          "metadata": {
+            "obsID": "349726315",
+            "obs_collection": "HST",
+            "dataproduct_type": "spectrum",
+            "obs_id": "hst_hsla_sirius--5587",
+            "description": "Pipeline processing logs",
+            "type": "S",
+            "dataURI": "mast:HST/product/hsla/hst_sirius--5587/hst_stis_sirius--5587_g750m_trl.txt",
+            "productType": "AUXILIARY",
+            "productGroupDescription": NaN,
+            "productSubGroupDescription": "TRL",
+            "productDocumentationURL": NaN,
+            "project": "HSLA",
+            "prvversion": "HSLA Cal 1.2.5",
+            "proposal_id": "MULTI",
+            "productFilename": "hst_stis_sirius--5587_g750m_trl.txt",
+            "size": 8573,
+            "parent_obsid": "349726315",
+            "dataRights": "PUBLIC",
+            "calib_level": 3,
+            "filters": "E140H;E140M;G230LB;G430L;G750L;G750M",
+            "observation": {}
+          }
+        }
+      },
+      "created": "2026-01-02T17:22:18.407312+00:00",
+      "updated": "2026-01-02T17:22:21.442392+00:00"
+    },
+    "25e07a90d23dcc33ba7447282232b3cf21883aaa55125ce3280f7dd5638eca66": {
+      "sha256": "25e07a90d23dcc33ba7447282232b3cf21883aaa55125ce3280f7dd5638eca66",
+      "filename": "hst_sirius--5587_aspec.fits",
+      "stored_path": "C:\\Code\\spectra-app-beta\\storage\\cache\\files\\25\\hst_sirius--5587_aspec.fits",
+      "original_path": "C:\\Code\\spectra-app-beta\\storage\\cache\\_incoming\\hst_sirius--5587_aspec.fits",
+      "bytes": 1117440,
+      "units": {
+        "x": "unknown",
+        "y": "unknown"
+      },
+      "source": {
+        "remote": {
+          "provider": "MAST",
+          "uri": "mast:HST/product/hsla/hst_sirius--5587/hst_sirius--5587_aspec.fits",
+          "identifier": "hst_sirius--5587_aspec.fits",
+          "fetched_at": "2026-01-02T17:22:22.244383+00:00",
+          "metadata": {
+            "obsID": "349726315",
+            "obs_collection": "HST",
+            "dataproduct_type": "spectrum",
+            "obs_id": "hst_hsla_sirius--5587",
+            "description": "HSLA coadded and abutted spectrum for multiple gratings",
+            "type": "S",
+            "dataURI": "mast:HST/product/hsla/hst_sirius--5587/hst_sirius--5587_aspec.fits",
+            "productType": "SCIENCE",
+            "productGroupDescription": "Minimum Recommended Products",
+            "productSubGroupDescription": "ASPEC",
+            "productDocumentationURL": NaN,
+            "project": "HSLA",
+            "prvversion": "HSLA Cal 1.2.5",
+            "proposal_id": "MULTI",
+            "productFilename": "hst_sirius--5587_aspec.fits",
+            "size": 1117440,
+            "parent_obsid": "349726315",
+            "dataRights": "PUBLIC",
+            "calib_level": 3,
+            "filters": "E140H;E140M;G230LB;G430L;G750L;G750M",
+            "observation": {}
+          }
+        }
+      },
+      "created": "2026-01-02T17:22:22.262239+00:00",
+      "updated": "2026-01-02T17:22:22.262239+00:00"
+    },
+    "1cf4113fe811deaffd9727db69811d85dee911f8f36ea9ece081c23b69293c55": {
+      "sha256": "1cf4113fe811deaffd9727db69811d85dee911f8f36ea9ece081c23b69293c55",
+      "filename": "hst_stis_sirius--5587_e140h_cspec.fits",
+      "stored_path": "C:\\Code\\spectra-app-beta\\storage\\cache\\files\\1c\\hst_stis_sirius--5587_e140h_cspec.fits",
+      "original_path": "C:\\Code\\spectra-app-beta\\storage\\cache\\_incoming\\hst_stis_sirius--5587_e140h_cspec.fits",
+      "bytes": 653760,
+      "units": {
+        "x": "unknown",
+        "y": "unknown"
+      },
+      "source": {
+        "remote": {
+          "provider": "MAST",
+          "uri": "mast:HST/product/hsla/hst_sirius--5587/hst_stis_sirius--5587_e140h_cspec.fits",
+          "identifier": "hst_stis_sirius--5587_e140h_cspec.fits",
+          "fetched_at": "2026-01-02T17:22:23.014509+00:00",
+          "metadata": {
+            "obsID": "349726315",
+            "obs_collection": "HST",
+            "dataproduct_type": "spectrum",
+            "obs_id": "hst_hsla_sirius--5587",
+            "description": "HSLA coadded spectrum for a singular grating and/or COS lifetime position",
+            "type": "S",
+            "dataURI": "mast:HST/product/hsla/hst_sirius--5587/hst_stis_sirius--5587_e140h_cspec.fits",
+            "productType": "SCIENCE",
+            "productGroupDescription": "Minimum Recommended Products",
+            "productSubGroupDescription": "CSPEC",
+            "productDocumentationURL": NaN,
+            "project": "HSLA",
+            "prvversion": "HSLA Cal 1.2.5",
+            "proposal_id": "MULTI",
+            "productFilename": "hst_stis_sirius--5587_e140h_cspec.fits",
+            "size": 653760,
+            "parent_obsid": "349726315",
+            "dataRights": "PUBLIC",
+            "calib_level": 3,
+            "filters": "E140H;E140M;G230LB;G430L;G750L;G750M",
+            "observation": {}
+          }
+        }
+      },
+      "created": "2026-01-02T17:22:23.034393+00:00",
+      "updated": "2026-01-02T17:22:23.034393+00:00"
+    },
+    "3c44a45101600f3e0fd150fe56e312de6cc148327eec7c23b05f0fb4f5616e69": {
+      "sha256": "3c44a45101600f3e0fd150fe56e312de6cc148327eec7c23b05f0fb4f5616e69",
+      "filename": "hst_stis_sirius--5587_e140m_cspec.fits",
+      "stored_path": "C:\\Code\\spectra-app-beta\\storage\\cache\\files\\3c\\hst_stis_sirius--5587_e140m_cspec.fits",
+      "original_path": "C:\\Code\\spectra-app-beta\\storage\\cache\\_incoming\\hst_stis_sirius--5587_e140m_cspec.fits",
+      "bytes": 627840,
+      "units": {
+        "x": "unknown",
+        "y": "unknown"
+      },
+      "source": {
+        "remote": {
+          "provider": "MAST",
+          "uri": "mast:HST/product/hsla/hst_sirius--5587/hst_stis_sirius--5587_e140m_cspec.fits",
+          "identifier": "hst_stis_sirius--5587_e140m_cspec.fits",
+          "fetched_at": "2026-01-02T17:22:23.789919+00:00",
+          "metadata": {
+            "obsID": "349726315",
+            "obs_collection": "HST",
+            "dataproduct_type": "spectrum",
+            "obs_id": "hst_hsla_sirius--5587",
+            "description": "HSLA coadded spectrum for a singular grating and/or COS lifetime position",
+            "type": "S",
+            "dataURI": "mast:HST/product/hsla/hst_sirius--5587/hst_stis_sirius--5587_e140m_cspec.fits",
+            "productType": "SCIENCE",
+            "productGroupDescription": "Minimum Recommended Products",
+            "productSubGroupDescription": "CSPEC",
+            "productDocumentationURL": NaN,
+            "project": "HSLA",
+            "prvversion": "HSLA Cal 1.2.5",
+            "proposal_id": "MULTI",
+            "productFilename": "hst_stis_sirius--5587_e140m_cspec.fits",
+            "size": 627840,
+            "parent_obsid": "349726315",
+            "dataRights": "PUBLIC",
+            "calib_level": 3,
+            "filters": "E140H;E140M;G230LB;G430L;G750L;G750M",
+            "observation": {}
+          }
+        }
+      },
+      "created": "2026-01-02T17:22:23.804835+00:00",
+      "updated": "2026-01-02T17:22:23.804835+00:00"
+    },
+    "3c541b1e02af01dd8e36cc6c51abad3487b6cc5c64b2b5558372e5ff852ff2c8": {
+      "sha256": "3c541b1e02af01dd8e36cc6c51abad3487b6cc5c64b2b5558372e5ff852ff2c8",
+      "filename": "hst_stis_sirius--5587_g230lb_cspec.fits",
+      "stored_path": "C:\\Code\\spectra-app-beta\\storage\\cache\\files\\3c\\hst_stis_sirius--5587_g230lb_cspec.fits",
+      "original_path": "C:\\Code\\spectra-app-beta\\storage\\cache\\_incoming\\hst_stis_sirius--5587_g230lb_cspec.fits",
+      "bytes": 40320,
+      "units": {
+        "x": "unknown",
+        "y": "unknown"
+      },
+      "source": {
+        "remote": {
+          "provider": "MAST",
+          "uri": "mast:HST/product/hsla/hst_sirius--5587/hst_stis_sirius--5587_g230lb_cspec.fits",
+          "identifier": "hst_stis_sirius--5587_g230lb_cspec.fits",
+          "fetched_at": "2026-01-02T17:22:24.484559+00:00",
+          "metadata": {
+            "obsID": "349726315",
+            "obs_collection": "HST",
+            "dataproduct_type": "spectrum",
+            "obs_id": "hst_hsla_sirius--5587",
+            "description": "HSLA coadded spectrum for a singular grating and/or COS lifetime position",
+            "type": "S",
+            "dataURI": "mast:HST/product/hsla/hst_sirius--5587/hst_stis_sirius--5587_g230lb_cspec.fits",
+            "productType": "SCIENCE",
+            "productGroupDescription": "Minimum Recommended Products",
+            "productSubGroupDescription": "CSPEC",
+            "productDocumentationURL": NaN,
+            "project": "HSLA",
+            "prvversion": "HSLA Cal 1.2.5",
+            "proposal_id": "MULTI",
+            "productFilename": "hst_stis_sirius--5587_g230lb_cspec.fits",
+            "size": 40320,
+            "parent_obsid": "349726315",
+            "dataRights": "PUBLIC",
+            "calib_level": 3,
+            "filters": "E140H;E140M;G230LB;G430L;G750L;G750M",
+            "observation": {}
+          }
+        }
+      },
+      "created": "2026-01-02T17:22:24.499494+00:00",
+      "updated": "2026-01-02T17:22:24.499494+00:00"
+    },
+    "c59e6793fe27e289cb75d0762dfd7fef75224d84bdffcf67a9a492c9c6cfd081": {
+      "sha256": "c59e6793fe27e289cb75d0762dfd7fef75224d84bdffcf67a9a492c9c6cfd081",
+      "filename": "hst_stis_sirius--5587_g430l_cspec.fits",
+      "stored_path": "C:\\Code\\spectra-app-beta\\storage\\cache\\files\\c5\\hst_stis_sirius--5587_g430l_cspec.fits",
+      "original_path": "C:\\Code\\spectra-app-beta\\storage\\cache\\_incoming\\hst_stis_sirius--5587_g430l_cspec.fits",
+      "bytes": 37440,
+      "units": {
+        "x": "unknown",
+        "y": "unknown"
+      },
+      "source": {
+        "remote": {
+          "provider": "MAST",
+          "uri": "mast:HST/product/hsla/hst_sirius--5587/hst_stis_sirius--5587_g430l_cspec.fits",
+          "identifier": "hst_stis_sirius--5587_g430l_cspec.fits",
+          "fetched_at": "2026-01-02T17:22:25.144728+00:00",
+          "metadata": {
+            "obsID": "349726315",
+            "obs_collection": "HST",
+            "dataproduct_type": "spectrum",
+            "obs_id": "hst_hsla_sirius--5587",
+            "description": "HSLA coadded spectrum for a singular grating and/or COS lifetime position",
+            "type": "S",
+            "dataURI": "mast:HST/product/hsla/hst_sirius--5587/hst_stis_sirius--5587_g430l_cspec.fits",
+            "productType": "SCIENCE",
+            "productGroupDescription": "Minimum Recommended Products",
+            "productSubGroupDescription": "CSPEC",
+            "productDocumentationURL": NaN,
+            "project": "HSLA",
+            "prvversion": "HSLA Cal 1.2.5",
+            "proposal_id": "MULTI",
+            "productFilename": "hst_stis_sirius--5587_g430l_cspec.fits",
+            "size": 37440,
+            "parent_obsid": "349726315",
+            "dataRights": "PUBLIC",
+            "calib_level": 3,
+            "filters": "E140H;E140M;G230LB;G430L;G750L;G750M",
+            "observation": {}
+          }
+        }
+      },
+      "created": "2026-01-02T17:22:25.158219+00:00",
+      "updated": "2026-01-02T17:22:25.158219+00:00"
+    },
+    "cef577c74c04a847e58495b38ecc2d57e936d19250ea8c5372be6e64bdb2aca6": {
+      "sha256": "cef577c74c04a847e58495b38ecc2d57e936d19250ea8c5372be6e64bdb2aca6",
+      "filename": "hst_stis_sirius--5587_g750l_cspec.fits",
+      "stored_path": "C:\\Code\\spectra-app-beta\\storage\\cache\\files\\ce\\hst_stis_sirius--5587_g750l_cspec.fits",
+      "original_path": "C:\\Code\\spectra-app-beta\\storage\\cache\\_incoming\\hst_stis_sirius--5587_g750l_cspec.fits",
+      "bytes": 20160,
+      "units": {
+        "x": "unknown",
+        "y": "unknown"
+      },
+      "source": {
+        "remote": {
+          "provider": "MAST",
+          "uri": "mast:HST/product/hsla/hst_sirius--5587/hst_stis_sirius--5587_g750l_cspec.fits",
+          "identifier": "hst_stis_sirius--5587_g750l_cspec.fits",
+          "fetched_at": "2026-01-02T17:22:25.825330+00:00",
+          "metadata": {
+            "obsID": "349726315",
+            "obs_collection": "HST",
+            "dataproduct_type": "spectrum",
+            "obs_id": "hst_hsla_sirius--5587",
+            "description": "HSLA coadded spectrum for a singular grating and/or COS lifetime position",
+            "type": "S",
+            "dataURI": "mast:HST/product/hsla/hst_sirius--5587/hst_stis_sirius--5587_g750l_cspec.fits",
+            "productType": "SCIENCE",
+            "productGroupDescription": "Minimum Recommended Products",
+            "productSubGroupDescription": "CSPEC",
+            "productDocumentationURL": NaN,
+            "project": "HSLA",
+            "prvversion": "HSLA Cal 1.2.5",
+            "proposal_id": "MULTI",
+            "productFilename": "hst_stis_sirius--5587_g750l_cspec.fits",
+            "size": 20160,
+            "parent_obsid": "349726315",
+            "dataRights": "PUBLIC",
+            "calib_level": 3,
+            "filters": "E140H;E140M;G230LB;G430L;G750L;G750M",
+            "observation": {}
+          }
+        }
+      },
+      "created": "2026-01-02T17:22:25.839016+00:00",
+      "updated": "2026-01-02T17:22:25.839016+00:00"
+    },
+    "a85c8c2638337ccbe71889f6a7e65017ec03232f009084f2af89c9cdcfcbddbc": {
+      "sha256": "a85c8c2638337ccbe71889f6a7e65017ec03232f009084f2af89c9cdcfcbddbc",
+      "filename": "lwp10667mxlo_vo.fits",
+      "stored_path": "C:\\Code\\spectra-app-beta\\storage\\cache\\files\\a8\\lwp10667mxlo_vo.fits",
+      "original_path": "C:\\Code\\spectra-app-beta\\storage\\cache\\_incoming\\lwp10667mxlo_vo.fits",
+      "bytes": 48960,
+      "units": {
+        "x": "unknown",
+        "y": "unknown"
+      },
+      "source": {
+        "remote": {
+          "provider": "MAST",
+          "uri": "mast:IUE/url/pub/vospectra/iue2/lwp10667mxlo_vo.fits",
+          "identifier": "lwp10667mxlo_vo.fits",
+          "fetched_at": "2026-01-02T17:22:27.311262+00:00",
+          "metadata": {
+            "obsID": "281012",
+            "obs_collection": "IUE",
+            "dataproduct_type": "spectrum",
+            "obs_id": "lwp10667",
+            "description": "(extracted spectra/vo spectral container/SSAP) fits file",
+            "type": "S",
+            "dataURI": "mast:IUE/url/pub/vospectra/iue2/lwp10667mxlo_vo.fits",
+            "productType": "SCIENCE",
+            "productGroupDescription": "Minimum Recommended Products",
+            "productSubGroupDescription": "(extracted spectra/vo spectral container/SSAP) fits file",
+            "productDocumentationURL": NaN,
+            "project": NaN,
+            "prvversion": NaN,
+            "proposal_id": "PHCAL",
+            "productFilename": "lwp10667mxlo_vo.fits",
+            "size": 48960,
+            "parent_obsid": "281012",
+            "dataRights": "PUBLIC",
+            "calib_level": 2,
+            "filters": "LOW DISP",
+            "observation": {}
+          }
+        }
+      },
+      "created": "2026-01-02T17:22:27.325257+00:00",
+      "updated": "2026-01-02T17:22:27.325257+00:00"
+    },
+    "493b087b101fbc9a1dd5fc6349474c2e6ce131056ac550fbd24ccdee62995518": {
+      "sha256": "493b087b101fbc9a1dd5fc6349474c2e6ce131056ac550fbd24ccdee62995518",
+      "filename": "lwp13092mxlo_vo.fits",
+      "stored_path": "C:\\Code\\spectra-app-beta\\storage\\cache\\files\\49\\lwp13092mxlo_vo.fits",
+      "original_path": "C:\\Code\\spectra-app-beta\\storage\\cache\\_incoming\\lwp13092mxlo_vo.fits",
+      "bytes": 48960,
+      "units": {
+        "x": "unknown",
+        "y": "unknown"
+      },
+      "source": {
+        "remote": {
+          "provider": "MAST",
+          "uri": "mast:IUE/url/pub/vospectra/iue2/lwp13092mxlo_vo.fits",
+          "identifier": "lwp13092mxlo_vo.fits",
+          "fetched_at": "2026-01-02T17:22:29.265254+00:00",
+          "metadata": {
+            "obsID": "282689",
+            "obs_collection": "IUE",
+            "dataproduct_type": "spectrum",
+            "obs_id": "lwp13092",
+            "description": "(extracted spectra/vo spectral container/SSAP) fits file",
+            "type": "S",
+            "dataURI": "mast:IUE/url/pub/vospectra/iue2/lwp13092mxlo_vo.fits",
+            "productType": "SCIENCE",
+            "productGroupDescription": "Minimum Recommended Products",
+            "productSubGroupDescription": "(extracted spectra/vo spectral container/SSAP) fits file",
+            "productDocumentationURL": NaN,
+            "project": NaN,
+            "prvversion": NaN,
+            "proposal_id": "PHCAL",
+            "productFilename": "lwp13092mxlo_vo.fits",
+            "size": 48960,
+            "parent_obsid": "282689",
+            "dataRights": "PUBLIC",
+            "calib_level": 2,
+            "filters": "LOW DISP",
+            "observation": {}
+          }
+        }
+      },
+      "created": "2026-01-02T17:22:29.276520+00:00",
+      "updated": "2026-01-02T17:22:29.276520+00:00"
     }
   }
 }
