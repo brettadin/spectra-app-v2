@@ -51,3 +51,6 @@ class TimeSeries:
     quality: Optional[np.ndarray] = None
     metadata: Dict[str, Any] = field(default_factory=dict)
     source_path: Optional[Path] = None
+    channel_id: Optional[str] = None
+    band: Optional[str] = None
+    wavelength: Optional[float] = None

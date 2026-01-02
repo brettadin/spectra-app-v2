@@ -360,14 +360,18 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.time_series_clear_action.setShortcut(QtGui.QKeySequence("Ctrl+Shift+L"))
         self.time_series_clear_action.triggered.connect(self._clear_all_time_series)
         ts_toolbar.addAction(self.time_series_clear_action)
+        self.time_series_flux_vs_lambda_action = QtGui.QAction(self)
+        self.time_series_flux_vs_lambda_action.setText("Flux vs wavelength...")
+        self.time_series_flux_vs_lambda_action.triggered.connect(self._plot_flux_vs_wavelength_at_time)
+        ts_toolbar.addAction(self.time_series_flux_vs_lambda_action)
         ts_layout.addWidget(ts_toolbar)
 
         self.time_series_view = QtWidgets.QTreeWidget()
-        self.time_series_view.setHeaderLabels(["Time Series", "Visible"])
+        self.time_series_view.setHeaderLabels(["Time Series", "Visible", "Channel", "Band / wavelength"])
         self.time_series_view.setRootIsDecorated(False)
         self.time_series_view.setSelectionMode(QtWidgets.QAbstractItemView.SelectionMode.ExtendedSelection)
         self.time_series_view.setAlternatingRowColors(True)
-        self.time_series_view.setColumnCount(2)
+        self.time_series_view.setColumnCount(4)
         self.time_series_view.setContextMenuPolicy(QtCore.Qt.ContextMenuPolicy.CustomContextMenu)
         self.time_series_view.itemChanged.connect(self._on_time_series_item_changed)
         self.time_series_view.customContextMenuRequested.connect(self._on_time_series_context_menu)
@@ -2458,6 +2462,10 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self._time_series[ts_id] = ts
 
         style = TraceStyle(color=color, width=1.2, show_in_legend=True)
+        alias = ts.name
+        tag = self._format_time_series_tag(ts)
+        if tag:
+            alias = f"{alias} [{tag}]"
         x_vals = np.asarray(ts.time, dtype=float)
         y_vals = np.asarray(ts.values, dtype=float)
         sigma = np.asarray(ts.errors, dtype=float) if ts.errors is not None else None
@@ -2470,7 +2478,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
 
         self.time_plot.add_trace(
             key=str(ts_id),
-            alias=ts.name,
+            alias=alias,
             x_nm=x_vals,
             y=y_vals,
             style=style,
@@ -2482,7 +2490,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
     def _append_time_series_row(self, ts: TimeSeries, color: QtGui.QColor) -> None:
         if self.time_series_view is None:
             return
-        item = QtWidgets.QTreeWidgetItem([ts.name, ""])
+        item = QtWidgets.QTreeWidgetItem([ts.name, "", "", ""])
         item.setData(0, QtCore.Qt.ItemDataRole.UserRole, getattr(ts, "id", ts.name))
         item.setFlags(item.flags() | QtCore.Qt.ItemFlag.ItemIsUserCheckable | QtCore.Qt.ItemFlag.ItemIsSelectable | QtCore.Qt.ItemFlag.ItemIsEnabled)
         item.setCheckState(1, QtCore.Qt.CheckState.Checked)
@@ -2499,8 +2507,68 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             item.setIcon(0, QtGui.QIcon(swatch))
         except Exception:
             pass
+        self._set_time_series_row_tags(item, ts)
         self.time_series_view.addTopLevelItem(item)
         self._time_series_items[str(getattr(ts, "id", ts.name))] = item
+
+    def _set_time_series_row_tags(self, item: QtWidgets.QTreeWidgetItem, ts: TimeSeries) -> None:
+        channel = getattr(ts, "channel_id", None) or ""
+        band = getattr(ts, "band", None) or ""
+        wavelength = getattr(ts, "wavelength", None)
+        band_text = band
+        if wavelength is not None:
+            if band_text:
+                band_text = f"{band_text} @ {wavelength:.4g}"
+            else:
+                band_text = f"{wavelength:.4g}"
+        item.setText(2, channel)
+        item.setText(3, band_text)
+
+    def _format_time_series_tag(self, ts: TimeSeries) -> str:
+        channel = getattr(ts, "channel_id", None) or ""
+        band = getattr(ts, "band", None) or ""
+        wavelength = getattr(ts, "wavelength", None)
+        parts: list[str] = []
+        if channel:
+            parts.append(channel)
+        if band:
+            parts.append(band)
+        if wavelength is not None:
+            parts.append(f"{wavelength:.4g}")
+        return " | ".join(parts)
+
+    def _refresh_time_series_trace(self, ts_id: str) -> None:
+        if self.time_plot is None:
+            return
+        ts = self._time_series.get(ts_id)
+        color = self._time_series_colors.get(ts_id)
+        if ts is None or color is None:
+            return
+
+        style = TraceStyle(color=color, width=1.2, show_in_legend=True)
+        alias = ts.name
+        tag = self._format_time_series_tag(ts)
+        if tag:
+            alias = f"{alias} [{tag}]"
+        x_vals = np.asarray(ts.time, dtype=float)
+        y_vals = np.asarray(ts.values, dtype=float)
+        sigma = np.asarray(ts.errors, dtype=float) if ts.errors is not None else None
+        flags = np.asarray(ts.quality, dtype=int) if ts.quality is not None else None
+
+        x_unit = getattr(ts, "time_unit", None) or "day"
+        value_unit = getattr(ts, "value_unit", None) or "flux"
+        self.time_plot.set_x_mode("time", label="Time", unit=x_unit)
+        self.time_plot.set_y_label(f"Flux ({value_unit})" if value_unit else "Flux")
+
+        self.time_plot.add_trace(
+            key=str(ts_id),
+            alias=alias,
+            x_nm=x_vals,
+            y=y_vals,
+            style=style,
+            uncertainty=sigma,
+            quality_flags=flags,
+        )
 
     def _remove_time_series_by_id(self, ts_id: str) -> None:
         try:
@@ -2572,12 +2640,209 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         if not selected:
             return
         menu = QtWidgets.QMenu(self.time_series_view)
+        edit_action = menu.addAction("Edit tags...")
         if len(selected) == 1:
             remove_action = menu.addAction("Remove Time Series")
         else:
             remove_action = menu.addAction(f"Remove {len(selected)} Time Series")
+        edit_action.triggered.connect(lambda _, sel=selected: self._edit_time_series_tags(sel))
         remove_action.triggered.connect(self._remove_selected_time_series)
         menu.exec(self.time_series_view.viewport().mapToGlobal(position))
+
+    def _edit_time_series_tags(self, items: Sequence[QtWidgets.QTreeWidgetItem]) -> None:
+        if not items:
+            return
+        ts_ids: list[str] = []
+        for item in items:
+            ts_id = item.data(0, QtCore.Qt.ItemDataRole.UserRole)
+            if ts_id:
+                ts_ids.append(str(ts_id))
+        if not ts_ids:
+            return
+        first_ts = self._time_series.get(ts_ids[0])
+        if first_ts is None:
+            return
+
+        dialog = QtWidgets.QDialog(self)
+        dialog.setWindowTitle("Edit time-series tags")
+        layout = QtWidgets.QFormLayout(dialog)
+        channel_edit = QtWidgets.QLineEdit(dialog)
+        channel_edit.setText(first_ts.channel_id or "")
+        band_edit = QtWidgets.QLineEdit(dialog)
+        band_edit.setText(first_ts.band or "")
+        wavelength_edit = QtWidgets.QLineEdit(dialog)
+        wavelength_edit.setPlaceholderText("optional")
+        if first_ts.wavelength is not None:
+            wavelength_edit.setText(f"{float(first_ts.wavelength):.6g}")
+
+        layout.addRow("Channel", channel_edit)
+        layout.addRow("Band", band_edit)
+        layout.addRow("Wavelength", wavelength_edit)
+
+        buttons = QtWidgets.QDialogButtonBox(
+            QtWidgets.QDialogButtonBox.StandardButton.Ok | QtWidgets.QDialogButtonBox.StandardButton.Cancel,
+            parent=dialog,
+        )
+        buttons.accepted.connect(dialog.accept)
+        buttons.rejected.connect(dialog.reject)
+        layout.addRow(buttons)
+
+        if dialog.exec() != QtWidgets.QDialog.DialogCode.Accepted:
+            return
+
+        channel_val = channel_edit.text().strip() or None
+        band_val = band_edit.text().strip() or None
+        wavelength_val: Optional[float] = None
+        raw_wavelength = wavelength_edit.text().strip()
+        if raw_wavelength:
+            try:
+                wavelength_val = float(raw_wavelength)
+            except Exception:
+                wavelength_val = None
+
+        for ts_id in ts_ids:
+            ts = self._time_series.get(ts_id)
+            if ts is None:
+                continue
+            ts.channel_id = channel_val
+            ts.band = band_val
+            ts.wavelength = wavelength_val
+            item = self._time_series_items.get(ts_id)
+            if item is not None:
+                self._set_time_series_row_tags(item, ts)
+            self._refresh_time_series_trace(ts_id)
+
+    def _plot_flux_vs_wavelength_at_time(self) -> None:
+        tagged = [
+            (ts_id, ts)
+            for ts_id, ts in self._time_series.items()
+            if getattr(ts, "wavelength", None) is not None
+        ]
+        if len(tagged) < 2:
+            QtWidgets.QMessageBox.information(self, "Flux vs wavelength", "Set wavelength tags on at least two time series first.")
+            return
+
+        def _finite_bounds(ts_list: Sequence[TimeSeries]) -> tuple[float, float]:
+            mins: list[float] = []
+            maxs: list[float] = []
+            for ts in ts_list:
+                arr = np.asarray(ts.time, dtype=float)
+                arr = arr[np.isfinite(arr)]
+                if arr.size:
+                    mins.append(float(arr.min()))
+                    maxs.append(float(arr.max()))
+            if not mins or not maxs:
+                return 0.0, 1.0
+            return min(mins), max(maxs)
+
+        t_min, t_max = _finite_bounds([ts for _, ts in tagged])
+        if not np.isfinite(t_min) or not np.isfinite(t_max) or t_min == t_max:
+            t_min, t_max = 0.0, 1.0
+        default_time = 0.5 * (t_min + t_max)
+        default_window = max((t_max - t_min) * 0.02, 0.001)
+
+        dialog = QtWidgets.QDialog(self)
+        dialog.setWindowTitle("Flux vs wavelength")
+        form = QtWidgets.QFormLayout(dialog)
+
+        time_spin = QtWidgets.QDoubleSpinBox(dialog)
+        time_spin.setRange(-1e9, 1e9)
+        time_spin.setDecimals(6)
+        time_spin.setValue(default_time)
+        window_spin = QtWidgets.QDoubleSpinBox(dialog)
+        window_spin.setRange(0.0, 1e6)
+        window_spin.setDecimals(6)
+        window_spin.setValue(default_window)
+        window_spin.setToolTip("Half-width window; median is used if data exist within this window, otherwise nearest-neighbour interpolation is used.")
+
+        form.addRow("Time", time_spin)
+        form.addRow("Window", window_spin)
+
+        buttons = QtWidgets.QDialogButtonBox(
+            QtWidgets.QDialogButtonBox.StandardButton.Ok | QtWidgets.QDialogButtonBox.StandardButton.Cancel,
+            parent=dialog,
+        )
+        buttons.accepted.connect(dialog.accept)
+        buttons.rejected.connect(dialog.reject)
+        form.addRow(buttons)
+
+        if dialog.exec() != QtWidgets.QDialog.DialogCode.Accepted:
+            return
+
+        target_time = float(time_spin.value())
+        window = float(window_spin.value())
+
+        def _sample_flux(ts: TimeSeries) -> Optional[float]:
+            t_arr = np.asarray(ts.time, dtype=float)
+            f_arr = np.asarray(ts.values, dtype=float)
+            mask = np.isfinite(t_arr) & np.isfinite(f_arr)
+            if not mask.any():
+                return None
+            t_valid = t_arr[mask]
+            f_valid = f_arr[mask]
+            try:
+                order = np.argsort(t_valid)
+                t_valid = t_valid[order]
+                f_valid = f_valid[order]
+            except Exception:
+                pass
+            if window > 0:
+                win_mask = np.abs(t_valid - target_time) <= (window * 0.5)
+                if win_mask.any():
+                    return float(np.nanmedian(f_valid[win_mask]))
+            try:
+                return float(np.interp(target_time, t_valid, f_valid))
+            except Exception:
+                return None
+
+        wavelengths: list[float] = []
+        fluxes: list[float] = []
+        labels: list[str] = []
+
+        for ts_id, ts in tagged:
+            flux_val = _sample_flux(ts)
+            if flux_val is None:
+                continue
+            wl = getattr(ts, "wavelength", None)
+            if wl is None:
+                continue
+            wavelengths.append(float(wl))
+            fluxes.append(flux_val)
+            labels.append(ts.name)
+
+        if not wavelengths:
+            QtWidgets.QMessageBox.information(self, "Flux vs wavelength", "No usable flux values at the requested time.")
+            return
+
+        plot_dialog = QtWidgets.QDialog(self)
+        plot_dialog.setWindowTitle(f"Flux vs wavelength @ t={target_time:.4g}")
+        vbox = QtWidgets.QVBoxLayout(plot_dialog)
+        plot_widget = pg.PlotWidget(plot_dialog)
+        plot_widget.showGrid(x=True, y=True, alpha=0.25)
+        scatter = pg.ScatterPlotItem(x=wavelengths, y=fluxes, pen=None, brush="c", size=9, symbol="o")
+        plot_widget.addItem(scatter)
+        plot_widget.setLabel("bottom", "Wavelength", units="")
+        plot_widget.setLabel("left", "Flux", units="")
+        vbox.addWidget(plot_widget)
+
+        # Optional legend-like annotation using text items
+        for x, y, label in zip(wavelengths, fluxes, labels):
+            try:
+                text = pg.TextItem(label, anchor=(0.5, -0.4))
+                text.setPos(x, y)
+                plot_widget.addItem(text)
+            except Exception:
+                pass
+
+        close_buttons = QtWidgets.QDialogButtonBox(
+            QtWidgets.QDialogButtonBox.StandardButton.Close,
+            parent=plot_dialog,
+        )
+        close_buttons.rejected.connect(plot_dialog.reject)
+        close_buttons.accepted.connect(plot_dialog.accept)
+        vbox.addWidget(close_buttons)
+        plot_dialog.resize(420, 360)
+        plot_dialog.exec()
 
     # Public helper used by tests
     def _add_spectrum(self, spectrum: Spectrum, *, defer_refresh: bool = False) -> None:
