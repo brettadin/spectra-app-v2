@@ -13,6 +13,7 @@ from .line_shapes import LineShapeModel, LineShapeOutcome
 from .knowledge_log_service import KnowledgeLogEntry, KnowledgeLogService
 from .calibration_service import CalibrationService, CalibrationConfig
 from .quality_flags import QualityFlags
+from .dataset_group_service import DatasetGroupService, DatasetGroup, GroupType, GroupAssignment
 
 __all__ = [
     "Spectrum",
@@ -35,4 +36,8 @@ __all__ = [
     "CalibrationService",
     "CalibrationConfig",
     "QualityFlags",
+    "DatasetGroupService",
+    "DatasetGroup",
+    "GroupType",
+    "GroupAssignment",
 ]

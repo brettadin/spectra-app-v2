@@ -47,6 +47,7 @@ from app.services import (
     RemoteDataService,
         CalibrationService,
 )
+from app.services.dataset_group_service import DatasetGroupService, GroupType
 from app.services.time_series import TimeSeries
 from app.services.importers.time_series_csv_importer import TimeSeriesCsvImporter
 from app.services.importers.time_series_fits_importer import TimeSeriesFitsImporter
@@ -146,6 +147,12 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.knowledge_log = knowledge_log_service or KnowledgeLogService(
             default_context="Spectra Desktop Session"
         )
+        # Dataset grouping service for organizing spectra
+        try:
+            group_dir = self._default_store_dir if self._default_store_dir else None
+            self.group_service = DatasetGroupService(storage_dir=group_dir)
+        except Exception:
+            self.group_service = DatasetGroupService()
 
         self.unit_combo: Optional[QtWidgets.QComboBox] = None
         self.plot_toolbar: Optional[QtWidgets.QToolBar] = None
@@ -2850,6 +2857,12 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self._spectrum_colors[spectrum.id] = color
         style = TraceStyle(color=color, width=1.0, show_in_legend=True)
         
+        # Auto-categorize into appropriate group
+        try:
+            self.group_service.assign_to_group(spectrum)
+        except Exception:
+            pass
+        
         # Convert X to canonical nm for plotting (plot expects x_nm in nanometers)
         try:
             x_nm, y_converted, _ = self.units_service.convert_arrays(
@@ -3150,11 +3163,57 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         # Remove all rows from the model
         self._originals_item.removeRows(0, self._originals_item.rowCount())
 
+        # Clear group assignments
+        try:
+            self.group_service.clear_assignments()
+        except Exception:
+            pass
+
         # Update math selectors
         self._update_math_selectors()
 
         # Log the removal
         self._log("Datasets", f"Cleared all {len(spec_ids_to_remove)} dataset(s)")
+
+    # ----------------------------- Dataset grouping helpers ---------------
+    def _get_visible_groups(self) -> List[str]:
+        """Get list of group IDs that should be displayed."""
+        return [g.id for g in self.group_service.list_groups()]
+
+    def _get_datasets_in_group(self, group_id: str) -> List[str]:
+        """Get spectrum IDs for a group."""
+        return self.group_service.get_datasets_in_group(group_id)
+
+    def _on_group_visibility_toggled(self, group_id: str, visible: bool) -> None:
+        """Toggle visibility of all datasets in a group."""
+        if self.plot is None:
+            return
+        
+        dataset_ids = self._get_datasets_in_group(group_id)
+        for spec_id in dataset_ids:
+            self._visibility[spec_id] = visible
+            try:
+                self.plot.set_visible(spec_id, visible)
+            except Exception:
+                pass
+        
+        # Update tree view checkboxes
+        self._refresh_dataset_view()
+
+    def _on_group_expanded_changed(self, group_id: str, is_expanded: bool) -> None:
+        """Handle group expand/collapse state change."""
+        try:
+            self.group_service.update_group(group_id, is_expanded=is_expanded)
+        except Exception:
+            pass
+
+    def _get_group_for_dataset(self, spectrum_id: str) -> Optional[str]:
+        """Get the group ID for a dataset."""
+        try:
+            group = self.group_service.get_group_for_dataset(spectrum_id)
+            return group.id if group else None
+        except Exception:
+            return None
 
     def _on_doc_selected(self, row: int) -> None:
         if self.docs_list is None or self.doc_viewer is None:

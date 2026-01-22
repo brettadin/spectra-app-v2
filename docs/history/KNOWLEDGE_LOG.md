@@ -12543,3 +12543,339 @@ THE KNOWLEDGE LOG IS JUST FOR AGENTS TO WRITE IMPORTANT SHIT INTO
 - Remote
 
 ---
+## 2026-01-22 17:14 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Hg 2.txt
+
+**References**:
+- Hg 2.txt
+
+---
+## 2026-01-22 17:15 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Air.txt
+
+**References**:
+- Air.txt
+
+---
+## 2026-01-22 17:15 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file aurora 4000 star lamp test.txt
+
+**References**:
+- aurora 4000 star lamp test.txt
+
+---
+## 2026-01-22 17:15 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file CO2.txt
+
+**References**:
+- CO2.txt
+
+---
+## 2026-01-22 17:15 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file H.txt
+
+**References**:
+- H.txt
+
+---
+## 2026-01-22 17:15 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file H2O.txt
+
+**References**:
+- H2O.txt
+
+---
+## 2026-01-22 17:15 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file He.txt
+
+**References**:
+- He.txt
+
+---
+## 2026-01-22 17:15 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Hg 2.txt
+
+**References**:
+- Hg 2.txt
+
+---
+## 2026-01-22 17:15 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Hg.txt
+
+**References**:
+- Hg.txt
+
+---
+## 2026-01-22 17:15 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Ne.txt
+
+**References**:
+- Ne.txt
+
+---
+## 2026-01-22 17:15 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file star test 2.txt
+
+**References**:
+- star test 2.txt
+
+---
+## 2026-01-22 17:15 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Xe.txt
+
+**References**:
+- Xe.txt
+
+---
+## 2026-01-22 17:15 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file H tilt w 10 avg.txt
+
+**References**:
+- H tilt w 10 avg.txt
+
+---
+## 2026-01-22 17:15 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file H tilt w 50 avg.txt
+
+**References**:
+- H tilt w 50 avg.txt
+
+---
+## 2026-01-22 17:15 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file H w tilt.txt
+
+**References**:
+- H w tilt.txt
+
+---
+## 2026-01-22 17:15 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file H.txt
+
+**References**:
+- H.txt
+
+---
+## 2026-01-22 17:15 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Hg w cover.txt
+
+**References**:
+- Hg w cover.txt
+
+---
+## 2026-01-22 17:15 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file Hg w lense.txt
+
+**References**:
+- Hg w lense.txt
+
+---
+## 2026-01-22 17:59 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file table_2MASS-J12073346-3932539-b-Luhman-et-al.-2023(1).csv
+
+**References**:
+- table_2MASS-J12073346-3932539-b-Luhman-et-al.-2023(1).csv
+
+---
+## 2026-01-22 17:59 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file table_2MASS-J12073346-3932539-b-Luhman-et-al.-2023.csv
+
+**References**:
+- table_2MASS-J12073346-3932539-b-Luhman-et-al.-2023.csv
+
+---
+## 2026-01-22 17:59 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file table_HAT-P-18-b-Fournier-Tondreau-et-al.-2024.csv
+
+**References**:
+- table_HAT-P-18-b-Fournier-Tondreau-et-al.-2024.csv
+
+---
+## 2026-01-22 17:59 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file table_Luhman-16-b-Biller-et-al.-2024.csv
+
+**References**:
+- table_Luhman-16-b-Biller-et-al.-2024.csv
+
+---
+## 2026-01-22 17:59 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file table_TRAPPIST-1-b-Rathcke-et-al.-2025.csv
+
+**References**:
+- table_TRAPPIST-1-b-Rathcke-et-al.-2025.csv
+
+---
+## 2026-01-22 17:59 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file bkgrd A.csv
+
+**References**:
+- bkgrd A.csv
+
+---
+## 2026-01-22 17:59 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file bkgrd.csv
+
+**References**:
+- bkgrd.csv
+
+---
+## 2026-01-22 17:59 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file CO2 - 300 torr A.csv
+
+**References**:
+- CO2 - 300 torr A.csv
+
+---
+## 2026-01-22 17:59 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file CO2 - 300 torr.csv
+
+**References**:
+- CO2 - 300 torr.csv
+
+---
+## 2026-01-22 17:59 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file CO2 - 500 torr A.csv
+
+**References**:
+- CO2 - 500 torr A.csv
+
+---

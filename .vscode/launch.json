@@ -1,34 +1,18 @@
 {
-  "$schema": "https://json.schemastore.org/launch.json",
   "version": "0.2.0",
   "configurations": [
-  
     {
-      "name": "Spectra App (module)",
+      "name": "Spectra App",
       "type": "python",
       "request": "launch",
       "module": "app.main",
+      "pythonPath": "C:/Users/brett/miniconda3/envs/spectra312/python.exe",
       "cwd": "${workspaceFolder}",
       "console": "integratedTerminal",
       "justMyCode": false,
-  "python": "${config:python.defaultInterpreterPath}",
       "env": {
-        "SPECTRA_DEBUG": "1",
-        "PYTHONPATH": "${workspaceFolder}"
-      }
-    },
-    {
-      "name": "Spectra App (script)",
-      "type": "python",
-      "request": "launch",
-      "program": "${workspaceFolder}/app/main.py",
-      "cwd": "${workspaceFolder}",
-      "console": "integratedTerminal",
-      "justMyCode": false,
-  "python": "${config:python.defaultInterpreterPath}",
-      "env": {
-        "SPECTRA_DEBUG": "1",
-        "PYTHONPATH": "${workspaceFolder}"
+        "PYTHONPATH": "${workspaceFolder}",
+        "SPECTRA_DEBUG": "1"
       }
     }
   ]

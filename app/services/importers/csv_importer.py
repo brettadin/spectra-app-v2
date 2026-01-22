@@ -121,7 +121,7 @@ class CsvImporter:
         contains extra values.
         """
 
-        lines = path.read_text(encoding="utf-8").splitlines()
+        lines = self._read_text_with_fallback(path).splitlines()
         
         # Try PDS3 table format first (checks for companion .lbl file)
         pds_result = self._try_parse_pds_table(path, lines)
@@ -1100,3 +1100,27 @@ class CsvImporter:
             unit = unit.strip()
             return _HeaderToken(label=base.strip(), unit=unit)
         return _HeaderToken(label=token)
+
+    def _read_text_with_fallback(self, path: Path) -> str:
+        """Read file text with UTF-8 encoding, falling back to other encodings if needed.
+        
+        Tries UTF-8 first, then common alternatives like Latin-1, Windows-1252, etc.
+        This handles scientific instruments that may output files in non-UTF-8 encodings
+        while still preserving special characters (e.g., µ for microseconds).
+        """
+        encodings_to_try = [
+            'utf-8',
+            'iso-8859-1',  # Latin-1 (covers most European characters)
+            'windows-1252',  # Windows Western European
+            'cp1252',  # Alternative Windows encoding
+            'latin-1',  # Another name for ISO-8859-1
+        ]
+        
+        for encoding in encodings_to_try:
+            try:
+                return path.read_text(encoding=encoding)
+            except (UnicodeDecodeError, LookupError):
+                continue
+        
+        # Last resort: read with errors ignored
+        return path.read_text(encoding='utf-8', errors='replace')
