@@ -761,21 +761,37 @@ class RemoteDataService:
         *,
         include_imaging: bool = False,
     ) -> List[RemoteRecord]:
-        criteria = dict(query)
-        legacy_text = criteria.pop("text", None)
-        if legacy_text and "target_name" not in criteria:
-            if isinstance(legacy_text, str) and legacy_text.strip():
-                criteria["target_name"] = legacy_text.strip()
+        text_raw = str(query.get("text") or query.get("target_name") or "").strip()
+        if not text_raw:
+            raise ValueError("MAST ExoSystems searches require a planet, star, or system name.")
 
-        if not criteria or not any(criteria.values()):
-            raise ValueError("MAST searches require a target name or explicit filtering criteria.")
+        # Try a few normalizations to improve hit rate (e.g., WASP-39 b vs wasp39b)
+        variants = {
+            text_raw,
+            text_raw.replace(" ", ""),
+            text_raw.replace("-", " "),
+            text_raw.replace("-", ""),
+            text_raw.upper(),
+            text_raw.lower(),
+        }
+        systems: List[Dict[str, Any]] = []
+        for variant in variants:
+            try:
+                systems = self._resolve_exosystem_targets(variant)
+            except Exception:
+                systems = []
+            if systems:
+                break
 
-        # Default to calibrated spectroscopic products so search results focus on
-        # slit/grism/cube observations that pair with laboratory references.
-        if include_imaging:
-            criteria.setdefault("dataproduct_type", ["spectrum", "timeseries", "image"])
-        else:
-            criteria.setdefault("dataproduct_type", ["spectrum", "timeseries"])
+        records: List[RemoteRecord] = []
+        for system in systems:
+            records.extend(self._collect_exosystem_products(system, include_imaging=include_imaging))
+
+        if not records:
+            try:
+                records = self._search_mast({"target_name": text_raw}, include_imaging=include_imaging)
+            except Exception:
+                records = []
         criteria.setdefault("intentType", "SCIENCE")
         if "calib_level" not in criteria:
             criteria["calib_level"] = [2, 3]
