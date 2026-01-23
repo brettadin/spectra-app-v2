@@ -1,134 +1,118 @@
-# Remote data catalogue workflow
+# Remote Data Guide
 
-The **Remote Data** tab (inside the Inspector dock) lets you browse curated catalogues without leaving the
-desktop preview. Searches are routed through provider-specific adapters and the
-downloads are cached in your local Spectra data directory so you can re-open
-them even when offline. The workflow prioritises calibrated spectroscopic data
-(UV/VIS, IR, emission line cubes, etc.) so imported targets can be compared
-directly against laboratory references.
+The **Remote Data** tab lets you search and download calibrated spectra from NASA MAST archives. The interface stays fully responsive during searches thanks to subprocess-based execution.
 
-> **Optional dependencies**
->
-> Remote catalogues rely on third-party clients. Install the following Python
-> packages before launching Spectra to ensure both providers are available:
->
-> ```bash
-> pip install -r requirements.txt
-> ```
->
-> This pulls in [`requests`](https://docs.python-requests.org/) for HTTP
-> downloads, plus [`astroquery`](https://astroquery.readthedocs.io/) and
-> [`pandas`](https://pandas.pydata.org/) for MAST queries. When any dependency
-> is missing the dialog lists the provider as unavailable and disables the
-> corresponding search controls until installation is complete.
+*Last updated: January 2026*
 
-## Opening the tab
+---
 
-1. Press `Ctrl+Shift+R` (or choose **File → Show Remote Data Tab…**). The Inspector will raise and switch to **Remote Data**.
-2. Pick a catalogue from the *Catalogue* selector. The current build focuses on:
-   - **MAST ExoSystems** – Chains NASA’s Exoplanet Archive (PS/PSCompPars), curated solar-system targets, and Exo.MAST spectra before querying MAST for calibrated products.
-   - **MAST** – Direct access to the Mikulski Archive observations catalogue via `astroquery.mast`.
+## Requirements
 
-   > **Note**: NIST spectral line lookups now live in the Inspector’s **Reference → Spectral lines** tab, where you can pin multiple element/ion queries and manage colour palettes directly within the preview plot.
-3. Enter a keyword, element symbol, or target name in the search field (or pick
-   one of the curated **Examples…** entries) and click **Search**. The dialog
-   blocks empty submissions so you always send provider-specific filters rather
-   than unbounded catalogue sweeps.
+Remote searches require astroquery and astropy:
 
-### Provider-specific search tips
+`ash
+pip install -r requirements.txt
+`
 
-- **MAST ExoSystems** – Accepts planet, host-star, and solar-system names. Use the **Solar System** quick-pick to launch canonical queries for Mercury, Venus, Earth, Mars, Jupiter, Saturn, Uranus, Neptune, and Pluto with a single click. Manual queries should stay short—just the target or system name—so the adapter can resolve coordinates via the Exoplanet Archive, merge curated fallbacks (Vega, Tau Ceti, HD 189733), fetch Exo.MAST file lists, and finally query MAST for calibrated (`dataproduct_type="spectrum"`, `calib_level=[2, 3]`, `intentType="SCIENCE"`) products. Expect enriched metadata (host parameters, discovery method, curated citations) alongside each spectrum. The **Examples…** menu now highlights HD 189733 b, HD 189733, TRAPPIST‑1, Vega, and Tau Ceti. Enable **Include imaging** to surface calibrated preview images in addition to spectra. Names with spaces (for example `WASP-39 b`) are handled automatically; no manual encoding is required.
+---
 
-  Planet previews omit the discovery year when the archive reports it as unknown so incomplete metadata no longer interrupts the panel.
+## Quick Start
 
-- **MAST** – Free-text input is rewritten to `target_name` before invoking `astroquery.mast.Observations.query_criteria`, and the adapter injects `dataproduct_type="spectrum"`, `intentType="SCIENCE"`, and `calib_level=[2, 3]` filters automatically. Supply JWST target names or instrument identifiers (e.g. `NGC 7023`, `NIRSpec grism`). Tick **Include imaging** to relax the product filter so calibrated imaging results appear alongside spectra.
+1. Press **Ctrl+Shift+R** (or **File -> Show Remote Data Tab**)
+2. Enter a target name (e.g., Jupiter, Vega, WASP-39 b)
+3. Click **Search**
+4. Select results and click **Download**
 
-The hint banner beneath the results table updates as you switch providers and
-also surfaces dependency warnings when optional clients are missing.
+---
 
-The results table now surfaces a richer snapshot for each match—identifier,
-target, mission, instrument, product type, plus quick links for preview and
-download. Selecting a row shows the raw metadata payload in the preview panel so
-you can confirm provenance before downloading, with citation metadata rendered as
-bullet points alongside mission/instrument context. The preview/download links
-open in your default browser when you want to inspect the provider portal
-directly or follow the bundled Solar System Archive references.
+## Search Tips
 
-Planet names that include spaces or punctuation (for example `WASP-39 b`) are
-encoded correctly when the dialog requests the Exo.MAST file list, so the
-associated citation metadata now appears without manual URL tweaks. When the
-Exo.MAST enrichment omits a discovery year—or reports it as `NaN`—the preview
-summary simply drops that field instead of raising an error, keeping the dialog
-stable for incomplete catalog entries.
+### Supported Targets
 
-> **Background execution**
->
-> Searches and downloads now run on background threads. A compact progress bar
-> beside the status banner lights up while work is in flight, and the
-> search/download buttons remain disabled. This keeps the main window
-> responsive—even long JWST queries no longer freeze the shell—and any warnings
-> from the background worker are surfaced once the operation completes.
+| Type | Examples |
+|------|----------|
+| Solar system | Jupiter, Mars, Saturn, Uranus, Neptune |
+| Stars | Vega, Tau Ceti, Sirius, HD 189733 |
+| Exoplanets | WASP-39 b, HD 189733 b, TRAPPIST-1 |
 
-## Downloading and importing spectra
+### Automatic Filtering
 
-1. Select one or more rows in the results table.
-2. Click **Download & Import** to fetch the source files and pipe them through
-   the normal ingestion pipeline. The same status spinner appears while
-   downloads run, the action buttons are disabled, and the banner reports how
-   many products were imported (plus any failures) once the worker finishes.
+Searches automatically filter for:
+- Spectral data only (dataproduct_type=spectrum)
+- Science observations (intentType=science)
+- Calibrated products (calib_level=[2, 3])
+- Known spectral file patterns (_x1d.fits, _spec.fits, etc.)
 
-Behind the scenes the application:
+---
 
-* For providers that expose downloadable artefacts, streams the remote file
-  through the appropriate client (`requests.Session.get` for HTTP URLs and
-  `astroquery.mast.Observations.download_file` for `mast:` products, which keeps
-  the MAST token/auth flow intact).
-* Copies the artefact into the `LocalStore`, recording the provider, URI,
-  checksum, and fetch timestamp in the cache index.
-* Hands the stored path to `DataIngestService` so the file benefits from the
-  existing importer registry, unit normalisation, and provenance hooks.
+## Responsive Interface
 
-If any downloads fail mid-batch, the worker aggregates those messages and shows
-a single warning dialog when the import completes so you can review the
-identifiers that need attention without dismissing multiple pop-ups.
+Searches run in a separate subprocess via QProcess:
+- **Never freezes** the main window
+- **Cancel instantly** - no waiting for network timeouts
+- **Progress feedback** in the status bar
 
-Imported spectra appear in the dataset tree immediately. They behave exactly
-like manual imports: overlays update, the data table refreshes, and the history
-dock records a "Remote Import" entry noting the provider. File-level metadata
-now lives in the Library tab inside the Data dock so the consolidated knowledge
-log stays focused on high-level insights.
+---
 
-### Working with cached downloads
+## Results Table
 
-The **Library** tab in the **Data** dock lists every cached artefact recorded by
-`LocalStore`. Use the filter box to search by alias, provider, or units.
-Double-clicking an entry re-ingests the stored file without touching the
-original download location—handy when reviewing spectra offline or comparing
-multiple normalisations. The table mirrors cache metadata (provider, checksum,
-timestamps) while the detail panel on the right renders provenance and storage
-paths so you can audit downloads without sifting through raw log entries.
+| Column | Description |
+|--------|-------------|
+| Name | Filename or identifier |
+| Title | Observation description |
+| Target | Astronomical target name |
+| Telescope | Mission (JWST, HST, etc.) |
+| Instrument | Instrument name |
+| Download | File size (approximate) |
 
-## Offline behaviour and caching
+---
 
-Every download is associated with its remote URI. If you request the same file
-again the dialog reuses the cached copy instead of issuing another network
-request. This makes it safe to build collections during limited connectivity:
-the cache stores the raw download alongside canonical units so future sessions
-can ingest the files instantly. NIST line lists now embed the full query
-parameters (element, ion stage, wavelength bounds, Ritz preference) in their
-pseudo URI, so distinct searches produce unique cache entries instead of
-colliding on a shared label.
+## Downloading Spectra
 
-If persistent caching is disabled in **File → Enable Persistent Cache**, remote
-fetches are stored in a temporary data directory for the current session. The
-dialog will still reuse results within that session, but the artefacts are
-discarded once the preview shell closes.
+1. Select one or more rows in the results table
+2. Click **Download** to fetch the FITS files
 
+Downloaded files are:
+- Cached locally with SHA256 deduplication
+- Automatically imported through the standard ingestion pipeline
+- Organized into the **Remote Data** group in the Datasets panel
 
-See `docs/link_collection.md` for a curated index of spectroscopy catalogues,
-laboratory references, and instrument handbooks you can target with the remote
-workflow.
+---
 
-## Further reading
-- [Atlas: remote data rationale](../atlas/README.md#remote-data-rationale)
-- [Atlas: provenance and data quality](../atlas/README.md#provenance-and-data-quality)
+## Dataset Organization
+
+Downloaded spectra appear in the **Remote Data** group automatically. You can:
+- Right-click to move datasets between groups
+- Create custom groups for organization
+- Rename or delete groups as needed
+
+The **Library** tab shows all cached downloads organized by provider and target.
+
+---
+
+## Offline Behavior
+
+Every download is cached locally. If you request the same file again, the cached copy is reused:
+- Offline access to previously downloaded spectra
+- Fast re-import without network requests
+- Persistent collections across sessions
+
+Cache location: storage/cache/
+
+---
+
+## Troubleshooting
+
+### Search returns no results
+- Try a simpler target name (e.g., Jupiter instead of Jupiter atmosphere)
+- Check your internet connection
+- Verify astroquery is installed: pip install astroquery
+
+### Download fails
+- Some FITS files may be image data, not spectra
+- Check the file size - very large files may timeout
+- Try downloading fewer files at once
+
+### UI freezes during search
+- This should not happen with the new QProcess architecture
+- If it does, please report the issue with your search term

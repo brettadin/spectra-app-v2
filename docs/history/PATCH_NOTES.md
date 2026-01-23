@@ -1,5 +1,47 @@
 # Patch Notes
 
+## 2026-01-22 (MAST Search Stability, Dataset Grouping & Library Enhancements) — ET / UTC
+
+### MAST Remote Search Overhaul
+- **QProcess-based search architecture**: Completely rewrote MAST search to run in a subprocess via `QProcess`, guaranteeing the UI never freezes during network operations.
+- **New search subprocess**: Created `app/workers/search_subprocess.py` - a standalone script that performs MAST queries and returns results as JSON.
+- **Instant cancel**: Cancel button now terminates the subprocess immediately - no waiting for network timeouts.
+- **Simplified query**: Single `query_criteria()` call with server-side filtering (dataproduct_type=spectrum, calib_level=[2,3]).
+- **Smart file filtering**: Only returns known spectral file patterns (`_x1d.fits`, `_sx1.fits`, `_spec.fits`, etc.).
+- **Streamlined results table**: Reduced from 8 columns to 6 (removed empty X Range and Units columns).
+
+### Dataset Grouping System
+- **DatasetGroupService**: Complete service for automatic dataset categorization with persistence (`app/services/dataset_group_service.py`).
+- **Default groups**: Automatic organization into Uploaded Data, Remote Data, and Spectral Lines groups.
+- **Right-click context menu**: Full group management via context menu on datasets panel:
+  - Create new group (with custom name)
+  - Rename existing groups
+  - Delete groups (datasets move to Uploaded Data)
+  - Move datasets between groups (supports multi-select)
+- **Persistence**: Group configurations saved to `storage/cache/dataset_groups.json`.
+- **Auto-categorization**: Detects remote vs local data sources automatically.
+
+### Library View Enhancements
+- **Hierarchical organization**: Library now displays data organized by Provider → Target (e.g., "MAST/Remote" → "Jupiter").
+- **Storage folder**: Added Storage section showing curated, external, and passband data.
+- **Improved target detection**: Multiple fallback checks for target name extraction from metadata.
+- **Correct routing**: Library items now load into appropriate groups (Remote Data for MAST downloads).
+
+### Bug Fixes
+- **Move operation fix**: Fixed index shifting bug when moving multiple datasets - now processes in reverse order.
+- **CSV encoding fallback**: Added Latin-1/Windows-1252 fallback for Aurora spectrometer files with UTF-8 encoding issues.
+- **Astropy DLL crash**: Resolved Windows-specific astropy ERFA library corruption (error 0xc06d007f) via pip reinstall.
+
+### Files Changed
+- `app/workers/search_subprocess.py` (new) - Subprocess MAST search script
+- `app/services/dataset_group_service.py` (new) - Dataset grouping service
+- `app/ui/dataset_panel.py` - Added group management signals and context menu
+- `app/ui/main_window.py` - Group handlers, library view, routing logic
+- `app/ui/remote_data_panel.py` - QProcess search, simplified columns
+- `app/services/importers/csv_importer.py` - Encoding fallback logic
+
+---
+
 ## 2025-11-19 (HDF5 support for JWST/Eureka data) — 17:09 ET / 22:09Z UTC
 - **HDF5 file support added**: New `Hdf5Importer` handles `.h5` and `.hdf5` files without breaking existing functionality.
 - **JWST/Eureka! pipeline compatibility**: Automatically detects and imports Eureka! Stage 4 light curve outputs (wavelength, spectrum, errors datasets).
