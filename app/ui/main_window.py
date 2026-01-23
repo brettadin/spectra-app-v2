@@ -323,15 +323,33 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.dataset_view = self.dataset_panel.dataset_view
         self.dataset_tree = self.dataset_view  # compatibility alias for tests
         self.dataset_model = self.dataset_panel.dataset_model
-        self._originals_item = self.dataset_panel._originals_item
+        # Note: _originals_item is set AFTER groups are initialized below
 
         # Wire panel signals instead of direct widget connections
         self.dataset_panel.filterTextChanged.connect(self._on_dataset_filter_changed)
         self.dataset_panel.removeRequested.connect(self._remove_selected_datasets)
         self.dataset_panel.selectionChanged.connect(self._mark_merge_preview_stale)
         self.dataset_panel.clearAllRequested.connect(self._clear_all_datasets)
+        self.dataset_panel.groupVisibilityChanged.connect(self._on_group_visibility_toggled)
+        # Group management signals
+        self.dataset_panel.createGroupRequested.connect(self._on_create_group_requested)
+        self.dataset_panel.moveToGroupRequested.connect(self._on_move_to_group_requested)
+        self.dataset_panel.renameGroupRequested.connect(self._on_rename_group_requested)
+        self.dataset_panel.deleteGroupRequested.connect(self._on_delete_group_requested)
         # Existing model signal (still needed for visibility checkbox changes)
         self.dataset_model.itemChanged.connect(self._on_dataset_item_changed)
+
+        # Initialize groups in the dataset panel from the grouping service
+        for group in self.group_service.list_groups():
+            self.dataset_panel.add_group(group.id, group.name, color_hint=group.color)
+        
+        # Set _originals_item now that groups have been added (points to first group as fallback)
+        self._originals_item = self.dataset_panel._originals_item
+        
+        # Expand all groups by default so datasets are visible
+        for i in range(self.dataset_model.rowCount()):
+            index = self.dataset_model.index(i, 0)
+            self.dataset_view.setExpanded(index, True)
 
         self.data_tabs.addTab(self.dataset_panel, "Datasets")
 
@@ -2220,64 +2238,199 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
     # ------------------------------------------------------------------
     # Library, ingest, and docs helpers
     def _refresh_library_view(self) -> None:
+        """Refresh the library view with organized groups."""
         if self.library_view is None:
             return
         self.library_view.clear()
-        # Prefer the main store; if persistence is disabled, fall back to remote service store
+        
+        # Prefer the main store
         effective_store = self.store
         if effective_store is None and hasattr(self, "remote_data_service"):
             effective_store = getattr(self.remote_data_service, "store", None)
+        
         entries = effective_store.list_entries() if effective_store is not None else {}
-        if entries:
-            # Flatten cache entries as top-level rows for compatibility with existing tests
-            for _sha, record in entries.items():
-                name = str(record.get("filename") or Path(str(record.get("stored_path", ""))).name)
-                origin = "Local import"
-                src = record.get("source", {})
-                if isinstance(src, dict) and isinstance(src.get("remote"), dict):
-                    remote = src.get("remote") or {}
-                    provider = str(remote.get("provider") or "Remote")
-                    identifier = str(remote.get("identifier") or remote.get("id") or "")
-                    origin = provider if not identifier else f"{provider} – {identifier}"
-                item = QtWidgets.QTreeWidgetItem([name, origin])
-                self.library_view.addTopLevelItem(item)
-        else:
-            # Backwards-compatible placeholder row when no cache entries exist
-            self.library_view.addTopLevelItem(QtWidgets.QTreeWidgetItem(["No cached files", ""]))
-        # Add Samples directory for one-click ingest (read-only reference)
+        
+        # Organize entries by source type
+        local_items: list = []
+        remote_items: dict = {}  # provider -> target -> list of (name, record, sha)
+        
+        for _sha, record in entries.items():
+            name = str(record.get("filename") or Path(str(record.get("stored_path", ""))).name)
+            src = record.get("source", {})
+            
+            if isinstance(src, dict) and isinstance(src.get("remote"), dict):
+                remote = src.get("remote") or {}
+                provider = str(remote.get("provider") or "Remote")
+                
+                # Extract target from multiple possible locations
+                target = ""
+                for key in ["target_name", "target", "object_name", "identifier"]:
+                    val = remote.get(key)
+                    if val and str(val).strip():
+                        target = str(val).strip()
+                        break
+                
+                # Also check metadata for target
+                if not target:
+                    meta = remote.get("metadata", {})
+                    if isinstance(meta, dict):
+                        for key in ["target_name", "target", "object_name"]:
+                            val = meta.get(key)
+                            if val and str(val).strip():
+                                target = str(val).strip()
+                                break
+                
+                # Also try to extract from filename patterns like "jupiter_" or "sirius_"
+                if not target:
+                    name_lower = name.lower()
+                    for known in ["jupiter", "sirius", "mars", "saturn", "wasp", "hd_", "ngc_"]:
+                        if known in name_lower:
+                            target = known.replace("_", "").upper()
+                            break
+                
+                if not target:
+                    target = "Other"
+                
+                if provider not in remote_items:
+                    remote_items[provider] = {}
+                if target not in remote_items[provider]:
+                    remote_items[provider][target] = []
+                remote_items[provider][target].append((name, record, _sha))
+            else:
+                local_items.append((name, record, _sha))
+        
+        # Add Local Imports group
+        if local_items:
+            local_root = QtWidgets.QTreeWidgetItem(["Local Imports", f"({len(local_items)})"])
+            self.library_view.addTopLevelItem(local_root)
+            for name, record, sha in local_items:
+                child = QtWidgets.QTreeWidgetItem([name, ""])
+                child.setData(0, QtCore.Qt.ItemDataRole.UserRole, sha)
+                child.setData(0, QtCore.Qt.ItemDataRole.UserRole + 1, record.get("stored_path"))
+                local_root.addChild(child)
+            local_root.setExpanded(True)
+        
+        # Add Remote groups by provider
+        for provider, targets in remote_items.items():
+            total = sum(len(items) for items in targets.values())
+            provider_root = QtWidgets.QTreeWidgetItem([provider, f"({total})"])
+            self.library_view.addTopLevelItem(provider_root)
+            
+            # Add targets as subgroups
+            for target, items in sorted(targets.items()):
+                if len(targets) > 1 and target:  # Only create target subgroups if multiple targets
+                    target_root = QtWidgets.QTreeWidgetItem([target or "Unknown", f"({len(items)})"])
+                    provider_root.addChild(target_root)
+                    for name, record, sha in items:
+                        child = QtWidgets.QTreeWidgetItem([name, ""])
+                        child.setData(0, QtCore.Qt.ItemDataRole.UserRole, sha)
+                        child.setData(0, QtCore.Qt.ItemDataRole.UserRole + 1, record.get("stored_path"))
+                        target_root.addChild(child)
+                    target_root.setExpanded(False)
+                else:
+                    # Single target or empty - add directly under provider
+                    for name, record, sha in items:
+                        child = QtWidgets.QTreeWidgetItem([name, target or ""])
+                        child.setData(0, QtCore.Qt.ItemDataRole.UserRole, sha)
+                        child.setData(0, QtCore.Qt.ItemDataRole.UserRole + 1, record.get("stored_path"))
+                        provider_root.addChild(child)
+            provider_root.setExpanded(True)
+        
+        # Add Samples directory
         try:
-            # Prefer app.main.SAMPLES_DIR if present so tests can monkeypatch it
             try:
                 from app import main as main_module
                 samples_dir = getattr(main_module, "SAMPLES_DIR", SAMPLES_DIR)
             except Exception:
                 samples_dir = SAMPLES_DIR
             if samples_dir and Path(samples_dir).exists():
-                # Only surface the Samples root when at least one eligible file exists
                 eligible: list[Path] = []
-                for p in sorted(Path(samples_dir).glob("*")):
+                for p in sorted(Path(samples_dir).rglob("*")):  # Recursive glob
                     if p.is_file() and p.suffix.lower() in {".csv", ".txt", ".dat", ".fits", ".fit", ".fts", ".jdx", ".dx", ".jcamp", ".h5", ".hdf5"}:
                         eligible.append(p)
                 if eligible:
-                    samples_root = QtWidgets.QTreeWidgetItem(["Samples", ""]) 
+                    samples_root = QtWidgets.QTreeWidgetItem(["Samples", f"({len(eligible)})"])
                     self.library_view.addTopLevelItem(samples_root)
+                    
+                    # Group samples by subdirectory
+                    samples_by_dir: dict = {}
                     for p in eligible:
-                        child = QtWidgets.QTreeWidgetItem([p.name, "samples/"])
-                        # stash absolute path for activation
-                        child.setData(0, QtCore.Qt.ItemDataRole.UserRole, str(p))
-                        samples_root.addChild(child)
-                    samples_root.setExpanded(True)
+                        rel = p.relative_to(samples_dir)
+                        if len(rel.parts) > 1:
+                            subdir = rel.parts[0]
+                        else:
+                            subdir = ""
+                        if subdir not in samples_by_dir:
+                            samples_by_dir[subdir] = []
+                        samples_by_dir[subdir].append(p)
+                    
+                    for subdir in sorted(samples_by_dir.keys()):
+                        files = samples_by_dir[subdir]
+                        if subdir:
+                            dir_item = QtWidgets.QTreeWidgetItem([subdir, f"({len(files)})"])
+                            samples_root.addChild(dir_item)
+                            for p in files:
+                                child = QtWidgets.QTreeWidgetItem([p.name, ""])
+                                child.setData(0, QtCore.Qt.ItemDataRole.UserRole, str(p))
+                                dir_item.addChild(child)
+                        else:
+                            for p in files:
+                                child = QtWidgets.QTreeWidgetItem([p.name, ""])
+                                child.setData(0, QtCore.Qt.ItemDataRole.UserRole, str(p))
+                                samples_root.addChild(child)
+                    samples_root.setExpanded(False)
         except Exception:
             pass
+        
+        # Add Storage directory (curated, external, etc.)
+        try:
+            storage_dir = Path(__file__).parent.parent.parent / "storage"
+            if storage_dir.exists():
+                storage_eligible: list[Path] = []
+                for subdir in ["curated", "external", "passbands"]:
+                    sub_path = storage_dir / subdir
+                    if sub_path.exists():
+                        for p in sorted(sub_path.rglob("*")):
+                            if p.is_file() and p.suffix.lower() in {".csv", ".txt", ".dat", ".fits", ".fit", ".fts", ".jdx", ".dx", ".jcamp", ".h5", ".hdf5", ".ecsv"}:
+                                storage_eligible.append(p)
+                
+                if storage_eligible:
+                    storage_root = QtWidgets.QTreeWidgetItem(["Storage", f"({len(storage_eligible)})"])
+                    self.library_view.addTopLevelItem(storage_root)
+                    
+                    # Group by subdirectory
+                    storage_by_dir: dict = {}
+                    for p in storage_eligible:
+                        rel = p.relative_to(storage_dir)
+                        subdir = rel.parts[0] if rel.parts else ""
+                        if subdir not in storage_by_dir:
+                            storage_by_dir[subdir] = []
+                        storage_by_dir[subdir].append(p)
+                    
+                    for subdir in sorted(storage_by_dir.keys()):
+                        files = storage_by_dir[subdir]
+                        if subdir:
+                            dir_item = QtWidgets.QTreeWidgetItem([subdir, f"({len(files)})"])
+                            storage_root.addChild(dir_item)
+                            for p in files:
+                                child = QtWidgets.QTreeWidgetItem([p.name, ""])
+                                child.setData(0, QtCore.Qt.ItemDataRole.UserRole, str(p))
+                                dir_item.addChild(child)
+                    storage_root.setExpanded(False)
+        except Exception:
+            pass
+        
+        # Show placeholder if empty
+        if self.library_view.topLevelItemCount() == 0:
+            self.library_view.addTopLevelItem(QtWidgets.QTreeWidgetItem(["No data in library", ""]))
 
-        # Double-click to ingest sample files
-        # Reconnect signal (disconnect first if already connected)
+        # Connect double-click handler
         try:
             was_blocked = self.library_view.blockSignals(True)
             try:
                 self.library_view.itemActivated.disconnect()
             except (TypeError, RuntimeError):
-                pass  # Not connected yet
+                pass
             self.library_view.blockSignals(was_blocked)
         except Exception:
             pass
@@ -2287,16 +2440,46 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             pass
 
     def _on_library_item_activated(self, item: QtWidgets.QTreeWidgetItem, _col: int) -> None:
+        """Handle double-click on library item to re-import."""
+        # Get path - could be direct path or SHA256 hash for cached files
         try:
             path_str = item.data(0, QtCore.Qt.ItemDataRole.UserRole)
+            stored_path = item.data(0, QtCore.Qt.ItemDataRole.UserRole + 1)
         except Exception:
             path_str = None
-        if not path_str:
-            return
-        try:
-            self._ingest_path(Path(str(path_str)))
-        except Exception:
-            pass
+            stored_path = None
+        
+        # Determine which group to use based on source
+        target_group_id = None
+        
+        # Check if this is from MAST (remote)
+        parent = item.parent()
+        grandparent = parent.parent() if parent else None
+        if parent:
+            parent_text = parent.text(0).upper() if parent.text(0) else ""
+            grandparent_text = grandparent.text(0).upper() if grandparent and grandparent.text(0) else ""
+            
+            if "MAST" in parent_text or "MAST" in grandparent_text or "REMOTE" in parent_text:
+                # Route to Remote Data group
+                from app.services.dataset_group_service import GroupType
+                remote_group = self.group_service.get_default_group(GroupType.REMOTE)
+                if remote_group:
+                    target_group_id = remote_group.id
+        
+        # Try stored_path first (for cached remote files)
+        if stored_path and Path(str(stored_path)).exists():
+            try:
+                self._ingest_path(Path(str(stored_path)), target_group_id=target_group_id)
+                return
+            except Exception:
+                pass
+        
+        # Fall back to direct path (for samples)
+        if path_str and not path_str.startswith("sha") and Path(str(path_str)).exists():
+            try:
+                self._ingest_path(Path(str(path_str)))
+            except Exception:
+                pass
 
     def _record_remote_history_event(self, spectra: Spectrum | list[Spectrum]) -> Dict[str, str]:
         specs = spectra if isinstance(spectra, list) else [spectra]
@@ -2367,7 +2550,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             return f"{int(size)} {units[unit]}"
         return f"{size:.1f} {units[unit]}"
 
-    def _ingest_path(self, path: Path) -> None:
+    def _ingest_path(self, path: Path, target_group_id: Optional[str] = None) -> None:
         try:
             spectra = self.ingest_service.ingest(path)
         except Exception as exc:
@@ -2379,7 +2562,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         try:
             for spectrum in spectra:
                 self.overlay_service.add(spectrum)
-                self._add_spectrum(spectrum, defer_refresh=True)
+                self._add_spectrum(spectrum, defer_refresh=True, target_group_id=target_group_id)
             # Refresh plot once after all spectra loaded (avoid O(n²) behavior)
             norm_mode = self.norm_combo.currentText()
             use_global = self.norm_global_checkbox.isChecked() if hasattr(self, 'norm_global_checkbox') else False
@@ -2852,14 +3035,17 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         plot_dialog.exec()
 
     # Public helper used by tests
-    def _add_spectrum(self, spectrum: Spectrum, *, defer_refresh: bool = False) -> None:
+    def _add_spectrum(self, spectrum: Spectrum, *, defer_refresh: bool = False, target_group_id: Optional[str] = None) -> None:
         color = self._next_palette_color()
         self._spectrum_colors[spectrum.id] = color
         style = TraceStyle(color=color, width=1.0, show_in_legend=True)
         
-        # Auto-categorize into appropriate group
+        # Auto-categorize into appropriate group (or use specified target)
         try:
-            self.group_service.assign_to_group(spectrum)
+            if target_group_id:
+                self.group_service.assign_to_group(spectrum.id, target_group_id)
+            else:
+                self.group_service.assign_to_group(spectrum)
         except Exception:
             pass
         
@@ -3009,7 +3195,27 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             # Non-fatal: skip decoration if any Qt painting fails in headless runs
             pass
 
-        self._originals_item.appendRow([alias_item, visible_item])
+        # Find the correct group for this spectrum and add it there
+        try:
+            group = self.group_service.get_group_for_dataset(spectrum.id)
+            group_id = group.id if group else None
+        except Exception:
+            group_id = None
+        
+        # Add to the correct group in the tree view
+        if group_id:
+            group_item = self.dataset_panel.get_group_item(group_id)
+            if group_item:
+                group_item.appendRow([alias_item, visible_item])
+            else:
+                # Fallback to originals if group item not found
+                if self._originals_item:
+                    self._originals_item.appendRow([alias_item, visible_item])
+        else:
+            # Fallback to originals if no group assigned
+            if self._originals_item:
+                self._originals_item.appendRow([alias_item, visible_item])
+        
         self._dataset_items[spectrum.id] = alias_item
 
     def _on_dataset_item_changed(self, item: QtGui.QStandardItem) -> None:
@@ -3189,6 +3395,24 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         if self.plot is None:
             return
         
+        # Check if this is the Spectral Lines group (toggle NIST lines)
+        try:
+            group = self.group_service.get_group(group_id)
+            if group and group.group_type == GroupType.SPECTRAL_LINES:
+                # Toggle all NIST line collections
+                for collection_id in list(self._nist_collections.keys()):
+                    try:
+                        if visible:
+                            self._draw_nist_collection(collection_id)
+                        else:
+                            self._hide_nist_collection(collection_id)
+                    except Exception:
+                        pass
+                return
+        except Exception:
+            pass
+        
+        # Regular dataset groups
         dataset_ids = self._get_datasets_in_group(group_id)
         for spec_id in dataset_ids:
             self._visibility[spec_id] = visible
@@ -3196,9 +3420,6 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                 self.plot.set_visible(spec_id, visible)
             except Exception:
                 pass
-        
-        # Update tree view checkboxes
-        self._refresh_dataset_view()
 
     def _on_group_expanded_changed(self, group_id: str, is_expanded: bool) -> None:
         """Handle group expand/collapse state change."""
@@ -3214,6 +3435,113 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             return group.id if group else None
         except Exception:
             return None
+    
+    # ----------------------------- Group management handlers ---------------
+    def _on_create_group_requested(self, name: str, parent_group_id: str) -> None:
+        """Handle request to create a new group."""
+        try:
+            from app.services.dataset_group_service import GroupType
+            group_id = self.group_service.create_group(
+                name=name,
+                group_type=GroupType.CUSTOM,
+                parent_group_id=parent_group_id if parent_group_id else None,
+            )
+            # Add to UI
+            self.dataset_panel.add_group(group_id, name)
+            # Expand the new group
+            group_item = self.dataset_panel.get_group_item(group_id)
+            if group_item:
+                index = self.dataset_model.indexFromItem(group_item)
+                self.dataset_view.setExpanded(index, True)
+            self._log("Groups", f"Created group '{name}'")
+        except Exception as e:
+            self._log("Groups", f"Failed to create group: {e}")
+    
+    def _on_move_to_group_requested(self, indexes: list, target_group_id: str) -> None:
+        """Handle request to move datasets to a different group."""
+        if not indexes:
+            return
+        
+        # Sort indexes by row in reverse order to avoid index shifting issues
+        valid_indexes = [idx for idx in indexes if idx.parent().isValid()]
+        valid_indexes.sort(key=lambda idx: idx.row(), reverse=True)
+        
+        moved_count = 0
+        target_group_item = self.dataset_panel.get_group_item(target_group_id)
+        if not target_group_item:
+            return
+        
+        for index in valid_indexes:
+            # Get spectrum ID from the item
+            item = self.dataset_model.itemFromIndex(index)
+            if not item:
+                continue
+            spec_id = item.data(QtCore.Qt.ItemDataRole.UserRole)
+            if not spec_id:
+                continue
+            
+            # Remove from current parent
+            parent = item.parent()
+            if parent:
+                row = item.row()
+                # Take the items (both columns) from the parent
+                items = parent.takeRow(row)
+                if items:
+                    target_group_item.appendRow(items)
+                    # Update group service
+                    try:
+                        self.group_service.assign_to_group(spec_id, target_group_id)
+                    except Exception:
+                        pass
+                    moved_count += 1
+        
+        if moved_count > 0:
+            target_group = self.group_service.get_group(target_group_id)
+            group_name = target_group.name if target_group else "group"
+            self._log("Groups", f"Moved {moved_count} dataset(s) to '{group_name}'")
+    
+    def _on_rename_group_requested(self, group_id: str, new_name: str) -> None:
+        """Handle request to rename a group."""
+        try:
+            self.group_service.update_group(group_id, name=new_name)
+            # Update UI
+            group_item = self.dataset_panel.get_group_item(group_id)
+            if group_item:
+                group_item.setText(new_name)
+            self._log("Groups", f"Renamed group to '{new_name}'")
+        except Exception as e:
+            self._log("Groups", f"Failed to rename group: {e}")
+    
+    def _on_delete_group_requested(self, group_id: str) -> None:
+        """Handle request to delete an empty group."""
+        try:
+            group = self.group_service.get_group(group_id)
+            if not group:
+                return
+            
+            # Get the group item and check if empty
+            group_item = self.dataset_panel.get_group_item(group_id)
+            if group_item and group_item.rowCount() > 0:
+                QtWidgets.QMessageBox.warning(
+                    self, "Cannot Delete Group",
+                    "Cannot delete a group that contains datasets.\n"
+                    "Move or remove the datasets first."
+                )
+                return
+            
+            # Delete from service
+            self.group_service.delete_group(group_id)
+            
+            # Remove from UI
+            if group_item:
+                index = self.dataset_model.indexFromItem(group_item)
+                self.dataset_model.removeRow(index.row())
+                if group_id in self.dataset_panel._group_items:
+                    del self.dataset_panel._group_items[group_id]
+            
+            self._log("Groups", f"Deleted group '{group.name}'")
+        except Exception as e:
+            self._log("Groups", f"Failed to delete group: {e}")
 
     def _on_doc_selected(self, row: int) -> None:
         if self.docs_list is None or self.doc_viewer is None:
@@ -4179,14 +4507,18 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         if visible:
             self._draw_nist_collection(collection_id)
         else:
-            # Remove from plot
-            item = self._nist_plot_items.get(collection_id)
-            if item:
-                try:
-                    self.plot.remove_graphics_item(item)
-                except Exception:
-                    pass
-                del self._nist_plot_items[collection_id]
+            self._hide_nist_collection(collection_id)
+
+    def _hide_nist_collection(self, collection_id: str) -> None:
+        """Hide a NIST collection from the plot."""
+        # Remove from plot
+        item = self._nist_plot_items.get(collection_id)
+        if item:
+            try:
+                self.plot.remove_graphics_item(item)
+            except Exception:
+                pass
+            del self._nist_plot_items[collection_id]
 
     def _on_nist_remove_requested(self, collection_ids: List[str]) -> None:
         """Handle removal of NIST collections."""

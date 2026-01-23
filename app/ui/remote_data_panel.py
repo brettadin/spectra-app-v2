@@ -2,13 +2,15 @@
 
 This panel provides:
 - Provider selection (MAST, ExoSystems, etc.)
-- Search UI with streaming results
+- Search UI with non-blocking subprocess-based MAST queries
 - Download & import with progress tracking
 - Quick-load for bundled solar system samples
 """
 
 from __future__ import annotations
 
+import json
+import sys
 from pathlib import Path
 import numpy as np
 from typing import Any, List
@@ -17,8 +19,8 @@ from app.qt_compat import get_qt
 
 QtCore, QtGui, QtWidgets, _ = get_qt()
 
-from app.services import RemoteDataService, DataIngestService, Spectrum
-from app.workers.remote import SearchWorker, DownloadWorker
+from app.services import RemoteDataService, DataIngestService, Spectrum, RemoteRecord
+from app.workers.remote import DownloadWorker
 
 
 Signal = getattr(QtCore, "Signal", None)
@@ -28,6 +30,8 @@ if Signal is None:  # pragma: no cover
 
 class RemoteDataPanel(QtWidgets.QWidget):
     """Standalone panel for remote data search and import.
+    
+    Uses QProcess for MAST searches to guarantee the UI never freezes.
     
     Signals
     -------
@@ -55,8 +59,7 @@ class RemoteDataPanel(QtWidgets.QWidget):
         
         # State
         self._records: List[Any] = []
-        self._search_worker: SearchWorker | None = None
-        self._search_thread: QtCore.QThread | None = None
+        self._search_process: QtCore.QProcess | None = None
         self._download_worker: DownloadWorker | None = None
         self._download_thread: QtCore.QThread | None = None
         self._download_total = 0
@@ -96,9 +99,8 @@ class RemoteDataPanel(QtWidgets.QWidget):
         
         layout.addLayout(controls)
         
-        # Results table
-        # Columns: ID, Title, Target, Telescope, Instrument, Product, X Range, Units
-        self.results_table = QtWidgets.QTableWidget(0, 8)
+        # Results table - 6 columns of useful metadata
+        self.results_table = QtWidgets.QTableWidget(0, 6)
         self.results_table.setHorizontalHeaderLabels([
             "ID",
             "Title",
@@ -106,8 +108,6 @@ class RemoteDataPanel(QtWidgets.QWidget):
             "Telescope",
             "Instrument",
             "Product",
-            "X Range",
-            "Units",
         ])
         self.results_table.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectionBehavior.SelectRows)
         self.results_table.setSelectionMode(QtWidgets.QAbstractItemView.SelectionMode.ExtendedSelection)
@@ -167,241 +167,118 @@ class RemoteDataPanel(QtWidgets.QWidget):
             self.search_edit.setPlaceholderText("Target name or keyword…")
     
     def _on_search(self) -> None:
-        """Initiate remote search with streaming results."""
-        provider = self.provider_combo.currentText()
-        query_text = self.search_edit.text().strip()
+        """Initiate search using subprocess (never freezes UI)."""
+        # Handle cancel if search is in progress
+        if self._search_process is not None:
+            self._search_process.kill()
+            self._search_process = None
+            self.status_label.setText("Search cancelled")
+            self.search_button.setText("Search")
+            return
         
+        query_text = self.search_edit.text().strip()
         if not query_text:
             self.status_label.setText("Enter a search term")
             return
         
-        # Build provider-specific query
-        if provider == RemoteDataService.PROVIDER_MAST:
-            query = {"target_name": query_text}
-        elif provider == RemoteDataService.PROVIDER_EXOSYSTEMS:
-            query = {"text": query_text}
-        else:
-            query = {"text": query_text}
-        
-        # Reset UI and state
-        self._cancel_search_worker()
+        # Reset UI
         self._records = []
         self.results_table.setRowCount(0)
         self.import_button.setEnabled(False)
-        self.status_label.setText(f"Searching {provider}…")
-        self.search_button.setEnabled(False)
+        self.status_label.setText(f"Searching MAST for '{query_text}'…")
+        self.search_button.setText("Cancel")
         
-        # Create streaming worker
-        worker = SearchWorker(self.remote_service)
-        thread = QtCore.QThread(self)
-        self._search_worker = worker
-        self._search_thread = thread
-        worker.moveToThread(thread)
+        # Find Python executable and search script
+        python_exe = sys.executable
+        script_path = Path(__file__).parent.parent / "workers" / "search_subprocess.py"
         
-        thread.started.connect(lambda p=provider, q=query: worker.run(p, q, False))
-        worker.record_found.connect(self._handle_record_found)
-        worker.finished.connect(self._handle_search_finished)
-        worker.failed.connect(self._handle_search_failed)
-        worker.cancelled.connect(self._handle_search_cancelled)
-        
-        # Cleanup
-        def _cleanup() -> None:
-            if thread.isRunning():
-                thread.quit()
-            worker.deleteLater()
-            thread.deleteLater()
-            if self._search_worker is worker:
-                self._search_worker = None
-                self._search_thread = None
-        
-        worker.finished.connect(lambda *_: QtCore.QTimer.singleShot(0, _cleanup))
-        worker.failed.connect(lambda *_: QtCore.QTimer.singleShot(0, _cleanup))
-        worker.cancelled.connect(lambda *_: QtCore.QTimer.singleShot(0, _cleanup))
-        thread.start()
+        # Start subprocess
+        self._search_process = QtCore.QProcess(self)
+        self._search_process.finished.connect(self._on_search_process_finished)
+        self._search_process.setProgram(python_exe)
+        self._search_process.setArguments([str(script_path), query_text])
+        self._search_process.start()
     
-    def _cancel_search_worker(self) -> None:
-        """Cancel any running search."""
-        if self._search_worker is None:
+    def _on_search_process_finished(self, exit_code: int, exit_status: int) -> None:
+        """Handle search subprocess completion."""
+        process = self._search_process
+        self._search_process = None
+        self.search_button.setText("Search")
+        
+        if process is None:
             return
-        queued = getattr(QtCore.Qt, "ConnectionType", QtCore.Qt).QueuedConnection
-        QtCore.QMetaObject.invokeMethod(self._search_worker, "cancel", queued)
-    
-    def _handle_record_found(self, record: Any) -> None:
-        """Handle streamed search result (runs on GUI thread)."""
-        def _append():
-            self._records.append(record)
-            row = self.results_table.rowCount()
-            self.results_table.insertRow(row)
-            
-            # ID
-            item = QtWidgets.QTableWidgetItem(str(getattr(record, 'identifier', '')))
-            item.setFlags(item.flags() & ~QtCore.Qt.ItemFlag.ItemIsEditable)
-            self.results_table.setItem(row, 0, item)
-            
-            # Title
-            item = QtWidgets.QTableWidgetItem(str(getattr(record, 'title', '')))
-            item.setFlags(item.flags() & ~QtCore.Qt.ItemFlag.ItemIsEditable)
-            self.results_table.setItem(row, 1, item)
-            
-            # Target
-            metadata = getattr(record, 'metadata', {}) if isinstance(getattr(record, 'metadata', {}), dict) else {}
-            target = str(metadata.get("target_name") or metadata.get("target_display") or metadata.get("object_name") or metadata.get("host_name") or metadata.get("target") or "")
-            item = QtWidgets.QTableWidgetItem(target)
-            item.setFlags(item.flags() & ~QtCore.Qt.ItemFlag.ItemIsEditable)
-            self.results_table.setItem(row, 2, item)
-            
-            # Telescope
-            telescope = str(metadata.get("obs_collection") or metadata.get("telescope_name") or metadata.get("facility_name") or "")
-            item = QtWidgets.QTableWidgetItem(telescope)
-            item.setFlags(item.flags() & ~QtCore.Qt.ItemFlag.ItemIsEditable)
-            self.results_table.setItem(row, 3, item)
-
-            # Instrument
-            instrument = str(metadata.get("instrument_name") or metadata.get("instrume") or metadata.get("instrument") or "")
-            item = QtWidgets.QTableWidgetItem(instrument)
-            item.setFlags(item.flags() & ~QtCore.Qt.ItemFlag.ItemIsEditable)
-            self.results_table.setItem(row, 4, item)
-
-            # Product type
-            product = str(metadata.get("dataproduct_type") or metadata.get("productType") or metadata.get("product_type") or "")
-            item = QtWidgets.QTableWidgetItem(product)
-            item.setFlags(item.flags() & ~QtCore.Qt.ItemFlag.ItemIsEditable)
-            self.results_table.setItem(row, 5, item)
-
-            # Range + Units (best-effort from metadata)
-            x_range, units = self._format_range_and_units(record)
-            item = QtWidgets.QTableWidgetItem(x_range)
-            item.setFlags(item.flags() & ~QtCore.Qt.ItemFlag.ItemIsEditable)
-            self.results_table.setItem(row, 6, item)
-
-            item = QtWidgets.QTableWidgetItem(units)
-            item.setFlags(item.flags() & ~QtCore.Qt.ItemFlag.ItemIsEditable)
-            self.results_table.setItem(row, 7, item)
         
-        QtCore.QTimer.singleShot(0, _append)
-
-    def _format_range_and_units(self, record: Any) -> tuple[str, str]:
-        """Return a human-readable X range and units string from record metadata.
-
-        Attempts common metadata keys used by MAST/Exo.MAST. Falls back to blanks
-        when unavailable to avoid misleading output.
-        """
+        # Read output
         try:
-            metadata = getattr(record, "metadata", {})
-        except Exception:
-            metadata = {}
-        mapping = metadata if isinstance(metadata, dict) else {}
-
-        # Resolve units (x/y) from explicit record.units first
-        units_map = None
+            output = bytes(process.readAllStandardOutput()).decode('utf-8', errors='replace')
+            results = json.loads(output) if output.strip() else []
+        except Exception as e:
+            self.status_label.setText(f"Search failed: {e}")
+            return
+        
+        # Check for error
+        if results and isinstance(results, list) and len(results) == 1 and 'error' in results[0]:
+            self.status_label.setText(f"Search error: {results[0]['error']}")
+            return
+        
+        # Populate table
+        self._populate_results(results)
+        self.status_label.setText(f"Found {len(results)} result(s)")
+    
+    def _populate_results(self, results: list[dict]) -> None:
+        """Populate the results table from search results."""
+        self.results_table.setUpdatesEnabled(False)
         try:
-            units_map = dict(getattr(record, "units", {}) or {})
-        except Exception:
-            units_map = None
-        if units_map is None:
-            try:
-                obs_meta = mapping.get("observation") if isinstance(mapping.get("observation"), dict) else {}
-                units_map = dict(obs_meta.get("units") or {}) if isinstance(obs_meta.get("units"), dict) else None
-            except Exception:
-                pass
-        x_unit = (units_map or {}).get("x") if isinstance(units_map, dict) else None
-        y_unit = (units_map or {}).get("y") if isinstance(units_map, dict) else None
-
-        # Fallbacks found in various provider payloads
-        if not x_unit:
-            for key in ("x_unit", "wavelength_unit", "em_unit", "spectralaxis_unit", "spectral_unit"):
-                val = mapping.get(key)
-                if isinstance(val, str) and val.strip():
-                    x_unit = val.strip()
-                    break
-        if not y_unit:
-            for key in ("y_unit", "flux_unit", "intensity_unit"):
-                val = mapping.get(key)
-                if isinstance(val, str) and val.strip():
-                    y_unit = val.strip()
-                    break
-
-        # Best-effort numeric range extraction (wavelength bounds)
-        def _to_float(v: object) -> float | None:
-            try:
-                if v is None:
-                    return None
-                f = float(v)  # type: ignore[arg-type]
-                if np.isnan(f):  # type: ignore[name-defined]
-                    return None
-                return f
-            except Exception:
-                return None
-
-        # Common key pairs used across archives
-        candidates: list[tuple[str, str]] = [
-            ("em_min", "em_max"),
-            ("emMin", "emMax"),
-            ("wavelength_min", "wavelength_max"),
-            ("spectral_min", "spectral_max"),
-            ("specstart", "specend"),
-            ("wavemin", "wavemax"),
-            ("wave_min", "wave_max"),
-        ]
-        lo: float | None = None
-        hi: float | None = None
-        for lo_key, hi_key in candidates:
-            lo = _to_float(mapping.get(lo_key))
-            hi = _to_float(mapping.get(hi_key))
-            if lo is not None and hi is not None and hi >= lo:
-                break
-            lo, hi = None, None
-
-        # If still missing, try nested observation metadata
-        if lo is None or hi is None:
-            obs_meta = mapping.get("observation") if isinstance(mapping.get("observation"), dict) else {}
-            for lo_key, hi_key in candidates:
-                lo = _to_float(obs_meta.get(lo_key))
-                hi = _to_float(obs_meta.get(hi_key))
-                if lo is not None and hi is not None and hi >= lo:
-                    break
-                lo, hi = None, None
-
-        # Assemble return strings
-        range_str = ""
-        if lo is not None and hi is not None:
-            # Include unit only if we have one; otherwise just numbers
-            suffix = f" {x_unit}" if isinstance(x_unit, str) and x_unit else ""
-            try:
-                range_str = f"{lo:.6g}–{hi:.6g}{suffix}"
-            except Exception:
-                range_str = f"{lo}–{hi}{suffix}"
-
-        units_str = ""
-        if x_unit or y_unit:
-            xu = str(x_unit) if x_unit else "?"
-            yu = str(y_unit) if y_unit else "?"
-            units_str = f"x: {xu}; y: {yu}"
-
-        return range_str, units_str
-    
-    def _handle_search_finished(self, results: List[Any]) -> None:
-        """Handle search completion."""
-        def _done():
-            self.search_button.setEnabled(True)
-            count = len(results)
-            self.status_label.setText(f"Found {count} result(s)" if count else "No results found")
-        QtCore.QTimer.singleShot(0, _done)
-    
-    def _handle_search_failed(self, message: str) -> None:
-        """Handle search failure."""
-        def _fail():
-            self.search_button.setEnabled(True)
-            self.status_label.setText(f"Search failed: {message}")
-            self.status_message.emit("Remote", f"Search failed: {message}")  # type: ignore[attr-defined]
-        QtCore.QTimer.singleShot(0, _fail)
-    
-    def _handle_search_cancelled(self) -> None:
-        """Handle search cancellation."""
-        def _cancel():
-            self.search_button.setEnabled(True)
-            self.status_label.setText("Search cancelled")
-        QtCore.QTimer.singleShot(0, _cancel)
+            for r in results:
+                # Create a RemoteRecord-like object
+                record = RemoteRecord(
+                    provider=RemoteDataService.PROVIDER_MAST,
+                    identifier=r.get('identifier', ''),
+                    title=r.get('title', ''),
+                    download_url=r.get('download_url', ''),
+                    metadata={
+                        'target_name': r.get('target', ''),
+                        'obs_collection': r.get('telescope', ''),
+                        'instrument_name': r.get('instrument', ''),
+                    },
+                    units=None,
+                )
+                self._records.append(record)
+                
+                row = self.results_table.rowCount()
+                self.results_table.insertRow(row)
+                
+                # ID
+                item = QtWidgets.QTableWidgetItem(r.get('identifier', ''))
+                item.setFlags(item.flags() & ~QtCore.Qt.ItemFlag.ItemIsEditable)
+                self.results_table.setItem(row, 0, item)
+                
+                # Title  
+                item = QtWidgets.QTableWidgetItem(r.get('title', ''))
+                item.setFlags(item.flags() & ~QtCore.Qt.ItemFlag.ItemIsEditable)
+                self.results_table.setItem(row, 1, item)
+                
+                # Target
+                item = QtWidgets.QTableWidgetItem(r.get('target', ''))
+                item.setFlags(item.flags() & ~QtCore.Qt.ItemFlag.ItemIsEditable)
+                self.results_table.setItem(row, 2, item)
+                
+                # Telescope
+                item = QtWidgets.QTableWidgetItem(r.get('telescope', ''))
+                item.setFlags(item.flags() & ~QtCore.Qt.ItemFlag.ItemIsEditable)
+                self.results_table.setItem(row, 3, item)
+                
+                # Instrument
+                item = QtWidgets.QTableWidgetItem(r.get('instrument', ''))
+                item.setFlags(item.flags() & ~QtCore.Qt.ItemFlag.ItemIsEditable)
+                self.results_table.setItem(row, 4, item)
+                
+                # Product type
+                item = QtWidgets.QTableWidgetItem('spectrum')
+                item.setFlags(item.flags() & ~QtCore.Qt.ItemFlag.ItemIsEditable)
+                self.results_table.setItem(row, 5, item)
+        finally:
+            self.results_table.setUpdatesEnabled(True)
     
     def _on_selection_changed(self) -> None:
         """Update import button state when selection changes."""

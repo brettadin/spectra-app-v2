@@ -55,18 +55,24 @@ class SearchWorker(QtCore.QObject):  # type: ignore[name-defined]
 
             # Progressive strategy for MAST and ExoSystems
             seen: set[tuple[str, str]] = set()
+            MAX_TOTAL_RESULTS = 100  # Reduced cap to prevent issues
 
             def _emit_batch(batch: list[RemoteRecord]) -> None:
+                nonlocal collected
                 for rec in batch:
                     if self._cancel_requested:
-                        self.cancelled.emit()  # type: ignore[attr-defined]
                         return
+                    if len(collected) >= MAX_TOTAL_RESULTS:
+                        return  # Stop collecting after max
                     key = (rec.download_url, rec.identifier)
                     if key in seen:
                         continue
                     seen.add(key)
                     collected.append(rec)
-                    self.record_found.emit(rec)  # type: ignore[attr-defined]
+                    try:
+                        self.record_found.emit(rec)  # type: ignore[attr-defined]
+                    except Exception:
+                        pass  # Skip failed emissions
 
             if provider == RemoteDataService.PROVIDER_MAST:
                 # Prioritise calibrated spectra from common missions first.
@@ -80,10 +86,14 @@ class SearchWorker(QtCore.QObject):  # type: ignore[name-defined]
 
                 # Spectra (calib 2/3), by mission group
                 for missions in mission_batches:
+                    if len(collected) >= MAX_TOTAL_RESULTS:
+                        break
                     for mission in missions:
                         if self._cancel_requested:
                             self.cancelled.emit()  # type: ignore[attr-defined]
                             return
+                        if len(collected) >= MAX_TOTAL_RESULTS:
+                            break
                         criteria = {**base, "obs_collection": mission, "dataproduct_type": "spectrum", "calib_level": [2, 3], "intentType": "SCIENCE"}
                         try:
                             batch = self._remote_service.search(
@@ -94,12 +104,16 @@ class SearchWorker(QtCore.QObject):  # type: ignore[name-defined]
                         _emit_batch(batch)
 
                 # Imaging next (optional)
-                if include_imaging:
+                if include_imaging and len(collected) < MAX_TOTAL_RESULTS:
                     for missions in mission_batches:
+                        if len(collected) >= MAX_TOTAL_RESULTS:
+                            break
                         for mission in missions:
                             if self._cancel_requested:
                                 self.cancelled.emit()  # type: ignore[attr-defined]
                                 return
+                            if len(collected) >= MAX_TOTAL_RESULTS:
+                                break
                             criteria = {**base, "obs_collection": mission, "dataproduct_type": "image", "intentType": "SCIENCE"}
                             try:
                                 batch = self._remote_service.search(
@@ -113,19 +127,32 @@ class SearchWorker(QtCore.QObject):  # type: ignore[name-defined]
                 return
 
             if provider == RemoteDataService.PROVIDER_EXOSYSTEMS:
-                # Fetch spectra first to get relevant results quickly
+                # Pass cancel check to allow early termination
+                def _is_cancelled() -> bool:
+                    return self._cancel_requested
+                
+                # Fetch spectra with cancellation support
                 try:
                     spectral = self._remote_service.search(
-                        RemoteDataService.PROVIDER_EXOSYSTEMS, query, include_imaging=False
+                        RemoteDataService.PROVIDER_EXOSYSTEMS, query, 
+                        include_imaging=False,
+                        cancel_check=_is_cancelled
                     )
                 except Exception:
                     spectral = []
+                
+                if self._cancel_requested:
+                    self.cancelled.emit()  # type: ignore[attr-defined]
+                    return
+                    
                 _emit_batch(spectral)
 
-                if include_imaging:
+                if include_imaging and not self._cancel_requested:
                     try:
                         mixed = self._remote_service.search(
-                            RemoteDataService.PROVIDER_EXOSYSTEMS, query, include_imaging=True
+                            RemoteDataService.PROVIDER_EXOSYSTEMS, query, 
+                            include_imaging=True,
+                            cancel_check=_is_cancelled
                         )
                     except Exception:
                         mixed = []
@@ -210,6 +237,15 @@ class DownloadWorker(QtCore.QObject):  # type: ignore[name-defined]
                         continue
 
                     ingested_item = self._ingest_service.ingest(file_path)
+                    
+                    # Mark the ingested spectra as remote data so grouping works correctly
+                    # The cache_entry from the download contains source.remote metadata
+                    cache_entry = download.cache_entry
+                    if cache_entry and isinstance(ingested_item, list):
+                        for i, spec in enumerate(ingested_item):
+                            if hasattr(spec, 'with_metadata'):
+                                # Ensure cache_record.source.remote is set
+                                ingested_item[i] = spec.with_metadata(cache_record=cache_entry)
                 except Exception as exc:  # pragma: no cover - defensive: surfaced via signal
                     self.record_failed.emit(record, str(exc))  # type: ignore[attr-defined]
                     continue

@@ -10,6 +10,7 @@ import json
 import math
 import re
 import tempfile
+import threading
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
@@ -27,6 +28,9 @@ except Exception:  # pragma: no cover - handled by dependency guards
 # Lazy import sentinels for heavy optional dependencies; avoid importing at module load
 astroquery_mast = None  # type: ignore[assignment]
 astroquery_nexsci = None  # type: ignore[assignment]
+
+# Default timeout for individual MAST queries (seconds)
+_MAST_QUERY_TIMEOUT = 30
 
 # Probe availability without importing the modules eagerly
 import importlib.util as _importlib_util
@@ -58,6 +62,23 @@ def _import_exoplanet_archive():
         )
         astroquery_nexsci = _archive
     return astroquery_nexsci
+
+
+def prewarm_astroquery() -> None:
+    """Pre-import astropy and astroquery on the main thread.
+    
+    This MUST be called from the main thread before any background searches.
+    Astropy's ERFA library has thread-safety issues on Windows when first
+    imported from a background thread, causing fatal crashes.
+    """
+    try:
+        # Import astropy coordinates - this triggers ERFA initialization
+        import astropy.coordinates  # noqa: F401
+        # Also import the archives we use
+        _import_mast()
+        _import_exoplanet_archive()
+    except Exception:
+        pass  # Fail silently - will be tried again later if needed
 
 
 # Module-level probe flags (tests monkeypatch these)
@@ -656,13 +677,14 @@ class RemoteDataService:
         query: Mapping[str, Any],
         *,
         include_imaging: bool = False,
+        cancel_check: Callable[[], bool] | None = None,
     ) -> List[RemoteRecord]:
         if provider == self.PROVIDER_NIST:
             return self._search_nist(query)
         if provider == self.PROVIDER_MAST:
             return self._search_mast(query, include_imaging=include_imaging)
         if provider == self.PROVIDER_EXOSYSTEMS:
-            return self._search_exosystems(query, include_imaging=include_imaging)
+            return self._search_exosystems(query, include_imaging=include_imaging, cancel_check=cancel_check)
         raise ValueError(f"Unsupported provider: {provider}")
 
     # ------------------------------------------------------------------
@@ -809,17 +831,61 @@ class RemoteDataService:
         query: Mapping[str, Any],
         *,
         include_imaging: bool = False,
+        cancel_check: Callable[[], bool] | None = None,
     ) -> List[RemoteRecord]:
+        """Search ExoSystems (exoplanets and host stars) via MAST.
+        
+        Args:
+            query: Search parameters with 'text' or 'target_name'
+            include_imaging: Whether to include imaging products
+            cancel_check: Optional callback that returns True if search should be cancelled
+        """
         text = str(query.get("text") or query.get("target_name") or "").strip()
         if not text:
             raise ValueError("MAST ExoSystems searches require a planet, star, or system name.")
 
-        systems = self._resolve_exosystem_targets(text)
+        # Check for cancellation
+        if cancel_check and cancel_check():
+            return []
+
+        # First try curated targets only (fast, no network)
+        systems = self._match_curated_targets(text)
+        
+        # Only query exoplanet archive if no curated match found
+        if not systems:
+            if cancel_check and cancel_check():
+                return []
+            try:
+                systems = self._query_exoplanet_archive(text)
+            except Exception:
+                systems = []
+        
+        # Limit to just 1 system to prevent slow searches
+        if len(systems) > 1:
+            systems = systems[:1]
+        
+        if cancel_check and cancel_check():
+            return []
+        
         records: List[RemoteRecord] = []
         for system in systems:
-            records.extend(self._collect_exosystem_products(system, include_imaging=include_imaging))
+            if cancel_check and cancel_check():
+                return records
+            try:
+                system_records = self._collect_exosystem_products(
+                    system, include_imaging=include_imaging, cancel_check=cancel_check
+                )
+                records.extend(system_records)
+                # Stop early if we have enough results
+                if len(records) >= self._MAX_MAST_RESULTS:
+                    break
+            except Exception:
+                continue
 
+        # If no results from systems, try direct MAST search
         if not records:
+            if cancel_check and cancel_check():
+                return []
             try:
                 records = self._search_mast({"target_name": text}, include_imaging=include_imaging)
             except Exception:
@@ -919,6 +985,10 @@ class RemoteDataService:
             return True
         return False
 
+    # Maximum number of records to return from a single MAST search to prevent
+    # memory issues and UI freezes with popular targets like "Jupiter"
+    _MAX_MAST_RESULTS = 100
+
     def _records_from_mast_products(
         self,
         observation_table: Any,
@@ -931,15 +1001,42 @@ class RemoteDataService:
         observation_rows = self._table_to_records(observation_table)
         if not observation_rows:
             return []
+        
+        # Limit observations to prevent massive queries
+        MAX_OBSERVATIONS = 50
+        if len(observation_rows) > MAX_OBSERVATIONS:
+            observation_rows = observation_rows[:MAX_OBSERVATIONS]
+            # Rebuild observation_table with limited rows for get_product_list
+            try:
+                observation_table = observation_table[:MAX_OBSERVATIONS]
+            except Exception:
+                pass  # If slicing fails, continue with full table
 
         observation_index = self._index_observations(observation_rows)
-        product_table = mast.Observations.get_product_list(observation_table)
+        try:
+            product_table = mast.Observations.get_product_list(observation_table)
+        except Exception:
+            return []  # If product list fails, return empty
         product_rows = self._table_to_records(product_table)
         if not product_rows:
             return []
 
+        # Limit products to prevent memory issues (each obs can have 100+ products)
+        MAX_PRODUCTS = 500
+        if len(product_rows) > MAX_PRODUCTS:
+            product_rows = product_rows[:MAX_PRODUCTS]
+
         records: List[RemoteRecord] = []
         for product in product_rows:
+            # Stop early if we've collected enough results
+            if len(records) >= self._MAX_MAST_RESULTS:
+                break
+            
+            # Skip non-science products (AUXILIARY, PREVIEW, INFO files)
+            product_type = str(product.get("productType", "")).upper()
+            if product_type in ("AUXILIARY", "PREVIEW", "INFO", "THUMBNAIL"):
+                continue
+                
             metadata = dict(product)
             obs_id = self._normalise_observation_id(metadata)
             observation_meta = observation_index.get(obs_id, {})
@@ -1009,18 +1106,48 @@ class RemoteDataService:
 
         We currently support FITS/CSV/JCAMP-DX spectra; skip JPEG/PNG previews and other
         auxiliary files to keep result lists focused and imports reliable.
+        
+        For FITS files, we prioritize known 1D spectral formats that can actually be plotted:
+        - _x1d.fits: 1D extracted spectrum (HST STIS/COS)
+        - _sx1.fits: Summed 1D spectrum (HST)
+        - _sx2.fits: Summed 2D spectrum 
+        - _vo.fits: Virtual Observatory format
+        - _spec.fits: Generic spectrum
+        - _s1d.fits: JWST 1D spectrum
+        - _x1dsum.fits: Combined 1D spectrum
         """
         # Accepted extensions (lowercase with leading dot)
         supported_ext = {".fits", ".fit", ".fts", ".csv", ".txt", ".dat", ".jdx", ".dx", ".jcamp"}
-        # Known non-spectral FITS variants frequently returned by MAST that our
-        # importers cannot parse as 1D spectra. These include EUVE event/images
-        # and other instrument-specific quick-look products.
+        
+        # Known 1D spectral file patterns (preferred - these actually contain plottable 1D spectra)
+        spectral_1d_patterns = (
+            "_x1d.fits", "_sx1.fits", "_sx2.fits", "_vo.fits", "_spec.fits",
+            "_s1d.fits", "_x1dsum.fits", "_mxs.fits", "_mos.fits",
+            "_cal.fits",  # JWST calibrated
+        )
+        
+        # Known 2D/image FITS variants that we cannot parse as 1D spectra
         excluded_name_suffixes = (
             "_evt.fits",  # event lists
             "_img.fits",  # images
             "_lws.fits",  # long/medium/short wave segments (image tables)
             "_mws.fits",
             "_sws.fits",
+            "_flt.fits",  # flat-fielded 2D images
+            "_crj.fits",  # cosmic-ray rejected 2D
+            "_drz.fits",  # drizzled 2D images
+            "_raw.fits",  # raw data
+            "_uncal.fits",  # uncalibrated
+            "_d0f.fits",  # raw WFPC/FOS
+            "_c0f.fits",  # calibrated 2D (not 1D spectrum)
+            "_c1f.fits",  # calibrated 2D (not 1D spectrum)
+            "_c2f.fits",  # calibrated 2D
+            "_c3f.fits",  # calibrated GHRS 2D
+            "_c4f.fits",
+            "_c5f.fits",
+            "_rate.fits",  # JWST rate images
+            "_rateints.fits",
+            "_i2d.fits",  # JWST 2D images
         )
         excluded_keywords = (
             "_evt", "_event", "_img", "_image", "preview", "quicklook",
@@ -1041,7 +1168,12 @@ class RemoteDataService:
             except Exception:
                 path = raw
             lower_path = str(path).lower()
-            # Exclude by explicit filename suffix patterns, unless caller allows imaging
+            
+            # First check: if it matches a known 1D spectral pattern, accept it immediately
+            if any(lower_path.endswith(pat) for pat in spectral_1d_patterns):
+                return True
+            
+            # Exclude by explicit filename suffix patterns (2D images, raw data, etc.)
             if any(lower_path.endswith(suf) for suf in excluded_name_suffixes):
                 # Still allow explicit VO spectra
                 if lower_path.endswith("_vo.fits"):
@@ -1070,62 +1202,66 @@ class RemoteDataService:
         system: Mapping[str, Any],
         *,
         include_imaging: bool,
+        cancel_check: Callable[[], bool] | None = None,
     ) -> List[RemoteRecord]:
+        """Collect products for a system using MAST query_criteria for efficiency.
+        
+        Instead of query_object() which returns ALL observations, we use
+        query_criteria() with filters to get only relevant spectroscopic data.
+        """
+        if cancel_check and cancel_check():
+            return []
+            
         mast = self._ensure_mast()
-        ra = self._to_float(system.get("ra"))
-        dec = self._to_float(system.get("dec"))
-        coordinates = system.get("coordinates") if isinstance(system.get("coordinates"), Mapping) else {}
-        if ra is None and isinstance(coordinates, Mapping):
-            ra = self._to_float(coordinates.get("ra"))
-        if dec is None and isinstance(coordinates, Mapping):
-            dec = self._to_float(coordinates.get("dec"))
-        radius = system.get("search_radius") or self._DEFAULT_REGION_RADIUS
         target_name = self._first_text(system, ["object_name", "host_name", "display_name"])
-
-        observation_table = None
-        if ra is not None and dec is not None:
-            coordinate = f"{ra} {dec}"
-            try:
-                observation_table = mast.Observations.query_region(coordinate, radius=radius)
-            except Exception:
-                observation_table = None
-        elif target_name:
-            try:
-                observation_table = mast.Observations.query_object(target_name, radius=radius)
-            except Exception:
-                observation_table = None
-        else:
+        if not target_name:
             return []
 
-        enriched_system = dict(system)
-        planet_name = self._first_text(enriched_system, ["planet_name"])
-        if planet_name and "exomast" not in enriched_system:
-            payload = self._fetch_exomast_filelist(planet_name)
-            if payload:
-                enriched_system["exomast"] = payload
-                citation = payload.get("citation")
-                if citation:
-                    citations = list(enriched_system.get("citations") or [])
-                    citations.append(
-                        {
-                            "title": str(citation),
-                            "url": "https://exo.mast.stsci.edu/",
-                            "notes": "Curated spectra and file list from Exo.MAST.",
-                        }
-                    )
-                    enriched_system["citations"] = citations
-
-        system_metadata = self._build_system_metadata(enriched_system)
-        records = self._records_from_mast_products(
-            observation_table,
-            include_imaging=include_imaging,
-            provider=self.PROVIDER_EXOSYSTEMS,
-            system_metadata=system_metadata,
-        )
-        for record in records:
+        # Build efficient query using query_criteria with target_name filter
+        base_criteria = {
+            "target_name": target_name,
+            "intentType": "science",
+            "calib_level": [2, 3],
+        }
+        
+        if not include_imaging:
+            base_criteria["dataproduct_type"] = "spectrum"
+        
+        # Do a single query instead of per-mission queries to be faster
+        all_records: List[RemoteRecord] = []
+        
+        if cancel_check and cancel_check():
+            return []
+            
+        try:
+            observation_table = mast.Observations.query_criteria(**base_criteria)
+            
+            # Limit rows immediately
+            if observation_table is not None and len(observation_table) > 50:
+                observation_table = observation_table[:50]
+            
+            if cancel_check and cancel_check():
+                return []
+            
+            if observation_table is not None and len(observation_table) > 0:
+                enriched_system = dict(system)
+                system_metadata = self._build_system_metadata(enriched_system)
+                all_records = self._records_from_mast_products(
+                    observation_table,
+                    include_imaging=include_imaging,
+                    provider=self.PROVIDER_EXOSYSTEMS,
+                    system_metadata=system_metadata,
+                )
+        except Exception:
+            pass
+        
+        # Add target display to records
+        for record in all_records:
             if isinstance(record.metadata, Mapping):
+                system_metadata = self._build_system_metadata(dict(system))
                 record.metadata.setdefault("target_display", system_metadata.get("display_name"))
-        return records
+        
+        return all_records[:self._MAX_MAST_RESULTS]
 
     def _resolve_exosystem_targets(self, text: str) -> List[Dict[str, Any]]:
         matches: List[Dict[str, Any]] = []
@@ -1192,7 +1328,7 @@ class RemoteDataService:
             like_token = token
 
         select_fields = (
-            "pl_name,hostname,disc_year,discoverymethod,ra,dec,st_teff,st_logg,st_rad,st_spectype,"
+            "TOP 10 pl_name,hostname,disc_year,discoverymethod,ra,dec,st_teff,st_logg,st_rad,st_spectype,"
             "sy_dist,pl_rade,pl_bmasse,pl_orbper"
         )
         try:

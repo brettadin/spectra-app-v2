@@ -1,10 +1,10 @@
-"""Dataset panel: provides dataset filter and tree view with model.
+"""Dataset panel: provides dataset filter and tree view with groups.
 
 Emits signals for user interactions that require main window coordination.
 """
 from __future__ import annotations
 
-from typing import Optional
+from typing import Optional, Dict, List
 
 from app.qt_compat import get_qt
 
@@ -17,32 +17,43 @@ if Signal is None:
 
 
 class DatasetPanel(QtWidgets.QWidget):
-    """Standalone panel for the Datasets tab.
+    """Standalone panel for the Datasets tab with grouped datasets.
 
     Signals:
       - filterTextChanged(str): Emitted when the filter text changes
       - removeRequested(list): Emitted when user requests dataset removal (indexes)
       - selectionChanged(): Emitted when the selection changes
       - clearAllRequested(): Emitted when user confirms clearing all datasets
+      - groupVisibilityChanged(group_id, is_visible): Emitted when group visibility changes
+      - createGroupRequested(name, parent_id): Emitted when user requests new group
+      - moveToGroupRequested(indexes, group_id): Emitted when user wants to move datasets
+      - renameGroupRequested(group_id, new_name): Emitted when user renames a group
+      - deleteGroupRequested(group_id): Emitted when user deletes a group
     
     Public attributes:
       - dataset_filter: QLineEdit
       - dataset_view: QTreeView
       - dataset_model: QStandardItemModel
-      - _originals_item: QStandardItem (root group)
+      - _group_items: Dict[group_id, QStandardItem] (organized by group)
     """
 
     filterTextChanged = Signal(str)
     removeRequested = Signal(list)  # list of QModelIndex
     selectionChanged = Signal()
     clearAllRequested = Signal()  # Request to clear all datasets
+    groupVisibilityChanged = Signal(str, bool)  # group_id, is_visible
+    createGroupRequested = Signal(str, str)  # name, parent_group_id (empty for root)
+    moveToGroupRequested = Signal(list, str)  # list of QModelIndex, target group_id
+    renameGroupRequested = Signal(str, str)  # group_id, new_name
+    deleteGroupRequested = Signal(str)  # group_id
 
     def __init__(self, parent: Optional[QtWidgets.QWidget] = None) -> None:
         super().__init__(parent)
         self.dataset_filter: QtWidgets.QLineEdit
         self.dataset_view: QtWidgets.QTreeView
         self.dataset_model: QtGui.QStandardItemModel
-        self._originals_item: QtGui.QStandardItem
+        self._group_items: Dict[str, QtGui.QStandardItem] = {}  # group_id -> QStandardItem
+        self._originals_item: Optional[QtGui.QStandardItem] = None  # Compatibility - first group
         self._build_ui()
 
     def _build_ui(self) -> None:
@@ -102,11 +113,6 @@ class DatasetPanel(QtWidgets.QWidget):
         self.dataset_model = QtGui.QStandardItemModel(0, 2, self)
         self.dataset_model.setHorizontalHeaderLabels(["Dataset", "Visible"])
 
-        # Root group: Originals
-        self._originals_item = QtGui.QStandardItem("Originals")
-        self._originals_item.setEditable(False)
-        self.dataset_model.appendRow([self._originals_item, QtGui.QStandardItem("")])
-
         self.dataset_view.setModel(self.dataset_model)
 
         # Wire selection changes
@@ -126,43 +132,148 @@ class DatasetPanel(QtWidgets.QWidget):
             header.setSectionResizeMode(1, QtWidgets.QHeaderView.ResizeMode.ResizeToContents)
 
         layout.addWidget(self.dataset_view)
+        self.addAction(self.remove_action)  # For global shortcut
+
+    def add_group(self, group_id: str, group_name: str, color_hint: Optional[str] = None) -> None:
+        """Add a dataset group to the tree view.
+        
+        Args:
+            group_id: Unique group identifier
+            group_name: Display name for group
+            color_hint: Optional color name (for future styling)
+        """
+        # Block signals during group creation to prevent premature itemChanged emissions
+        self.dataset_model.blockSignals(True)
+        try:
+            group_item = QtGui.QStandardItem(group_name)
+            group_item.setEditable(False)
+            group_item.setData(group_id, role=QtCore.Qt.ItemDataRole.UserRole)  # Store group_id
+            
+            # Add checkbox for group visibility in second column
+            checkbox_item = QtGui.QStandardItem("")
+            checkbox_item.setCheckable(True)
+            checkbox_item.setCheckState(QtCore.Qt.CheckState.Checked)
+            checkbox_item.setData(group_id, role=QtCore.Qt.ItemDataRole.UserRole)  # Store group_id
+            
+            # Connect itemChanged only once (on first group added)
+            if not self._group_items:
+                self.dataset_model.itemChanged.connect(self._on_item_changed)
+            
+            self.dataset_model.appendRow([group_item, checkbox_item])
+            self._group_items[group_id] = group_item
+            
+            # Set first group as _originals_item for backward compatibility
+            if self._originals_item is None:
+                self._originals_item = group_item
+        finally:
+            self.dataset_model.blockSignals(False)
+
+    def get_group_item(self, group_id: str) -> Optional[QtGui.QStandardItem]:
+        """Get the QStandardItem for a group by ID."""
+        return self._group_items.get(group_id)
+
+    def _on_item_changed(self, item: QtGui.QStandardItem) -> None:
+        """Handle checkbox state changes for group visibility."""
+        # Only process checkbox items in the second column (visibility column)
+        if item.column() != 1:
+            return
+        
+        # Check if this is a top-level item (group checkbox)
+        if item.parent() == QtCore.QModelIndex() or item.parent() is None:
+            # Find the corresponding group item
+            parent = item.parent() if hasattr(item, "parent") else None
+            if parent is None:
+                # This is a top-level item, find its group_id
+                for row in range(self.dataset_model.rowCount()):
+                    model_item = self.dataset_model.item(row, 1)
+                    if model_item is item:
+                        group_item = self.dataset_model.item(row, 0)
+                        group_id = group_item.data(QtCore.Qt.ItemDataRole.UserRole)
+                        is_visible = item.checkState() == QtCore.Qt.CheckState.Checked
+                        self.groupVisibilityChanged.emit(group_id, is_visible)
+                        return
 
     def _on_context_menu_requested(self, position: QtCore.QPoint) -> None:
-        """Handle context menu request and show removal options."""
+        """Handle context menu request with group and dataset options."""
         if self.dataset_view is None or self.dataset_model is None:
             return
 
-        # Get the item at the position
         index = self.dataset_view.indexAt(position)
-        if not index.isValid():
-            return
-
-        # Don't show menu for the root "Originals" item
-        if index.parent() == QtCore.QModelIndex():
-            return
-
-        # Get selected rows (support multi-selection)
-        selected_indexes = self.dataset_view.selectionModel().selectedRows()
-        if not selected_indexes:
-            return
-
-        # Filter out root items
-        valid_indexes = [idx for idx in selected_indexes if idx.parent().isValid()]
-        if not valid_indexes:
-            return
-
-        # Build context menu
         menu = QtWidgets.QMenu(self.dataset_view)
+        
+        # Check if clicked on empty space, a group, or a dataset
+        is_group = index.isValid() and not index.parent().isValid()
+        is_dataset = index.isValid() and index.parent().isValid()
+        
+        # Always show "New Group" option
+        new_group_action = menu.addAction("New Group…")
+        new_group_action.triggered.connect(lambda: self._show_new_group_dialog())
+        
+        if is_group:
+            # Clicked on a group - show group options
+            group_item = self.dataset_model.itemFromIndex(index)
+            group_id = group_item.data(QtCore.Qt.ItemDataRole.UserRole)
+            group_name = group_item.text()
+            
+            menu.addSeparator()
+            
+            # Rename group
+            rename_action = menu.addAction(f"Rename '{group_name}'…")
+            rename_action.triggered.connect(lambda: self._show_rename_group_dialog(group_id, group_name))
+            
+            # Create subgroup
+            subgroup_action = menu.addAction("New Subgroup…")
+            subgroup_action.triggered.connect(lambda: self._show_new_group_dialog(parent_group_id=group_id))
+            
+            # Only allow deleting custom groups (not defaults)
+            if group_item.rowCount() == 0:  # Empty groups can be deleted
+                delete_action = menu.addAction(f"Delete '{group_name}'")
+                delete_action.triggered.connect(lambda: self.deleteGroupRequested.emit(group_id))
+        
+        elif is_dataset:
+            # Clicked on a dataset - show dataset options
+            selected_indexes = self.dataset_view.selectionModel().selectedRows()
+            valid_indexes = [idx for idx in selected_indexes if idx.parent().isValid()]
+            
+            if valid_indexes:
+                menu.addSeparator()
+                
+                # Remove option
+                if len(valid_indexes) == 1:
+                    remove_action = menu.addAction("Remove Dataset")
+                else:
+                    remove_action = menu.addAction(f"Remove {len(valid_indexes)} Datasets")
+                remove_action.triggered.connect(lambda: self.removeRequested.emit(valid_indexes))
+                
+                # Move to group submenu
+                move_menu = menu.addMenu("Move to Group")
+                for group_id, group_item in self._group_items.items():
+                    group_name = group_item.text()
+                    move_action = move_menu.addAction(group_name)
+                    # Capture group_id in lambda
+                    move_action.triggered.connect(
+                        lambda checked=False, gid=group_id: self.moveToGroupRequested.emit(valid_indexes, gid)
+                    )
 
-        if len(valid_indexes) == 1:
-            remove_action = menu.addAction("Remove Dataset")
-        else:
-            remove_action = menu.addAction(f"Remove {len(valid_indexes)} Datasets")
-
-        remove_action.triggered.connect(lambda: self.removeRequested.emit(valid_indexes))
-
-        # Show menu at cursor position
         menu.exec(self.dataset_view.viewport().mapToGlobal(position))
+    
+    def _show_new_group_dialog(self, parent_group_id: str = "") -> None:
+        """Show dialog to create a new group."""
+        name, ok = QtWidgets.QInputDialog.getText(
+            self, "New Group", "Enter group name:",
+            QtWidgets.QLineEdit.EchoMode.Normal, ""
+        )
+        if ok and name.strip():
+            self.createGroupRequested.emit(name.strip(), parent_group_id)
+    
+    def _show_rename_group_dialog(self, group_id: str, current_name: str) -> None:
+        """Show dialog to rename a group."""
+        name, ok = QtWidgets.QInputDialog.getText(
+            self, "Rename Group", "Enter new name:",
+            QtWidgets.QLineEdit.EchoMode.Normal, current_name
+        )
+        if ok and name.strip() and name.strip() != current_name:
+            self.renameGroupRequested.emit(group_id, name.strip())
 
     def _on_delete_shortcut(self) -> None:
         """Handle Delete key press."""
@@ -173,7 +284,7 @@ class DatasetPanel(QtWidgets.QWidget):
         if not selected_indexes:
             return
 
-        # Filter out the root "Originals" item
+        # Filter out group items
         valid_indexes = [idx for idx in selected_indexes if idx.parent().isValid()]
         if valid_indexes:
             self.removeRequested.emit(valid_indexes)
@@ -187,25 +298,30 @@ class DatasetPanel(QtWidgets.QWidget):
         if not selected_indexes:
             return
 
-        # Filter out the root "Originals" item
+        # Filter out group items
         valid_indexes = [idx for idx in selected_indexes if idx.parent().isValid()]
         if valid_indexes:
             self.removeRequested.emit(valid_indexes)
 
     def _on_clear_all_clicked(self) -> None:
         """Handle 'Clear All' toolbar button click with confirmation."""
-        if self.dataset_model is None or self._originals_item is None:
+        if self.dataset_model is None:
             return
 
-        # Check if there are any datasets to remove
-        if self._originals_item.rowCount() == 0:
+        # Count total datasets across all groups
+        total_count = 0
+        for group_id in self._group_items:
+            group_item = self._group_items[group_id]
+            total_count += group_item.rowCount()
+
+        if total_count == 0:
             return
 
         # Show confirmation dialog
         reply = QtWidgets.QMessageBox.question(
             self,
             "Clear All Datasets",
-            f"Remove all {self._originals_item.rowCount()} dataset(s)?\n\nThis cannot be undone.",
+            f"Remove all {total_count} dataset(s) from all groups?\n\nThis cannot be undone.",
             QtWidgets.QMessageBox.StandardButton.Yes | QtWidgets.QMessageBox.StandardButton.No,
             QtWidgets.QMessageBox.StandardButton.No,
         )

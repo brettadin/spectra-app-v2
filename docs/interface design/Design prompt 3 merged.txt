@@ -1,0 +1,251 @@
+Below is a comprehensive UI design direction that fuses:
+	• the modern dashboard discipline (calm card surfaces, strong hierarchy, clean navigation),
+	• with Evangelion/NERV “instrument HUD” language (reticles, segmented meters, edge-pinned readouts, explicit CAUTION/DANGER states),
+	• while staying scientific-first and avoiding “busy for the sake of busy.”
+I’m going to structure this as a design system spec: principles → information architecture → tokens → themes → components → interaction rules → plot/HUD rules → density/accessibility → implementation notes.
+
+1) Design goal and constraints
+Primary goal
+An instrument-grade dark workbench where the spectrum is the hero, with a HUD overlay that communicates measurement state (selection, thresholds, warnings) with NERV-like clarity.
+Non-negotiables (to keep it clean)
+	1. Plot is the center of gravity. Everything else should support the plot.
+	2. Progressive disclosure. Tools and parameters appear only when relevant.
+	3. Semantic color only. Neon is for meaning (state), not decoration.
+	4. One “hot” accent at a time. Amber for normal ops; red only for action-required states.
+	5. Consistent component anatomy. Titles/actions/content/footers behave the same everywhere.
+
+2) Information architecture that fits your workflows
+Think in workspaces (left navigation) that set intent, and tools (contextual) that operate on data:
+Workspaces (examples)
+	• Workbench (default): overlay, inspect, annotate
+	• Compare: A vs B, Δ/ratio, overlap score, stability warnings
+	• Identify: line lists, matching, candidate scoring
+	• Library: datasets, references, remote sources, saved projects
+	• Export / Report: “what I see,” raw, bundle + manifest/provenance
+	• Settings: themes, units defaults, parsing rules, cache
+Cross-cutting panels (always available but not always expanded)
+	• Trace List (what’s loaded, what’s derived, what’s hidden)
+	• Inspector (metadata, provenance, pipeline, warnings)
+	• Console/Log drawer (parse notices, background tasks, warnings history)
+This IA matches both dashboard UIs and NERV “ops consoles” without forcing everything on screen at once.
+
+3) The “NERV layer” concept: HUD, not clutter
+The Evangelion vibe should live in three places:
+	1. Plot HUD overlay
+		○ reticle ticks, crosshair lines, region brackets, threshold lines
+		○ edge-pinned readouts (cursor, peak, Δ, SNR)
+	2. Status/health primitives
+		○ segmented meters, stepped bars, “CAUTION/DANGER” banners
+	3. Mode framing
+		○ minimal hex/angled frames for key states only (mode + alert)
+Everything else stays modern and quiet.
+
+4) Design tokens: keep the app consistent forever
+You’ll want tokens in semantic roles (not hard-coded colors). That’s what enables clean theme swapping.
+Token categories you should define
+A) Color (semantic)
+	• bg/* (app background layers)
+	• surface/* (cards/panels)
+	• text/* (primary, secondary, muted, disabled)
+	• border/*
+	• accent/* (primary, secondary)
+	• state/* (success/ok, info, caution, danger)
+	• data/* (series palette, derived palette, selection highlight)
+	• hud/* (reticle, crosshair, bracket, threshold)
+	• focus/* (keyboard focus ring)
+B) Typography
+	• Font families: UI sans + numeric mono
+	• Sizes/weights mapped to roles:
+		○ label-xs, label-sm, body, title, metric
+	• Numerics: tabular lining figures for readouts
+C) Spacing + layout
+	• 4px or 8px base scale: space-1..space-10
+	• Standard paddings: card, section, toolbars
+D) Radius
+	• r-sm, r-md, r-lg (keep consistent)
+E) Borders + strokes
+	• stroke-1, stroke-2
+	• HUD line widths separate from panel borders
+F) Elevation / glow
+	• shadow-1..shadow-3
+	• glow-focus, glow-accent, glow-danger (very restrained)
+G) Motion
+	• durations: 120/180/240ms
+	• easing: standard + “instrument snappy”
+	• reduce-motion support
+H) Chart-specific tokens (critical)
+	• axis/ticks/gridline opacity
+	• selection highlight intensity
+	• derived trace styling (dashed/alpha)
+	• warning overlays (masked regions, danger thresholds)
+A minimal token schema example (shape only)
+{
+  "color": {
+    "bg": { "0": "#0B0E14", "1": "#0F1420" },
+    "surface": { "0": "#121826", "1": "#161F31" },
+    "text": { "primary": "#E8EEF9", "secondary": "#A9B4C7", "muted": "#6E7B93" },
+    "accent": { "primary": "#FFB020", "secondary": "#3BE6D1" },
+    "state": { "ok": "#43E07B", "caution": "#FFB020", "danger": "#FF3B3B" },
+    "hud": { "reticle": "#43E07B", "crosshair": "#FFB020", "threshold": "#FF3B3B" }
+  },
+  "type": {
+    "font": { "ui": "Inter", "mono": "IBM Plex Mono" },
+    "size": { "labelSm": 12, "body": 14, "title": 16, "metric": 28 }
+  },
+  "space": { "1": 4, "2": 8, "3": 12, "4": 16, "6": 24, "8": 32 },
+  "radius": { "sm": 8, "md": 12, "lg": 16 },
+  "stroke": { "1": 1, "2": 2 },
+  "motion": { "fast": 120, "base": 180, "slow": 240 }
+}
+This gives you the backbone. Themes simply swap the values under these roles.
+
+5) Theme system: multiple looks without breaking meaning
+You want themes that are visually distinct but keep semantic mapping identical.
+Recommended themes
+Theme A — “NERV Ops” (daily driver)
+	• Primary accent: amber
+	• HUD/reticle: green
+	• Secondary accent: cyan
+	• Red only for true danger
+Use this most of the time.
+Theme B — “Deep Space Dashboard” (cool + calm)
+	• Primary accent: cyan
+	• Secondary: violet
+	• HUD reticle: subtle cool green/teal
+	• Feels more modern dashboard, less “warning console”
+Great for long analysis sessions.
+Theme C — “MAGI Alert” (override state, not a preference)
+	• Dominant: red
+	• UI compresses to essentials:
+		○ one alert banner
+		○ the exact parameter to fix
+		○ action buttons
+	• Use this as a temporary mode (instrument error, corrupted data, unsafe division)
+Theme D — “Lab Neutral” (presentation mode)
+	• Less neon, more grayscale + one accent
+	• Better for screenshots/publication exports
+Theme switching rules
+	• Preferences persist per user
+	• Certain states can temporarily override theme elements:
+		○ danger banner always uses danger tokens
+		○ “alert mode” may increase contrast and simplify visuals
+
+6) Component library you should standardize
+These components, when tokenized, will carry the entire aesthetic.
+Core surfaces
+	1. Panel / Card
+		○ header: title + (⋯) actions
+		○ body: content
+		○ footer: status pills / small controls
+	2. Section
+		○ collapsible group inside inspector
+	3. Drawer
+		○ bottom console/log, or side drawer for advanced tools
+Navigation
+	4. Icon rail (compact) with expandable labels
+	5. Workspace tabs (or segmented control)
+Data objects
+	6. Trace chip
+		○ color swatch, name, source icon, state (raw/derived/hidden)
+	7. Trace list row
+		○ quick toggles: show/hide, lock, export, pin
+	8. Derived badge
+		○ consistent marking for Δ/ratio/fit outputs
+Analysis + state (Evangelion-inspired but useful)
+	9. Segmented meter
+		○ SNR, saturation risk, calibration confidence
+	10. Pipeline stepper
+	• Import → Baseline → Smooth → Normalize → Resample → Derive
+	• each step is a pill; clicking opens settings
+	11. Alert banner
+	• info/caution/danger variants
+	12. Callout block
+	• edge-pinned readout style (cursor/peak/Δ)
+Tooling
+	13. Tool strip
+	• cursor, region select, peak pick, baseline, smoothing, normalize
+	• shows “active tool” state clearly
+	14. Parameter sheet
+	• consistent controls, units, defaults, reset-to-recommended
+Tables (for peaks/lines/fit results)
+	15. Scientific table
+	• sticky header, compact rows, copy/export
+	• numeric alignment + monospace
+
+7) Interaction patterns that keep it powerful but clean
+Modes, not clutter
+	• The app should behave like an instrument: one tool “armed” at a time.
+	• Arming a tool:
+		○ updates HUD overlay
+		○ reveals only relevant controls in Inspector
+		○ hides irrelevant sections automatically (or collapses them)
+Progressive disclosure examples
+	• Peak picking ON → show peak table + peak markers
+	• Baseline ON → show baseline controls + baseline preview overlay
+	• Compare ON → show A/B selector + overlap metrics + divide-by-zero guard
+Density controls (user preference)
+	• Comfortable / Compact
+	• Affects:
+		○ row height in trace list & tables
+		○ padding in inspector
+		○ font size in non-plot regions
+Keyboard/operator feel (optional but high value)
+	• cursor toggle, zoom, next/prev trace, swap A/B, export, show/hide HUD
+
+8) Plot and HUD rules: the “instrument screen” spec
+Plot stays readable first
+	• Data trace contrast > grid contrast
+	• HUD lines are thinner and slightly transparent
+	• Annotation text is edge-pinned; avoid mid-plot label explosions
+HUD overlay primitives (tokenized)
+	• Crosshair (cursor)
+	• Reticle ticks (subtle)
+	• Region bracket (selection window)
+	• Threshold line (danger/caution)
+	• Mask shading (invalid region / B≈0 for division)
+Derived data styling
+	• Derived traces always visually distinct:
+		○ dashed or lower alpha
+		○ “derived badge” in legend/chip
+		○ provenance link in inspector
+Warnings integrated into the plot (Evangelion style, scientifically correct)
+	• Example: division instability
+		○ mask regions where |B| < threshold
+		○ show a caution banner + plotted mask
+		○ allow user to apply epsilon stabilization (with provenance)
+
+9) Provenance and “system log” as a first-class UI element
+To match your needs and the NERV console vibe:
+	• Every dataset has a timeline of transformations.
+	• Each transform step:
+		○ parameters
+		○ timestamp
+		○ input/output trace IDs
+	• Export bundles include:
+		○ raw + displayed (optional)
+		○ plot image
+		○ manifest/provenance JSON
+UI-wise: keep provenance quiet unless expanded, but always available.
+
+10) Accessibility and scientific integrity
+Even with neon:
+	• Maintain strong contrast for text
+	• Provide a colorblind-safe data palette option
+	• Don’t encode meaning in color alone (use icons/labels for caution/danger)
+	• Respect reduce-motion
+Scientific integrity:
+	• Never let styling imply precision you don’t have
+	• Make warnings explicit and actionable
+
+11) Practical build strategy (so it doesn’t drift)
+	1. Lock tokens first (base + NERV Ops theme)
+	2. Build 8–10 core components (panel, trace chip, tool strip, alert banner, segmented meter, pipeline pills, table, drawer, callout)
+	3. Implement theme switching
+	4. Add HUD overlays incrementally (cursor → region select → peaks → thresholds)
+	5. Add secondary themes once the system is stable
+
+If you want, I can turn the above into a single “Design System” document you can drop into your repo, including:
+	• token tables (roles + descriptions),
+	• theme definitions (NERV Ops / Deep Space / Lab Neutral),
+	• component specs (states, anatomy, do/don’t),
+	• and “busy prevention rules” (hard constraints your future UI changes must respect).

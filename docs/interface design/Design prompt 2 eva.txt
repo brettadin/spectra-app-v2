@@ -1,0 +1,124 @@
+Understood. The Evangelion / NERV UI language can translate extremely well to a Spectra App because it already “thinks” in terms of instrument status, thresholds, segmented scales, callouts, and hard-state warnings—all things you actually need in scientific software.
+Below is a style + interaction brief that captures the NERV feel while keeping the app readable and not performatively “busy.”
+
+1) What makes the Evangelion UI feel like Evangelion
+A. High-contrast signal language
+	• Black / near-black base
+	• Hot warning colors (amber/orange, red)
+	• Cold system colors (green grid/reticle, cyan/blue bars)
+	• The UI communicates: normal vs caution vs danger instantly.
+B. “Instrument overlay” composition
+Evangelion screens often look like a measurement overlay rather than a “dashboard”:
+	• Reticles, crosshair ticks, ruler-like axes
+	• Dense but structured labeling
+	• Small info blocks pinned to edges
+	• “Approaching limits / danger” callouts that feel like a system interrupt
+C. Segmentation everywhere
+	• Bar stacks, stepped indicators, discrete “segments”
+	• Boxes-within-boxes
+	• Hex panels / angled frames for alerts and mode switches
+This gives it that “tactical console” vibe.
+D. Typography + labeling
+	• Condensed, technical, uppercase labeling
+	• Monospace numerics for readouts
+	• Information hierarchy: big title labels are rare; state labels are common.
+
+2) How to adapt this to a Spectra App without turning it into a gimmick
+The guiding principle
+Treat the Evangelion aesthetic as a “measurement HUD layer,” not the entire UI.
+Your plot + analysis tools stay modern and calm; the NERV flavor shows up in overlays, status, and framing.
+
+3) A practical “NERV theme” for the Spectra App
+Palette roles (not exact colors, but how to use them)
+	• Base: near-black + charcoal panels
+	• Primary accent (Operations): amber/orange (selection, active tool, cursor readout)
+	• System/reticle accent: green (grid, crosshair, reference markers, “OK”)
+	• Secondary accent (data): cyan/blue (trace B, confidence bands, fit residuals)
+	• Danger: red (instrument saturation, out-of-range, divide-by-zero risk, bad metadata)
+Rule: at any time, only one “hot” accent should dominate (usually amber OR red).
+Texture (subtle)
+	• faint scanline / grain in the background only
+	• micro-glow only for focused controls and warnings
+	• avoid heavy bloom around everything (that’s what makes it obnoxious)
+
+4) Layout patterns that fit spectroscopy workflows
+A. Center = “Primary Measurement Surface”
+The plot becomes the “tactical screen”:
+	• a clean, high-contrast spectrum plot
+	• an optional HUD overlay: reticle ticks, vertical cursor line, region brackets, threshold lines
+	• edge-pinned callouts (peak ID, cursor readout, band assignment)
+B. Right = “Analysis / Status Stack”
+Make this feel like NERV readouts:
+	• Trace identity block (source, instrument, range, units, resolution)
+	• Processing pipeline as a segmented chain (Import → Baseline → Smooth → Normalize → Derive)
+	• Warnings / thresholds block (SNR low, saturation, unit mismatch, division instability)
+	• Provenance as a compact “system log”
+C. Bottom = “Console + Alerts Drawer”
+Evangelion-style systems love a bottom strip:
+	• messages, parsing warnings, task progress, hardware connection status
+	• “CAUTION / DANGER” style banners only when warranted
+D. Left rail = “Ops”
+Keep your earlier dashboard rail concept, but in NERV language:
+	• Acquire
+	• Compare
+	• Identify
+	• Library
+	• Export
+	• Settings
+
+5) Component ideas mapped to spectroscopy tasks
+These are direct “Evangelion UI” translations that remain scientifically useful:
+Cursor + measurement readout (signature element)
+A persistent readout card that feels like a cockpit:
+	• λ / cm⁻¹ at cursor
+	• intensity
+	• Δ to Trace B (if active)
+	• local peak proximity / nearest identified line
+Segmented “health” indicators (actually meaningful)
+Use the Evangelion bar-stack style for:
+	• SNR / noise floor
+	• saturation risk
+	• calibration confidence
+	• baseline fit quality
+	• alignment / overlap score for comparisons
+“Approaching limits” warnings (use sparingly)
+Perfect for real scientific guardrails:
+	• out-of-range unit conversion
+	• file parse anomalies
+	• A/B division where B≈0
+	• detector saturation / clipped counts
+Region brackets + labels (NERV HUD)
+	• bracket a wavelength interval and attach a label block
+	• use this for “band of interest,” “mask region,” “fit window,” “continuum region”
+Hex / angled frames for Mode + Safety
+Keep hex shapes for only a few “mode-state” elements:
+	• Mode: Overlay / Differential / Identify
+	• Safety state: OK / CAUTION / DANGER
+
+6) How to keep it from getting busy
+Restraint rules
+	• One HUD layer at a time. If Peak Pick is on, show peak HUD; if Baseline is on, show baseline HUD—not both.
+	• Text density stays edge-pinned. Never sprinkle tiny labels in the plot center unless they’re directly tied to a cursor/selection.
+	• Warnings are interruptive, not decorative. If it’s not actionable, it shouldn’t be red.
+Visual hierarchy (critical)
+	• Plot linework stays readable first.
+	• HUD elements are thinner and lower contrast than the trace.
+	• Alerts override everything only when the user must act.
+
+7) Two theme variants that match Evangelion’s range
+Variant 1: “NERV Ops” (amber + green)
+	• amber for active tool/cursor/selection
+	• green for grid/reticle and “system OK”
+	• best for day-to-day use
+Variant 2: “MAGI Alert” (red + black + minimal green)
+	• reserved for high-stakes status states and warning screens
+	• use this as an alert mode, not the default theme
+
+8) Concrete “feel” targets for your Spectra App
+When a user opens data, the UI should feel like:
+	• “I’m in an instrument console.”
+	• “The system is measuring and annotating.”
+	• “States and thresholds are explicit.”
+	• “I can trust warnings because they’re rare.”
+
+If you want the next step to be more tangible without locking layout, I can produce a design token sheet (roles for colors, borders, glow strength, fonts, spacing, corner radii) plus a small component list (Trace chip, HUD callout, Alert banner, Segmented meter, Pipeline pill) so the aesthetic stays consistent across future iterations.

@@ -12879,3 +12879,551 @@ THE KNOWLEDGE LOG IS JUST FOR AGENTS TO WRITE IMPORTANT SHIT INTO
 - CO2 - 500 torr A.csv
 
 ---
+## 2026-01-22 18:06 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file jupiter__9408090029N_vo.fits
+
+**References**:
+- jupiter__9408090029N_vo.fits
+
+---
+## 2026-01-22 18:06 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file earth_infrared.csv
+
+**References**:
+- earth_infrared.csv
+
+---
+## 2026-01-22 18:06 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file earth_modis_reflectance_example.csv
+
+**References**:
+- earth_modis_reflectance_example.csv
+
+---
+## 2026-01-22 18:06 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file earth_visible.csv
+
+**References**:
+- earth_visible.csv
+
+---
+## 2026-01-22 18:06 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file mock_MODIS_reflectance_sample.csv
+
+**References**:
+- mock_MODIS_reflectance_sample.csv
+
+---
+## 2026-01-22 18:07 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file table_WASP-39-b-Ahrer-et-al.-2022.csv
+
+**References**:
+- table_WASP-39-b-Ahrer-et-al.-2022.csv
+
+---
+## 2026-01-22 18:20 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file sample_spectrum.csv
+
+**References**:
+- sample_spectrum.csv
+
+---
+## 2026-01-22 18:20 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file table_2MASS-J12073346-3932539-b-Luhman-et-al.-2023(1).csv
+
+**References**:
+- table_2MASS-J12073346-3932539-b-Luhman-et-al.-2023(1).csv
+
+---
+## 2026-01-22 18:20 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file table_2MASS-J12073346-3932539-b-Luhman-et-al.-2023.csv
+
+**References**:
+- table_2MASS-J12073346-3932539-b-Luhman-et-al.-2023.csv
+
+---
+## 2026-01-22 18:20 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file table_HAT-P-18-b-Fournier-Tondreau-et-al.-2024.csv
+
+**References**:
+- table_HAT-P-18-b-Fournier-Tondreau-et-al.-2024.csv
+
+---
+## 2026-01-22 18:20 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file 10.8 Test 1.csv
+
+**References**:
+- 10.8 Test 1.csv
+
+---
+## 2026-01-22 18:20 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file 10.8 Test 2.csv
+
+**References**:
+- 10.8 Test 2.csv
+
+---
+## 2026-01-22 18:20 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file bckgr.csv
+
+**References**:
+- bckgr.csv
+
+---
+## 2026-01-22 18:20 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file bkgrd A.csv
+
+**References**:
+- bkgrd A.csv
+
+---
+## 2026-01-22 18:20 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file bkgrd.csv
+
+**References**:
+- bkgrd.csv
+
+---
+## 2026-01-22 18:20 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file CO2 - 300 torr A.csv
+
+**References**:
+- CO2 - 300 torr A.csv
+
+---
+## 2026-01-22 18:36 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file sample_spectrum.csv
+
+**References**:
+- sample_spectrum.csv
+
+---
+## 2026-01-22 18:36 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file sample_transmittance.csv
+
+**References**:
+- sample_transmittance.csv
+
+---
+## 2026-01-22 19:09 – Remote Import
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Imported remote data from Remote
+
+**References**:
+- Remote
+
+---
+## 2026-01-22 19:09 – Remote Import
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Imported 4 remote dataset(s) from Remote
+
+**References**:
+- Remote
+
+---
+## 2026-01-22 19:44 – Remote Import
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Imported 17 remote dataset(s) from MAST (hst_7717_stis_jupiter_g230lb-g230mb_o4ym01_cspec.fits); MAST ExoSystems (hst_7717_stis_jupiter_g230lb_o4ym01_cspec.fits, hst_7717_stis_jupiter_g230mb_o4ym01_cspec.fits, hst_8661_stis_jupiter_g230lb_o65ha1_cspec.fits, lwp12581mxlo_vo.fits, lwp27551mxlo_vo.fits, lwp28473mxlo_vo.fits, lwp28480mxlo_vo.fits, lwp28522mxlo_vo.fits, lwp28523mxlo_vo.fits, lwp28524mxlo_vo.fits, lwp28525mxlo_vo.fits, lwp28526mxlo_vo.fits, lwp28527mxlo_vo.fits, lwp28530mxlo_vo.fits, lwp28531mxlo_vo.fits, lwp28532mxlo_vo.fits)
+
+**References**:
+- mast:HST/product/hasp/hst_7717_stis_jupiter_g230lb-g230mb_o4ym01_cspec.fits
+- mast:HST/product/hasp/hst_7717_stis_jupiter_g230lb_o4ym01_cspec.fits
+- mast:HST/product/hasp/hst_7717_stis_jupiter_g230mb_o4ym01_cspec.fits
+- mast:HST/product/hasp/hst_8661_stis_jupiter_g230lb_o65ha1_cspec.fits
+- mast:IUE/url/pub/vospectra/iue2/lwp12581mxlo_vo.fits
+- mast:IUE/url/pub/vospectra/iue2/lwp27551mxlo_vo.fits
+- mast:IUE/url/pub/vospectra/iue2/lwp28473mxlo_vo.fits
+- mast:IUE/url/pub/vospectra/iue2/lwp28480mxlo_vo.fits
+- mast:IUE/url/pub/vospectra/iue2/lwp28522mxlo_vo.fits
+- mast:IUE/url/pub/vospectra/iue2/lwp28523mxlo_vo.fits
+- mast:IUE/url/pub/vospectra/iue2/lwp28524mxlo_vo.fits
+- mast:IUE/url/pub/vospectra/iue2/lwp28525mxlo_vo.fits
+- mast:IUE/url/pub/vospectra/iue2/lwp28526mxlo_vo.fits
+- mast:IUE/url/pub/vospectra/iue2/lwp28527mxlo_vo.fits
+- mast:IUE/url/pub/vospectra/iue2/lwp28530mxlo_vo.fits
+- mast:IUE/url/pub/vospectra/iue2/lwp28531mxlo_vo.fits
+- mast:IUE/url/pub/vospectra/iue2/lwp28532mxlo_vo.fits
+
+---
+## 2026-01-22 20:03 – Remote Import
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Imported remote data from MAST (swp30884mxlo_vo.fits)
+
+**References**:
+- mast:IUE/url/pub/vospectra/iue2/swp30884mxlo_vo.fits
+
+---
+## 2026-01-22 20:03 – Remote Import
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Imported 14 remote dataset(s) from MAST (obto11010_sx1.fits, obto11020_sx1.fits, obto11030_sx1.fits, obto11040_sx1.fits, obto11050_sx1.fits, obto11060_sx1.fits, obto12010_sx1.fits, obto12020_sx1.fits, obto12030_sx1.fits, obto12040_sx1.fits, obto12050_sx1.fits, obto12060_sx1.fits, swp30884mxlo_vo.fits, swp33334mxlo_vo.fits)
+
+**References**:
+- mast:HST/product/obto11010_sx1.fits
+- mast:HST/product/obto11020_sx1.fits
+- mast:HST/product/obto11030_sx1.fits
+- mast:HST/product/obto11040_sx1.fits
+- mast:HST/product/obto11050_sx1.fits
+- mast:HST/product/obto11060_sx1.fits
+- mast:HST/product/obto12010_sx1.fits
+- mast:HST/product/obto12020_sx1.fits
+- mast:HST/product/obto12030_sx1.fits
+- mast:HST/product/obto12040_sx1.fits
+- mast:HST/product/obto12050_sx1.fits
+- mast:HST/product/obto12060_sx1.fits
+- mast:IUE/url/pub/vospectra/iue2/swp30884mxlo_vo.fits
+- mast:IUE/url/pub/vospectra/iue2/swp33334mxlo_vo.fits
+
+---
+## 2026-01-22 20:05 – Remote Import
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Imported 6 remote dataset(s) from MAST (lwp04642mxlo_vo.fits, lwp04643mxlo_vo.fits, lwp04644mxlo_vo.fits, lwp04645mxlo_vo.fits, lwp04646mxlo_vo.fits, lwp04647mxlo_vo.fits)
+
+**References**:
+- mast:IUE/url/pub/vospectra/iue2/lwp04642mxlo_vo.fits
+- mast:IUE/url/pub/vospectra/iue2/lwp04643mxlo_vo.fits
+- mast:IUE/url/pub/vospectra/iue2/lwp04644mxlo_vo.fits
+- mast:IUE/url/pub/vospectra/iue2/lwp04645mxlo_vo.fits
+- mast:IUE/url/pub/vospectra/iue2/lwp04646mxlo_vo.fits
+- mast:IUE/url/pub/vospectra/iue2/lwp04647mxlo_vo.fits
+
+---
+## 2026-01-22 20:25 – Remote Import
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Imported 5 remote dataset(s) from MAST ExoSystems (lwp12581mxlo_vo.fits, lwp27551mxlo_vo.fits, lwp28473mxlo_vo.fits, lwp28480mxlo_vo.fits, lwp28522mxlo_vo.fits)
+
+**References**:
+- mast:IUE/url/pub/vospectra/iue2/lwp12581mxlo_vo.fits
+- mast:IUE/url/pub/vospectra/iue2/lwp27551mxlo_vo.fits
+- mast:IUE/url/pub/vospectra/iue2/lwp28473mxlo_vo.fits
+- mast:IUE/url/pub/vospectra/iue2/lwp28480mxlo_vo.fits
+- mast:IUE/url/pub/vospectra/iue2/lwp28522mxlo_vo.fits
+
+---
+## 2026-01-22 20:25 – Remote Import
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Imported 5 remote dataset(s) from MAST ExoSystems (lwp28523mxlo_vo.fits, lwp28524mxlo_vo.fits, lwp28525mxlo_vo.fits, lwp28526mxlo_vo.fits, lwp28527mxlo_vo.fits)
+
+**References**:
+- mast:IUE/url/pub/vospectra/iue2/lwp28523mxlo_vo.fits
+- mast:IUE/url/pub/vospectra/iue2/lwp28524mxlo_vo.fits
+- mast:IUE/url/pub/vospectra/iue2/lwp28525mxlo_vo.fits
+- mast:IUE/url/pub/vospectra/iue2/lwp28526mxlo_vo.fits
+- mast:IUE/url/pub/vospectra/iue2/lwp28527mxlo_vo.fits
+
+---
+## 2026-01-22 20:25 – Remote Import
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Imported 5 remote dataset(s) from MAST ExoSystems (lwp28530mxlo_vo.fits, lwp28531mxlo_vo.fits, lwp28532mxlo_vo.fits); MAST (lwp28533mxlo_vo.fits, lwp28534mxlo_vo.fits)
+
+**References**:
+- mast:IUE/url/pub/vospectra/iue2/lwp28530mxlo_vo.fits
+- mast:IUE/url/pub/vospectra/iue2/lwp28531mxlo_vo.fits
+- mast:IUE/url/pub/vospectra/iue2/lwp28532mxlo_vo.fits
+- mast:IUE/url/pub/vospectra/iue2/lwp28533mxlo_vo.fits
+- mast:IUE/url/pub/vospectra/iue2/lwp28534mxlo_vo.fits
+
+---
+## 2026-01-22 20:25 – Remote Import
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Imported 5 remote dataset(s) from MAST (lwp28535mxlo_vo.fits, lwp28536mxlo_vo.fits, lwp28544mxlo_vo.fits, lwp28545mxlo_vo.fits, lwp28546mxlo_vo.fits)
+
+**References**:
+- mast:IUE/url/pub/vospectra/iue2/lwp28535mxlo_vo.fits
+- mast:IUE/url/pub/vospectra/iue2/lwp28536mxlo_vo.fits
+- mast:IUE/url/pub/vospectra/iue2/lwp28544mxlo_vo.fits
+- mast:IUE/url/pub/vospectra/iue2/lwp28545mxlo_vo.fits
+- mast:IUE/url/pub/vospectra/iue2/lwp28546mxlo_vo.fits
+
+---
+## 2026-01-22 20:25 – Remote Import
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Imported 5 remote dataset(s) from MAST (lwp28547mxlo_vo.fits, lwp28548mxlo_vo.fits, lwp28549mxlo_vo.fits, lwp28550mxlo_vo.fits, lwp28551mxlo_vo.fits)
+
+**References**:
+- mast:IUE/url/pub/vospectra/iue2/lwp28547mxlo_vo.fits
+- mast:IUE/url/pub/vospectra/iue2/lwp28548mxlo_vo.fits
+- mast:IUE/url/pub/vospectra/iue2/lwp28549mxlo_vo.fits
+- mast:IUE/url/pub/vospectra/iue2/lwp28550mxlo_vo.fits
+- mast:IUE/url/pub/vospectra/iue2/lwp28551mxlo_vo.fits
+
+---
+## 2026-01-22 20:25 – Remote Import
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Imported 13 remote dataset(s) from MAST (lwp28552mxlo_vo.fits, lwp28560mxlo_vo.fits, lwp28561mxlo_vo.fits, lwp28562mxlo_vo.fits, lwp28563mxlo_vo.fits, lwp28564mxlo_vo.fits, lwp28565mxlo_vo.fits, lwp28566mxlo_vo.fits, lwp28570mxlo_vo.fits, lwp28571mxlo_vo.fits, lwp28572mxlo_vo.fits, lwp28573mxlo_vo.fits, lwp28574mxlo_vo.fits)
+
+**References**:
+- mast:IUE/url/pub/vospectra/iue2/lwp28552mxlo_vo.fits
+- mast:IUE/url/pub/vospectra/iue2/lwp28560mxlo_vo.fits
+- mast:IUE/url/pub/vospectra/iue2/lwp28561mxlo_vo.fits
+- mast:IUE/url/pub/vospectra/iue2/lwp28562mxlo_vo.fits
+- mast:IUE/url/pub/vospectra/iue2/lwp28563mxlo_vo.fits
+- mast:IUE/url/pub/vospectra/iue2/lwp28564mxlo_vo.fits
+- mast:IUE/url/pub/vospectra/iue2/lwp28565mxlo_vo.fits
+- mast:IUE/url/pub/vospectra/iue2/lwp28566mxlo_vo.fits
+- mast:IUE/url/pub/vospectra/iue2/lwp28570mxlo_vo.fits
+- mast:IUE/url/pub/vospectra/iue2/lwp28571mxlo_vo.fits
+- mast:IUE/url/pub/vospectra/iue2/lwp28572mxlo_vo.fits
+- mast:IUE/url/pub/vospectra/iue2/lwp28573mxlo_vo.fits
+- mast:IUE/url/pub/vospectra/iue2/lwp28574mxlo_vo.fits
+
+---
+## 2026-01-22 20:26 – Remote Import
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Imported 2 remote dataset(s) from MAST (lwp28575mxlo_vo.fits, lwp28576mxlo_vo.fits)
+
+**References**:
+- mast:IUE/url/pub/vospectra/iue2/lwp28575mxlo_vo.fits
+- mast:IUE/url/pub/vospectra/iue2/lwp28576mxlo_vo.fits
+
+---
+## 2026-01-22 20:26 – Remote Import
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Imported 2 remote dataset(s) from MAST (lwp28575mxlo_vo.fits, lwp28576mxlo_vo.fits)
+
+**References**:
+- mast:IUE/url/pub/vospectra/iue2/lwp28575mxlo_vo.fits
+- mast:IUE/url/pub/vospectra/iue2/lwp28576mxlo_vo.fits
+
+---
+## 2026-01-22 20:26 – Remote Import
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Imported 2 remote dataset(s) from MAST (lwp28575mxlo_vo.fits, lwp28576mxlo_vo.fits)
+
+**References**:
+- mast:IUE/url/pub/vospectra/iue2/lwp28575mxlo_vo.fits
+- mast:IUE/url/pub/vospectra/iue2/lwp28576mxlo_vo.fits
+
+---
+## 2026-01-22 20:26 – Remote Import
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Imported 2 remote dataset(s) from MAST (lwp28575mxlo_vo.fits, lwp28576mxlo_vo.fits)
+
+**References**:
+- mast:IUE/url/pub/vospectra/iue2/lwp28575mxlo_vo.fits
+- mast:IUE/url/pub/vospectra/iue2/lwp28576mxlo_vo.fits
+
+---
+## 2026-01-22 20:58 – Remote Import
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Imported 11 remote dataset(s) from MAST ExoSystems (lwp12581mxlo_vo.fits, lwp27551mxlo_vo.fits, lwp28473mxlo_vo.fits, lwp28480mxlo_vo.fits, lwp28522mxlo_vo.fits, lwp28523mxlo_vo.fits, lwp28524mxlo_vo.fits, lwp28525mxlo_vo.fits, lwp28526mxlo_vo.fits, lwp28527mxlo_vo.fits, lwp28530mxlo_vo.fits)
+
+**References**:
+- mast:IUE/url/pub/vospectra/iue2/lwp12581mxlo_vo.fits
+- mast:IUE/url/pub/vospectra/iue2/lwp27551mxlo_vo.fits
+- mast:IUE/url/pub/vospectra/iue2/lwp28473mxlo_vo.fits
+- mast:IUE/url/pub/vospectra/iue2/lwp28480mxlo_vo.fits
+- mast:IUE/url/pub/vospectra/iue2/lwp28522mxlo_vo.fits
+- mast:IUE/url/pub/vospectra/iue2/lwp28523mxlo_vo.fits
+- mast:IUE/url/pub/vospectra/iue2/lwp28524mxlo_vo.fits
+- mast:IUE/url/pub/vospectra/iue2/lwp28525mxlo_vo.fits
+- mast:IUE/url/pub/vospectra/iue2/lwp28526mxlo_vo.fits
+- mast:IUE/url/pub/vospectra/iue2/lwp28527mxlo_vo.fits
+- mast:IUE/url/pub/vospectra/iue2/lwp28530mxlo_vo.fits
+
+---
+## 2026-01-22 21:01 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file lwp28532mxlo_vo.fits
+
+**References**:
+- lwp28532mxlo_vo.fits
+
+---
+## 2026-01-22 21:02 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file sample_transmittance.csv
+
+**References**:
+- sample_transmittance.csv
+
+---
+## 2026-01-22 21:02 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file CH4_Fink(1977)_297K_440-1036nm.txt
+
+**References**:
+- CH4_Fink(1977)_297K_440-1036nm.txt
+
+---
+## 2026-01-22 21:02 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file CO2 - 500 torr A.csv
+
+**References**:
+- CO2 - 500 torr A.csv
+
+---

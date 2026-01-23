@@ -7,11 +7,11 @@
       "request": "launch",
       "module": "app.main",
       "pythonPath": "C:/Users/brett/miniconda3/envs/spectra312/python.exe",
-      "cwd": "${workspaceFolder}",
+      "cwd": "C:/Code/spectra-app-v2",
       "console": "integratedTerminal",
       "justMyCode": false,
       "env": {
-        "PYTHONPATH": "${workspaceFolder}",
+        "PYTHONPATH": "C:/Code/spectra-app-v2",
         "SPECTRA_DEBUG": "1"
       }
     }

@@ -2,10 +2,14 @@
 
 from __future__ import annotations
 
+import faulthandler
 import sys
 from pathlib import Path
 from typing import Any, cast
 import types
+
+# Enable faulthandler to catch C-level crashes and print tracebacks
+faulthandler.enable()
 
 try:
     from app.qt_compat import get_qt
