@@ -67,6 +67,9 @@ class PlotPane(QtWidgets.QWidget):
         self._custom_x_label: str | None = None
         self._custom_x_unit: str | None = None
         self._y_label = "Intensity"
+        # Custom labels (override auto-generated when set)
+        self._custom_title: str | None = None
+        self._custom_y_label: str | None = None
         self._traces: Dict[str, Dict[str, object]] = {}
         self._order: list[str] = []
         self._max_points = self.normalize_max_points(max_points)
@@ -284,6 +287,66 @@ class PlotPane(QtWidgets.QWidget):
         self._y_label = label
         self._update_axis_labels()
         self._update_title()
+
+    # ------------------------------------------------------------------
+    # Custom Label API
+    def set_custom_title(self, title: str | None) -> None:
+        """Set a custom plot title (pass None to restore auto-generated)."""
+        self._custom_title = title if title else None
+        self._update_title()
+
+    def get_custom_title(self) -> str | None:
+        """Return the current custom title, or None if using auto-generated."""
+        return self._custom_title
+
+    def set_custom_x_axis_label(self, label: str | None) -> None:
+        """Set a custom x-axis label (pass None to restore default)."""
+        self._custom_x_label = label if label else None
+        self._update_axis_labels()
+
+    def get_custom_x_axis_label(self) -> str | None:
+        """Return the current custom x-axis label, or None if using default."""
+        return self._custom_x_label
+
+    def set_custom_y_axis_label(self, label: str | None) -> None:
+        """Set a custom y-axis label (pass None to restore auto-generated)."""
+        self._custom_y_label = label if label else None
+        self._update_axis_labels()
+
+    def get_custom_y_axis_label(self) -> str | None:
+        """Return the current custom y-axis label, or None if using default."""
+        return self._custom_y_label
+
+    def get_current_labels(self) -> dict[str, str]:
+        """Return the currently displayed title and axis labels."""
+        # Get what's actually shown
+        bottom_label, bottom_unit = self._bottom_axis_text()
+        x_text = f"{bottom_label} ({bottom_unit})" if bottom_unit else bottom_label
+        y_text = self._custom_y_label or self._y_label
+        
+        # Get title (match _update_title logic)
+        if self._custom_title:
+            title = self._custom_title
+        elif not self._title_visible:
+            title = ""
+        else:
+            y_lower = self._y_label.lower()
+            if "intensity" in y_lower:
+                title = "Spectral Intensity"
+            elif "absorbance" in y_lower:
+                title = "Absorbance Spectrum"
+            elif "transmittance" in y_lower:
+                title = "Transmittance Spectrum"
+            elif "reflectance" in y_lower:
+                title = "Reflectance Spectrum"
+            elif "flux" in y_lower:
+                title = "Spectral Flux"
+            elif "radiance" in y_lower:
+                title = "Spectral Radiance"
+            else:
+                title = "Spectral Data"
+        
+        return {"title": title, "x_axis": x_text, "y_axis": y_text}
 
     def remove_trace(self, key: str) -> None:
         trace = self._traces.pop(key, None)
@@ -787,7 +850,9 @@ class PlotPane(QtWidgets.QWidget):
         bottom_label, bottom_unit = self._bottom_axis_text()
         label_style = {"font-size": self._axis_label_font_size}
         self._plot.setLabel("bottom", bottom_label, units=bottom_unit, **label_style)
-        self._plot.setLabel("left", self._y_label, **label_style)
+        # Use custom y-axis label if set, otherwise default
+        y_label = self._custom_y_label or self._y_label
+        self._plot.setLabel("left", y_label, **label_style)
 
     def _bottom_axis_text(self) -> tuple[str, str | None]:
         if self._x_mode == "wavelength":
@@ -801,6 +866,11 @@ class PlotPane(QtWidgets.QWidget):
 
         if not self._title_visible:
             self._plot.setTitle("", size=self._title_font_size)
+            return
+
+        # Use custom title if set
+        if self._custom_title:
+            self._plot.setTitle(self._custom_title, size=self._title_font_size)
             return
 
         # Generate intelligent title based on y_label

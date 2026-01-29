@@ -13595,3 +13595,255 @@ THE KNOWLEDGE LOG IS JUST FOR AGENTS TO WRITE IMPORTANT SHIT INTO
 - run4.csv
 
 ---
+## 2026-01-29 16:33 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file 10.8 Test 1.csv
+
+**References**:
+- 10.8 Test 1.csv
+
+---
+## 2026-01-29 16:33 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file 10.8 Test 2.csv
+
+**References**:
+- 10.8 Test 2.csv
+
+---
+## 2026-01-29 16:33 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file CO2 - 300 torr.csv
+
+**References**:
+- CO2 - 300 torr.csv
+
+---
+## 2026-01-29 16:33 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file CO2 - 500 torr.csv
+
+**References**:
+- CO2 - 500 torr.csv
+
+---
+## 2026-01-29 16:33 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file open air.csv
+
+**References**:
+- open air.csv
+
+---
+## 2026-01-29 16:33 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file run2.csv
+
+**References**:
+- run2.csv
+
+---
+## 2026-01-29 16:33 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file run4.csv
+
+**References**:
+- run4.csv
+
+---
+## 2026-01-29 16:37 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file 10.8 Test 1.csv
+
+**References**:
+- 10.8 Test 1.csv
+
+---
+## 2026-01-29 16:37 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file 10.8 Test 2.csv
+
+**References**:
+- 10.8 Test 2.csv
+
+---
+## 2026-01-29 16:37 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file CO2 - 300 torr.csv
+
+**References**:
+- CO2 - 300 torr.csv
+
+---
+## 2026-01-29 16:37 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file CO2 - 500 torr.csv
+
+**References**:
+- CO2 - 500 torr.csv
+
+---
+## 2026-01-29 16:37 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file run2.csv
+
+**References**:
+- run2.csv
+
+---
+## 2026-01-29 16:37 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file run4.csv
+
+**References**:
+- run4.csv
+
+---
+## 2026-01-29 16:38 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file range_2500-10000nm.csv
+
+**References**:
+- range_2500-10000nm.csv
+
+---
+## 2026-01-29 16:39 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file 1 29 10 mL in 25 mL flask.csv
+
+**References**:
+- 1 29 10 mL in 25 mL flask.csv
+
+---
+## 2026-01-29 16:39 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file 1 29 15 mL gas CO2.csv
+
+**References**:
+- 1 29 15 mL gas CO2.csv
+
+---
+## 2026-01-29 16:39 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file 1 29 50.50 h2o AA mix 20 mL co2.csv
+
+**References**:
+- 1 29 50.50 h2o AA mix 20 mL co2.csv
+
+---
+## 2026-01-29 16:39 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file first syr co2 test 0.940 atm 1 mL AA 0.08 g bs.csv
+
+**References**:
+- first syr co2 test 0.940 atm 1 mL AA 0.08 g bs.csv
+
+---
+## 2026-01-29 16:40 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file 1 29 15 mL 50.50 5-6 drops liq in syringe nice pop 3 drop in cell.csv
+
+**References**:
+- 1 29 15 mL 50.50 5-6 drops liq in syringe nice pop 3 drop in cell.csv
+
+---
+## 2026-01-29 17:00 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file acetic acid.jdx
+
+**References**:
+- acetic acid.jdx
+
+---
+## 2026-01-29 17:03 – Ingest
+
+**Author**: automation
+
+**Context**: Spectra Desktop Session
+
+**Summary**: Ingested file CO2 Nist.jdx
+
+**References**:
+- CO2 Nist.jdx
+
+---

@@ -750,7 +750,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
 
     def _emit_math_result(self, result: Spectrum | None, label: str) -> None:
         if result is None:
-            self._log(f"Math operation '{label}' failed or produced no result", level="WARN")
+            self._log("Math", f"Operation '{label}' failed or produced no result")
             if self.merge_status_label is not None:
                 self.merge_status_label.setText(f"{label}: failed")
             return
@@ -759,12 +759,12 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             stored = self.ingest_service.ingest_arrays(
                 result.x, result.y, x_unit=result.x_unit, y_unit=result.y_unit, alias=result.label
             )
-            self._log(f"Created math spectrum: {stored['id']}")
+            self._log("Math", f"Created math spectrum: {stored['id']}")
             self._refresh_dataset_view()
             if self.merge_status_label is not None:
                 self.merge_status_label.setText(f"{label}: created '{stored['id']}'")
         except Exception as exc:
-            self._log(f"Failed to ingest math result: {exc}", level="ERROR")
+            self._log("Math", f"Failed to ingest math result: {exc}")
             if self.merge_status_label is not None:
                 self.merge_status_label.setText(f"{label}: ingest failed")
 
@@ -784,7 +784,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         try:
             result, _ = self.math_service.average([spec for spec in spectra])
         except Exception as exc:
-            self._log(f"Average failed: {exc}", level="ERROR")
+            self._log("Math", f"Average failed: {exc}")
             result = None
         if result is not None:
             result.label = self._merge_result_name("average")
@@ -807,7 +807,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         try:
             result, _ = self.math_service.subtract(a, b)
         except Exception as exc:
-            self._log(f"Subtract failed: {exc}", level="ERROR")
+            self._log("Math", f"Subtract failed: {exc}")
             result = None
         if result is not None:
             result.label = self._merge_result_name("subtract")
@@ -830,7 +830,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         try:
             result, _ = self.math_service.ratio(a, b)
         except Exception as exc:
-            self._log(f"Ratio failed: {exc}", level="ERROR")
+            self._log("Math", f"Ratio failed: {exc}")
             result = None
         if result is not None:
             result.label = self._merge_result_name("ratio")
@@ -853,7 +853,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         try:
             result, _ = self.math_service.normalized_difference(a, b)
         except Exception as exc:
-            self._log(f"Normalized difference failed: {exc}", level="ERROR")
+            self._log("Math", f"Normalized difference failed: {exc}")
             result = None
         if result is not None:
             result.label = self._merge_result_name("normalized_diff")
@@ -876,7 +876,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         try:
             result, _ = self.math_service.smooth(spec, window_size=7, method="moving_average")
         except Exception as exc:
-            self._log(f"Smooth failed: {exc}", level="ERROR")
+            self._log("Math", f"Smooth failed: {exc}")
             result = None
         if result is not None:
             result.label = self._merge_result_name("smooth")
@@ -899,7 +899,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         try:
             result, _ = self.math_service.derivative(spec, order=1)
         except Exception as exc:
-            self._log(f"Derivative failed: {exc}", level="ERROR")
+            self._log("Math", f"Derivative failed: {exc}")
             result = None
         if result is not None:
             result.label = self._merge_result_name("derivative")
@@ -922,7 +922,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         try:
             result, _ = self.math_service.integral(spec, method='cumulative')
         except Exception as exc:
-            self._log(f"Integral failed: {exc}", level="ERROR")
+            self._log("Math", f"Integral failed: {exc}")
             result = None
         if result is not None:
             result.label = self._merge_result_name("integral")
@@ -985,7 +985,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             if self.merge_status_label is not None:
                 self.merge_status_label.setText(str(exc))
         except Exception as exc:
-            self._log(f"Failed to find overlap: {exc}", level="ERROR")
+            self._log("Math", f"Failed to find overlap: {exc}")
 
     def _on_set_range_to_view(self) -> None:
         """Set range to match current plot view."""
@@ -1004,7 +1004,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                 if self.merge_status_label is not None:
                     self.merge_status_label.setText(f"Range set to view: {min_disp:.1f}-{max_disp:.1f} {unit}")
         except Exception as exc:
-            self._log(f"Failed to set range to view: {exc}", level="ERROR")
+            self._log("Math", f"Failed to set range to view: {exc}")
 
     def _get_visible_spectra(self) -> List[Spectrum]:
         """Get all currently visible (checked) spectra."""
@@ -1083,9 +1083,9 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                 clipped_spec, _ = self.math_service.clip_to_range(spec, min_nm, max_nm)
                 clipped.append(clipped_spec)
             except ValueError as exc:
-                self._log(f"Skipping {spec.name}: {exc}", level="WARN")
+                self._log("Math", f"Skipping {spec.name}: {exc}")
             except Exception as exc:
-                self._log(f"Failed to clip {spec.name}: {exc}", level="ERROR")
+                self._log("Math", f"Failed to clip {spec.name}: {exc}")
         return clipped
 
     def _on_export_range(self) -> None:
@@ -1131,11 +1131,11 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         try:
             # Write a wide-format CSV with all clipped spectra
             self.provenance_service.write_wide_csv(base.with_suffix('.csv'), clipped)
-            self._log(f"Exported {len(clipped)} spectra to {base.with_suffix('.csv')}")
+            self._log("Export", f"Exported {len(clipped)} spectra to {base.with_suffix('.csv')}")
             if self.merge_status_label is not None:
                 self.merge_status_label.setText(f"Exported {len(clipped)} spectra to range CSV")
         except Exception as exc:
-            self._log(f"Export failed: {exc}", level="ERROR")
+            self._log("Export", f"Export failed: {exc}")
             QtWidgets.QMessageBox.warning(self, "Export failed", str(exc))
 
     # ----------------------------- Status readout ----------------------
@@ -1677,6 +1677,12 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             self.title_action.setChecked(False)
         self.title_action.toggled.connect(lambda v: self.plot.set_title_visible(bool(v)))
         view_menu.addAction(self.title_action)
+
+        # Edit custom labels action
+        self.edit_labels_action = QtGui.QAction("Edit Labels...", self)
+        self.edit_labels_action.setShortcut(QtGui.QKeySequence("Ctrl+L"))
+        self.edit_labels_action.triggered.connect(self._on_edit_labels)
+        view_menu.addAction(self.edit_labels_action)
 
         view_menu.addSeparator()
         # Font size submenu
@@ -2309,6 +2315,63 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                     pass
         self._line_markers_by_element.clear()
         self.statusBar().showMessage(f"Cleared {removed} line marker(s)", 5000)
+
+    def _on_edit_labels(self) -> None:
+        """Open dialog to edit custom plot title and axis labels."""
+        current = self.plot.get_current_labels()
+        
+        dialog = QtWidgets.QDialog(self)
+        dialog.setWindowTitle("Edit Plot Labels")
+        dialog.setMinimumWidth(400)
+        
+        layout = QtWidgets.QFormLayout(dialog)
+        
+        # Title field
+        title_edit = QtWidgets.QLineEdit()
+        title_edit.setPlaceholderText("Leave empty for auto-generated title")
+        title_edit.setText(self.plot.get_custom_title() or "")
+        layout.addRow("Plot Title:", title_edit)
+        
+        # X-axis label field
+        x_edit = QtWidgets.QLineEdit()
+        x_edit.setPlaceholderText("Leave empty for default (Wavelength/Wavenumber)")
+        x_edit.setText(self.plot.get_custom_x_axis_label() or "")
+        layout.addRow("X-Axis Label:", x_edit)
+        
+        # Y-axis label field
+        y_edit = QtWidgets.QLineEdit()
+        y_edit.setPlaceholderText("Leave empty for auto-detected (Intensity/Absorbance/etc)")
+        y_edit.setText(self.plot.get_custom_y_axis_label() or "")
+        layout.addRow("Y-Axis Label:", y_edit)
+        
+        # Info label
+        info_label = QtWidgets.QLabel(
+            "<small>Leave fields empty to use automatic labels based on data type.</small>"
+        )
+        info_label.setWordWrap(True)
+        layout.addRow(info_label)
+        
+        # Buttons
+        button_box = QtWidgets.QDialogButtonBox(
+            QtWidgets.QDialogButtonBox.StandardButton.Ok | 
+            QtWidgets.QDialogButtonBox.StandardButton.Cancel |
+            QtWidgets.QDialogButtonBox.StandardButton.Reset
+        )
+        button_box.accepted.connect(dialog.accept)
+        button_box.rejected.connect(dialog.reject)
+        
+        # Reset button clears all fields
+        reset_btn = button_box.button(QtWidgets.QDialogButtonBox.StandardButton.Reset)
+        reset_btn.clicked.connect(lambda: (title_edit.clear(), x_edit.clear(), y_edit.clear()))
+        
+        layout.addRow(button_box)
+        
+        if dialog.exec() == QtWidgets.QDialog.DialogCode.Accepted:
+            # Apply custom labels (empty string = None = auto)
+            self.plot.set_custom_title(title_edit.text().strip() or None)
+            self.plot.set_custom_x_axis_label(x_edit.text().strip() or None)
+            self.plot.set_custom_y_axis_label(y_edit.text().strip() or None)
+            self.statusBar().showMessage("Plot labels updated", 3000)
 
     def _on_line_labels_toggled(self, visible: bool) -> None:
         """Show or hide textual labels for all spectral line markers."""
