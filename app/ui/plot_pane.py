@@ -50,6 +50,8 @@ class PlotPane(QtWidgets.QWidget):
     unitChanged = QtCore.Signal(str)
     pointHovered = QtCore.Signal(float, float)
     rangeChanged = QtCore.Signal(tuple, tuple)
+    # Emitted when the user changes the selection region: (min_nm, max_nm)
+    regionSelected = QtCore.Signal(float, float)
 
     def __init__(
         self,
@@ -72,6 +74,9 @@ class PlotPane(QtWidgets.QWidget):
         self._title_visible = False
         self._axis_label_font_size = "14pt"
         self._title_font_size = "16pt"
+        # Range selection region (for math/export operations)
+        self._region_item: pg.LinearRegionItem | None = None
+        self._region_visible = False
         self._build_ui()
         # Don't apply theme during initialization - causes performance issues
 
@@ -321,6 +326,138 @@ class PlotPane(QtWidgets.QWidget):
             self._plot.autoRange()  # Force immediate autoscale
         except Exception:
             pass
+
+    # ------------------------------------------------------------------
+    # Range selection support
+    # ------------------------------------------------------------------
+    def set_region_visible(self, visible: bool) -> None:
+        """Show or hide the interactive range selection region."""
+        self._region_visible = bool(visible)
+        if self._region_visible:
+            self._ensure_region_item()
+            if self._region_item is not None:
+                self._region_item.setVisible(True)
+        elif self._region_item is not None:
+            self._region_item.setVisible(False)
+
+    def is_region_visible(self) -> bool:
+        """Return True when the range selection region is visible."""
+        return self._region_visible
+
+    def get_selected_region_nm(self) -> tuple[float, float] | None:
+        """Return the currently selected region in nm, or None if not active.
+        
+        Returns:
+            Tuple of (min_nm, max_nm) in canonical wavelength units, or None
+        """
+        if not self._region_visible or self._region_item is None:
+            return None
+        region = self._region_item.getRegion()
+        # Convert display units back to nm
+        min_disp, max_disp = region
+        min_nm = self._disp_to_x_nm(min_disp)
+        max_nm = self._disp_to_x_nm(max_disp)
+        # Ensure min < max (in case of inverted units like cm⁻¹)
+        if min_nm > max_nm:
+            min_nm, max_nm = max_nm, min_nm
+        return (min_nm, max_nm)
+
+    def set_region_nm(self, min_nm: float, max_nm: float) -> None:
+        """Set the selection region in canonical wavelength units (nm)."""
+        self._ensure_region_item()
+        if self._region_item is None:
+            return
+        min_disp = self.map_nm_to_display(min_nm)
+        max_disp = self.map_nm_to_display(max_nm)
+        # Handle inverted units (cm⁻¹)
+        if min_disp > max_disp:
+            min_disp, max_disp = max_disp, min_disp
+        self._region_item.setRegion((min_disp, max_disp))
+
+    def set_region_to_data_overlap(self) -> None:
+        """Set the region to the overlapping range of all visible traces."""
+        min_nm = float('-inf')
+        max_nm = float('inf')
+        has_data = False
+        for trace in self._traces.values():
+            if not trace.get("visible", True):
+                continue
+            x_nm = trace.get("x_nm")
+            if x_nm is None or len(x_nm) == 0:
+                continue
+            has_data = True
+            trace_min = float(np.nanmin(x_nm))
+            trace_max = float(np.nanmax(x_nm))
+            min_nm = max(min_nm, trace_min)
+            max_nm = min(max_nm, trace_max)
+        
+        if has_data and min_nm < max_nm:
+            self.set_region_nm(min_nm, max_nm)
+            self.set_region_visible(True)
+
+    def set_region_to_view(self) -> None:
+        """Set the region to match the current view bounds."""
+        try:
+            x_range, _ = self._plot.viewRange()
+            min_disp, max_disp = x_range
+            self._ensure_region_item()
+            if self._region_item is not None:
+                self._region_item.setRegion((min_disp, max_disp))
+        except Exception:
+            pass
+
+    def _ensure_region_item(self) -> None:
+        """Create the region item if it doesn't exist."""
+        if self._region_item is not None:
+            return
+        # Default region: center 50% of current view
+        try:
+            x_range, _ = self._plot.viewRange()
+            x_min, x_max = x_range
+            span = x_max - x_min
+            center = (x_min + x_max) / 2
+            region_min = center - span * 0.25
+            region_max = center + span * 0.25
+        except Exception:
+            region_min, region_max = 400, 700  # Default nm range
+            region_min = self.map_nm_to_display(region_min)
+            region_max = self.map_nm_to_display(region_max)
+        
+        self._region_item = pg.LinearRegionItem(
+            values=(region_min, region_max),
+            brush=pg.mkBrush(100, 100, 255, 50),
+            pen=pg.mkPen(100, 100, 255, 200),
+            hoverBrush=pg.mkBrush(100, 100, 255, 80),
+            hoverPen=pg.mkPen(100, 100, 255, 255),
+        )
+        self._region_item.sigRegionChangeFinished.connect(self._on_region_changed)
+        self._plot.addItem(self._region_item)
+        self._region_item.setVisible(self._region_visible)
+
+    def _on_region_changed(self) -> None:
+        """Handle region selection changes."""
+        if self._region_item is None:
+            return
+        region = self.get_selected_region_nm()
+        if region is not None:
+            self.regionSelected.emit(region[0], region[1])
+
+    def _disp_to_x_nm(self, x_disp: float) -> float:
+        """Convert display coordinate back to canonical nm."""
+        if self._x_mode != "wavelength":
+            return x_disp
+        unit = self._display_unit
+        if unit == "nm":
+            return x_disp
+        if unit == "Å":
+            return x_disp / 10.0
+        if unit == "µm":
+            return x_disp * 1000.0
+        if unit == "cm⁻¹":
+            if x_disp <= 0:
+                return float('inf')
+            return 1e7 / x_disp
+        return x_disp
 
     def export_png(self, path: str | Path, width: int = 1600) -> None:
         """Export the current plot view as a PNG image."""
@@ -615,10 +752,17 @@ class PlotPane(QtWidgets.QWidget):
         return xo, yo
 
     def _redraw_units(self) -> None:
+        # Store region in nm before redraw (units may be changing)
+        region_nm = self.get_selected_region_nm() if self._region_visible else None
+        
         for key in self._traces:
             self._update_curve(key)
         self._update_axis_labels()
         self._update_title()
+        
+        # Restore region in new display units
+        if region_nm is not None:
+            self.set_region_nm(region_nm[0], region_nm[1])
 
     def map_nm_to_display(self, value_nm: float) -> float:
         """Convert a canonical wavelength (nm) to the current display unit."""

@@ -110,3 +110,107 @@ def test_math_with_different_grid_densities():
     # Should have ~100 points (the finer grid)
     assert result.x.size > 50
 
+
+def test_clip_to_range_basic():
+    """Test clipping a spectrum to a specified range."""
+    math = MathService(UnitsService(), epsilon=1e-9)
+    
+    # Create spectrum from 400-600 nm
+    x = np.linspace(400.0, 600.0, 201)
+    y = x / 100.0  # Simple linear relationship for easy verification
+    spec = Spectrum.create("Test", x, y, x_unit="nm", y_unit="absorbance")
+    
+    # Clip to 450-550 nm
+    result, info = math.clip_to_range(spec, 450.0, 550.0)
+    
+    assert result is not None
+    assert info["status"] == "ok"
+    assert info["original_points"] == 201
+    assert info["clipped_points"] == 101  # (550-450)/(600-400)*200 + 1
+    assert np.nanmin(result.x) >= 450.0
+    assert np.nanmax(result.x) <= 550.0
+    # Check y values correspond to clipped x
+    assert np.allclose(result.y, result.x / 100.0, atol=1e-6)
+
+
+def test_clip_to_range_no_data():
+    """Test that clipping raises error when no data in range."""
+    math = MathService(UnitsService(), epsilon=1e-9)
+    
+    x = np.linspace(400.0, 500.0, 101)
+    y = np.ones(101)
+    spec = Spectrum.create("Test", x, y, x_unit="nm", y_unit="absorbance")
+    
+    # Try to clip to range outside spectrum
+    try:
+        math.clip_to_range(spec, 600.0, 700.0)
+        assert False, "Should have raised ValueError"
+    except ValueError as e:
+        assert "No data points in range" in str(e)
+
+
+def test_clip_preserves_uncertainty():
+    """Test that clipping preserves uncertainty arrays."""
+    math = MathService(UnitsService(), epsilon=1e-9)
+    
+    x = np.linspace(400.0, 600.0, 201)
+    y = np.ones(201)
+    sigma = np.full(201, 0.1)
+    spec = Spectrum.create("Test", x, y, x_unit="nm", y_unit="absorbance", uncertainty=sigma)
+    
+    result, _ = math.clip_to_range(spec, 450.0, 550.0)
+    
+    assert result.uncertainty is not None
+    assert result.uncertainty.size == result.x.size
+    assert np.allclose(result.uncertainty, 0.1, atol=1e-6)
+
+
+def test_find_overlap_range_two_spectra():
+    """Test finding overlap range of two spectra."""
+    math = MathService(UnitsService(), epsilon=1e-9)
+    
+    # Spectrum A: 400-600 nm
+    x_a = np.linspace(400.0, 600.0, 101)
+    a = Spectrum.create("A", x_a, np.ones(101), x_unit="nm", y_unit="absorbance")
+    
+    # Spectrum B: 500-700 nm
+    x_b = np.linspace(500.0, 700.0, 101)
+    b = Spectrum.create("B", x_b, np.ones(101), x_unit="nm", y_unit="absorbance")
+    
+    min_nm, max_nm = math.find_overlap_range([a, b])
+    
+    assert min_nm == 500.0
+    assert max_nm == 600.0
+
+
+def test_find_overlap_range_three_spectra():
+    """Test finding overlap range of three spectra."""
+    math = MathService(UnitsService(), epsilon=1e-9)
+    
+    # Spectrum A: 400-600 nm
+    a = Spectrum.create("A", np.linspace(400.0, 600.0, 101), np.ones(101), x_unit="nm", y_unit="absorbance")
+    # Spectrum B: 450-650 nm
+    b = Spectrum.create("B", np.linspace(450.0, 650.0, 101), np.ones(101), x_unit="nm", y_unit="absorbance")
+    # Spectrum C: 500-550 nm
+    c = Spectrum.create("C", np.linspace(500.0, 550.0, 51), np.ones(51), x_unit="nm", y_unit="absorbance")
+    
+    min_nm, max_nm = math.find_overlap_range([a, b, c])
+    
+    assert min_nm == 500.0
+    assert max_nm == 550.0
+
+
+def test_find_overlap_range_no_overlap():
+    """Test that finding overlap raises error when no overlap exists."""
+    math = MathService(UnitsService(), epsilon=1e-9)
+    
+    # Non-overlapping spectra
+    a = Spectrum.create("A", np.linspace(400.0, 450.0, 51), np.ones(51), x_unit="nm", y_unit="absorbance")
+    b = Spectrum.create("B", np.linspace(500.0, 550.0, 51), np.ones(51), x_unit="nm", y_unit="absorbance")
+    
+    try:
+        math.find_overlap_range([a, b])
+        assert False, "Should have raised ValueError"
+    except ValueError as e:
+        assert "no overlapping" in str(e).lower()
+

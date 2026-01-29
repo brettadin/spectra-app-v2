@@ -863,3 +863,124 @@ class MathService:
         
         else:
             raise ValueError(f"Unknown integration method: {method}. Use 'cumulative' or 'total'")
+
+    def clip_to_range(
+        self, spec: Spectrum, min_nm: float, max_nm: float
+    ) -> Tuple[Spectrum, Dict[str, object]]:
+        """Clip a spectrum to a specified wavelength range.
+        
+        Args:
+            spec: Input spectrum
+            min_nm: Minimum wavelength in nm (canonical units)
+            max_nm: Maximum wavelength in nm (canonical units)
+            
+        Returns:
+            Tuple of (clipped spectrum, operation metadata)
+            
+        Raises:
+            ValueError: If no data points fall within the range
+        """
+        # Convert to canonical units
+        x_canon, y_canon, _ = self.units_service.to_canonical(
+            spec.x, spec.y, spec.x_unit, spec.y_unit
+        )
+        
+        # Find indices within range
+        mask = (x_canon >= min_nm) & (x_canon <= max_nm)
+        n_points = np.sum(mask)
+        
+        if n_points == 0:
+            raise ValueError(
+                f"No data points in range [{min_nm:.2f}, {max_nm:.2f}] nm. "
+                f"Spectrum range is [{float(np.nanmin(x_canon)):.2f}, {float(np.nanmax(x_canon)):.2f}] nm."
+            )
+        
+        # Extract clipped data
+        x_clipped = x_canon[mask]
+        y_clipped = y_canon[mask]
+        
+        # Clip uncertainty and flags if present
+        sigma_clipped = None
+        if spec.uncertainty is not None:
+            sigma_clipped = spec.uncertainty[mask]
+        
+        flags_clipped = None
+        if spec.quality_flags is not None:
+            flags_clipped = spec.quality_flags[mask]
+        
+        # Convert back to original units
+        result_x, result_y, _ = self.units_service.convert_arrays(
+            x_clipped, y_clipped, 'nm', 'absorbance', spec.x_unit, spec.y_unit
+        )
+        
+        result_sigma_converted = None
+        if sigma_clipped is not None:
+            _, result_sigma_converted, _ = self.units_service.convert_arrays(
+                x_clipped, sigma_clipped, 'nm', 'absorbance', spec.x_unit, spec.y_unit
+            )
+        
+        metadata: Dict[str, Any] = {
+            'operation': {
+                'name': 'clip_to_range',
+                'parameters': {
+                    'min_nm': min_nm,
+                    'max_nm': max_nm,
+                    'original_points': int(spec.x.size),
+                    'clipped_points': int(n_points),
+                },
+                'parents': [spec.id],
+            },
+            'primary_metadata': dict(spec.metadata),
+        }
+        
+        result = Spectrum.create(
+            name=f"{spec.name} [{min_nm:.1f}-{max_nm:.1f}nm]",
+            x=result_x,
+            y=result_y,
+            x_unit=spec.x_unit,
+            y_unit=spec.y_unit,
+            metadata=metadata,
+            uncertainty=result_sigma_converted,
+            quality_flags=flags_clipped,
+        )
+        
+        return result, {
+            'status': 'ok',
+            'operation': 'clip_to_range',
+            'result_id': result.id,
+            'range': [min_nm, max_nm],
+            'original_points': int(spec.x.size),
+            'clipped_points': int(n_points),
+        }
+
+    def find_overlap_range(self, spectra: List[Spectrum]) -> Tuple[float, float]:
+        """Find the overlapping wavelength range of multiple spectra.
+        
+        Args:
+            spectra: List of spectra to analyze
+            
+        Returns:
+            Tuple of (min_nm, max_nm) representing the overlap in canonical nm units
+            
+        Raises:
+            ValueError: If spectra have no overlap
+        """
+        if not spectra:
+            raise ValueError('Cannot find overlap of empty list')
+        
+        min_nm = float('-inf')
+        max_nm = float('inf')
+        
+        for spec in spectra:
+            x_canon, _, _ = self.units_service.to_canonical(
+                spec.x, spec.y, spec.x_unit, spec.y_unit
+            )
+            spec_min = float(np.nanmin(x_canon))
+            spec_max = float(np.nanmax(x_canon))
+            min_nm = max(min_nm, spec_min)
+            max_nm = min(max_nm, spec_max)
+        
+        if min_nm >= max_nm:
+            raise ValueError('Spectra have no overlapping wavelength range')
+        
+        return (min_nm, max_nm)

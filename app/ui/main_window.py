@@ -531,6 +531,16 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.merge_derivative_button.clicked.connect(self._on_merge_derivative)
         self.merge_integral_button.clicked.connect(self._on_merge_integral)
 
+        # Wire range selection signals
+        self.merge_panel.rangeToggled.connect(self._on_range_selection_toggled)
+        self.merge_panel.rangeChanged.connect(self._on_range_values_changed)
+        self.merge_panel.setOverlapRequested.connect(self._on_set_range_to_overlap)
+        self.merge_panel.setViewRequested.connect(self._on_set_range_to_view)
+        self.merge_panel.exportRangeRequested.connect(self._on_export_range)
+        # Connect plot region selection to panel
+        if hasattr(self.plot, 'regionSelected'):
+            self.plot.regionSelected.connect(self._on_plot_region_changed)
+
         self.inspector_tabs.addTab(self.merge_panel, "Math")
         
         self.inspector_dock.setWidget(self.inspector_tabs)
@@ -765,8 +775,14 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             if self.merge_status_label is not None:
                 self.merge_status_label.setText("Average requires ≥2 spectra")
             return
+        # Apply range selection if enabled
+        spectra = self._apply_range_to_spectra(spectra)
+        if len(spectra) < 2:
+            if self.merge_status_label is not None:
+                self.merge_status_label.setText("Not enough spectra in range for average")
+            return
         try:
-            result = self.math_service.average([spec for spec in spectra])  # type: ignore[attr-defined]
+            result, _ = self.math_service.average([spec for spec in spectra])
         except Exception as exc:
             self._log(f"Average failed: {exc}", level="ERROR")
             result = None
@@ -781,9 +797,15 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             if self.merge_status_label is not None:
                 self.merge_status_label.setText("Subtract requires exactly 2 spectra")
             return
+        # Apply range selection if enabled
+        spectra = self._apply_range_to_spectra(spectra)
+        if len(spectra) != 2:
+            if self.merge_status_label is not None:
+                self.merge_status_label.setText("Both spectra must have data in range")
+            return
         a, b = spectra
         try:
-            result = self.math_service.subtract(a, b)  # type: ignore[attr-defined]
+            result, _ = self.math_service.subtract(a, b)
         except Exception as exc:
             self._log(f"Subtract failed: {exc}", level="ERROR")
             result = None
@@ -798,9 +820,15 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             if self.merge_status_label is not None:
                 self.merge_status_label.setText("Ratio requires exactly 2 spectra")
             return
+        # Apply range selection if enabled
+        spectra = self._apply_range_to_spectra(spectra)
+        if len(spectra) != 2:
+            if self.merge_status_label is not None:
+                self.merge_status_label.setText("Both spectra must have data in range")
+            return
         a, b = spectra
         try:
-            result = self.math_service.ratio(a, b)  # type: ignore[attr-defined]
+            result, _ = self.math_service.ratio(a, b)
         except Exception as exc:
             self._log(f"Ratio failed: {exc}", level="ERROR")
             result = None
@@ -815,9 +843,15 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             if self.merge_status_label is not None:
                 self.merge_status_label.setText("Normalized difference requires exactly 2 spectra")
             return
+        # Apply range selection if enabled
+        spectra = self._apply_range_to_spectra(spectra)
+        if len(spectra) != 2:
+            if self.merge_status_label is not None:
+                self.merge_status_label.setText("Both spectra must have data in range")
+            return
         a, b = spectra
         try:
-            result = self.math_service.normalized_difference(a, b)  # type: ignore[attr-defined]
+            result, _ = self.math_service.normalized_difference(a, b)
         except Exception as exc:
             self._log(f"Normalized difference failed: {exc}", level="ERROR")
             result = None
@@ -832,9 +866,15 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             if self.merge_status_label is not None:
                 self.merge_status_label.setText("Smooth requires exactly 1 spectrum")
             return
+        # Apply range selection if enabled
+        spectra = self._apply_range_to_spectra(spectra)
+        if len(spectra) != 1:
+            if self.merge_status_label is not None:
+                self.merge_status_label.setText("Spectrum must have data in range")
+            return
         spec = spectra[0]
         try:
-            result = self.math_service.smooth(spec, window_size=7, method="moving_average")  # type: ignore[attr-defined]
+            result, _ = self.math_service.smooth(spec, window_size=7, method="moving_average")
         except Exception as exc:
             self._log(f"Smooth failed: {exc}", level="ERROR")
             result = None
@@ -849,9 +889,15 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             if self.merge_status_label is not None:
                 self.merge_status_label.setText("Derivative requires exactly 1 spectrum")
             return
+        # Apply range selection if enabled
+        spectra = self._apply_range_to_spectra(spectra)
+        if len(spectra) != 1:
+            if self.merge_status_label is not None:
+                self.merge_status_label.setText("Spectrum must have data in range")
+            return
         spec = spectra[0]
         try:
-            result = self.math_service.derivative(spec, order=1)  # type: ignore[attr-defined]
+            result, _ = self.math_service.derivative(spec, order=1)
         except Exception as exc:
             self._log(f"Derivative failed: {exc}", level="ERROR")
             result = None
@@ -866,15 +912,176 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             if self.merge_status_label is not None:
                 self.merge_status_label.setText("Integral requires exactly 1 spectrum")
             return
+        # Apply range selection if enabled
+        spectra = self._apply_range_to_spectra(spectra)
+        if len(spectra) != 1:
+            if self.merge_status_label is not None:
+                self.merge_status_label.setText("Spectrum must have data in range")
+            return
         spec = spectra[0]
         try:
-            result = self.math_service.integral(spec, cumulative=True)  # type: ignore[attr-defined]
+            result, _ = self.math_service.integral(spec, method='cumulative')
         except Exception as exc:
             self._log(f"Integral failed: {exc}", level="ERROR")
             result = None
         if result is not None:
             result.label = self._merge_result_name("integral")
         self._emit_math_result(result, "Integral")
+
+    # ----------------------------- Range Selection Handlers ----------------
+    def _on_range_selection_toggled(self, enabled: bool) -> None:
+        """Handle range selection toggle from merge panel."""
+        if hasattr(self, 'plot_pane') and self.plot is not None:
+            self.plot.set_region_visible(enabled)
+            if enabled:
+                # Sync plot region with panel values
+                range_nm = self.merge_panel.get_range_nm()
+                if range_nm is not None:
+                    self.plot.set_region_nm(range_nm[0], range_nm[1])
+
+    def _on_range_values_changed(self, min_nm: float, max_nm: float) -> None:
+        """Handle range value changes from merge panel."""
+        if hasattr(self, 'plot_pane') and self.plot is not None:
+            if self.merge_panel.is_range_enabled():
+                self.plot.set_region_nm(min_nm, max_nm)
+
+    def _on_plot_region_changed(self, min_nm: float, max_nm: float) -> None:
+        """Handle region changes from plot (user dragging the region)."""
+        if hasattr(self, 'merge_panel') and self.merge_panel is not None:
+            self.merge_panel.set_range_values(min_nm, max_nm)
+
+    def _on_set_range_to_overlap(self) -> None:
+        """Set range to overlap of selected/visible datasets."""
+        try:
+            ids = self._selected_dataset_ids()
+            spectra = self._resolve_spectra(ids)
+            if len(spectra) < 2:
+                # Fall back to all visible spectra
+                spectra = [s for s in self._get_all_spectra() if self._is_spectrum_visible(s)]
+            
+            if len(spectra) < 2:
+                if self.merge_status_label is not None:
+                    self.merge_status_label.setText("Need ≥2 spectra to find overlap")
+                return
+            
+            min_nm, max_nm = self.math_service.find_overlap_range(spectra)
+            self.merge_panel.set_range_values(min_nm, max_nm)
+            if hasattr(self, 'plot_pane') and self.plot is not None:
+                self.plot.set_region_nm(min_nm, max_nm)
+            if self.merge_status_label is not None:
+                self.merge_status_label.setText(f"Range set to overlap: {min_nm:.1f}-{max_nm:.1f} nm")
+        except ValueError as exc:
+            if self.merge_status_label is not None:
+                self.merge_status_label.setText(str(exc))
+        except Exception as exc:
+            self._log(f"Failed to find overlap: {exc}", level="ERROR")
+
+    def _on_set_range_to_view(self) -> None:
+        """Set range to match current plot view."""
+        if not hasattr(self, 'plot_pane') or self.plot is None:
+            return
+        try:
+            self.plot.set_region_to_view()
+            region = self.plot.get_selected_region_nm()
+            if region is not None:
+                self.merge_panel.set_range_values(region[0], region[1])
+                if self.merge_status_label is not None:
+                    self.merge_status_label.setText(f"Range set to view: {region[0]:.1f}-{region[1]:.1f} nm")
+        except Exception as exc:
+            self._log(f"Failed to set range to view: {exc}", level="ERROR")
+
+    def _get_all_spectra(self) -> List[Spectrum]:
+        """Get all loaded spectra."""
+        spectra: List[Spectrum] = []
+        try:
+            for dataset_id in self._dataset_items.keys():
+                spec = self.ingest_service.get(dataset_id)
+                if isinstance(spec, Spectrum):
+                    spectra.append(spec)
+        except Exception:
+            pass
+        return spectra
+
+    def _is_spectrum_visible(self, spec: Spectrum) -> bool:
+        """Check if a spectrum is currently visible in the plot."""
+        try:
+            item = self._dataset_items.get(spec.id)
+            if item is not None:
+                return item.checkState() == QtCore.Qt.CheckState.Checked
+        except Exception:
+            pass
+        return False
+
+    def _apply_range_to_spectra(self, spectra: List[Spectrum]) -> List[Spectrum]:
+        """Apply the current range selection to a list of spectra.
+        
+        Returns the clipped spectra if range is enabled, otherwise returns original.
+        """
+        range_nm = self.merge_panel.get_range_nm() if self.merge_panel is not None else None
+        if range_nm is None:
+            return spectra
+        
+        min_nm, max_nm = range_nm
+        clipped: List[Spectrum] = []
+        for spec in spectra:
+            try:
+                clipped_spec, _ = self.math_service.clip_to_range(spec, min_nm, max_nm)
+                clipped.append(clipped_spec)
+            except ValueError as exc:
+                self._log(f"Skipping {spec.name}: {exc}", level="WARN")
+            except Exception as exc:
+                self._log(f"Failed to clip {spec.name}: {exc}", level="ERROR")
+        return clipped
+
+    def _on_export_range(self) -> None:
+        """Export selected spectra clipped to the current range."""
+        range_nm = self.merge_panel.get_range_nm() if self.merge_panel is not None else None
+        if range_nm is None:
+            if self.merge_status_label is not None:
+                self.merge_status_label.setText("Enable range selection first")
+            return
+        
+        # Get selected spectra (or all visible if none selected)
+        ids = self._selected_dataset_ids()
+        spectra = self._resolve_spectra(ids)
+        if not spectra:
+            # Fall back to all visible spectra
+            spectra = [s for s in self._get_all_spectra() if self._is_spectrum_visible(s)]
+        
+        if not spectra:
+            if self.merge_status_label is not None:
+                self.merge_status_label.setText("No spectra to export")
+            return
+        
+        # Clip spectra to range
+        clipped = self._apply_range_to_spectra(spectra)
+        if not clipped:
+            if self.merge_status_label is not None:
+                self.merge_status_label.setText("No spectra have data in range")
+            return
+        
+        # Ask for export location
+        min_nm, max_nm = range_nm
+        default_name = f"range_{min_nm:.0f}-{max_nm:.0f}nm"
+        base_str, _ = QtWidgets.QFileDialog.getSaveFileName(
+            self,
+            f"Export {len(clipped)} spectra ({min_nm:.1f}-{max_nm:.1f} nm)",
+            str(Path.home() / default_name),
+            "CSV files (*.csv);;All files (*.*)",
+        )
+        if not base_str:
+            return
+        
+        base = Path(base_str)
+        try:
+            # Write a wide-format CSV with all clipped spectra
+            self.provenance_service.write_wide_csv(base.with_suffix('.csv'), clipped)
+            self._log(f"Exported {len(clipped)} spectra to {base.with_suffix('.csv')}")
+            if self.merge_status_label is not None:
+                self.merge_status_label.setText(f"Exported {len(clipped)} spectra to range CSV")
+        except Exception as exc:
+            self._log(f"Export failed: {exc}", level="ERROR")
+            QtWidgets.QMessageBox.warning(self, "Export failed", str(exc))
 
     # ----------------------------- Status readout ----------------------
     def _on_plot_point_hovered(self, x: float, y: float) -> None:
