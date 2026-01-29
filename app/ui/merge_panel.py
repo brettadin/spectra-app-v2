@@ -268,3 +268,10 @@ class MergePanel(QtWidgets.QWidget):
     def is_range_enabled(self) -> bool:
         """Return True if range selection is enabled."""
         return self.range_enabled.isChecked()
+
+    def set_display_unit(self, unit: str) -> None:
+        """Update the unit label to match the current display unit."""
+        self.range_unit_label.setText(unit)
+        # Update tooltips
+        self.range_min_spin.setToolTip(f"Minimum value ({unit})")
+        self.range_max_spin.setToolTip(f"Maximum value ({unit})")

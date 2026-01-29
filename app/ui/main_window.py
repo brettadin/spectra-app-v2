@@ -931,24 +931,31 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
     # ----------------------------- Range Selection Handlers ----------------
     def _on_range_selection_toggled(self, enabled: bool) -> None:
         """Handle range selection toggle from merge panel."""
-        if hasattr(self, 'plot_pane') and self.plot is not None:
+        if self.plot is not None:
             self.plot.set_region_visible(enabled)
             if enabled:
                 # Sync plot region with panel values
-                range_nm = self.merge_panel.get_range_nm()
+                range_nm = self._get_range_nm_from_panel()
                 if range_nm is not None:
                     self.plot.set_region_nm(range_nm[0], range_nm[1])
 
-    def _on_range_values_changed(self, min_nm: float, max_nm: float) -> None:
-        """Handle range value changes from merge panel."""
-        if hasattr(self, 'plot_pane') and self.plot is not None:
-            if self.merge_panel.is_range_enabled():
-                self.plot.set_region_nm(min_nm, max_nm)
+    def _on_range_values_changed(self, min_val: float, max_val: float) -> None:
+        """Handle range value changes from merge panel (in display units)."""
+        if self.plot is not None and self.merge_panel.is_range_enabled():
+            # Convert from display units to nm
+            min_nm = self._display_to_nm(min_val)
+            max_nm = self._display_to_nm(max_val)
+            if min_nm > max_nm:
+                min_nm, max_nm = max_nm, min_nm
+            self.plot.set_region_nm(min_nm, max_nm)
 
     def _on_plot_region_changed(self, min_nm: float, max_nm: float) -> None:
         """Handle region changes from plot (user dragging the region)."""
-        if hasattr(self, 'merge_panel') and self.merge_panel is not None:
-            self.merge_panel.set_range_values(min_nm, max_nm)
+        if self.merge_panel is not None:
+            # Convert from nm to display units
+            min_disp = self._nm_to_display(min_nm)
+            max_disp = self._nm_to_display(max_nm)
+            self.merge_panel.set_range_values(min_disp, max_disp)
 
     def _on_set_range_to_overlap(self) -> None:
         """Set range to overlap of selected/visible datasets."""
@@ -957,7 +964,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             spectra = self._resolve_spectra(ids)
             if len(spectra) < 2:
                 # Fall back to all visible spectra
-                spectra = [s for s in self._get_all_spectra() if self._is_spectrum_visible(s)]
+                spectra = self._get_visible_spectra()
             
             if len(spectra) < 2:
                 if self.merge_status_label is not None:
@@ -965,11 +972,15 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                 return
             
             min_nm, max_nm = self.math_service.find_overlap_range(spectra)
-            self.merge_panel.set_range_values(min_nm, max_nm)
-            if hasattr(self, 'plot_pane') and self.plot is not None:
+            # Convert to display units for the panel
+            min_disp = self._nm_to_display(min_nm)
+            max_disp = self._nm_to_display(max_nm)
+            self.merge_panel.set_range_values(min_disp, max_disp)
+            if self.plot is not None:
                 self.plot.set_region_nm(min_nm, max_nm)
+            unit = self._get_current_display_unit()
             if self.merge_status_label is not None:
-                self.merge_status_label.setText(f"Range set to overlap: {min_nm:.1f}-{max_nm:.1f} nm")
+                self.merge_status_label.setText(f"Range set to overlap: {min_disp:.1f}-{max_disp:.1f} {unit}")
         except ValueError as exc:
             if self.merge_status_label is not None:
                 self.merge_status_label.setText(str(exc))
@@ -978,46 +989,90 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
 
     def _on_set_range_to_view(self) -> None:
         """Set range to match current plot view."""
-        if not hasattr(self, 'plot_pane') or self.plot is None:
+        if self.plot is None:
             return
         try:
             self.plot.set_region_to_view()
             region = self.plot.get_selected_region_nm()
             if region is not None:
-                self.merge_panel.set_range_values(region[0], region[1])
+                min_nm, max_nm = region
+                # Convert to display units for the panel
+                min_disp = self._nm_to_display(min_nm)
+                max_disp = self._nm_to_display(max_nm)
+                self.merge_panel.set_range_values(min_disp, max_disp)
+                unit = self._get_current_display_unit()
                 if self.merge_status_label is not None:
-                    self.merge_status_label.setText(f"Range set to view: {region[0]:.1f}-{region[1]:.1f} nm")
+                    self.merge_status_label.setText(f"Range set to view: {min_disp:.1f}-{max_disp:.1f} {unit}")
         except Exception as exc:
             self._log(f"Failed to set range to view: {exc}", level="ERROR")
 
+    def _get_visible_spectra(self) -> List[Spectrum]:
+        """Get all currently visible (checked) spectra."""
+        return [spec for spec in self.overlay_service.list() 
+                if self._visibility.get(spec.id, True)]
+
     def _get_all_spectra(self) -> List[Spectrum]:
         """Get all loaded spectra."""
-        spectra: List[Spectrum] = []
-        try:
-            for dataset_id in self._dataset_items.keys():
-                spec = self.ingest_service.get(dataset_id)
-                if isinstance(spec, Spectrum):
-                    spectra.append(spec)
-        except Exception:
-            pass
-        return spectra
+        return list(self.overlay_service.list())
 
     def _is_spectrum_visible(self, spec: Spectrum) -> bool:
         """Check if a spectrum is currently visible in the plot."""
-        try:
-            item = self._dataset_items.get(spec.id)
-            if item is not None:
-                return item.checkState() == QtCore.Qt.CheckState.Checked
-        except Exception:
-            pass
-        return False
+        return self._visibility.get(spec.id, True)
+    
+    def _get_current_display_unit(self) -> str:
+        """Get the current display unit from the unit combo."""
+        if self.unit_combo is not None:
+            return self.unit_combo.currentText()
+        return "nm"
+    
+    def _nm_to_display(self, nm: float) -> float:
+        """Convert nm to current display unit."""
+        unit = self._get_current_display_unit()
+        if unit == "nm":
+            return nm
+        elif unit == "Å":
+            return nm * 10.0
+        elif unit == "µm":
+            return nm / 1000.0
+        elif unit == "cm⁻¹":
+            if nm <= 0:
+                return float('inf')
+            return 1e7 / nm
+        return nm
+    
+    def _display_to_nm(self, val: float) -> float:
+        """Convert display unit value to nm."""
+        unit = self._get_current_display_unit()
+        if unit == "nm":
+            return val
+        elif unit == "Å":
+            return val / 10.0
+        elif unit == "µm":
+            return val * 1000.0
+        elif unit == "cm⁻¹":
+            if val <= 0:
+                return float('inf')
+            return 1e7 / val
+        return val
+    
+    def _get_range_nm_from_panel(self) -> tuple[float, float] | None:
+        """Get range from panel converted to nm."""
+        if self.merge_panel is None or not self.merge_panel.is_range_enabled():
+            return None
+        min_val = self.merge_panel.range_min_spin.value()
+        max_val = self.merge_panel.range_max_spin.value()
+        min_nm = self._display_to_nm(min_val)
+        max_nm = self._display_to_nm(max_val)
+        if min_nm > max_nm:
+            min_nm, max_nm = max_nm, min_nm
+        return (min_nm, max_nm)
 
     def _apply_range_to_spectra(self, spectra: List[Spectrum]) -> List[Spectrum]:
         """Apply the current range selection to a list of spectra.
         
         Returns the clipped spectra if range is enabled, otherwise returns original.
         """
-        range_nm = self.merge_panel.get_range_nm() if self.merge_panel is not None else None
+        range_nm = self._get_range_nm_from_panel()
         if range_nm is None:
             return spectra
         
@@ -1035,7 +1090,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
 
     def _on_export_range(self) -> None:
         """Export selected spectra clipped to the current range."""
-        range_nm = self.merge_panel.get_range_nm() if self.merge_panel is not None else None
+        range_nm = self._get_range_nm_from_panel()
         if range_nm is None:
             if self.merge_status_label is not None:
                 self.merge_status_label.setText("Enable range selection first")
@@ -1046,7 +1101,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         spectra = self._resolve_spectra(ids)
         if not spectra:
             # Fall back to all visible spectra
-            spectra = [s for s in self._get_all_spectra() if self._is_spectrum_visible(s)]
+            spectra = self._get_visible_spectra()
         
         if not spectra:
             if self.merge_status_label is not None:
@@ -1144,7 +1199,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
 
     # ----------------------------- NIST Lines helpers ------------------
     def _on_unit_changed(self, unit: str) -> None:
-        """Refresh NIST collections when unit changes."""
+        """Refresh NIST collections and range panel when unit changes."""
         # Redraw all visible NIST collections with new unit
         for collection_id in list(self._nist_plot_items.keys()):
             if self.nist_lines_panel.is_visible(collection_id):
@@ -1154,6 +1209,20 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             self._update_line_marker_positions()
         except Exception:
             pass
+        # Update merge panel unit label and convert existing range values
+        if self.merge_panel is not None:
+            try:
+                # Get current range in nm before changing unit label
+                old_range_nm = self._get_range_nm_from_panel()
+                # Update the unit label
+                self.merge_panel.set_display_unit(unit)
+                # Convert range values to new display units
+                if old_range_nm is not None:
+                    min_disp = self._nm_to_display(old_range_nm[0])
+                    max_disp = self._nm_to_display(old_range_nm[1])
+                    self.merge_panel.set_range_values(min_disp, max_disp)
+            except Exception:
+                pass
 
     def _update_line_marker_positions(self) -> None:
         """Update positions of all spectral line markers after unit or view change.
