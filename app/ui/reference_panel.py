@@ -1,6 +1,6 @@
-"""Reference panel: NIST ASD, IR Functional Groups, and Line Shapes tabs.
+"""Reference panel: NIST ASD, IR Functional Groups, and Reference Lines tabs.
 
-This panel provides three reference data sources with a shared preview plot
+This panel provides reference data sources with a shared preview plot
 and overlay toggle. Emits signals for user interactions.
 """
 from __future__ import annotations
@@ -38,7 +38,6 @@ class ReferencePanel(QtWidgets.QWidget):
       - reference_table (for NIST lines)
       - reference_filter (for IR filter)
       - ir_table
-      - ls_table (Line Shapes)
     """
 
     overlayToggled = Signal(bool)
@@ -64,8 +63,6 @@ class ReferencePanel(QtWidgets.QWidget):
         # IR controls
         self.reference_filter: QtWidgets.QLineEdit
         self.ir_table: QtWidgets.QTableWidget
-        # Line Shapes
-        self.ls_table: QtWidgets.QTableWidget
         # Reference Lines
         self.reflines_table: QtWidgets.QTableWidget
         self.reflines_checkboxes: dict[str, QtWidgets.QCheckBox]  # element -> checkbox
@@ -162,15 +159,6 @@ class ReferencePanel(QtWidgets.QWidget):
         self.ir_table.horizontalHeader().setStretchLastSection(True)
         ir_layout.addWidget(self.ir_table, 1)
         self.reference_tabs.addTab(ir_tab, "IR Functional Groups")
-
-        # --- Line shapes tab
-        ls_tab = QtWidgets.QWidget()
-        ls_layout = QtWidgets.QVBoxLayout(ls_tab)
-        self.ls_table = QtWidgets.QTableWidget(0, 2)
-        self.ls_table.setHorizontalHeaderLabels(["Model", "Notes"])
-        self.ls_table.horizontalHeader().setStretchLastSection(True)
-        ls_layout.addWidget(self.ls_table, 1)
-        self.reference_tabs.addTab(ls_tab, "Line Shapes")
 
         # --- Reference Lines tab (curated spectral lines with element filtering)
         reflines_tab = QtWidgets.QWidget()

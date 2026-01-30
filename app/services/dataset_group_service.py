@@ -121,7 +121,8 @@ class DatasetGroupService:
     DEFAULT_GROUPS = [
         (GroupType.UPLOADED, "Uploaded Data", "#7A3E2F"),
         (GroupType.REMOTE, "Remote Data", "#2F6B4F"),
-        (GroupType.SPECTRAL_LINES, "Spectral Lines", "#7A6FA1"),
+        # Note: SPECTRAL_LINES group type exists but is not auto-created
+        # (NIST lines are handled separately via line collections, not as datasets)
     ]
     
     def __init__(self, storage_dir: Optional[Path] = None):

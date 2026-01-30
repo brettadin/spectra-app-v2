@@ -59,6 +59,7 @@ from app.ui.merge_panel import MergePanel
 from app.ui.history_panel import HistoryPanel
 from app.ui.calibration_panel import CalibrationPanel
 from app.ui.nist_lines_panel import NistLinesPanel
+from app.ui.documentation_dialog import DocumentationDialog
 from app.ui.styles import apply_pyqtgraph_theme, get_app_stylesheet
 from app.ui.themes import default_theme_key, get_theme_definition, iter_theme_definitions
 from app.utils.error_handling import ui_action
@@ -84,7 +85,7 @@ if Slot is None:
     Slot = getattr(QtCore, "pyqtSlot")  # type: ignore[attr-defined]
 
 
-SAMPLES_DIR = Path(__file__).resolve().parents[2] / "samples"
+SAMPLES_DIR = Path(__file__).resolve().parents[2] / "storage" / "samples"
 PLOT_MAX_POINTS_KEY = "plot/max_points"
 
 
@@ -409,8 +410,21 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         library_container = QtWidgets.QWidget()
         library_layout = QtWidgets.QVBoxLayout(library_container)
         library_layout.setContentsMargins(4, 4, 4, 4)
+
+        # Search/filter bar
+        self.library_filter = QtWidgets.QLineEdit()
+        self.library_filter.setPlaceholderText("🔍 Search library...")
+        self.library_filter.setClearButtonEnabled(True)
+        self.library_filter.textChanged.connect(self._on_library_filter_changed)
+        library_layout.addWidget(self.library_filter)
+
+        # Tree view
         self.library_view = QtWidgets.QTreeWidget()
         self.library_view.setHeaderLabels(["File", "Origin"])
+        # Set column widths to show full filenames
+        self.library_view.setColumnWidth(0, 400)  # Wide column for filenames
+        self.library_view.setColumnWidth(1, 120)  # Narrower for origin/count
+        self.library_view.setAlternatingRowColors(True)
         library_layout.addWidget(self.library_view)
         self.data_tabs.addTab(library_container, "Library")
         self.dataset_dock.setWidget(self.data_tabs)
@@ -421,28 +435,11 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         # Right dock: inspector (tab widget placeholder)
         self.inspector_dock = QtWidgets.QDockWidget("Inspector", self)
         self.inspector_dock.setObjectName("dock-inspector")
+        # Set reasonable default width (not too huge)
+        self.inspector_dock.setMaximumWidth(600)
         self.inspector_tabs = QtWidgets.QTabWidget()
         # Refresh merge preview when Math tab is activated (lazy computation)
         self.inspector_tabs.currentChanged.connect(self._on_inspector_tab_changed)
-        # Documentation tab
-        docs_container = QtWidgets.QWidget()
-        docs_layout = QtWidgets.QHBoxLayout(docs_container)
-        docs_layout.setContentsMargins(4, 4, 4, 4)
-        self.docs_list = QtWidgets.QListWidget()
-        self.docs_list.currentRowChanged.connect(self._on_doc_selected)
-        # Use a rich text viewer so we can render Markdown nicely; fall back to plain text if needed
-        # QTextEdit supports setMarkdown in Qt 5.14+ / Qt6; QTextBrowser is also suitable.
-        try:
-            self.doc_viewer = QtWidgets.QTextEdit()
-            self.doc_viewer.setReadOnly(True)
-        except Exception:
-            # Fallback for environments lacking QTextEdit
-            self.doc_viewer = QtWidgets.QPlainTextEdit(readOnly=True)
-        docs_layout.addWidget(self.docs_list, 1)
-        docs_layout.addWidget(self.doc_viewer, 2)
-        # Expose for tests
-        self.tab_docs = docs_container
-        self.inspector_tabs.addTab(docs_container, "Docs")
 
         # Reference tab (moved into ReferencePanel)
         self.reference_panel = ReferencePanel(self)
@@ -459,7 +456,6 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.reference_table = self.reference_panel.reference_table
         self.reference_filter = self.reference_panel.reference_filter
         self.ir_table = self.reference_panel.ir_table
-        self.ls_table = self.reference_panel.ls_table
 
         # Wire panel signals instead of direct widget connections
         self.reference_panel.overlayToggled.connect(self._on_reference_overlay_toggled)
@@ -475,7 +471,6 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.reference_panel.referenceLinesRefreshRequested.connect(self._refresh_reference_lines_table)
         # Table selection changes still wired directly (more complex to decouple without rewriting handlers)
         self.ir_table.itemSelectionChanged.connect(self._on_ir_row_selected)
-        self.ls_table.itemSelectionChanged.connect(self._on_line_shape_row_selected)
         # Unit combo connection
         if self.unit_combo is not None:
             self.unit_combo.currentTextChanged.connect(self._update_reference_axis)
@@ -2085,11 +2080,9 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
 
     @ui_action("Failed to show documentation")
     def show_documentation(self) -> None:
-        self._load_docs_if_needed()
-        if self.docs_list is not None and self.docs_list.count() > 0:
-            self.docs_list.setCurrentRow(0)
-            self._on_doc_selected(0)
-        # If no docs, silently succeed
+        """Open documentation dialog."""
+        dialog = DocumentationDialog(self)
+        dialog.exec()
 
     @ui_action("Failed to open Remote Data tab")
     def show_remote_data_tab(self) -> None:
@@ -3048,6 +3041,63 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             self.library_view.itemActivated.connect(self._on_library_item_activated)
         except Exception:
             pass
+
+    def _on_library_filter_changed(self, text: str) -> None:
+        """Filter library items based on search text."""
+        if self.library_view is None:
+            return
+
+        filter_text = text.lower().strip()
+
+        # Iterate through all top-level items (groups)
+        for i in range(self.library_view.topLevelItemCount()):
+            group = self.library_view.topLevelItem(i)
+            if group is None:
+                continue
+
+            group_has_match = False
+
+            # Check all children and subchildren
+            self._filter_tree_item(group, filter_text)
+
+            # Count visible children
+            visible_count = 0
+            for j in range(group.childCount()):
+                child = group.child(j)
+                if child and not child.isHidden():
+                    visible_count += 1
+                    group_has_match = True
+
+            # Hide group if no children are visible
+            group.setHidden(not group_has_match and filter_text != "")
+
+    def _filter_tree_item(self, item: QtWidgets.QTreeWidgetItem, filter_text: str) -> bool:
+        """Recursively filter tree items. Returns True if item or any child matches."""
+        if filter_text == "":
+            # No filter - show everything
+            item.setHidden(False)
+            for i in range(item.childCount()):
+                child = item.child(i)
+                if child:
+                    self._filter_tree_item(child, filter_text)
+            return True
+
+        # Check if this item's text matches
+        item_text = item.text(0).lower()
+        matches = filter_text in item_text
+
+        # Check children
+        has_matching_child = False
+        for i in range(item.childCount()):
+            child = item.child(i)
+            if child and self._filter_tree_item(child, filter_text):
+                has_matching_child = True
+
+        # Show item if it matches or has matching children
+        should_show = matches or has_matching_child
+        item.setHidden(not should_show)
+
+        return should_show
 
     def _on_library_item_activated(self, item: QtWidgets.QTreeWidgetItem, _col: int) -> None:
         """Handle double-click on library item to re-import."""
@@ -4153,116 +4203,6 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         except Exception as e:
             self._log("Groups", f"Failed to delete group: {e}")
 
-    def _on_doc_selected(self, row: int) -> None:
-        if self.docs_list is None or self.doc_viewer is None:
-            return
-        item = self.docs_list.item(row)
-        if item is None:
-            return
-        # Header rows carry an empty UserRole. If a header is selected (e.g., row 0),
-        # advance to the next real document item so the smoke test sees content.
-        data = item.data(QtCore.Qt.ItemDataRole.UserRole)
-        if not data:
-            # Try to find the next item with a path
-            next_row = row + 1
-            while next_row < self.docs_list.count():
-                it = self.docs_list.item(next_row)
-                if it and it.data(QtCore.Qt.ItemDataRole.UserRole):
-                    self.docs_list.setCurrentRow(next_row)
-                    return  # The signal will retrigger with a real item
-                next_row += 1
-            # As a fallback, look backwards
-            prev_row = row - 1
-            while prev_row >= 0:
-                it = self.docs_list.item(prev_row)
-                if it and it.data(QtCore.Qt.ItemDataRole.UserRole):
-                    self.docs_list.setCurrentRow(prev_row)
-                    return
-                prev_row -= 1
-            return
-        path = Path(str(data))
-        try:
-            text = path.read_text(encoding="utf-8")
-        except Exception:
-            text = ""
-        # Try to render Markdown when supported; otherwise show as plain text
-        try:
-            if hasattr(self.doc_viewer, "setMarkdown"):
-                # Minimal sanitization: ensure text is str and not bytes
-                self.doc_viewer.setMarkdown(str(text))
-            else:
-                self.doc_viewer.setPlainText(text)
-        except Exception:
-            self.doc_viewer.setPlainText(text)
-
-    def _load_docs_if_needed(self) -> None:
-        if self.docs_list is None:
-            return
-        if self.docs_list.count() > 0:
-            return
-        # Prefer user-facing docs only (avoid surfacing outdated developer/history docs)
-        root_docs = Path(__file__).resolve().parents[2] / "docs"
-        user_docs = root_docs / "user"
-        # Collect docs and assign categories for nicer grouping in the list
-        def _category_for(path: Path) -> str:
-            pstr = str(path).lower()
-            if str(user_docs).lower() in pstr:
-                return "User"
-            if (root_docs / "history").exists() and str((root_docs / "history").resolve()).lower() in pstr:
-                return "History"
-            if any(tok in pstr for tok in ("developer", "dev/", "specs/", "reviews/")):
-                return "Developer"
-            return "Other"
-
-        def _title_for(path: Path) -> str:
-            try:
-                text = path.read_text(encoding="utf-8", errors="ignore")
-                for line in text.splitlines():
-                    l = line.strip()
-                    if l.startswith("# "):
-                        return l.lstrip("# ").strip()
-            except Exception:
-                pass
-            return path.stem.replace("_", " ").replace("-", " ").strip().title()
-
-        candidates: list[Path] = []
-        if user_docs.exists():
-            candidates.extend(sorted(user_docs.glob("*.md")))
-        # If user docs are empty, fall back to a minimal curated landing page
-        if not candidates:
-            for fallback in (root_docs / "INDEX.md", root_docs / "README.md"):
-                if fallback.exists():
-                    candidates.append(fallback)
-        entries: list[tuple[str, Path, str]] = [(_title_for(p), p, _category_for(p)) for p in candidates]
-        # Group by category with alphabetical sort inside categories
-        from collections import defaultdict as _defaultdict
-        grouped: dict[str, list[tuple[str, Path]]] = _defaultdict(list)
-        for title, path, cat in entries:
-            grouped[cat].append((title, path))
-        ordered_cats = sorted(grouped.keys(), key=lambda s: (s != "User", s))
-        first = True
-        for cat in ordered_cats:
-            entries = sorted(grouped[cat], key=lambda t: t[0].lower())
-            if first:
-                # For the very first category, add items without a header so row 0 is a real doc
-                for title, path in entries:
-                    item = QtWidgets.QListWidgetItem(title)
-                    item.setData(QtCore.Qt.ItemDataRole.UserRole, str(path))
-                    self.docs_list.addItem(item)
-                first = False
-                continue
-            # Insert a non-selectable header before subsequent groups
-            header = QtWidgets.QListWidgetItem(cat)
-            f = header.font(); f.setBold(True)
-            header.setFont(f)
-            header.setFlags(QtCore.Qt.ItemFlag.NoItemFlags)
-            header.setData(QtCore.Qt.ItemDataRole.UserRole, "")
-            self.docs_list.addItem(header)
-            for title, path in entries:
-                item = QtWidgets.QListWidgetItem(f"  {title}")
-                item.setData(QtCore.Qt.ItemDataRole.UserRole, str(path))
-                self.docs_list.addItem(item)
-
     def _on_max_points_changed(self, value: int) -> None:
         self._plot_max_points = int(value)
         self.plot.set_max_points(self._plot_max_points)
@@ -4660,11 +4600,9 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         except Exception:
             pass
         self.reference_table.setRowCount(0)
-        # Also clear dedicated IR/Line Shape tables if present
+        # Also clear dedicated IR table if present
         if hasattr(self, 'ir_table') and isinstance(self.ir_table, QtWidgets.QTableWidget):
             self.ir_table.setRowCount(0)
-        if hasattr(self, 'ls_table') and isinstance(self.ls_table, QtWidgets.QTableWidget):
-            self.ls_table.setRowCount(0)
         current = self.reference_tabs.currentIndex()
         if current == 0:
             # NIST: no automatic fetch; leave controls ready
@@ -4679,16 +4617,12 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             payload = self._build_overlay_for_ir(groups)
             self._update_reference_overlay_state(payload)
             self._preview_reference_payload(payload)
-        else:
-            # Line shapes
-            self.reference_filter.setPlaceholderText("Filter line-shape…")
-            placeholders = self.reference_library.line_shape_placeholders()
-            self._populate_reference_table_line_shapes(placeholders)
-            # Pick the first model for preview by default
-            if placeholders:
-                first = placeholders[0]
-                model_id = str(first.get("id"))
-                self._preview_line_shape(model_id)
+        elif current == 2:
+            # Reference Lines (curated spectral lines)
+            self.reference_filter.setPlaceholderText("Use checkboxes to show lines…")
+            self._refresh_reference_lines_table()
+            self.reference_overlay_checkbox.setEnabled(False)
+            self.reference_status_label.setText("Check elements to display lines on plot")
 
     def _populate_reference_table_ir(self, groups: Sequence[Mapping[str, Any]] | None) -> None:
         rows = list(groups or [])
@@ -4704,19 +4638,6 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                 self.ir_table.setItem(r, 0, QtWidgets.QTableWidgetItem(str(entry.get("group", ""))))
                 self.ir_table.setItem(r, 1, QtWidgets.QTableWidgetItem(str(entry.get("wavenumber_cm_1_min", ""))))
                 self.ir_table.setItem(r, 2, QtWidgets.QTableWidgetItem(str(entry.get("wavenumber_cm_1_max", ""))))
-
-    def _populate_reference_table_line_shapes(self, defs: Sequence[Mapping[str, Any]] | None) -> None:
-        rows = list(defs or [])
-        # Mirror row count into legacy reference_table for tests
-        try:
-            self.reference_table.setRowCount(len(rows))
-        except Exception:
-            pass
-        if hasattr(self, 'ls_table') and isinstance(self.ls_table, QtWidgets.QTableWidget):
-            self.ls_table.setRowCount(len(rows))
-            for r, entry in enumerate(rows):
-                self.ls_table.setItem(r, 0, QtWidgets.QTableWidgetItem(str(entry.get("id", ""))))
-                self.ls_table.setItem(r, 1, QtWidgets.QTableWidgetItem(str(entry.get("label", ""))))
 
     def _preview_reference_payload(self, payload: Mapping[str, Any]) -> None:
         import numpy as _np
@@ -4819,42 +4740,6 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         payload = self._build_overlay_for_ir(rows)
         self._update_reference_overlay_state(payload)
         self._preview_reference_payload(payload)
-
-    def _on_line_shape_row_selected(self) -> None:
-        try:
-            items = self.ls_table.selectedItems()
-        except Exception:
-            items = []
-        if not items:
-            return
-        model_item = items[0]
-        model_id = model_item.text()
-        self._preview_line_shape(model_id)
-
-    def _preview_line_shape(self, model_id: str) -> None:
-        try:
-            outcome = self.line_shape_model.sample_profile(model_id)
-        except Exception:
-            outcome = None
-        if outcome is None:
-            return
-        payload = {
-            "key": f"reference::line_shape::{model_id}",
-            "alias": f"Reference – {model_id}",
-            "x_nm": outcome.x,
-            "y": outcome.y,
-            "color": "#4F6D7A",
-            "width": 1.5,
-            "metadata": dict(outcome.metadata),
-        }
-        self._update_reference_overlay_state(payload)
-        # Clear preview plot and draw
-        try:
-            for item in self.reference_plot.listDataItems():
-                self.reference_plot.removeItem(item)
-        except Exception:
-            pass
-        self.reference_plot.plot(outcome.x, outcome.y, pen=(180, 140, 60, 220))
 
     def _on_nist_fetch_clicked(self) -> None:
         """Fetch NIST spectral lines and add to the dedicated NIST Lines dock.
