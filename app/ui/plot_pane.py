@@ -4,7 +4,8 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+import uuid
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, Sequence, cast
 
@@ -40,6 +41,21 @@ class TraceStyle:
     fill_level: float | None = None
 
 
+@dataclass
+class Annotation:
+    """A user annotation on the plot, associated with a dataset."""
+    
+    id: str = field(default_factory=lambda: str(uuid.uuid4())[:8])
+    dataset_id: str = ""  # Which spectrum this belongs to
+    text: str = ""
+    x_nm: float = 0.0  # Position in canonical nm
+    x_max_nm: float | None = None  # If set, this is a range annotation
+    y_fraction: float = 0.9  # Y position as fraction of view (0=bottom, 1=top)
+    visible: bool = True
+    color: str = "#FFFF00"  # Yellow default
+    vertical: bool = False  # If True, display text vertically
+
+
 class PlotPane(QtWidgets.QWidget):
     """Central plotting widget with legend, crosshair, and multi-trace support."""
 
@@ -52,6 +68,8 @@ class PlotPane(QtWidgets.QWidget):
     rangeChanged = QtCore.Signal(tuple, tuple)
     # Emitted when the user changes the selection region: (min_nm, max_nm)
     regionSelected = QtCore.Signal(float, float)
+    # Emitted when user requests to add annotation: (x_nm, y_fraction, x_max_nm or None for point)
+    annotationRequested = QtCore.Signal(float, float, object)
 
     def __init__(
         self,
@@ -80,6 +98,9 @@ class PlotPane(QtWidgets.QWidget):
         # Range selection region (for math/export operations)
         self._region_item: pg.LinearRegionItem | None = None
         self._region_visible = False
+        # Annotations storage: {annotation_id: {'annotation': Annotation, 'text': pg.TextItem, 'region': pg.LinearRegionItem|None}}
+        self._annotations: Dict[str, Dict[str, Any]] = {}
+        self._annotations_visible = True  # Global toggle
         self._build_ui()
         # Don't apply theme during initialization - causes performance issues
 
@@ -348,6 +369,209 @@ class PlotPane(QtWidgets.QWidget):
         
         return {"title": title, "x_axis": x_text, "y_axis": y_text}
 
+    # ------------------------------------------------------------------
+    # Annotation API
+    def add_annotation(self, annotation: Annotation) -> str:
+        """Add an annotation to the plot. Returns the annotation ID."""
+        # Create visual elements
+        color = QtGui.QColor(annotation.color)
+        
+        # Text item for the label
+        # Anchor: (0, 0.5) = left edge, vertically centered at click point
+        # This makes text appear to the right of where you click
+        if annotation.vertical:
+            anchor = (0.5, 0.0)  # Center at bottom for vertical
+        else:
+            anchor = (0, 0.5)  # Left edge, vertically centered on click point
+        
+        text_item = pg.TextItem(
+            text=annotation.text,
+            color=color,
+            anchor=anchor,
+            border=pg.mkPen(color, width=0.5),  # Subtle border for visibility
+            fill=pg.mkBrush(0, 0, 0, 150),  # Semi-transparent background
+        )
+        text_item.setFont(QtGui.QFont("Arial", 9))
+        
+        # Ensure text draws on top of everything (z-value)
+        text_item.setZValue(1000)
+        
+        # Apply rotation for vertical text
+        if annotation.vertical:
+            text_item.setAngle(-90)  # Rotate 90 degrees counter-clockwise
+        
+        # Position in display units
+        x_disp = self._x_nm_to_disp(np.array([annotation.x_nm]))[0]
+        
+        # Convert stored Y fraction to actual position in current view
+        try:
+            (_, y_range) = self.view_range()
+            y0, y1 = float(y_range[0]), float(y_range[1])
+            y_pos = y0 + (y1 - y0) * annotation.y_fraction
+        except Exception:
+            y_pos = 0.0
+        
+        text_item.setPos(x_disp, y_pos)
+        
+        # Range highlight if this is a range annotation
+        region_item = None
+        if annotation.x_max_nm is not None:
+            x_max_disp = self._x_nm_to_disp(np.array([annotation.x_max_nm]))[0]
+            # Ensure correct order for wavenumber (inverted)
+            x_min_disp, x_max_disp = min(x_disp, x_max_disp), max(x_disp, x_max_disp)
+            region_item = pg.LinearRegionItem(
+                values=(x_min_disp, x_max_disp),
+                movable=False,
+                brush=pg.mkBrush(color.red(), color.green(), color.blue(), 30),
+                pen=pg.mkPen(color, width=1, style=QtCore.Qt.PenStyle.DashLine),
+            )
+            # Region should be behind text
+            region_item.setZValue(100)
+            # Position text in center of range (for range annotations, center it)
+            text_item.setAnchor((0.5, 0.5))  # Center for range annotations
+            text_item.setPos((x_min_disp + x_max_disp) / 2, y_pos)
+        
+        # Add to plot (region first so it's behind text)
+        if region_item:
+            self._plot.addItem(region_item, ignoreBounds=True)
+        self._plot.addItem(text_item, ignoreBounds=True)
+        
+        # Store
+        self._annotations[annotation.id] = {
+            'annotation': annotation,
+            'text': text_item,
+            'region': region_item,
+        }
+        
+        # Apply visibility
+        visible = self._annotations_visible and annotation.visible
+        text_item.setVisible(visible)
+        if region_item:
+            region_item.setVisible(visible)
+        
+        return annotation.id
+
+    def remove_annotation(self, annotation_id: str) -> bool:
+        """Remove an annotation by ID. Returns True if found and removed."""
+        entry = self._annotations.pop(annotation_id, None)
+        if not entry:
+            return False
+        try:
+            self._plot.removeItem(entry['text'])
+            if entry['region']:
+                self._plot.removeItem(entry['region'])
+        except Exception:
+            pass
+        return True
+
+    def update_annotation(self, annotation_id: str, text: str | None = None, 
+                         color: str | None = None) -> bool:
+        """Update an existing annotation's text or color."""
+        entry = self._annotations.get(annotation_id)
+        if not entry:
+            return False
+        ann: Annotation = entry['annotation']
+        
+        if text is not None:
+            ann.text = text
+            entry['text'].setText(text)
+        
+        if color is not None:
+            ann.color = color
+            qcolor = QtGui.QColor(color)
+            entry['text'].setColor(qcolor)
+            if entry['region']:
+                entry['region'].setBrush(pg.mkBrush(qcolor.red(), qcolor.green(), qcolor.blue(), 30))
+                entry['region'].setPen(pg.mkPen(qcolor, width=1, style=QtCore.Qt.PenStyle.DashLine))
+        
+        return True
+
+    def set_annotation_visible(self, annotation_id: str, visible: bool) -> bool:
+        """Set visibility of a single annotation."""
+        entry = self._annotations.get(annotation_id)
+        if not entry:
+            return False
+        ann: Annotation = entry['annotation']
+        ann.visible = visible
+        
+        # Respect both individual and global visibility
+        actual_visible = self._annotations_visible and visible
+        entry['text'].setVisible(actual_visible)
+        if entry['region']:
+            entry['region'].setVisible(actual_visible)
+        return True
+
+    def set_all_annotations_visible(self, visible: bool) -> None:
+        """Toggle global visibility of all annotations."""
+        self._annotations_visible = visible
+        for entry in self._annotations.values():
+            ann: Annotation = entry['annotation']
+            actual_visible = visible and ann.visible
+            entry['text'].setVisible(actual_visible)
+            if entry['region']:
+                entry['region'].setVisible(actual_visible)
+
+    def set_dataset_annotations_visible(self, dataset_id: str, visible: bool) -> None:
+        """Toggle visibility of all annotations for a specific dataset."""
+        for entry in self._annotations.values():
+            ann: Annotation = entry['annotation']
+            if ann.dataset_id == dataset_id:
+                ann.visible = visible
+                actual_visible = self._annotations_visible and visible
+                entry['text'].setVisible(actual_visible)
+                if entry['region']:
+                    entry['region'].setVisible(actual_visible)
+
+    def get_annotations(self, dataset_id: str | None = None) -> list[Annotation]:
+        """Get all annotations, optionally filtered by dataset."""
+        result = []
+        for entry in self._annotations.values():
+            ann: Annotation = entry['annotation']
+            if dataset_id is None or ann.dataset_id == dataset_id:
+                result.append(ann)
+        return result
+
+    def get_annotation(self, annotation_id: str) -> Annotation | None:
+        """Get a specific annotation by ID."""
+        entry = self._annotations.get(annotation_id)
+        return entry['annotation'] if entry else None
+
+    def clear_annotations(self, dataset_id: str | None = None) -> int:
+        """Clear annotations, optionally only for a specific dataset. Returns count removed."""
+        to_remove = []
+        for ann_id, entry in self._annotations.items():
+            ann: Annotation = entry['annotation']
+            if dataset_id is None or ann.dataset_id == dataset_id:
+                to_remove.append(ann_id)
+        
+        for ann_id in to_remove:
+            self.remove_annotation(ann_id)
+        return len(to_remove)
+
+    def _refresh_annotation_positions(self) -> None:
+        """Update annotation positions when units or view change."""
+        try:
+            (_, y_range) = self.view_range()
+            y0, y1 = float(y_range[0]), float(y_range[1])
+        except Exception:
+            y0, y1 = 0.0, 1.0
+        
+        for entry in self._annotations.values():
+            ann: Annotation = entry['annotation']
+            x_disp = self._x_nm_to_disp(np.array([ann.x_nm]))[0]
+            
+            # Convert stored fraction to actual Y position
+            y_pos = y0 + (y1 - y0) * ann.y_fraction
+            
+            if ann.x_max_nm is not None:
+                x_max_disp = self._x_nm_to_disp(np.array([ann.x_max_nm]))[0]
+                x_min_disp, x_max_disp = min(x_disp, x_max_disp), max(x_disp, x_max_disp)
+                entry['text'].setPos((x_min_disp + x_max_disp) / 2, y_pos)
+                if entry['region']:
+                    entry['region'].setRegion((x_min_disp, x_max_disp))
+            else:
+                entry['text'].setPos(x_disp, y_pos)
+
     def remove_trace(self, key: str) -> None:
         trace = self._traces.pop(key, None)
         if not trace:
@@ -580,6 +804,10 @@ class PlotPane(QtWidgets.QWidget):
         self._plot.showGrid(x=False, y=False, alpha=0.2)
         self._vb: pg.ViewBox = self._plot.getPlotItem().getViewBox()
         self._plot.sigRangeChanged.connect(self._on_plot_range_changed)
+        
+        # Add annotation items to the ViewBox's context menu (keep pyqtgraph's menu)
+        self._add_annotation_menu_items()
+        self._last_click_pos: tuple[float, float] | None = None  # Store last click position in nm
 
         self._legend = pg.LegendItem(offset=(10, 10))
         self._legend.setParentItem(self._plot.getPlotItem())
@@ -606,6 +834,206 @@ class PlotPane(QtWidgets.QWidget):
             if hasattr(axis_item, "enableAutoSIPrefix"):
                 axis_item.enableAutoSIPrefix(False)
 
+    def _add_annotation_menu_items(self) -> None:
+        """Add annotation actions to the ViewBox's context menu."""
+        menu = self._vb.menu
+        if menu is None:
+            return
+        
+        # Add separator before our items
+        menu.addSeparator()
+        
+        # Create a submenu for notes
+        notes_menu = menu.addMenu("Notes")
+        
+        # Add note action - will emit signal with current mouse position
+        add_note_action = notes_menu.addAction("Add Note Here...")
+        add_note_action.triggered.connect(self._on_add_note_here)
+        
+        # Add range note action
+        self._add_range_note_action = notes_menu.addAction("Add Note for Selected Range...")
+        self._add_range_note_action.triggered.connect(self._on_add_range_note)
+        self._add_range_note_action.setEnabled(False)  # Enabled when region is visible
+        
+        # Delete nearest note action
+        self._delete_note_action = notes_menu.addAction("Delete Nearest Note")
+        self._delete_note_action.triggered.connect(self._on_delete_nearest_note)
+        self._delete_note_action.setEnabled(False)  # Enabled when notes exist
+        
+        notes_menu.addSeparator()
+        
+        # Toggle range selection
+        self._toggle_range_action = notes_menu.addAction("Enable Range Selection")
+        self._toggle_range_action.triggered.connect(self._on_toggle_range_selection)
+        
+        notes_menu.addSeparator()
+        
+        # Rescale notes to fit current view (for after normalization)
+        self._rescale_notes_action = notes_menu.addAction("Fit Notes to View")
+        self._rescale_notes_action.triggered.connect(self._on_rescale_notes_to_view)
+        self._rescale_notes_action.setEnabled(False)
+        
+        # Toggle visibility
+        self._toggle_notes_action = notes_menu.addAction("Hide All Notes")
+        self._toggle_notes_action.triggered.connect(self._on_toggle_notes)
+        
+        # Store the menu to update items dynamically
+        self._notes_menu = notes_menu
+        
+        # Connect to aboutToShow to update menu state
+        menu.aboutToShow.connect(self._update_notes_menu_state)
+
+    def _update_notes_menu_state(self) -> None:
+        """Update notes menu items based on current state."""
+        # Update delete/rescale based on whether notes exist
+        has_notes = len(self._annotations) > 0
+        if hasattr(self, '_delete_note_action'):
+            self._delete_note_action.setEnabled(has_notes)
+        if hasattr(self, '_rescale_notes_action'):
+            self._rescale_notes_action.setEnabled(has_notes)
+        
+        # Update range note action
+        if hasattr(self, '_add_range_note_action'):
+            self._add_range_note_action.setEnabled(self._region_visible)
+        
+        # Update range selection toggle text
+        if hasattr(self, '_toggle_range_action'):
+            if self._region_visible:
+                self._toggle_range_action.setText("Disable Range Selection")
+            else:
+                self._toggle_range_action.setText("Enable Range Selection")
+        
+        # Update toggle text
+        if hasattr(self, '_toggle_notes_action'):
+            if self._annotations_visible:
+                self._toggle_notes_action.setText("Hide All Notes")
+            else:
+                self._toggle_notes_action.setText("Show All Notes")
+        
+        # Store current mouse position for "Add Note Here"
+        try:
+            cursor_pos = QtGui.QCursor.pos()
+            # Map global -> widget viewport coordinates
+            widget_pos = self._plot.mapFromGlobal(cursor_pos)
+            # Map widget viewport -> scene coordinates (PlotWidget is a QGraphicsView)
+            scene_pos = self._plot.mapToScene(widget_pos)
+            # Map scene -> view/data coordinates
+            view_pos = self._vb.mapSceneToView(scene_pos)
+            x_disp = view_pos.x()
+            x_nm = self._disp_to_x_nm(x_disp)
+            # Convert Y to fraction of view range (0=bottom, 1=top)
+            try:
+                (_, y_range) = self.view_range()
+                y0, y1 = float(y_range[0]), float(y_range[1])
+                if y1 != y0:
+                    y_fraction = (view_pos.y() - y0) / (y1 - y0)
+                else:
+                    y_fraction = 0.9  # Default near top
+            except Exception:
+                y_fraction = 0.9
+            self._last_click_pos = (x_nm, y_fraction)
+        except Exception:
+            self._last_click_pos = None
+
+    def _on_add_note_here(self) -> None:
+        """Handle 'Add Note Here' action."""
+        if self._last_click_pos:
+            x_nm, y_fraction = self._last_click_pos
+            self.annotationRequested.emit(x_nm, y_fraction, None)
+
+    def _on_add_range_note(self) -> None:
+        """Handle 'Add Note for Selected Range' action."""
+        if self._region_visible and self._last_click_pos:
+            region_nm = self.get_selected_region_nm()
+            if region_nm:
+                _, y_fraction = self._last_click_pos
+                self.annotationRequested.emit(region_nm[0], y_fraction, region_nm[1])
+
+    def _on_toggle_notes(self) -> None:
+        """Toggle all notes visibility."""
+        self.set_all_annotations_visible(not self._annotations_visible)
+
+    def _on_delete_nearest_note(self) -> None:
+        """Delete the note nearest to the click position."""
+        if not self._last_click_pos or not self._annotations:
+            return
+        
+        click_x_nm, click_y = self._last_click_pos
+        
+        # Find nearest annotation by X position (in nm)
+        nearest_id = None
+        nearest_dist = float('inf')
+        
+        for ann_id, entry in self._annotations.items():
+            ann: Annotation = entry['annotation']
+            # Calculate distance (primarily by X, with some Y consideration)
+            x_dist = abs(ann.x_nm - click_x_nm)
+            if x_dist < nearest_dist:
+                nearest_dist = x_dist
+                nearest_id = ann_id
+        
+        if nearest_id:
+            ann = self._annotations[nearest_id]['annotation']
+            self.remove_annotation(nearest_id)
+
+    def _on_rescale_notes_to_view(self) -> None:
+        """Rescale all note Y positions to fit within current view."""
+        if not self._annotations:
+            return
+        
+        try:
+            (_, y_range) = self.view_range()
+            y0, y1 = float(y_range[0]), float(y_range[1])
+            y_span = y1 - y0
+            
+            # Position notes in the upper portion of the view
+            # Spread them out if there are multiple
+            visible_notes = [
+                (ann_id, entry) for ann_id, entry in self._annotations.items()
+                if entry['annotation'].visible
+            ]
+            
+            if not visible_notes:
+                return
+            
+            # Sort by X position
+            visible_notes.sort(key=lambda x: x[1]['annotation'].x_nm)
+            
+            # Assign Y positions in upper 20% of view, staggered
+            for i, (ann_id, entry) in enumerate(visible_notes):
+                ann: Annotation = entry['annotation']
+                # Stagger between 85% and 95% of view height
+                y_frac = 0.85 + (i % 3) * 0.05
+                ann.y_fraction = y_frac
+                
+                # Update visual position
+                new_y = y0 + y_span * y_frac
+                x_disp = self._x_nm_to_disp(np.array([ann.x_nm]))[0]
+                if ann.x_max_nm is not None:
+                    x_max_disp = self._x_nm_to_disp(np.array([ann.x_max_nm]))[0]
+                    x_disp = (min(x_disp, x_max_disp) + max(x_disp, x_max_disp)) / 2
+                entry['text'].setPos(x_disp, new_y)
+        except Exception:
+            pass
+
+    def _on_toggle_range_selection(self) -> None:
+        """Toggle range selection visibility from context menu."""
+        new_visible = not self._region_visible
+        self.set_region_visible(new_visible)
+        # If enabling, set initial region to center of current view
+        if new_visible:
+            try:
+                (x_range, _) = self.view_range()
+                x0, x1 = float(x_range[0]), float(x_range[1])
+                # Convert display range to nm
+                x0_nm = self._disp_to_x_nm(x0)
+                x1_nm = self._disp_to_x_nm(x1)
+                # Set region to middle 50% of view
+                margin = (x1_nm - x0_nm) * 0.25
+                self.set_region_nm(x0_nm + margin, x1_nm - margin)
+            except Exception:
+                pass
+
     # ------------------------------------------------------------------
     def _on_plot_range_changed(self, _: pg.PlotItem, ranges: object) -> None:
         """Emit a simplified range tuple when the view bounds change."""
@@ -628,6 +1056,9 @@ class PlotPane(QtWidgets.QWidget):
             return (values[0], values[1])
 
         self.rangeChanged.emit(_coerce_pair(x_range), _coerce_pair(y_range))
+        
+        # Update annotation Y positions to stay near top of view
+        self._refresh_annotation_positions()
 
     def _apply_style(self, key: str) -> None:
         trace = self._traces[key]
@@ -826,6 +1257,9 @@ class PlotPane(QtWidgets.QWidget):
         # Restore region in new display units
         if region_nm is not None:
             self.set_region_nm(region_nm[0], region_nm[1])
+        
+        # Refresh annotation positions for new display units
+        self._refresh_annotation_positions()
 
     def map_nm_to_display(self, value_nm: float) -> float:
         """Convert a canonical wavelength (nm) to the current display unit."""

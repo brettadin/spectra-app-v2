@@ -540,6 +540,9 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         # Connect plot region selection to panel
         if hasattr(self.plot, 'regionSelected'):
             self.plot.regionSelected.connect(self._on_plot_region_changed)
+        # Connect annotation request signal
+        if hasattr(self.plot, 'annotationRequested'):
+            self.plot.annotationRequested.connect(self._on_annotation_requested)
 
         self.inspector_tabs.addTab(self.merge_panel, "Math")
         
@@ -1723,6 +1726,18 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.line_labels_action.setChecked(True)
         self.line_labels_action.toggled.connect(self._on_line_labels_toggled)
         view_menu.addAction(self.line_labels_action)
+        
+        # Toggle for annotation notes
+        self.notes_action = QtGui.QAction("Show Notes", self, checkable=True)
+        self.notes_action.setChecked(True)
+        self.notes_action.toggled.connect(self._on_notes_toggled)
+        view_menu.addAction(self.notes_action)
+        
+        # Manage annotations
+        self.manage_notes_action = QtGui.QAction("Manage Notes...", self)
+        self.manage_notes_action.triggered.connect(self._on_manage_notes)
+        view_menu.addAction(self.manage_notes_action)
+        
         view_menu.addSeparator()
         self.data_table_action = QtGui.QAction("Show Data Table", self, checkable=True)
         self.data_table_action.triggered.connect(self._toggle_data_table)
@@ -2372,6 +2387,262 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             self.plot.set_custom_x_axis_label(x_edit.text().strip() or None)
             self.plot.set_custom_y_axis_label(y_edit.text().strip() or None)
             self.statusBar().showMessage("Plot labels updated", 3000)
+
+    def _on_annotation_requested(self, x_nm: float, y_fraction: float, x_max_nm: object) -> None:
+        """Handle request to add an annotation at the specified position.
+        
+        Args:
+            x_nm: X position in canonical nm
+            y_fraction: Y position as fraction of view (0=bottom, 1=top)
+            x_max_nm: If not None, this is a range annotation
+        """
+        from app.ui.plot_pane import Annotation
+        
+        # Get list of visible datasets for selection
+        visible_spectra = [
+            spec for spec in self.overlay_service.list()
+            if self._visibility.get(spec.id, True)
+        ]
+        
+        if not visible_spectra:
+            QtWidgets.QMessageBox.information(
+                self, "Add Note", "No visible datasets to annotate."
+            )
+            return
+        
+        # Build dialog
+        dialog = QtWidgets.QDialog(self)
+        dialog.setWindowTitle("Add Note")
+        dialog.setMinimumWidth(350)
+        
+        layout = QtWidgets.QFormLayout(dialog)
+        
+        # Dataset selector
+        dataset_combo = QtWidgets.QComboBox()
+        for spec in visible_spectra:
+            alias = spec.name or spec.id[:8]
+            dataset_combo.addItem(alias, spec.id)
+        layout.addRow("Dataset:", dataset_combo)
+        
+        # Position info
+        is_range = x_max_nm is not None
+        if is_range:
+            pos_text = f"{x_nm:.2f} – {x_max_nm:.2f} nm"
+        else:
+            pos_text = f"{x_nm:.2f} nm"
+        pos_label = QtWidgets.QLabel(pos_text)
+        layout.addRow("Position:", pos_label)
+        
+        # Note text
+        note_edit = QtWidgets.QLineEdit()
+        note_edit.setPlaceholderText("Enter note (e.g., 'H-alpha emission')")
+        layout.addRow("Note:", note_edit)
+        
+        # Orientation
+        orientation_combo = QtWidgets.QComboBox()
+        orientation_combo.addItem("Horizontal", False)
+        orientation_combo.addItem("Vertical", True)
+        layout.addRow("Orientation:", orientation_combo)
+        
+        # Color picker
+        color_btn = QtWidgets.QPushButton("Yellow")
+        color_btn.setStyleSheet("background-color: #FFFF00; color: black;")
+        selected_color = ["#FFFF00"]  # Mutable to allow change in nested function
+        
+        def pick_color():
+            color = QtWidgets.QColorDialog.getColor(
+                QtGui.QColor(selected_color[0]), dialog, "Note Color"
+            )
+            if color.isValid():
+                selected_color[0] = color.name()
+                color_btn.setStyleSheet(f"background-color: {color.name()};")
+                # Adjust text color for readability
+                luminance = 0.299 * color.red() + 0.587 * color.green() + 0.114 * color.blue()
+                text_color = "black" if luminance > 128 else "white"
+                color_btn.setStyleSheet(f"background-color: {color.name()}; color: {text_color};")
+        
+        color_btn.clicked.connect(pick_color)
+        layout.addRow("Color:", color_btn)
+        
+        # Buttons
+        button_box = QtWidgets.QDialogButtonBox(
+            QtWidgets.QDialogButtonBox.StandardButton.Ok |
+            QtWidgets.QDialogButtonBox.StandardButton.Cancel
+        )
+        button_box.accepted.connect(dialog.accept)
+        button_box.rejected.connect(dialog.reject)
+        layout.addRow(button_box)
+        
+        if dialog.exec() == QtWidgets.QDialog.DialogCode.Accepted:
+            note_text = note_edit.text().strip()
+            if not note_text:
+                return
+            
+            dataset_id = dataset_combo.currentData()
+            is_vertical = orientation_combo.currentData()
+            annotation = Annotation(
+                dataset_id=dataset_id,
+                text=note_text,
+                x_nm=x_nm,
+                x_max_nm=float(x_max_nm) if x_max_nm is not None else None,
+                y_fraction=y_fraction,
+                color=selected_color[0],
+                vertical=is_vertical,
+            )
+            
+            self.plot.add_annotation(annotation)
+            self.statusBar().showMessage(f"Note added: {note_text}", 3000)
+            self._log("annotations", f"Added note '{note_text}' at {pos_text}")
+
+    def _on_notes_toggled(self, visible: bool) -> None:
+        """Show or hide all annotation notes."""
+        self.plot.set_all_annotations_visible(visible)
+        self.statusBar().showMessage(f"Notes {'shown' if visible else 'hidden'}", 3000)
+
+    def _on_manage_notes(self) -> None:
+        """Open dialog to view and manage all annotations."""
+        from app.ui.plot_pane import Annotation
+        
+        annotations = self.plot.get_annotations()
+        if not annotations:
+            QtWidgets.QMessageBox.information(
+                self, "Manage Notes", "No notes to manage. Right-click on the plot to add notes."
+            )
+            return
+        
+        dialog = QtWidgets.QDialog(self)
+        dialog.setWindowTitle("Manage Notes")
+        dialog.setMinimumSize(500, 400)
+        
+        layout = QtWidgets.QVBoxLayout(dialog)
+        
+        # Create table
+        table = QtWidgets.QTableWidget()
+        table.setColumnCount(5)
+        table.setHorizontalHeaderLabels(["Dataset", "Position", "Note", "Visible", ""])
+        table.horizontalHeader().setStretchLastSection(False)
+        table.horizontalHeader().setSectionResizeMode(0, QtWidgets.QHeaderView.ResizeMode.ResizeToContents)
+        table.horizontalHeader().setSectionResizeMode(1, QtWidgets.QHeaderView.ResizeMode.ResizeToContents)
+        table.horizontalHeader().setSectionResizeMode(2, QtWidgets.QHeaderView.ResizeMode.Stretch)
+        table.horizontalHeader().setSectionResizeMode(3, QtWidgets.QHeaderView.ResizeMode.ResizeToContents)
+        table.horizontalHeader().setSectionResizeMode(4, QtWidgets.QHeaderView.ResizeMode.ResizeToContents)
+        table.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectionBehavior.SelectRows)
+        table.setRowCount(len(annotations))
+        
+        for row, ann in enumerate(annotations):
+            # Dataset name
+            # Get alias from overlay service or use dataset ID
+            alias = ann.dataset_id[:8] if ann.dataset_id else "Unknown"
+            try:
+                spec = self.overlay_service.get(ann.dataset_id)
+                if spec:
+                    alias = spec.name or alias
+            except Exception:
+                pass
+            dataset_item = QtWidgets.QTableWidgetItem(alias)
+            dataset_item.setData(QtCore.Qt.ItemDataRole.UserRole, ann.id)
+            dataset_item.setFlags(dataset_item.flags() & ~QtCore.Qt.ItemFlag.ItemIsEditable)
+            table.setItem(row, 0, dataset_item)
+            
+            # Position
+            if ann.x_max_nm is not None:
+                pos_text = f"{ann.x_nm:.1f}–{ann.x_max_nm:.1f} nm"
+            else:
+                pos_text = f"{ann.x_nm:.1f} nm"
+            pos_item = QtWidgets.QTableWidgetItem(pos_text)
+            pos_item.setFlags(pos_item.flags() & ~QtCore.Qt.ItemFlag.ItemIsEditable)
+            table.setItem(row, 1, pos_item)
+            
+            # Note text (editable)
+            note_item = QtWidgets.QTableWidgetItem(ann.text)
+            table.setItem(row, 2, note_item)
+            
+            # Visibility checkbox
+            vis_widget = QtWidgets.QWidget()
+            vis_layout = QtWidgets.QHBoxLayout(vis_widget)
+            vis_layout.setContentsMargins(0, 0, 0, 0)
+            vis_layout.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+            vis_check = QtWidgets.QCheckBox()
+            vis_check.setChecked(ann.visible)
+            vis_check.stateChanged.connect(
+                lambda state, aid=ann.id: self.plot.set_annotation_visible(aid, state == QtCore.Qt.CheckState.Checked.value)
+            )
+            vis_layout.addWidget(vis_check)
+            table.setCellWidget(row, 3, vis_widget)
+            
+            # Delete button
+            del_btn = QtWidgets.QPushButton("×")
+            del_btn.setFixedWidth(30)
+            del_btn.setToolTip("Delete this note")
+            del_btn.clicked.connect(
+                lambda checked, aid=ann.id, r=row: self._delete_annotation_row(table, aid, r)
+            )
+            table.setCellWidget(row, 4, del_btn)
+        
+        layout.addWidget(table)
+        
+        # Track edits to apply on close
+        def apply_edits():
+            for row in range(table.rowCount()):
+                dataset_item = table.item(row, 0)
+                if dataset_item is None:
+                    continue
+                ann_id = dataset_item.data(QtCore.Qt.ItemDataRole.UserRole)
+                note_item = table.item(row, 2)
+                if note_item:
+                    new_text = note_item.text()
+                    self.plot.update_annotation(ann_id, text=new_text)
+        
+        # Buttons
+        button_layout = QtWidgets.QHBoxLayout()
+        
+        clear_all_btn = QtWidgets.QPushButton("Clear All Notes")
+        clear_all_btn.clicked.connect(lambda: self._clear_all_annotations(dialog))
+        button_layout.addWidget(clear_all_btn)
+        
+        button_layout.addStretch()
+        
+        close_btn = QtWidgets.QPushButton("Close")
+        close_btn.clicked.connect(lambda: (apply_edits(), dialog.accept()))
+        button_layout.addWidget(close_btn)
+        
+        layout.addLayout(button_layout)
+        
+        dialog.exec()
+
+    def _delete_annotation_row(self, table: QtWidgets.QTableWidget, ann_id: str, row: int) -> None:
+        """Delete an annotation and remove its row from the table."""
+        self.plot.remove_annotation(ann_id)
+        table.removeRow(row)
+        # Update row indices for remaining delete buttons
+        for r in range(table.rowCount()):
+            del_btn = table.cellWidget(r, 4)
+            if del_btn:
+                del_btn.clicked.disconnect()
+                item = table.item(r, 0)
+                if item:
+                    aid = item.data(QtCore.Qt.ItemDataRole.UserRole)
+                    del_btn.clicked.connect(
+                        lambda checked, a=aid, row=r: self._delete_annotation_row(table, a, row)
+                    )
+
+    def _clear_all_annotations(self, parent_dialog: QtWidgets.QDialog) -> None:
+        """Clear all annotations after confirmation."""
+        count = len(self.plot.get_annotations())
+        if count == 0:
+            return
+        
+        reply = QtWidgets.QMessageBox.question(
+            parent_dialog,
+            "Clear All Notes",
+            f"Delete all {count} notes?",
+            QtWidgets.QMessageBox.StandardButton.Yes | QtWidgets.QMessageBox.StandardButton.No
+        )
+        
+        if reply == QtWidgets.QMessageBox.StandardButton.Yes:
+            self.plot.clear_annotations()
+            parent_dialog.accept()
+            self.statusBar().showMessage(f"Cleared {count} notes", 3000)
 
     def _on_line_labels_toggled(self, visible: bool) -> None:
         """Show or hide textual labels for all spectral line markers."""
