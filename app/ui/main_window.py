@@ -254,7 +254,6 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         except Exception:
             pass
         self._wire_shortcuts()
-        self._load_docs_if_needed()  # Pre-load documentation so it's ready immediately
         self._load_reference_lines_data()  # Pre-load curated spectral lines for Reference tab
         # self._load_default_samples()  # Disabled: users prefer empty workspace on launch
         # Ensure visibility in offscreen test environments so isVisible() checks pass
