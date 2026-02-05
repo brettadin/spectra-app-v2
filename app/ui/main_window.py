@@ -448,23 +448,14 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.reference_status_label = self.reference_panel.reference_status_label
         self.reference_plot = self.reference_panel.reference_plot
         self.reference_tabs = self.reference_panel.reference_tabs
-        self.nist_element_edit = self.reference_panel.nist_element_edit
-        self.nist_lower_spin = self.reference_panel.nist_lower_spin
-        self.nist_upper_spin = self.reference_panel.nist_upper_spin
-        self.nist_fetch_button = self.reference_panel.nist_fetch_button
-        self.reference_table = self.reference_panel.reference_table
+        # NIST fetch controls moved to nist_lines_panel
         self.reference_filter = self.reference_panel.reference_filter
         self.ir_table = self.reference_panel.ir_table
 
         # Wire panel signals instead of direct widget connections
         self.reference_panel.overlayToggled.connect(self._on_reference_overlay_toggled)
-        self.reference_panel.nistFetchRequested.connect(
-            lambda element, lower, upper: self._on_nist_fetch_clicked()
-        )
         self.reference_panel.irFilterChanged.connect(self._on_reference_filter_changed)
         self.reference_panel.tabChanged.connect(lambda _: self._refresh_reference_view())
-        # Cache management
-        self.reference_panel.nist_cache_button.clicked.connect(self._on_nist_cache_clear_clicked)
         # Reference Lines tab signals
         self.reference_panel.referenceLinesToggled.connect(self._on_reference_line_element_toggled)
         self.reference_panel.referenceLinesRefreshRequested.connect(self._refresh_reference_lines_table)
@@ -611,6 +602,8 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.nist_lines_panel.visibilityChanged.connect(self._on_nist_visibility_changed)
         self.nist_lines_panel.removeRequested.connect(self._on_nist_remove_requested)
         self.nist_lines_panel.clearAllRequested.connect(self._on_nist_clear_all_requested)
+        self.nist_lines_panel.nistFetchRequested.connect(self._on_nist_fetch_from_panel)
+        self.nist_lines_panel.cache_button.clicked.connect(self._on_nist_cache_clear_clicked)
 
         # Plot toolbar
         self.plot_toolbar = QtWidgets.QToolBar("Plot")
@@ -4740,7 +4733,11 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self._update_reference_overlay_state(payload)
         self._preview_reference_payload(payload)
 
-    def _on_nist_fetch_clicked(self) -> None:
+    def _on_nist_fetch_from_panel(self, element: str, lower: float, upper: float) -> None:
+        """Handle NIST fetch request from NistLinesPanel signal."""
+        self._on_nist_fetch_clicked(element, lower, upper)
+
+    def _on_nist_fetch_clicked(self, element: str = "", lower: float = 400.0, upper: float = 700.0) -> None:
         """Fetch NIST spectral lines and add to the dedicated NIST Lines dock.
 
         Order of attempts:
@@ -4748,9 +4745,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         2) Subprocess safe_fetch isolation
         3) HTTP fallback
         """
-        element = (self.nist_element_edit.text() or "").strip()
-        lower = float(self.nist_lower_spin.value())
-        upper = float(self.nist_upper_spin.value())
+        element = element.strip()
         if not element:
             self.reference_status_label.setText("Enter element symbol")
             return

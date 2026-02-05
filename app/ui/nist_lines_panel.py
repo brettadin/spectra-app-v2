@@ -20,12 +20,13 @@ if Signal is None:
 
 class NistLinesPanel(QtWidgets.QWidget):
     """Panel for managing NIST spectral line collections.
-    
+
     Signals:
+      - nistFetchRequested(str, float, float): Emitted when user requests NIST fetch (element, lower, upper)
       - visibilityChanged(str, bool): Emitted when a collection's visibility changes (collection_id, visible)
       - removeRequested(List[str]): Emitted when user requests removal of collection IDs
       - clearAllRequested(): Emitted when user clicks Clear All
-    
+
     Public methods:
       - add_collection(collection_id, name, line_count, color): Add a new collection to the table
       - remove_collection(collection_id): Remove a collection from the table
@@ -35,6 +36,7 @@ class NistLinesPanel(QtWidgets.QWidget):
       - get_collections(): Return list of all collection IDs
     """
 
+    nistFetchRequested = Signal(str, float, float)  # element, lower, upper
     visibilityChanged = Signal(str, bool)  # collection_id, visible
     removeRequested = Signal(list)  # list of collection_ids
     clearAllRequested = Signal()
@@ -49,11 +51,57 @@ class NistLinesPanel(QtWidgets.QWidget):
         layout = QtWidgets.QVBoxLayout(self)
         layout.setContentsMargins(4, 4, 4, 4)
 
+        # NIST ASD Fetch Controls
+        fetch_group = QtWidgets.QGroupBox("Fetch NIST Spectral Lines")
+        fetch_layout = QtWidgets.QVBoxLayout(fetch_group)
+
+        # Controls row
+        controls_row = QtWidgets.QHBoxLayout()
+        controls_row.addWidget(QtWidgets.QLabel("Element:"))
+
+        self.element_edit = QtWidgets.QLineEdit()
+        self.element_edit.setPlaceholderText("e.g., H, He, Fe")
+        self.element_edit.setMaximumWidth(100)
+        controls_row.addWidget(self.element_edit)
+
+        controls_row.addWidget(QtWidgets.QLabel("Range:"))
+
+        self.lower_spin = QtWidgets.QDoubleSpinBox()
+        self.lower_spin.setRange(1.0, 1e7)
+        self.lower_spin.setDecimals(3)
+        self.lower_spin.setValue(400.0)
+        self.lower_spin.setSuffix(" nm")
+        self.lower_spin.setMaximumWidth(120)
+        controls_row.addWidget(self.lower_spin)
+
+        controls_row.addWidget(QtWidgets.QLabel("–"))
+
+        self.upper_spin = QtWidgets.QDoubleSpinBox()
+        self.upper_spin.setRange(1.0, 1e7)
+        self.upper_spin.setDecimals(3)
+        self.upper_spin.setValue(700.0)
+        self.upper_spin.setSuffix(" nm")
+        self.upper_spin.setMaximumWidth(120)
+        controls_row.addWidget(self.upper_spin)
+
+        self.fetch_button = QtWidgets.QPushButton("Fetch")
+        self.fetch_button.clicked.connect(self._on_fetch_clicked)
+        controls_row.addWidget(self.fetch_button)
+
+        self.cache_button = QtWidgets.QPushButton("Clear Cache")
+        self.cache_button.setToolTip("Clear all cached NIST line lists")
+        controls_row.addWidget(self.cache_button)
+
+        controls_row.addStretch(1)
+        fetch_layout.addLayout(controls_row)
+
         # Info label
-        info = QtWidgets.QLabel("NIST spectral line collections fetched from the Reference tab.")
+        info = QtWidgets.QLabel("Fetched lines appear in the list below with visibility controls.")
         info.setWordWrap(True)
         info.setStyleSheet("QLabel { color: #888; font-size: 10pt; padding: 4px; }")
-        layout.addWidget(info)
+        fetch_layout.addWidget(info)
+
+        layout.addWidget(fetch_group)
 
         # Table view
         self.table_view = QtWidgets.QTreeView()
@@ -199,6 +247,14 @@ class NistLinesPanel(QtWidgets.QWidget):
             self._collection_colors[collection_id] = color
         except Exception:
             pass
+
+    def _on_fetch_clicked(self) -> None:
+        """Handle Fetch button click."""
+        element = self.element_edit.text().strip()
+        lower = self.lower_spin.value()
+        upper = self.upper_spin.value()
+        if element:
+            self.nistFetchRequested.emit(element, lower, upper)
 
     def _on_item_changed(self, item: QtGui.QStandardItem) -> None:
         """Handle item changes (visibility checkbox toggles)."""

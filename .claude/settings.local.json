@@ -1,7 +1,9 @@
 {
   "permissions": {
     "allow": [
-      "Bash(python -m pytest:*)"
+      "Bash(python -m pytest:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
     ]
   }
 }

@@ -24,7 +24,6 @@ class ReferencePanel(QtWidgets.QWidget):
 
     Signals:
       - overlayToggled(bool): Emitted when overlay checkbox is toggled
-      - nistFetchRequested(str, float, float): Emitted when NIST fetch is clicked
       - tabChanged(int): Emitted when reference tab changes
       - irFilterChanged(str): Emitted when IR filter text changes
     
@@ -33,15 +32,11 @@ class ReferencePanel(QtWidgets.QWidget):
       - reference_status_label
       - reference_plot (PlotWidget)
       - reference_tabs (QTabWidget)
-      - nist_element_edit, nist_lower_spin, nist_upper_spin, nist_fetch_button
-      - nist_cache_button
-      - reference_table (for NIST lines)
       - reference_filter (for IR filter)
       - ir_table
     """
 
     overlayToggled = Signal(bool)
-    nistFetchRequested = Signal(str, float, float)  # element, lower, upper
     tabChanged = Signal(int)
     irFilterChanged = Signal(str)
     referenceLinesToggled = Signal(str, bool)  # element, visible
@@ -53,13 +48,6 @@ class ReferencePanel(QtWidgets.QWidget):
         self.reference_status_label: QtWidgets.QLabel
         self.reference_plot: pg.PlotWidget
         self.reference_tabs: QtWidgets.QTabWidget
-        # NIST controls
-        self.nist_element_edit: QtWidgets.QLineEdit
-        self.nist_lower_spin: QtWidgets.QDoubleSpinBox
-        self.nist_upper_spin: QtWidgets.QDoubleSpinBox
-        self.nist_fetch_button: QtWidgets.QPushButton
-        self.nist_cache_button: QtWidgets.QPushButton
-        self.reference_table: QtWidgets.QTableWidget
         # IR controls
         self.reference_filter: QtWidgets.QLineEdit
         self.ir_table: QtWidgets.QTableWidget
@@ -96,55 +84,6 @@ class ReferencePanel(QtWidgets.QWidget):
         # Wire tab change signal
         self.reference_tabs.currentChanged.connect(self.tabChanged.emit)
         layout.addWidget(self.reference_tabs, 3)
-
-        # --- NIST tab
-        nist_tab = QtWidgets.QWidget()
-        nist_layout = QtWidgets.QVBoxLayout(nist_tab)
-        nist_controls = QtWidgets.QHBoxLayout()
-        self.nist_element_edit = QtWidgets.QLineEdit()
-        self.nist_element_edit.setPlaceholderText("Element symbol (e.g., H, He, Fe)")
-        self.nist_lower_spin = QtWidgets.QDoubleSpinBox()
-        self.nist_lower_spin.setRange(1.0, 1e7)
-        self.nist_lower_spin.setDecimals(3)
-        self.nist_lower_spin.setValue(400.0)
-        self.nist_upper_spin = QtWidgets.QDoubleSpinBox()
-        self.nist_upper_spin.setRange(1.0, 1e7)
-        self.nist_upper_spin.setDecimals(3)
-        self.nist_upper_spin.setValue(700.0)
-        self.nist_fetch_button = QtWidgets.QPushButton("Fetch")
-        # Wire fetch button
-        self.nist_fetch_button.clicked.connect(self._on_nist_fetch_clicked)
-        # Cache management only
-        self.nist_cache_button = QtWidgets.QPushButton("Clear Cache")
-        self.nist_cache_button.setToolTip("Clear all cached NIST line lists")
-        
-        for w in (
-            QtWidgets.QLabel("Element:"),
-            self.nist_element_edit,
-            QtWidgets.QLabel("Range:"),
-            self.nist_lower_spin,
-            QtWidgets.QLabel("–"),
-            self.nist_upper_spin,
-            self.nist_fetch_button,
-            self.nist_cache_button,
-        ):
-            nist_controls.addWidget(w)
-        nist_controls.addStretch(1)
-        nist_layout.addLayout(nist_controls)
-        
-        # Info label explaining checkbox behavior
-        info_label = QtWidgets.QLabel("Fetched lines appear in Datasets panel with checkboxes for visibility control.")
-        info_label.setWordWrap(True)
-        info_label.setStyleSheet("QLabel { color: #888; font-size: 10pt; padding: 4px; }")
-        nist_layout.addWidget(info_label)
-        
-        self.reference_table = QtWidgets.QTableWidget(0, 5)
-        self.reference_table.setHorizontalHeaderLabels(
-            ["λ (nm)", "Ritz λ (nm)", "Intensity", "Lower", "Upper"]
-        )
-        self.reference_table.horizontalHeader().setStretchLastSection(True)
-        nist_layout.addWidget(self.reference_table, 3)
-        self.reference_tabs.addTab(nist_tab, "NIST ASD")
 
         # --- IR functional groups tab
         ir_tab = QtWidgets.QWidget()
@@ -223,10 +162,3 @@ class ReferencePanel(QtWidgets.QWidget):
         """Helper to check/uncheck all element filters at once."""
         for cb in self.reflines_checkboxes.values():
             cb.setChecked(checked)
-
-    def _on_nist_fetch_clicked(self) -> None:
-        """Emit signal when NIST fetch is requested."""
-        element = self.nist_element_edit.text().strip()
-        lower = self.nist_lower_spin.value()
-        upper = self.nist_upper_spin.value()
-        self.nistFetchRequested.emit(element, lower, upper)
