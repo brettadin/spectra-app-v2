@@ -612,6 +612,102 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.nist_lines_panel.nistFetchRequested.connect(self._on_nist_fetch_from_panel)
         self.nist_lines_panel.cache_button.clicked.connect(self._on_nist_cache_clear_clicked)
 
+        # Quick Actions toolbar - icon-based shortcuts for common tasks
+        self.quick_toolbar = QtWidgets.QToolBar("Quick Actions")
+        self.quick_toolbar.setMovable(False)
+        self.quick_toolbar.setToolButtonStyle(QtCore.Qt.ToolButtonStyle.ToolButtonIconOnly)
+        self.quick_toolbar.setIconSize(QtCore.QSize(20, 20))
+        self.addToolBar(QtCore.Qt.ToolBarArea.TopToolBarArea, self.quick_toolbar)
+
+        # Import action
+        import_action = QtGui.QAction(self)
+        import_action.setText("Import Data")
+        import_action.setToolTip("Import spectrum from file (Ctrl+O)")
+        import_action.setShortcut(QtGui.QKeySequence.StandardKey.Open)
+        try:
+            import_action.setIcon(self.style().standardIcon(QtWidgets.QStyle.StandardPixmap.SP_DialogOpenButton))
+        except Exception:
+            pass
+        import_action.triggered.connect(self.import_file)
+        self.quick_toolbar.addAction(import_action)
+
+        # Export action
+        export_action = QtGui.QAction(self)
+        export_action.setText("Export")
+        export_action.setToolTip("Export spectra and plot (Ctrl+E)")
+        export_action.setShortcut(QtGui.QKeySequence("Ctrl+E"))
+        try:
+            export_action.setIcon(self.style().standardIcon(QtWidgets.QStyle.StandardPixmap.SP_DialogSaveButton))
+        except Exception:
+            pass
+        export_action.triggered.connect(self.export_center)
+        self.quick_toolbar.addAction(export_action)
+
+        self.quick_toolbar.addSeparator()
+
+        # NIST Lines action
+        nist_action = QtGui.QAction(self)
+        nist_action.setText("NIST Lines")
+        nist_action.setToolTip("Show NIST Lines panel")
+        try:
+            nist_action.setIcon(self.style().standardIcon(QtWidgets.QStyle.StandardPixmap.SP_FileDialogDetailedView))
+        except Exception:
+            pass
+        nist_action.triggered.connect(lambda: self.nist_lines_dock.show())
+        self.quick_toolbar.addAction(nist_action)
+
+        # Autoscale action
+        autoscale_action = QtGui.QAction(self)
+        autoscale_action.setText("Autoscale")
+        autoscale_action.setToolTip("Fit plot to visible data (Ctrl+F)")
+        autoscale_action.setShortcut(QtGui.QKeySequence("Ctrl+F"))
+        try:
+            autoscale_action.setIcon(self.style().standardIcon(QtWidgets.QStyle.StandardPixmap.SP_BrowserReload))
+        except Exception:
+            pass
+        autoscale_action.triggered.connect(lambda: self.plot.autoscale())
+        self.quick_toolbar.addAction(autoscale_action)
+
+        self.quick_toolbar.addSeparator()
+
+        # Edit Labels action
+        labels_action = QtGui.QAction(self)
+        labels_action.setText("Edit Labels")
+        labels_action.setToolTip("Edit plot title and axis labels (Ctrl+L)")
+        labels_action.setShortcut(QtGui.QKeySequence("Ctrl+L"))
+        try:
+            labels_action.setIcon(self.style().standardIcon(QtWidgets.QStyle.StandardPixmap.SP_FileDialogContentsView))
+        except Exception:
+            pass
+        labels_action.triggered.connect(self._on_edit_labels)
+        self.quick_toolbar.addAction(labels_action)
+
+        # Screenshot/Export plot action
+        screenshot_action = QtGui.QAction(self)
+        screenshot_action.setText("Screenshot")
+        screenshot_action.setToolTip("Export plot as PNG image")
+        try:
+            screenshot_action.setIcon(self.style().standardIcon(QtWidgets.QStyle.StandardPixmap.SP_DesktopIcon))
+        except Exception:
+            pass
+        screenshot_action.triggered.connect(self._on_quick_screenshot)
+        self.quick_toolbar.addAction(screenshot_action)
+
+        self.quick_toolbar.addSeparator()
+
+        # Crosshair toggle
+        self.crosshair_action = QtGui.QAction(self)
+        self.crosshair_action.setText("Crosshair")
+        self.crosshair_action.setToolTip("Toggle crosshair cursor")
+        self.crosshair_action.setCheckable(True)
+        self.crosshair_action.setChecked(True)
+        try:
+            self.crosshair_action.setIcon(self.style().standardIcon(QtWidgets.QStyle.StandardPixmap.SP_TitleBarContextHelpButton))
+        except Exception:
+            pass
+        self.crosshair_action.triggered.connect(lambda checked: self.plot.set_crosshair_visible(checked))
+        self.quick_toolbar.addAction(self.crosshair_action)
+
         # Plot toolbar
         self.plot_toolbar = QtWidgets.QToolBar("Plot")
         self.plot_toolbar.setMovable(False)
@@ -1632,6 +1728,10 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         view_menu.addAction(self.history_dock.toggleViewAction())
         view_menu.addAction(self.nist_lines_dock.toggleViewAction())
         view_menu.addAction(self.log_dock.toggleViewAction())
+        view_menu.addSeparator()
+        # Toolbars
+        if hasattr(self, 'quick_toolbar') and self.quick_toolbar is not None:
+            view_menu.addAction(self.quick_toolbar.toggleViewAction())
         if self.plot_toolbar is not None:
             view_menu.addAction(self.plot_toolbar.toggleViewAction())
 
@@ -2387,6 +2487,39 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             self.plot.set_custom_x_axis_label(x_edit.text().strip() or None)
             self.plot.set_custom_y_axis_label(y_edit.text().strip() or None)
             self.statusBar().showMessage("Plot labels updated", 3000)
+
+    def _on_quick_screenshot(self) -> None:
+        """Quick screenshot export of the current plot."""
+        from pathlib import Path
+        import datetime
+
+        # Generate default filename with timestamp
+        timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+        default_name = f"plot_{timestamp}.png"
+        default_path = Path.home() / "Desktop" / default_name
+
+        # Ask user for save location
+        file_path, _ = QtWidgets.QFileDialog.getSaveFileName(
+            self,
+            "Save Plot Screenshot",
+            str(default_path),
+            "PNG Image (*.png);;All Files (*.*)"
+        )
+
+        if not file_path:
+            return  # User cancelled
+
+        try:
+            # Export plot to PNG
+            self.plot.export_png(Path(file_path))
+            self.statusBar().showMessage(f"Plot saved to {Path(file_path).name}", 5000)
+            self._log("Screenshot", f"Saved plot to {file_path}")
+        except Exception as exc:
+            QtWidgets.QMessageBox.warning(
+                self,
+                "Screenshot Failed",
+                f"Failed to save screenshot: {exc}"
+            )
 
     def _on_annotation_requested(self, x_nm: float, y_fraction: float, x_max_nm: object) -> None:
         """Handle request to add an annotation at the specified position.
