@@ -536,6 +536,13 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         # Ensure inspector dock is visible
         self.inspector_dock.show()
 
+        # Enable better dock manipulation and resizing
+        self.setDockOptions(
+            QtWidgets.QMainWindow.DockOption.AllowTabbedDocks |
+            QtWidgets.QMainWindow.DockOption.AllowNestedDocks |
+            QtWidgets.QMainWindow.DockOption.AnimatedDocks
+        )
+
         # Bottom dock: log view
         self.log_dock = QtWidgets.QDockWidget("Log", self)
         self.log_dock.setObjectName("dock-log")
@@ -665,6 +672,14 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
 
         # Status bar
         self.statusBar().showMessage("Ready")
+        # Set monospace font for cleaner numeric readouts
+        try:
+            mono_font = QtGui.QFont("Consolas", 9)
+            if not mono_font.exactMatch():
+                mono_font = QtGui.QFont("Courier New", 9)
+            self.statusBar().setFont(mono_font)
+        except Exception:
+            pass
         # Global progress bar to surface background work (e.g., downloads)
         self._status_progress = QtWidgets.QProgressBar()
         try:
@@ -3782,7 +3797,46 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         # Create the alias cell for the dataset row and decorate it with a colour chip
         # that matches the trace colour used in the main plot. This makes it much easier
         # to correlate entries in the Data → Datasets tree with on-canvas traces.
-        alias_item = QtGui.QStandardItem(str(spectrum.name))
+
+        # Build display name with inline metadata (wavelength range, point count)
+        display_name = str(spectrum.name)
+        metadata_parts = []
+
+        # Add wavelength range if available
+        try:
+            if spectrum.x is not None and len(spectrum.x) > 0:
+                x_min = float(spectrum.x.min())
+                x_max = float(spectrum.x.max())
+                # Use current x-axis unit for display
+                if hasattr(self, '_current_unit') and self._current_unit:
+                    unit_label = self._current_unit.value if hasattr(self._current_unit, 'value') else str(self._current_unit)
+                else:
+                    unit_label = "nm"  # default
+
+                # Format wavelength range compactly
+                if x_min < 100:
+                    range_str = f"{x_min:.1f}-{x_max:.1f} {unit_label}"
+                else:
+                    range_str = f"{x_min:.0f}-{x_max:.0f} {unit_label}"
+                metadata_parts.append(range_str)
+
+                # Add point count
+                point_count = len(spectrum.x)
+                if point_count >= 1000000:
+                    pts_str = f"{point_count/1000000:.1f}M pts"
+                elif point_count >= 1000:
+                    pts_str = f"{point_count/1000:.1f}k pts"
+                else:
+                    pts_str = f"{point_count} pts"
+                metadata_parts.append(pts_str)
+        except Exception:
+            pass  # Skip metadata if extraction fails
+
+        # Assemble display name with metadata in parentheses
+        if metadata_parts:
+            display_name = f"{spectrum.name} ({', '.join(metadata_parts)})"
+
+        alias_item = QtGui.QStandardItem(display_name)
         alias_item.setEditable(False)
         # Store spectrum ID directly in item data for O(1) lookup in event handlers
         alias_item.setData(spectrum.id, QtCore.Qt.ItemDataRole.UserRole)
