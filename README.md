@@ -31,11 +31,15 @@ A modern **Windows desktop application** for spectroscopic analysis of stellar, 
 - **Calibration**: FWHM blurring and radial-velocity shifts (non-destructive, display-time)
 - **NIST line overlays**: Atomic spectral line references with caching
 - **IR functional groups**: 50+ functional groups for FTIR/ATR analysis
+- **Annotations**: Add persistent notes to plots - saved automatically with datasets
+- **Quick Actions toolbar**: Icon-based shortcuts for common tasks (import, export, autoscale, etc.)
 
 ### Visualization
 - **High-performance plotting**: PyQtGraph with LOD optimization for 1M+ point datasets
-- **Customizable display**: Adjustable font sizes, themes (light/dark), color palettes
-- **Live cursor readout**: Real-time coordinates in status bar
+- **Customizable display**: Adjustable font sizes, themes (light/dark/midnight), color palettes
+- **Modern UI**: Professional sci-fi aesthetic with resizable, tabbable panels
+- **Live cursor readout**: Real-time coordinates in monospace font status bar
+- **Inline metadata**: Dataset names show wavelength ranges and point counts at a glance
 - **Robust FITS handling**: NaN/Inf values handled gracefully
 
 ---
@@ -90,11 +94,14 @@ spectra-app-v2/
 +-- docs/                    # Documentation
 |   +-- INDEX.md            # Documentation hub
 |   +-- user/               # User guides
-|   +-- history/            # Patch notes
-+-- samples/                 # Example datasets
+|   +-- history/            # Patch notes and change log
 +-- storage/                 # Local data storage
+|   +-- samples/            # Example datasets
+|   +-- annotations/        # Saved plot annotations
+|   +-- cache/              # Downloaded remote data
 +-- tests/                   # Test suite
 +-- packaging/               # Distribution files
++-- IMPROVEMENTS_SUMMARY.md  # Recent UI improvements log
 ```
 
 ---
@@ -114,7 +121,8 @@ Start at **[docs/INDEX.md](docs/INDEX.md)** for the complete documentation map.
 ### Developer Resources
 | Resource | Description |
 |----------|-------------|
-| [Patch Notes](docs/history/PATCH_NOTES.md) | Recent changes |
+| [Improvements Summary](IMPROVEMENTS_SUMMARY.md) | Recent UI/UX improvements (Feb 2026) |
+| [Patch Notes](docs/history/PATCH_NOTES.md) | Complete change history |
 | [Knowledge Log](docs/history/KNOWLEDGE_LOG.md) | Architecture decisions |
 | [START_HERE.md](START_HERE.md) | Development onboarding |
 
