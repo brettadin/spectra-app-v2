@@ -1,5 +1,56 @@
 # Patch Notes
 
+## 2026-02-05 (UI/UX Polish, Documentation Cleanup, Annotation Persistence) — ET / UTC
+
+### Major UI Improvements
+- **Professional visual redesign**: Complete stylesheet overhaul with modern sci-fi aesthetic inspired by NASA mission control and modern lab equipment.
+  - Gradient dock titles with uppercase headers and letter-spacing
+  - Rounded corners throughout (4-6px border-radius)
+  - Enhanced hover states with accent-colored borders
+  - Better depth and hierarchy with improved shadows and spacing
+  - Polished button styling, scrollbars, menus, and tooltips
+- **Quick Actions toolbar**: New icon-based toolbar with common shortcuts (Ctrl+O import, Ctrl+E export, Ctrl+F autoscale, screenshot, crosshair, etc.)
+- **Inline dataset metadata**: Dataset names now show wavelength ranges and point counts at a glance (e.g., "Jupiter_JWST (2900-5300 nm, 125.4k pts)")
+- **Monospace numeric readouts**: Status bar coordinates use Consolas/Courier for crisp, aligned numbers
+- **Resizable docks**: All panels are now fully resizable, tabbable, and customizable for flexible layouts
+- **Inspector sizing**: Set maximum width to 600px to prevent it from taking over the screen
+
+### Library Enhancements
+- **Search/filter bar**: Instant recursive filtering of library tree as you type
+- **Proper column widths**: Fixed truncated filenames (400px for files, 120px for origin)
+- **Alternating row colors**: Improved readability in library tree view
+
+### Annotation Persistence
+- **Auto-save annotations**: Notes now persist automatically to `storage/annotations/{dataset_id}.json`
+- **Auto-load on import**: Annotations load when datasets are imported
+- **Non-fatal failures**: Annotation errors won't crash the app
+- **Clean management**: JSON files deleted when all annotations are removed
+
+### Feature Cleanup
+- **Removed Line Shapes tab**: Non-functional feature removed from Reference panel
+- **Fixed Reference Lines**: Updated path from `samples/` to `storage/samples/`
+- **Removed empty Spectral Lines groups**: Groups no longer appear when empty
+- **Docs moved to Help menu**: Documentation accessed via F1 or Help → Documentation
+
+### Documentation Organization
+- **Archived old planning docs**: 15+ outdated planning/enhancement documents moved to archive
+- **Removed duplicates**: Eliminated duplicate files (Planet Data Playbook, MASTER PROMPT, etc.)
+- **Removed outdated inventory**: Deleted 79KB `repo_inventory.md` file
+- **Created IMPROVEMENTS_SUMMARY.md**: Comprehensive log of all UI/UX improvements from this session
+
+### Files Changed
+- `app/ui/main_window.py` - Quick Actions toolbar, inline metadata, annotation persistence, library filter, inspector sizing
+- `app/ui/styles.py` - Complete stylesheet rewrite with 280+ lines of modern styling
+- `app/ui/documentation_dialog.py` (new) - Documentation viewer dialog
+- `app/ui/reference_panel.py` - Removed Line Shapes tab
+- `app/services/dataset_group_service.py` - Removed SPECTRAL_LINES from default groups
+- `README.md` - Updated with new features and storage structure
+- `IMPROVEMENTS_SUMMARY.md` (new) - Complete changelog of UI improvements
+
+See [IMPROVEMENTS_SUMMARY.md](../../IMPROVEMENTS_SUMMARY.md) for detailed before/after comparisons and complete feature list.
+
+---
+
 ## 2026-01-22 (MAST Search Stability, Dataset Grouping & Library Enhancements) — ET / UTC
 
 ### MAST Remote Search Overhaul
