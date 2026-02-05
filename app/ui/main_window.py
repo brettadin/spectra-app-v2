@@ -2494,6 +2494,12 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             self.statusBar().showMessage(f"Note added: {note_text}", 3000)
             self._log("annotations", f"Added note '{note_text}' at {pos_text}")
 
+            # Auto-save annotations for this dataset
+            try:
+                self._save_annotations_for_dataset(annotation.dataset_id)
+            except Exception:
+                pass  # Non-fatal
+
     def _on_notes_toggled(self, visible: bool) -> None:
         """Show or hide all annotation notes."""
         self.plot.set_all_annotations_visible(visible)
@@ -2583,6 +2589,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         
         # Track edits to apply on close
         def apply_edits():
+            edited_datasets = set()
             for row in range(table.rowCount()):
                 dataset_item = table.item(row, 0)
                 if dataset_item is None:
@@ -2591,7 +2598,18 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                 note_item = table.item(row, 2)
                 if note_item:
                     new_text = note_item.text()
-                    self.plot.update_annotation(ann_id, text=new_text)
+                    if self.plot.update_annotation(ann_id, text=new_text):
+                        # Track which datasets were edited
+                        ann = self.plot.get_annotation(ann_id)
+                        if ann:
+                            edited_datasets.add(ann.dataset_id)
+
+            # Auto-save annotations for edited datasets
+            for dataset_id in edited_datasets:
+                try:
+                    self._save_annotations_for_dataset(dataset_id)
+                except Exception:
+                    pass  # Non-fatal
         
         # Buttons
         button_layout = QtWidgets.QHBoxLayout()
@@ -2612,8 +2630,20 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
 
     def _delete_annotation_row(self, table: QtWidgets.QTableWidget, ann_id: str, row: int) -> None:
         """Delete an annotation and remove its row from the table."""
+        # Get dataset ID before deletion
+        ann = self.plot.get_annotation(ann_id)
+        dataset_id = ann.dataset_id if ann else None
+
         self.plot.remove_annotation(ann_id)
         table.removeRow(row)
+
+        # Auto-save annotations for the dataset
+        if dataset_id:
+            try:
+                self._save_annotations_for_dataset(dataset_id)
+            except Exception:
+                pass  # Non-fatal
+
         # Update row indices for remaining delete buttons
         for r in range(table.rowCount()):
             del_btn = table.cellWidget(r, 4)
@@ -2631,18 +2661,30 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         count = len(self.plot.get_annotations())
         if count == 0:
             return
-        
+
         reply = QtWidgets.QMessageBox.question(
             parent_dialog,
             "Clear All Notes",
             f"Delete all {count} notes?",
             QtWidgets.QMessageBox.StandardButton.Yes | QtWidgets.QMessageBox.StandardButton.No
         )
-        
+
         if reply == QtWidgets.QMessageBox.StandardButton.Yes:
+            # Collect all dataset IDs that have annotations
+            dataset_ids = set()
+            for ann in self.plot.get_annotations():
+                dataset_ids.add(ann.dataset_id)
+
             self.plot.clear_annotations()
             parent_dialog.accept()
             self.statusBar().showMessage(f"Cleared {count} notes", 3000)
+
+            # Auto-save (delete annotation files) for all affected datasets
+            for dataset_id in dataset_ids:
+                try:
+                    self._save_annotations_for_dataset(dataset_id)
+                except Exception:
+                    pass  # Non-fatal
 
     def _on_line_labels_toggled(self, visible: bool) -> None:
         """Show or hide textual labels for all spectral line markers."""
@@ -3782,7 +3824,13 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         )
         self._visibility[spectrum.id] = True
         self._append_dataset_row(spectrum)
-        
+
+        # Load any saved annotations for this dataset
+        try:
+            self._load_annotations_for_dataset(spectrum.id)
+        except Exception:
+            pass  # Non-fatal
+
         # If global normalization is enabled, refresh all spectra to apply global norm
         # (but only if not deferred to batch processing)
         if use_global and norm_mode != "None" and not defer_refresh:
@@ -6152,6 +6200,87 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             self.merge_status_label.setText(f"❌ Error: {exc}")
             import traceback
             traceback.print_exc()
+
+    # ----------------------------- Annotation Persistence ------------------
+    def _get_annotations_dir(self) -> Path:
+        """Get the directory for storing annotation files."""
+        annotations_dir = Path("storage") / "annotations"
+        annotations_dir.mkdir(parents=True, exist_ok=True)
+        return annotations_dir
+
+    def _save_annotations_for_dataset(self, dataset_id: str) -> None:
+        """Save all annotations for a specific dataset to a JSON file."""
+        if not dataset_id:
+            return
+
+        annotations = self.plot.get_annotations(dataset_id=dataset_id)
+        if not annotations:
+            # Delete annotation file if no annotations exist
+            annotation_file = self._get_annotations_dir() / f"{dataset_id}.json"
+            if annotation_file.exists():
+                annotation_file.unlink()
+            return
+
+        # Convert annotations to JSON-serializable dict
+        annotations_data = []
+        for ann in annotations:
+            annotations_data.append({
+                'id': ann.id,
+                'dataset_id': ann.dataset_id,
+                'text': ann.text,
+                'x_nm': ann.x_nm,
+                'x_max_nm': ann.x_max_nm,
+                'y_fraction': ann.y_fraction,
+                'visible': ann.visible,
+                'color': ann.color,
+                'vertical': ann.vertical,
+            })
+
+        # Write to file
+        import json
+        annotation_file = self._get_annotations_dir() / f"{dataset_id}.json"
+        with open(annotation_file, 'w') as f:
+            json.dump({
+                'version': '1.0',
+                'dataset_id': dataset_id,
+                'annotations': annotations_data
+            }, f, indent=2)
+
+    def _load_annotations_for_dataset(self, dataset_id: str) -> None:
+        """Load annotations for a specific dataset from JSON file."""
+        if not dataset_id:
+            return
+
+        annotation_file = self._get_annotations_dir() / f"{dataset_id}.json"
+        if not annotation_file.exists():
+            return
+
+        try:
+            import json
+            from app.ui.plot_pane import Annotation
+
+            with open(annotation_file, 'r') as f:
+                data = json.load(f)
+
+            # Clear existing annotations for this dataset
+            self.plot.clear_annotations(dataset_id=dataset_id)
+
+            # Load annotations
+            for ann_data in data.get('annotations', []):
+                annotation = Annotation(
+                    id=ann_data.get('id', ''),
+                    dataset_id=ann_data.get('dataset_id', dataset_id),
+                    text=ann_data.get('text', ''),
+                    x_nm=ann_data.get('x_nm', 0.0),
+                    x_max_nm=ann_data.get('x_max_nm'),
+                    y_fraction=ann_data.get('y_fraction', 0.9),
+                    visible=ann_data.get('visible', True),
+                    color=ann_data.get('color', '#FFFF00'),
+                    vertical=ann_data.get('vertical', False),
+                )
+                self.plot.add_annotation(annotation)
+        except Exception:
+            pass  # Non-fatal: annotation loading failures shouldn't crash the app
 
     # ----------------------------- Overlay refresh ----------------------
     def _update_math_selectors(self) -> None:
