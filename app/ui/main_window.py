@@ -628,7 +628,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             import_action.setIcon(self.style().standardIcon(QtWidgets.QStyle.StandardPixmap.SP_DialogOpenButton))
         except Exception:
             pass
-        import_action.triggered.connect(self.import_file)
+        import_action.triggered.connect(self.open_file)
         self.quick_toolbar.addAction(import_action)
 
         # Export action
