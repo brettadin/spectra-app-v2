@@ -11,3 +11,5 @@ exports/logs/spectra-app.log
 docs/history/KNOWLEDGE_LOG.md
 storage/cache
 storage/cache/_cache
+tmpclaude-*
+.timestamp_tmp.txt
