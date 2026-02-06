@@ -1,0 +1,60 @@
+[MASTER]
+# Use multiple processes to speed up Pylint
+jobs=0
+# Pickle collected data for later comparisons
+persistent=yes
+# Minimum Python version to use for version dependent checks
+py-version=3.11
+
+[MESSAGES CONTROL]
+# Disable specific warnings that are too strict for this project
+disable=
+    missing-module-docstring,
+    missing-class-docstring,
+    missing-function-docstring,
+    too-few-public-methods,
+    too-many-arguments,
+    too-many-locals,
+    too-many-branches,
+    too-many-statements,
+    too-many-instance-attributes,
+    too-many-public-methods,
+    line-too-long,
+    invalid-name,
+    fixme,
+    broad-except,
+    logging-fstring-interpolation,
+    import-outside-toplevel,
+    duplicate-code
+
+[FORMAT]
+# Maximum number of characters on a single line
+max-line-length=120
+# Allow the body of an if to be on the same line
+single-line-if-stmt=no
+# Maximum number of lines in a module
+max-module-lines=2000
+
+[BASIC]
+# Good variable names which should always be accepted
+good-names=i,j,k,x,y,nm,df,ax,fig,exc,pk,id,_
+
+[DESIGN]
+# Maximum number of arguments for function / method
+max-args=10
+# Maximum number of attributes for a class
+max-attributes=15
+# Maximum number of boolean expressions in an if statement
+max-bool-expr=5
+
+[IMPORTS]
+# Allow wildcard imports from modules listed here
+allow-wildcard-with-all=no
+
+[TYPECHECK]
+# Ignore Qt-specific attributes that pylint doesn't understand
+ignored-classes=PySide6,QtCore,QtGui,QtWidgets
+
+[SIMILARITIES]
+# Minimum lines number of a similarity
+min-similarity-lines=10

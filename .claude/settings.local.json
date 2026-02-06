@@ -3,7 +3,10 @@
     "allow": [
       "Bash(python -m pytest:*)",
       "Bash(git add:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(find:*)",
+      "Bash(python -m pylint:*)",
+      "Bash(ls:*)"
     ]
   }
 }
