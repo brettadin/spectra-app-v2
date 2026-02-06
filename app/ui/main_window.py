@@ -3366,18 +3366,6 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             summary = "Imported remote data"
             ref_list = []
 
-        try:
-            self.knowledge_log.record_event(
-                "Remote Import",
-                summary,
-                references=ref_list,
-                persist=True,
-                force_persist=True,
-            )
-        except Exception:
-            # Best-effort logging; do not fail UI flows
-            pass
-
         return last_payload
 
     @staticmethod
@@ -3436,17 +3424,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         except Exception:
             pass
         self._refresh_library_view()
-        # Record in knowledge log and update history
-        try:
-            self.knowledge_log.record_event(
-                "Ingest",
-                f"Ingested file {path.name}",
-                references=[path.name],
-                persist=True,
-                force_persist=True,
-            )
-        finally:
-            self._refresh_history_view()
+        self._refresh_history_view()
 
     def _read_time_series(self, path: Path) -> TimeSeries:
         suffix = path.suffix.lower()
@@ -5955,23 +5933,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             # Add to overlay
             self.overlay_service.add(result)
             self._add_spectrum(result)
-            
-            # Log the operation
-            summary = f"Averaged {len(spectra)} spectra into '{result.name}'"
-            try:
-                extra = metadata.get("wavelength_range") if isinstance(metadata, dict) else None
-                if extra and isinstance(extra, (list, tuple)) and len(extra) == 2:
-                    summary += f" covering {extra[0]:.2f}-{extra[1]:.2f} nm"
-            except Exception:
-                # Metadata enrichment is optional; ignore formatting issues
-                pass
-            self.knowledge_log.record_event(
-                "Merge Average",
-                summary,
-                references=[result.name],
-                persist=False,
-            )
-            
+
             # Update status
             self.merge_status_label.setText(
                 f"✓ Created '{result.name}' from {len(spectra)} spectra"
@@ -6015,26 +5977,12 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                 status = metadata.get('status', '')
                 message = metadata.get('message', 'Result suppressed')
                 self.merge_status_label.setText(f"ℹ️ {message}")
-                self.knowledge_log.record_event(
-                    "Math Subtract",
-                    f"Subtraction of '{spec_b.name}' from '{spec_a.name}' was suppressed (trivial result)",
-                    references=[spec_a.name, spec_b.name],
-                    persist=False,
-                )
                 return
             
             # Add to overlay
             self.overlay_service.add(result)
             self._add_spectrum(result)
-            
-            # Log the operation
-            self.knowledge_log.record_event(
-                "Math Subtract",
-                f"Subtracted '{spec_b.name}' from '{spec_a.name}' → '{result.name}'",
-                references=[result.name],
-                persist=False,
-            )
-            
+
             # Update status
             self.merge_status_label.setText(
                 f"✓ Created '{result.name}' = {spec_a.name} − {spec_b.name}"
@@ -6077,18 +6025,6 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             self.overlay_service.add(result)
             self._add_spectrum(result)
             
-            # Log the operation
-            masked = metadata.get('masked_points', 0)
-            summary = f"Divided '{spec_a.name}' by '{spec_b.name}' → '{result.name}'"
-            if masked > 0:
-                summary += f" ({masked} points masked due to near-zero denominator)"
-            self.knowledge_log.record_event(
-                "Math Ratio",
-                summary,
-                references=[result.name],
-                persist=False,
-            )
-            
             # Update status
             status_msg = f"✓ Created '{result.name}' = {spec_a.name} / {spec_b.name}"
             if masked > 0:
@@ -6125,28 +6061,12 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                 status = str(metadata.get('status', 'suppressed'))
                 msg = str(metadata.get('message', 'Result suppressed'))
                 self.merge_status_label.setText(f"ℹ️ {msg}")
-                self.knowledge_log.record_event(
-                    "Math ND",
-                    f"ND({spec_a.name}, {spec_b.name}) suppressed: {status}",
-                    references=[spec_a.name, spec_b.name],
-                    persist=False,
-                )
                 return
             # Add to overlay
             self.overlay_service.add(result)
             self._add_spectrum(result)
-            # Log
-            masked = int(metadata.get('masked_points', 0)) if isinstance(metadata, dict) else 0
-            summary = f"Computed ND({spec_a.name}, {spec_b.name}) → '{result.name}'"
-            if masked > 0:
-                summary += f" ({masked} points masked)"
-            self.knowledge_log.record_event(
-                "Math ND",
-                summary,
-                references=[result.name],
-                persist=False,
-            )
             # Status
+            masked = int(metadata.get('masked_points', 0)) if isinstance(metadata, dict) else 0
             status_msg = f"✓ Created '{result.name}' = (A − B) / (A + B)"
             if masked > 0:
                 status_msg += f"\n⚠️ {masked} points masked"
@@ -6198,15 +6118,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             # Add to overlay
             self.overlay_service.add(result)
             self._add_spectrum(result)
-            
-            # Log
-            self.knowledge_log.record_event(
-                "Math Smooth",
-                f"Applied {method} smoothing (window={window_size}) to '{spec.name}' → '{result.name}'",
-                references=[result.name],
-                persist=False,
-            )
-            
+
             self.merge_status_label.setText(f"✓ Created '{result.name}' ({method}, window={window_size})")
             
             if hasattr(self, 'merge_name_edit'):
@@ -6247,16 +6159,8 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             # Add to overlay
             self.overlay_service.add(result)
             self._add_spectrum(result)
-            
-            # Log
+
             order_name = "first" if order == 1 else "second"
-            self.knowledge_log.record_event(
-                "Math Derivative",
-                f"Computed {order_name} derivative of '{spec.name}' → '{result.name}'",
-                references=[result.name],
-                persist=False,
-            )
-            
             self.merge_status_label.setText(f"✓ Created '{result.name}' ({order_name} derivative)")
             
             if hasattr(self, 'merge_name_edit'):
@@ -6299,15 +6203,8 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                 # Add spectrum to overlay
                 self.overlay_service.add(result)
                 self._add_spectrum(result)
-                
+
                 total_val = metadata.get('total', 0.0)
-                self.knowledge_log.record_event(
-                    "Math Integral",
-                    f"Computed cumulative integral of '{spec.name}' → '{result.name}' (total: {total_val:.6g})",
-                    references=[result.name],
-                    persist=False,
-                )
-                
                 self.merge_status_label.setText(f"✓ Created '{result.name}' (cumulative, total={total_val:.6g})")
                 
                 if hasattr(self, 'merge_name_edit'):
@@ -6319,14 +6216,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                 # Total: just show the value
                 total_val = metadata.get('total', 0.0)
                 unit = metadata.get('unit', '')
-                
-                self.knowledge_log.record_event(
-                    "Math Integral",
-                    f"Computed total integral of '{spec.name}': {total_val:.6g} {unit}",
-                    references=[spec.name],
-                    persist=False,
-                )
-                
+
                 self.merge_status_label.setText(f"✓ Total integral: {total_val:.6g} {unit}")
                 
         except Exception as exc:
