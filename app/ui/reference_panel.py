@@ -111,6 +111,8 @@ class ReferencePanel(QtWidgets.QWidget):
         self.ir_table = QtWidgets.QTableWidget(0, 3)
         self.ir_table.setHorizontalHeaderLabels(["Group", "min (cm⁻¹)", "max (cm⁻¹)"])
         self.ir_table.horizontalHeader().setStretchLastSection(True)
+        self.ir_table.setSelectionMode(QtWidgets.QAbstractItemView.SelectionMode.ExtendedSelection)
+        self.ir_table.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectionBehavior.SelectRows)
         ir_layout.addWidget(self.ir_table, 1)
         self.reference_tabs.addTab(ir_tab, "IR Functional Groups")
 

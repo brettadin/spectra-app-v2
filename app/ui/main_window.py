@@ -5553,6 +5553,22 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             table.setItem(idx, 3, QtWidgets.QTableWidgetItem(note))
         table.resizeColumnsToContents()
 
+        # Update preview plot with selected lines
+        try:
+            import numpy as np
+            # Clear preview
+            for item in self.reference_panel.reference_plot.listDataItems():
+                self.reference_panel.reference_plot.removeItem(item)
+
+            # Draw vertical lines for each filtered line
+            if filtered:
+                xs = [float(row.get("wavelength_nm", 0)) for row in filtered if row.get("wavelength_nm")]
+                for x_nm in xs:
+                    line = pg.InfiniteLine(pos=x_nm, angle=90, pen=pg.mkPen(color=(100, 100, 180, 150), width=1))
+                    self.reference_panel.reference_plot.addItem(line)
+        except Exception:
+            pass
+
     def _on_reference_line_element_toggled(self, element: str, visible: bool) -> None:
         """Show or hide reference lines for a specific element."""
         if visible:
@@ -5623,8 +5639,9 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             line_item.setToolTip(tooltip)
             text_item.setToolTip(tooltip)
             try:
-                self.plot._plot.addItem(line_item)
-                self.plot._plot.addItem(text_item)
+                # Use ignoreBounds=True so lines don't affect Y-axis scaling
+                self.plot._plot.addItem(line_item, ignoreBounds=True)
+                self.plot._plot.addItem(text_item, ignoreBounds=True)
             except Exception:
                 continue
             markers.append({
