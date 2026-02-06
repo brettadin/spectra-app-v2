@@ -1394,8 +1394,12 @@ class PlotPane(QtWidgets.QWidget):
         self._plot.setUpdatesEnabled(False)
 
     def end_bulk_update(self) -> None:
+        """End bulk update mode and re-enable plot updates.
+
+        Note: Does not autoscale automatically. User can manually autoscale
+        using Ctrl+F or the Autoscale button.
+        """
         self._plot.setUpdatesEnabled(True)
-        self.autoscale()
 
     # ---- Legend theming -------------------------------------------------
     def _apply_legend_theme_style(self) -> None:

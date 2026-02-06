@@ -4651,15 +4651,12 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                 import logging
                 logger = logging.getLogger("spectra")
                 logger.error(f"Error refreshing plot for spectrum {spec.id}: {e}", exc_info=True)
-        # End batch and autoscale once
+        # End batch update without autoscaling
+        # User can manually autoscale using Ctrl+F or the Autoscale button
         try:
             self.plot.end_bulk_update()
         except Exception:
-            # Fallback: ensure autoscale if bulk update unavailable
-            try:
-                self.plot.autoscale()
-            except Exception:
-                pass
+            pass
     
     def _compute_global_normalization_value(self, mode: str) -> float | None:
         """Compute global normalization value across all spectra."""
