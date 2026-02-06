@@ -5021,36 +5021,36 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             is_ir = False
             try:
                 # Tab 0 = IR Functional Groups after consolidation
-                is_ir = (self.reference_tabs.currentIndex() == 0)
+                is_ir = (self.reference_panel.reference_tabs.currentIndex() == 0)
             except Exception:
                 is_ir = False
             if is_ir and unit == "cm⁻¹":
-                self.reference_plot.setLabel("bottom", "Wavenumber (cm⁻¹)")
+                self.reference_panel.reference_plot.setLabel("bottom", "Wavenumber (cm⁻¹)")
             else:
-                self.reference_plot.setLabel("bottom", f"Wavelength ({unit})")
+                self.reference_panel.reference_plot.setLabel("bottom", f"Wavelength ({unit})")
         except Exception:
             pass
 
     def _refresh_reference_view(self) -> None:
         # Clear preview plot and table for fresh content
         try:
-            for item in self.reference_plot.listDataItems():
-                self.reference_plot.removeItem(item)
+            for item in self.reference_panel.reference_plot.listDataItems():
+                self.reference_panel.reference_plot.removeItem(item)
         except Exception:
             pass
-        self.reference_table.setRowCount(0)
-        # Also clear dedicated IR table if present
-        if hasattr(self, 'ir_table') and isinstance(self.ir_table, QtWidgets.QTableWidget):
-            self.ir_table.setRowCount(0)
+
+        # Clear IR table if present
+        if hasattr(self.reference_panel, 'ir_table') and isinstance(self.reference_panel.ir_table, QtWidgets.QTableWidget):
+            self.reference_panel.ir_table.setRowCount(0)
 
         # NEW tab order after consolidation:
         # Tab 0: IR Functional Groups
         # Tab 1: Reference Lines (curated spectral lines)
         # Tab 2: NIST Spectral Lines (NIST ASD)
-        current = self.reference_tabs.currentIndex()
+        current = self.reference_panel.reference_tabs.currentIndex()
         if current == 0:
             # IR functional groups
-            self.reference_filter.setPlaceholderText("Filter IR groups…")
+            self.reference_panel.reference_filter.setPlaceholderText("Filter IR groups…")
             groups = self.reference_library.ir_functional_groups()
             self._populate_reference_table_ir(groups)
             payload = self._build_overlay_for_ir(groups)
@@ -5058,37 +5058,33 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             self._preview_reference_payload(payload)
         elif current == 1:
             # Reference Lines (curated spectral lines)
-            self.reference_filter.setPlaceholderText("Use checkboxes to show lines…")
+            self.reference_panel.reference_filter.setPlaceholderText("Use checkboxes to show lines…")
             self._refresh_reference_lines_table()
-            self.reference_overlay_checkbox.setEnabled(False)
-            self.reference_status_label.setText("Check elements to display lines on plot")
+            self.reference_panel.reference_overlay_checkbox.setEnabled(False)
+            self.reference_panel.reference_status_label.setText("Check elements to display lines on plot")
         elif current == 2:
             # NIST Spectral Lines: no automatic fetch; leave controls ready
-            self.reference_filter.setPlaceholderText("Filter spectral lines…")
-            self.reference_overlay_checkbox.setEnabled(False)
-            self.reference_status_label.setText("Enter element and range, then Fetch")
+            self.reference_panel.reference_filter.setPlaceholderText("Filter spectral lines…")
+            self.reference_panel.reference_overlay_checkbox.setEnabled(False)
+            self.reference_panel.reference_status_label.setText("Enter element and range, then Fetch")
 
     def _populate_reference_table_ir(self, groups: Sequence[Mapping[str, Any]] | None) -> None:
         rows = list(groups or [])
         self._ir_rows = rows
-        # Keep legacy reference_table populated for tests expecting rowCount()
-        try:
-            self.reference_table.setRowCount(len(rows))
-        except Exception:
-            pass
-        if hasattr(self, 'ir_table') and isinstance(self.ir_table, QtWidgets.QTableWidget):
-            self.ir_table.setRowCount(len(rows))
+        # Populate IR table in reference panel
+        if hasattr(self.reference_panel, 'ir_table') and isinstance(self.reference_panel.ir_table, QtWidgets.QTableWidget):
+            self.reference_panel.ir_table.setRowCount(len(rows))
             for r, entry in enumerate(rows):
-                self.ir_table.setItem(r, 0, QtWidgets.QTableWidgetItem(str(entry.get("group", ""))))
-                self.ir_table.setItem(r, 1, QtWidgets.QTableWidgetItem(str(entry.get("wavenumber_cm_1_min", ""))))
-                self.ir_table.setItem(r, 2, QtWidgets.QTableWidgetItem(str(entry.get("wavenumber_cm_1_max", ""))))
+                self.reference_panel.ir_table.setItem(r, 0, QtWidgets.QTableWidgetItem(str(entry.get("group", ""))))
+                self.reference_panel.ir_table.setItem(r, 1, QtWidgets.QTableWidgetItem(str(entry.get("wavenumber_cm_1_min", ""))))
+                self.reference_panel.ir_table.setItem(r, 2, QtWidgets.QTableWidgetItem(str(entry.get("wavenumber_cm_1_max", ""))))
 
     def _preview_reference_payload(self, payload: Mapping[str, Any]) -> None:
         import numpy as _np
         # Clear existing preview items
         try:
-            for item in self.reference_plot.listDataItems():
-                self.reference_plot.removeItem(item)
+            for item in self.reference_panel.reference_plot.listDataItems():
+                self.reference_panel.reference_plot.removeItem(item)
         except Exception:
             pass
         # Draw preview in the reference_plot
@@ -5099,9 +5095,9 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         # For IR domain, show preview axis in cm^-1 for readability
         try:
             if domain == "ir":
-                self.reference_plot.setLabel("bottom", "Wavenumber (cm⁻¹)")
+                self.reference_panel.reference_plot.setLabel("bottom", "Wavenumber (cm⁻¹)")
             else:
-                self.reference_plot.setLabel("bottom", "Wavelength (nm)")
+                self.reference_panel.reference_plot.setLabel("bottom", "Wavelength (nm)")
         except Exception:
             pass
         if domain == "ir" and x.size:
@@ -5110,7 +5106,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         if mode == "bars" and x.size and y.size and x.size == y.size:
             # Render vertical bar segments scaled by y intensities
             try:
-                _, y_range = self.reference_plot.getPlotItem().viewRange()
+                _, y_range = self.reference_panel.reference_plot.getPlotItem().viewRange()
                 y_min, y_max = float(y_range[0]), float(y_range[1])
             except Exception:
                 y_min, y_max = -1.0, 1.0
@@ -5124,16 +5120,16 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                 ys.extend([band_bottom, band_bottom + float(yi) * span, _np.nan])
             pen = pg.mkPen(color=payload.get("color", "#6D597A"), width=float(payload.get("width", 1.2)))
             item = pg.PlotDataItem(_np.array(xs, dtype=float), _np.array(ys, dtype=float), pen=pen, connect="finite")
-            self.reference_plot.addItem(item)
+            self.reference_panel.reference_plot.addItem(item)
             return
         # Default polyline/filled preview
         if x.size and y.size and x.size == y.size:
-            self.reference_plot.plot(x, y, pen=(100, 100, 180, 190), fillLevel=payload.get("fill_level"))
+            self.reference_panel.reference_plot.plot(x, y, pen=(100, 100, 180, 190), fillLevel=payload.get("fill_level"))
 
     def _on_reference_filter_changed(self, text: str) -> None:
         # Only applies to IR tab currently
         try:
-            if self.reference_tabs.currentIndex() != 1:
+            if self.reference_panel.reference_tabs.currentIndex() != 0:  # IR tab is now tab 0
                 return
         except Exception:
             return
@@ -5143,10 +5139,11 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             filtered = [g for g in groups if needle in str(g.get("group", "")).lower() or needle in str(g.get("category", "")).lower()]
         else:
             filtered = list(groups)
+        # Update the table and preview
         self._populate_reference_table_ir(filtered)
         # If there is a selection, preview selected; otherwise preview all filtered
         try:
-            items = self.ir_table.selectedItems()
+            items = self.reference_panel.ir_table.selectedItems()
         except Exception:
             items = []
         rows: list[Mapping[str, Any]] = []
@@ -5164,12 +5161,12 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
     def _on_ir_row_selected(self) -> None:
         # Only act when IR tab is active
         try:
-            if self.reference_tabs.currentIndex() != 1:
+            if self.reference_panel.reference_tabs.currentIndex() != 0:  # IR tab is now tab 0
                 return
         except Exception:
             return
         try:
-            items = self.ir_table.selectedItems()
+            items = self.reference_panel.ir_table.selectedItems()
         except Exception:
             items = []
         if not items:

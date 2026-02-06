@@ -95,8 +95,8 @@ def load_theme_definitions() -> Sequence[ThemeDefinition]:
         ),
         ThemeDefinition(
             key="amber",
-            label="Amber Alert",
-            description="Warm terminal theme with amber and orange accents.",
+            label="Warm Copper",
+            description="Warm copper theme with amber and orange accents.",
             palette=ThemePalette(
                 window="#1a1108",
                 panel="#211709",
