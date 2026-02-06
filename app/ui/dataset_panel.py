@@ -136,13 +136,14 @@ class DatasetPanel(QtWidgets.QWidget):
         layout.addWidget(self.dataset_view)
         self.addAction(self.remove_action)  # For global shortcut
 
-    def add_group(self, group_id: str, group_name: str, color_hint: Optional[str] = None) -> None:
+    def add_group(self, group_id: str, group_name: str, color_hint: Optional[str] = None, parent_group_id: Optional[str] = None) -> None:
         """Add a dataset group to the tree view.
-        
+
         Args:
             group_id: Unique group identifier
             group_name: Display name for group
             color_hint: Optional color name (for future styling)
+            parent_group_id: Optional parent group ID for hierarchical groups
         """
         # Block signals during group creation to prevent premature itemChanged emissions
         self.dataset_model.blockSignals(True)
@@ -150,20 +151,26 @@ class DatasetPanel(QtWidgets.QWidget):
             group_item = QtGui.QStandardItem(group_name)
             group_item.setEditable(False)
             group_item.setData(group_id, role=QtCore.Qt.ItemDataRole.UserRole)  # Store group_id
-            
+
             # Add checkbox for group visibility in second column
             checkbox_item = QtGui.QStandardItem("")
             checkbox_item.setCheckable(True)
             checkbox_item.setCheckState(QtCore.Qt.CheckState.Checked)
             checkbox_item.setData(group_id, role=QtCore.Qt.ItemDataRole.UserRole)  # Store group_id
-            
+
             # Connect itemChanged only once (on first group added)
             if not self._group_items:
                 self.dataset_model.itemChanged.connect(self._on_item_changed)
-            
-            self.dataset_model.appendRow([group_item, checkbox_item])
+
+            # Add as child of parent group if specified, otherwise add as top-level
+            if parent_group_id and parent_group_id in self._group_items:
+                parent_item = self._group_items[parent_group_id]
+                parent_item.appendRow([group_item, checkbox_item])
+            else:
+                self.dataset_model.appendRow([group_item, checkbox_item])
+
             self._group_items[group_id] = group_item
-            
+
             # Set first group as _originals_item for backward compatibility
             if self._originals_item is None:
                 self._originals_item = group_item

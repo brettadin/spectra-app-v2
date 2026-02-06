@@ -288,14 +288,16 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                     loaded_paths.append(str(spec.source_path))
 
             settings.setValue("session/loaded_datasets", loaded_paths)
-        except Exception:
-            pass
+            print(f"[Session] Saved {len(loaded_paths)} dataset paths")
+        except Exception as e:
+            print(f"[Session] Error saving: {e}")
 
     def _restore_loaded_datasets(self) -> None:
         """Restore previously loaded datasets."""
         try:
             settings = QtCore.QSettings("SpectraApp", "DesktopPreview")
             loaded_paths = settings.value("session/loaded_datasets", [])
+            print(f"[Session] Restoring {len(loaded_paths) if isinstance(loaded_paths, list) else 0} dataset(s)")
             if not loaded_paths or not isinstance(loaded_paths, list):
                 return
 
@@ -304,16 +306,19 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                 try:
                     path = Path(path_str)
                     if not path.exists():
+                        print(f"[Session] Path does not exist: {path}")
                         continue
 
                     # Ingest the file (automatically adds to overlay and UI)
+                    print(f"[Session] Loading: {path.name}")
                     self.ingest_service.ingest(path)
-                except Exception:
+                except Exception as e:
                     # Skip files that fail to load
+                    print(f"[Session] Error loading {path_str}: {e}")
                     continue
 
-        except Exception:
-            pass
+        except Exception as e:
+            print(f"[Session] Error restoring: {e}")
 
     # ------------------------------------------------------------------
     def _reset_reference_overlay_state(self) -> None:
@@ -393,8 +398,15 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.dataset_model.itemChanged.connect(self._on_dataset_item_changed)
 
         # Initialize groups in the dataset panel from the grouping service
-        for group in self.group_service.list_groups():
+        # Load parent groups first, then child groups to maintain hierarchy
+        all_groups = self.group_service.list_groups()
+        parent_groups = [g for g in all_groups if not g.parent_group_id]
+        child_groups = [g for g in all_groups if g.parent_group_id]
+
+        for group in parent_groups:
             self.dataset_panel.add_group(group.id, group.name, color_hint=group.color)
+        for group in child_groups:
+            self.dataset_panel.add_group(group.id, group.name, color_hint=group.color, parent_group_id=group.parent_group_id)
         
         # Set _originals_item now that groups have been added (points to first group as fallback)
         self._originals_item = self.dataset_panel._originals_item
@@ -781,13 +793,20 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.plot_toolbar.toggleViewAction().setChecked(True)
         # Ensure visibility for headless UI tests
         self.plot_toolbar.show()
-        # Unit combo
+        # X-axis mode selector (wavelength vs time)
+        self.x_mode_combo = QtWidgets.QComboBox()
+        self.x_mode_combo.addItems(["Wavelength", "Time"])
+        self.x_mode_combo.setCurrentText("Wavelength")
+        self.x_mode_combo.currentTextChanged.connect(self._on_x_mode_changed)
+        self.plot_toolbar.addWidget(QtWidgets.QLabel(" X-Axis: "))
+        self.plot_toolbar.addWidget(self.x_mode_combo)
+        # Unit combo (wavelength or time units depending on mode)
         self.unit_combo = QtWidgets.QComboBox()
         self.unit_combo.addItems(["nm", "Å", "µm", "cm⁻¹"])
         self.unit_combo.setCurrentText("nm")
         self.unit_combo.currentTextChanged.connect(self.plot.set_display_unit)
         self.unit_combo.currentTextChanged.connect(self._on_unit_changed)
-        self.plot_toolbar.addWidget(QtWidgets.QLabel(" X: "))
+        self.plot_toolbar.addWidget(QtWidgets.QLabel(" Unit: "))
         self.plot_toolbar.addWidget(self.unit_combo)
         # Normalization combo
         self.norm_combo = QtWidgets.QComboBox()
@@ -1242,6 +1261,33 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                     self.merge_panel.set_range_values(min_disp, max_disp)
             except Exception:
                 pass
+
+    def _on_x_mode_changed(self, mode_text: str) -> None:
+        """Handle X-axis mode change (Wavelength vs Time)."""
+        mode = mode_text.lower()
+
+        if mode == "wavelength":
+            # Switch to wavelength mode
+            self.plot.set_x_mode("wavelength")
+            # Update unit combo to show wavelength units
+            self.unit_combo.blockSignals(True)
+            self.unit_combo.clear()
+            self.unit_combo.addItems(["nm", "Å", "µm", "cm⁻¹"])
+            self.unit_combo.setCurrentText("nm")
+            self.unit_combo.blockSignals(False)
+            self.plot.set_display_unit("nm")
+        elif mode == "time":
+            # Switch to time mode
+            self.plot.set_x_mode("time", label="Time", unit="s")
+            # Update unit combo to show time units
+            self.unit_combo.blockSignals(True)
+            self.unit_combo.clear()
+            self.unit_combo.addItems(["s", "ms", "µs", "ns", "min", "hr"])
+            self.unit_combo.setCurrentText("s")
+            self.unit_combo.blockSignals(False)
+            self.plot.set_display_unit("s")
+
+        self._schedule_refresh()
 
     def _update_line_marker_positions(self) -> None:
         """Update positions of all spectral line markers after unit or view change.
@@ -3250,7 +3296,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                     # File already loaded - just ensure it's visible and selected
                     if spec.id in self._dataset_items:
                         dataset_item = self._dataset_items[spec.id]
-                        dataset_item.setCheckState(0, QtCore.Qt.CheckState.Checked)
+                        dataset_item.setCheckState(QtCore.Qt.CheckState.Checked)
                         self.dataset_panel.dataset_tree.setCurrentItem(dataset_item)
                         self._log("System", f"'{spec.name}' is already loaded")
                     return
@@ -4449,13 +4495,19 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                 group_type=GroupType.CUSTOM,
                 parent_group_id=parent_group_id if parent_group_id else None,
             )
-            # Add to UI
-            self.dataset_panel.add_group(group_id, name)
-            # Expand the new group
+            # Add to UI (pass parent_group_id for hierarchical display)
+            self.dataset_panel.add_group(group_id, name, parent_group_id=parent_group_id if parent_group_id else None)
+            # Expand the new group and its parent
             group_item = self.dataset_panel.get_group_item(group_id)
             if group_item:
                 index = self.dataset_model.indexFromItem(group_item)
                 self.dataset_view.setExpanded(index, True)
+                # Also expand parent if this is a subgroup
+                if parent_group_id:
+                    parent_item = self.dataset_panel.get_group_item(parent_group_id)
+                    if parent_item:
+                        parent_index = self.dataset_model.indexFromItem(parent_item)
+                        self.dataset_view.setExpanded(parent_index, True)
             self._log("Groups", f"Created group '{name}'")
         except Exception as e:
             self._log("Groups", f"Failed to create group: {e}")
