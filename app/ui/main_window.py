@@ -57,6 +57,7 @@ from app.ui.dataset_panel import DatasetPanel
 from app.ui.reference_panel import ReferencePanel
 from app.ui.merge_panel import MergePanel
 from app.ui.history_panel import HistoryPanel
+from app.ui.legend_panel import LegendPanel
 # from app.ui.calibration_panel import CalibrationPanel  # REMOVED - feature no longer used
 from app.ui.nist_lines_panel import NistLinesPanel
 from app.ui.documentation_dialog import DocumentationDialog
@@ -552,6 +553,18 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.addDockWidget(QtCore.Qt.DockWidgetArea.BottomDockWidgetArea, self.log_dock)
         # Hidden by default; opt-in via View menu
         self.log_dock.hide()
+
+        # Bottom dock: legend panel (compact horizontal legend)
+        self.legend_dock = QtWidgets.QDockWidget("Legend", self)
+        self.legend_dock.setObjectName("dock-legend")
+        self.legend_panel = LegendPanel(self)
+        self.legend_dock.setWidget(self.legend_panel)
+        self.addDockWidget(QtCore.Qt.DockWidgetArea.BottomDockWidgetArea, self.legend_dock)
+        # Visible by default for better UX
+        # Wire legend item clicks to toggle visibility
+        self.legend_panel.legendItemClicked.connect(self._on_legend_item_clicked)
+        # Hide the floating legend on the plot
+        self.plot.set_legend_visible(False)
 
         # History dock (moved into HistoryPanel)
         self.history_dock = QtWidgets.QDockWidget("History", self)
@@ -1734,6 +1747,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         view_menu = menu.addMenu("&View")
         view_menu.addAction(self.dataset_dock.toggleViewAction())
         view_menu.addAction(self.inspector_dock.toggleViewAction())
+        view_menu.addAction(self.legend_dock.toggleViewAction())
         view_menu.addAction(self.history_dock.toggleViewAction())
         view_menu.addAction(self.log_dock.toggleViewAction())
         view_menu.addSeparator()
@@ -3945,6 +3959,18 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self._visibility[spectrum.id] = True
         self._append_dataset_row(spectrum)
 
+        # Update legend panel
+        try:
+            if hasattr(self, 'legend_panel'):
+                self.legend_panel.add_legend_item(
+                    spectrum.id,
+                    spectrum.name,
+                    color,
+                    visible=True
+                )
+        except Exception:
+            pass
+
         # Load any saved annotations for this dataset
         try:
             self._load_annotations_for_dataset(spectrum.id)
@@ -4193,7 +4219,14 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                 self.plot.remove_trace(spec_id)
             except Exception:
                 pass
-            
+
+            # Remove from legend panel
+            try:
+                if hasattr(self, 'legend_panel'):
+                    self.legend_panel.remove_legend_item(spec_id)
+            except Exception:
+                pass
+
             # Remove from internal tracking
             self._dataset_items.pop(spec_id, None)
             self._dataset_color_items.pop(spec_id, None)
@@ -4245,6 +4278,13 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self._visibility.clear()
         self._display_y_units.clear()
 
+        # Clear legend panel
+        try:
+            if hasattr(self, 'legend_panel'):
+                self.legend_panel.clear()
+        except Exception:
+            pass
+
         # Remove all rows from the model
         self._originals_item.removeRows(0, self._originals_item.rowCount())
 
@@ -4273,7 +4313,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         """Toggle visibility of all datasets in a group."""
         if self.plot is None:
             return
-        
+
         # Check if this is the Spectral Lines group (toggle NIST lines)
         try:
             group = self.group_service.get_group(group_id)
@@ -4290,7 +4330,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                 return
         except Exception:
             pass
-        
+
         # Regular dataset groups
         dataset_ids = self._get_datasets_in_group(group_id)
         for spec_id in dataset_ids:
@@ -4299,6 +4339,30 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                 self.plot.set_visible(spec_id, visible)
             except Exception:
                 pass
+
+    def _on_legend_item_clicked(self, dataset_id: str) -> None:
+        """Handle legend item click to toggle dataset visibility."""
+        try:
+            # Toggle visibility state
+            current_visible = self._visibility.get(dataset_id, True)
+            new_visible = not current_visible
+            self._visibility[dataset_id] = new_visible
+
+            # Update plot
+            try:
+                self.plot.set_visible(dataset_id, new_visible)
+            except Exception:
+                pass
+
+            # Update legend panel styling
+            try:
+                if hasattr(self, 'legend_panel'):
+                    self.legend_panel.update_item_visibility(dataset_id, new_visible)
+            except Exception:
+                pass
+
+        except Exception as e:
+            self._log("Legend", f"Failed to toggle visibility: {e}")
 
     def _on_group_expanded_changed(self, group_id: str, is_expanded: bool) -> None:
         """Handle group expand/collapse state change."""

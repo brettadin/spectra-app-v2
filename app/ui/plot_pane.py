@@ -614,6 +614,14 @@ class PlotPane(QtWidgets.QWidget):
         except Exception:
             pass
 
+    def set_legend_visible(self, visible: bool) -> None:
+        """Show or hide the floating legend on the plot."""
+        try:
+            if self._legend is not None:
+                self._legend.setVisible(visible)
+        except Exception:
+            pass
+
     # ------------------------------------------------------------------
     # Range selection support
     # ------------------------------------------------------------------
