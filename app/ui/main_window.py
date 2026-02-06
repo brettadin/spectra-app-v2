@@ -578,15 +578,8 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self._history_search = ""
         self._refresh_history_view()
 
-        # NIST Lines dock (separate from main Datasets)
-        self.nist_lines_dock = QtWidgets.QDockWidget("NIST Lines", self)
-        self.nist_lines_dock.setObjectName("dock-nist-lines")
-        self.nist_lines_panel = NistLinesPanel(self)
-        self.nist_lines_dock.setWidget(self.nist_lines_panel)
-        self.addDockWidget(QtCore.Qt.DockWidgetArea.RightDockWidgetArea, self.nist_lines_dock)
-        # Don't auto-show; open when first NIST fetch completes
-        self.nist_lines_dock.hide()
-        # Back-compat shim for tests expecting a QListWidget-like API
+        # Back-compat shim for tests expecting a QListWidget-like API on nist_lines_panel
+        # Access NIST panel through reference panel's NIST tab
         class _NistCollectionsShim:
             def __init__(self, panel: NistLinesPanel) -> None:
                 self._panel = panel
@@ -602,15 +595,15 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                         self._panel.table_view.setCurrentIndex(index)
                 except Exception:
                     pass
-        # Expose for tests using legacy attribute
-        self.nist_collections_list = _NistCollectionsShim(self.nist_lines_panel)
-        
-        # Wire NIST Lines panel signals
-        self.nist_lines_panel.visibilityChanged.connect(self._on_nist_visibility_changed)
-        self.nist_lines_panel.removeRequested.connect(self._on_nist_remove_requested)
-        self.nist_lines_panel.clearAllRequested.connect(self._on_nist_clear_all_requested)
-        self.nist_lines_panel.nistFetchRequested.connect(self._on_nist_fetch_from_panel)
-        self.nist_lines_panel.cache_button.clicked.connect(self._on_nist_cache_clear_clicked)
+        # Expose for tests using legacy attribute - now points to reference panel's NIST tab
+        self.nist_collections_list = _NistCollectionsShim(self.reference_panel.nist_lines_panel)
+
+        # Wire NIST Lines panel signals (forwarded from ReferencePanel)
+        self.reference_panel.nistFetchRequested.connect(self._on_nist_fetch_from_panel)
+        self.reference_panel.nistVisibilityChanged.connect(self._on_nist_visibility_changed)
+        self.reference_panel.nistRemoveRequested.connect(self._on_nist_remove_requested)
+        self.reference_panel.nistClearAllRequested.connect(self._on_nist_clear_all_requested)
+        self.reference_panel.nist_lines_panel.cache_button.clicked.connect(self._on_nist_cache_clear_clicked)
 
         # Quick Actions toolbar - icon-based shortcuts for common tasks
         self.quick_toolbar = QtWidgets.QToolBar("Quick Actions")
@@ -653,7 +646,13 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             nist_action.setIcon(self.style().standardIcon(QtWidgets.QStyle.StandardPixmap.SP_FileDialogDetailedView))
         except Exception:
             pass
-        nist_action.triggered.connect(lambda: self.nist_lines_dock.show())
+        # Show inspector dock, switch to Reference tab, then switch to NIST Spectral Lines tab
+        def show_nist_panel():
+            self.inspector_dock.show()
+            self.inspector_dock.raise_()
+            self.inspector_tabs.setCurrentIndex(0)  # Reference tab
+            self.reference_tabs.setCurrentIndex(2)  # NIST Spectral Lines tab
+        nist_action.triggered.connect(show_nist_panel)
         self.quick_toolbar.addAction(nist_action)
 
         # Autoscale action
@@ -1303,7 +1302,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         """Refresh NIST collections and range panel when unit changes."""
         # Redraw all visible NIST collections with new unit
         for collection_id in list(self._nist_plot_items.keys()):
-            if self.nist_lines_panel.is_visible(collection_id):
+            if self.reference_panel.nist_lines_panel.is_visible(collection_id):
                 self._draw_nist_collection(collection_id)
         # Reposition custom line list markers in new display units
         try:
@@ -1726,7 +1725,6 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         view_menu.addAction(self.dataset_dock.toggleViewAction())
         view_menu.addAction(self.inspector_dock.toggleViewAction())
         view_menu.addAction(self.history_dock.toggleViewAction())
-        view_menu.addAction(self.nist_lines_dock.toggleViewAction())
         view_menu.addAction(self.log_dock.toggleViewAction())
         view_menu.addSeparator()
         # Toolbars
@@ -4715,14 +4713,14 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         # NIST collections: reassign colours and redraw visible sets
         try:
             self._nist_palette_index = 0
-            if hasattr(self, "nist_lines_panel") and self.nist_lines_panel is not None:
-                for cid in self.nist_lines_panel.get_collections():
+            if hasattr(self.reference_panel, "nist_lines_panel") and self.reference_panel.nist_lines_panel is not None:
+                for cid in self.reference_panel.nist_lines_panel.get_collections():
                     color = self._next_nist_color()
                     if cid in self._nist_collections:
                         self._nist_collections[cid]["color"] = color
                     # Update panel swatch
                     try:
-                        self.nist_lines_panel.set_color(cid, color)
+                        self.reference_panel.nist_lines_panel.set_color(cid, color)
                     except Exception:
                         pass
                     # Redraw on plot if visible
@@ -5110,19 +5108,21 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             }
             
             # Add to NIST Lines panel
-            self.nist_lines_panel.add_collection(collection_id, alias, len(lines), color)
+            self.reference_panel.nist_lines_panel.add_collection(collection_id, alias, len(lines), color)
             
             # Draw on plot (respects visibility state)
             self._draw_nist_collection(collection_id)
-            
-            # Show the NIST Lines dock if this is the first fetch
-            if self.nist_lines_dock.isHidden():
-                self.nist_lines_dock.show()
-                self.nist_lines_dock.raise_()
+
+            # Show the Inspector dock and switch to NIST tab if this is the first fetch
+            if self.inspector_dock.isHidden():
+                self.inspector_dock.show()
+                self.inspector_dock.raise_()
+                self.inspector_tabs.setCurrentIndex(0)  # Reference tab
+                self.reference_tabs.setCurrentIndex(2)  # NIST Spectral Lines tab
             
             # Update status with pinned sets count for compatibility with tests
             try:
-                pinned = len(self.nist_lines_panel.get_collections())
+                pinned = len(self.reference_panel.nist_lines_panel.get_collections())
             except Exception:
                 pinned = 0
             suffix = f" – {pinned} pinned set" + ("s" if pinned != 1 else "") if pinned else ""
@@ -5235,7 +5235,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                 self._nist_plot_items.pop(collection_id, None)
             
             # Remove from panel
-            self.nist_lines_panel.remove_collection(collection_id)
+            self.reference_panel.nist_lines_panel.remove_collection(collection_id)
             
             # Remove from internal state
             self._nist_collections.pop(collection_id, None)
@@ -5253,7 +5253,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         
         # Clear panel
         count = len(self._nist_collections)
-        self.nist_lines_panel.clear()
+        self.reference_panel.nist_lines_panel.clear()
         
         # Clear internal state
         self._nist_plot_items.clear()

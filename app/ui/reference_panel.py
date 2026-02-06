@@ -10,6 +10,7 @@ from typing import Optional
 import pyqtgraph as pg
 from app.qt_compat import get_qt
 from app.ui.plot_pane import PlotPane
+from app.ui.nist_lines_panel import NistLinesPanel
 
 QtCore, QtGui, QtWidgets, _ = get_qt()
 
@@ -26,7 +27,13 @@ class ReferencePanel(QtWidgets.QWidget):
       - overlayToggled(bool): Emitted when overlay checkbox is toggled
       - tabChanged(int): Emitted when reference tab changes
       - irFilterChanged(str): Emitted when IR filter text changes
-    
+      - referenceLinesToggled(str, bool): Emitted when reference line element is toggled
+      - referenceLinesRefreshRequested(): Emitted when refresh is requested
+      - nistFetchRequested(str, float, float): Emitted when NIST fetch is requested (element, lower, upper)
+      - nistVisibilityChanged(str, bool): Emitted when NIST collection visibility changes (collection_id, visible)
+      - nistRemoveRequested(list): Emitted when NIST collection removal is requested
+      - nistClearAllRequested(): Emitted when NIST clear all is requested
+
     Public attributes:
       - reference_overlay_checkbox
       - reference_status_label
@@ -34,6 +41,7 @@ class ReferencePanel(QtWidgets.QWidget):
       - reference_tabs (QTabWidget)
       - reference_filter (for IR filter)
       - ir_table
+      - nist_lines_panel (NistLinesPanel)
     """
 
     overlayToggled = Signal(bool)
@@ -41,6 +49,11 @@ class ReferencePanel(QtWidgets.QWidget):
     irFilterChanged = Signal(str)
     referenceLinesToggled = Signal(str, bool)  # element, visible
     referenceLinesRefreshRequested = Signal()
+    # NIST panel signals (forwarded from NistLinesPanel)
+    nistFetchRequested = Signal(str, float, float)  # element, lower, upper
+    nistVisibilityChanged = Signal(str, bool)  # collection_id, visible
+    nistRemoveRequested = Signal(list)  # list of collection_ids
+    nistClearAllRequested = Signal()
 
     def __init__(self, parent: Optional[QtWidgets.QWidget] = None) -> None:
         super().__init__(parent)
@@ -54,6 +67,8 @@ class ReferencePanel(QtWidgets.QWidget):
         # Reference Lines
         self.reflines_table: QtWidgets.QTableWidget
         self.reflines_checkboxes: dict[str, QtWidgets.QCheckBox]  # element -> checkbox
+        # NIST Lines
+        self.nist_lines_panel: NistLinesPanel
         self._build_ui()
 
     def _build_ui(self) -> None:
@@ -157,6 +172,16 @@ class ReferencePanel(QtWidgets.QWidget):
         reflines_layout.addWidget(info)
         
         self.reference_tabs.addTab(reflines_tab, "Reference Lines")
+
+        # --- NIST Spectral Lines tab (fetch from NIST ASD)
+        self.nist_lines_panel = NistLinesPanel(self)
+        self.reference_tabs.addTab(self.nist_lines_panel, "NIST Spectral Lines")
+
+        # Forward NIST panel signals
+        self.nist_lines_panel.nistFetchRequested.connect(self.nistFetchRequested.emit)
+        self.nist_lines_panel.visibilityChanged.connect(self.nistVisibilityChanged.emit)
+        self.nist_lines_panel.removeRequested.connect(self.nistRemoveRequested.emit)
+        self.nist_lines_panel.clearAllRequested.connect(self.nistClearAllRequested.emit)
 
     def _set_all_reflines_checkboxes(self, checked: bool) -> None:
         """Helper to check/uncheck all element filters at once."""
