@@ -45,7 +45,7 @@ from app.services import (
     KnowledgeLogEntry,
     KnowledgeLogService,
     RemoteDataService,
-        CalibrationService,
+    # CalibrationService,  # REMOVED - feature no longer used
 )
 from app.services.dataset_group_service import DatasetGroupService, GroupType
 from app.services.time_series import TimeSeries
@@ -57,7 +57,7 @@ from app.ui.dataset_panel import DatasetPanel
 from app.ui.reference_panel import ReferencePanel
 from app.ui.merge_panel import MergePanel
 from app.ui.history_panel import HistoryPanel
-from app.ui.calibration_panel import CalibrationPanel
+# from app.ui.calibration_panel import CalibrationPanel  # REMOVED - feature no longer used
 from app.ui.nist_lines_panel import NistLinesPanel
 from app.ui.documentation_dialog import DocumentationDialog
 from app.ui.styles import apply_pyqtgraph_theme, get_app_stylesheet
@@ -144,7 +144,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             remote_store = LocalStore(base_dir=self._default_store_dir)
         self.remote_data_service = RemoteDataService(remote_store)
         self.math_service = MathService(self.units_service)
-        self.calibration_service = CalibrationService()
+        # self.calibration_service = CalibrationService()  # REMOVED - feature no longer used
         self.knowledge_log = knowledge_log_service or KnowledgeLogService(
             default_context="Spectra Desktop Session"
         )
@@ -467,10 +467,10 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
 
         self.inspector_tabs.addTab(self.reference_panel, "Reference")
 
-        # Calibration tab (lightweight controls applied at display-time)
-        self.calibration_panel = CalibrationPanel(self)
-        self.calibration_panel.configChanged.connect(self._on_calibration_changed)
-        self.inspector_tabs.addTab(self.calibration_panel, "Calibration")
+        # Calibration tab - REMOVED - feature no longer used
+        # self.calibration_panel = CalibrationPanel(self)
+        # self.calibration_panel.configChanged.connect(self._on_calibration_changed)
+        # self.inspector_tabs.addTab(self.calibration_panel, "Calibration")
 
         # Remote Data tab
         self.remote_data_panel = RemoteDataPanel(
@@ -1434,7 +1434,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             except Exception:
                 x_nm = np.asarray(spec.x, dtype=float)
                 y_conv = np.asarray(spec.y, dtype=float)
-        x_nm, y_conv = self._apply_calibration_nm(x_nm, y_conv)
+        # x_nm, y_conv = self._apply_calibration_nm(x_nm, y_conv)  # REMOVED - calibration no longer used
         # Unit conversion for display
         if unit == "nm":
             x_disp = x_nm
@@ -1535,34 +1535,35 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         return np.concatenate(xs) if xs else np.array([], dtype=float)
 
     # ----------------------------- Calibration -------------------------
-    def _on_calibration_changed(self, payload: Mapping[str, Any]) -> None:
-        try:
-            self.calibration_service.set_target_fwhm(payload.get("target_fwhm"))
-            self.calibration_service.set_rv_kms(float(payload.get("rv_kms", 0.0) or 0.0))
-            frame = str(payload.get("frame") or "observer")
-            if frame in ("observer", "rest"):
-                self.calibration_service.set_frame(frame)  # currently informational
-        except Exception:
-            pass
-        # Refresh plot and data table to reflect new calibration settings
-        try:
-            self._refresh_plot()
-            self._refresh_data_table()
-        except Exception:
-            pass
+    # REMOVED - Calibration feature no longer used
+    # def _on_calibration_changed(self, payload: Mapping[str, Any]) -> None:
+    #     try:
+    #         self.calibration_service.set_target_fwhm(payload.get("target_fwhm"))
+    #         self.calibration_service.set_rv_kms(float(payload.get("rv_kms", 0.0) or 0.0))
+    #         frame = str(payload.get("frame") or "observer")
+    #         if frame in ("observer", "rest"):
+    #             self.calibration_service.set_frame(frame)  # currently informational
+    #     except Exception:
+    #         pass
+    #     # Refresh plot and data table to reflect new calibration settings
+    #     try:
+    #         self._refresh_plot()
+    #         self._refresh_data_table()
+    #     except Exception:
+    #         pass
 
-    def _apply_calibration_nm(self, x_nm: np.ndarray, y: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
-        """Apply calibration in nm-space and return transformed arrays.
-
-        The CalibrationService operates in the current x-units; we interpret the
-        configured FWHM as matching the current display axis. For simplicity and
-        stability, we apply in nanometers here, which aligns with PlotPane data.
-        """
-        try:
-            x_c, y_c, _s, _meta = self.calibration_service.apply(x_nm, y, None)
-            return np.asarray(x_c, dtype=float), np.asarray(y_c, dtype=float)
-        except Exception:
-            return x_nm, y
+    # def _apply_calibration_nm(self, x_nm: np.ndarray, y: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    #     """Apply calibration in nm-space and return transformed arrays.
+    #
+    #     The CalibrationService operates in the current x-units; we interpret the
+    #     configured FWHM as matching the current display axis. For simplicity and
+    #     stability, we apply in nanometers here, which aligns with PlotPane data.
+    #     """
+    #     try:
+    #         x_c, y_c, _s, _meta = self.calibration_service.apply(x_nm, y, None)
+    #         return np.asarray(x_c, dtype=float), np.asarray(y_c, dtype=float)
+    #     except Exception:
+    #         return x_nm, y
 
     # ----------------------------- Y-Scale -----------------------------
     def _apply_y_scale(self, y: np.ndarray) -> np.ndarray:
@@ -2102,8 +2103,8 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             except Exception:
                 x_nm = np.asarray(spec.x, dtype=float)
                 y_converted = np.asarray(spec.y, dtype=float)
-        # Apply calibration in nm space
-        x_nm, y_converted = self._apply_calibration_nm(x_nm, y_converted)
+        # Apply calibration in nm space - REMOVED - calibration no longer used
+        # x_nm, y_converted = self._apply_calibration_nm(x_nm, y_converted)
 
         # Convert nm to display unit
         if unit == "nm":
@@ -3889,12 +3890,13 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                 # Ultimate fallback: assume x is already in nm
                 x_nm = np.asarray(spectrum.x, dtype=float)
                 y_converted = np.asarray(spectrum.y, dtype=float)
-        
-        # Apply calibration then current normalization mode
+
+        # Apply calibration then current normalization mode - REMOVED - calibration no longer used
         norm_mode = self.norm_combo.currentText()
         use_global = self.norm_global_checkbox.isChecked() if hasattr(self, 'norm_global_checkbox') else False
-        x_nm, y_cal = self._apply_calibration_nm(x_nm, y_converted)
-        
+        # x_nm, y_cal = self._apply_calibration_nm(x_nm, y_converted)
+        y_cal = y_converted  # Skip calibration step
+
         # If global normalization is enabled and there are existing spectra, we need to refresh all
         if use_global and norm_mode != "None" and len(self.overlay_service.list()) > 0:
             # Add the spectrum to the plot with temporary normalization, then refresh all
@@ -4458,8 +4460,9 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                     )
                     y_converted = np.asarray(spec.y, dtype=float)
                 self.plot.update_alias(spec.id, spec.name)
-                # Apply calibration then normalization
-                x_nm, y_cal = self._apply_calibration_nm(x_nm, y_converted)
+                # Apply calibration then normalization - REMOVED - calibration no longer used
+                # x_nm, y_cal = self._apply_calibration_nm(x_nm, y_converted)
+                y_cal = y_converted  # Skip calibration step
                 y_data = self._apply_normalization(y_cal, norm_mode, global_norm_value, x_nm)
                 y_data = self._apply_y_scale(y_data)
                 
@@ -4511,8 +4514,9 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                         np.asarray(spec.x, dtype=float), spec.x_unit
                     )
                     y_converted = np.asarray(spec.y, dtype=float)
-                
-                x_nm, y_cal = self._apply_calibration_nm(x_nm, y_converted)
+
+                # x_nm, y_cal = self._apply_calibration_nm(x_nm, y_converted)  # REMOVED - calibration no longer used
+                y_cal = y_converted  # Skip calibration step
                 all_values.append(y_cal)
             except Exception:
                 pass
