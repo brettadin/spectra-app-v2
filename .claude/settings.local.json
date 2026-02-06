@@ -10,7 +10,8 @@
       "Bash(grep:*)",
       "Bash(git ls-tree:*)",
       "Bash(git diff-tree:*)",
-      "Bash(git status:*)"
+      "Bash(git status:*)",
+      "Bash(python:*)"
     ]
   }
 }

@@ -4271,12 +4271,16 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
 
     def _on_group_visibility_toggled(self, group_id: str, visible: bool) -> None:
         """Toggle visibility of all datasets in a group."""
+        self._log("Groups", f"Toggle visibility: group_id={group_id}, visible={visible}")
+
         if self.plot is None:
+            self._log("Groups", "Plot is None, cannot toggle")
             return
 
         # Check if this is the Spectral Lines group (toggle NIST lines, reference lines, IR groups)
         try:
             group = self.group_service.get_group(group_id)
+            self._log("Groups", f"Group found: {group.name if group else 'None'}")
             if group and group.group_type == GroupType.SPECTRAL_LINES:
                 # Toggle all NIST line collections
                 for collection_id in list(self._nist_collections.keys()):
@@ -4318,6 +4322,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
 
         # Regular dataset groups
         dataset_ids = self._get_datasets_in_group(group_id)
+        self._log("Groups", f"Found {len(dataset_ids)} datasets in group: {dataset_ids}")
         for spec_id in dataset_ids:
             self._visibility[spec_id] = visible
             try:
