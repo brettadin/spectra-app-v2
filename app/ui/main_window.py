@@ -414,18 +414,20 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
 
         # Search/filter bar
         self.library_filter = QtWidgets.QLineEdit()
-        self.library_filter.setPlaceholderText("🔍 Search library...")
+        self.library_filter.setPlaceholderText("🔍 Search library (type to filter)...")
         self.library_filter.setClearButtonEnabled(True)
+        self.library_filter.setToolTip("Filter files by name. Double-click items to load them.")
         self.library_filter.textChanged.connect(self._on_library_filter_changed)
         library_layout.addWidget(self.library_filter)
 
         # Tree view
         self.library_view = QtWidgets.QTreeWidget()
-        self.library_view.setHeaderLabels(["File", "Origin"])
+        self.library_view.setHeaderLabels(["File", "Info"])
         # Set column widths to show full filenames
         self.library_view.setColumnWidth(0, 400)  # Wide column for filenames
-        self.library_view.setColumnWidth(1, 120)  # Narrower for origin/count
+        self.library_view.setColumnWidth(1, 120)  # Narrower for info/count
         self.library_view.setAlternatingRowColors(True)
+        self.library_view.setToolTip("Double-click to load files • Files organized by source • Samples folder always available")
         library_layout.addWidget(self.library_view)
         self.data_tabs.addTab(library_container, "Library")
         self.dataset_dock.setWidget(self.data_tabs)
@@ -3024,12 +3026,13 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                                 child = QtWidgets.QTreeWidgetItem([p.name, ""])
                                 child.setData(0, QtCore.Qt.ItemDataRole.UserRole, str(p))
                                 dir_item.addChild(child)
+                            dir_item.setExpanded(True)  # Expand subdirectories by default
                         else:
                             for p in files:
                                 child = QtWidgets.QTreeWidgetItem([p.name, ""])
                                 child.setData(0, QtCore.Qt.ItemDataRole.UserRole, str(p))
                                 samples_root.addChild(child)
-                    samples_root.setExpanded(False)
+                    samples_root.setExpanded(True)  # Expand samples by default
         except Exception:
             pass
         
@@ -3067,13 +3070,17 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                                 child = QtWidgets.QTreeWidgetItem([p.name, ""])
                                 child.setData(0, QtCore.Qt.ItemDataRole.UserRole, str(p))
                                 dir_item.addChild(child)
-                    storage_root.setExpanded(False)
+                            dir_item.setExpanded(True)  # Expand subdirectories by default
+                    storage_root.setExpanded(True)  # Expand storage by default
         except Exception:
             pass
         
-        # Show placeholder if empty
+        # Show helpful message if completely empty
         if self.library_view.topLevelItemCount() == 0:
-            self.library_view.addTopLevelItem(QtWidgets.QTreeWidgetItem(["No data in library", ""]))
+            placeholder = QtWidgets.QTreeWidgetItem(["📚 Library is empty", ""])
+            hint = QtWidgets.QTreeWidgetItem(["💡 Import files to populate your library", ""])
+            self.library_view.addTopLevelItem(placeholder)
+            self.library_view.addTopLevelItem(hint)
 
         # Connect double-click handler
         try:
