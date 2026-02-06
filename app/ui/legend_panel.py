@@ -118,6 +118,12 @@ class LegendPanel(QtWidgets.QWidget):
         """Update the visual styling of a legend item based on visibility."""
         self._update_item_visibility_style(dataset_id, visible)
 
+    def set_item_visible(self, dataset_id: str, visible: bool) -> None:
+        """Show or hide a legend item completely (not just dim it)."""
+        if dataset_id in self._legend_items:
+            label = self._legend_items[dataset_id]
+            label.setVisible(visible)
+
     def _update_item_visibility_style(self, dataset_id: str, visible: bool) -> None:
         """Apply opacity styling based on visibility state."""
         if dataset_id in self._legend_items:

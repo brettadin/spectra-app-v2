@@ -4169,6 +4169,13 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             except Exception:
                 pass
 
+            # Update legend visibility
+            try:
+                if hasattr(self, 'legend_panel'):
+                    self.legend_panel.set_item_visible(spec_id, checked)
+            except Exception:
+                pass
+
         # Update merge preview to reflect visibility filtering
         try:
             self._mark_merge_preview_stale()
@@ -4331,7 +4338,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         if self.plot is None:
             return
 
-        # Check if this is the Spectral Lines group (toggle NIST lines)
+        # Check if this is the Spectral Lines group (toggle NIST lines, reference lines, IR groups)
         try:
             group = self.group_service.get_group(group_id)
             if group and group.group_type == GroupType.SPECTRAL_LINES:
@@ -4344,6 +4351,31 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                             self._hide_nist_collection(collection_id)
                     except Exception:
                         pass
+
+                # Toggle all reference lines
+                for element in list(self._line_markers_by_element.keys()):
+                    try:
+                        self._set_reference_line_visibility(element, visible)
+                        # Update visibility state
+                        refline_id = f"refline_{element}"
+                        self._visibility[refline_id] = visible
+                        # Update checkbox in tree
+                        self._update_child_checkbox(refline_id, visible)
+                    except Exception:
+                        pass
+
+                # Toggle all IR groups
+                for group_name in list(self._ir_group_markers.keys()):
+                    try:
+                        self._set_ir_group_visibility(group_name, visible)
+                        # Update visibility state
+                        ir_id = f"ir_group_{group_name}"
+                        self._visibility[ir_id] = visible
+                        # Update checkbox in tree
+                        self._update_child_checkbox(ir_id, visible)
+                    except Exception:
+                        pass
+
                 return
         except Exception:
             pass
@@ -4354,6 +4386,16 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             self._visibility[spec_id] = visible
             try:
                 self.plot.set_visible(spec_id, visible)
+            except Exception:
+                pass
+
+            # Update checkbox in dataset panel
+            self._update_child_checkbox(spec_id, visible)
+
+            # Update legend visibility
+            try:
+                if hasattr(self, 'legend_panel'):
+                    self.legend_panel.set_item_visible(spec_id, visible)
             except Exception:
                 pass
 
@@ -4371,15 +4413,73 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             except Exception:
                 pass
 
+            # Update checkbox in dataset panel
+            self._update_child_checkbox(dataset_id, new_visible)
+
             # Update legend panel styling
             try:
                 if hasattr(self, 'legend_panel'):
-                    self.legend_panel.update_item_visibility(dataset_id, new_visible)
+                    self.legend_panel.set_item_visible(dataset_id, new_visible)
             except Exception:
                 pass
 
         except Exception as e:
             self._log("Legend", f"Failed to toggle visibility: {e}")
+
+    def _update_child_checkbox(self, item_id: str, visible: bool) -> None:
+        """Update the checkbox state for a dataset/refline/IR group item in the tree."""
+        try:
+            if self.dataset_model is None:
+                return
+
+            # Find the item in the tree (could be regular dataset, refline, or IR group)
+            target_item = self._dataset_items.get(item_id)
+            if not target_item:
+                # Check refline items
+                for element, item in self._refline_dataset_items.items():
+                    if item.data(QtCore.Qt.ItemDataRole.UserRole) == item_id:
+                        target_item = item
+                        break
+
+            if not target_item:
+                # Check IR group items
+                for group_name, item in self._ir_group_dataset_items.items():
+                    if item.data(QtCore.Qt.ItemDataRole.UserRole) == item_id:
+                        target_item = item
+                        break
+
+            if not target_item:
+                return
+
+            # Get the parent and row
+            parent = target_item.parent()
+            if not parent:
+                # Top-level item, find in model
+                for row in range(self.dataset_model.rowCount()):
+                    if self.dataset_model.item(row, 0) == target_item:
+                        vis_item = self.dataset_model.item(row, 1)
+                        if vis_item:
+                            vis_item.setCheckState(
+                                QtCore.Qt.CheckState.Checked if visible else QtCore.Qt.CheckState.Unchecked
+                            )
+                        return
+            else:
+                # Child item
+                row = target_item.row()
+                vis_item = parent.child(row, 1)
+                if vis_item:
+                    # Block signals to avoid triggering _on_dataset_item_changed
+                    self.dataset_model.blockSignals(True)
+                    try:
+                        vis_item.setCheckState(
+                            QtCore.Qt.CheckState.Checked if visible else QtCore.Qt.CheckState.Unchecked
+                        )
+                    finally:
+                        self.dataset_model.blockSignals(False)
+
+        except Exception:
+            import traceback
+            traceback.print_exc()
 
     def _on_group_expanded_changed(self, group_id: str, is_expanded: bool) -> None:
         """Handle group expand/collapse state change."""
