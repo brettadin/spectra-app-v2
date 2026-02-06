@@ -179,21 +179,19 @@ class DatasetPanel(QtWidgets.QWidget):
         # Only process checkbox items in the second column (visibility column)
         if item.column() != 1:
             return
-        
-        # Check if this is a top-level item (group checkbox)
-        if item.parent() == QtCore.QModelIndex() or item.parent() is None:
-            # Find the corresponding group item
-            parent = item.parent() if hasattr(item, "parent") else None
-            if parent is None:
-                # This is a top-level item, find its group_id
-                for row in range(self.dataset_model.rowCount()):
-                    model_item = self.dataset_model.item(row, 1)
-                    if model_item is item:
-                        group_item = self.dataset_model.item(row, 0)
-                        group_id = group_item.data(QtCore.Qt.ItemDataRole.UserRole)
-                        is_visible = item.checkState() == QtCore.Qt.CheckState.Checked
-                        self.groupVisibilityChanged.emit(group_id, is_visible)
-                        return
+
+        # Check if this is a top-level item (group checkbox) by checking if parent is None
+        # QStandardItem.parent() returns None for top-level items, another QStandardItem otherwise
+        if item.parent() is None:
+            # This is a top-level item (group checkbox), find its group_id
+            for row in range(self.dataset_model.rowCount()):
+                model_item = self.dataset_model.item(row, 1)
+                if model_item is item:
+                    group_item = self.dataset_model.item(row, 0)
+                    group_id = group_item.data(QtCore.Qt.ItemDataRole.UserRole)
+                    is_visible = item.checkState() == QtCore.Qt.CheckState.Checked
+                    self.groupVisibilityChanged.emit(group_id, is_visible)
+                    return
 
     def _on_context_menu_requested(self, position: QtCore.QPoint) -> None:
         """Handle context menu request with group and dataset options."""

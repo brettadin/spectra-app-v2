@@ -264,6 +264,74 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         except Exception:
             pass
 
+        # Restore previously loaded datasets (session persistence)
+        QtCore.QTimer.singleShot(100, self._restore_loaded_datasets)
+
+    # ------------------------------------------------------------------
+    def closeEvent(self, event: QtGui.QCloseEvent) -> None:
+        """Save state before closing."""
+        try:
+            self._save_loaded_datasets()
+        except Exception:
+            pass
+        event.accept()
+
+    def _save_loaded_datasets(self) -> None:
+        """Save currently loaded datasets for session restore."""
+        try:
+            settings = QtCore.QSettings("SpectraApp", "DesktopPreview")
+            # Get all dataset IDs from the store
+            loaded_ids: list[str] = []
+            if self.store is not None:
+                entries = self.store.list_entries()
+                for sha, record in entries.items():
+                    # Only save datasets that are actually in the overlay service (loaded)
+                    try:
+                        if self.overlay_service.get(sha):
+                            loaded_ids.append(sha)
+                    except Exception:
+                        pass
+            settings.setValue("session/loaded_datasets", loaded_ids)
+        except Exception:
+            pass
+
+    def _restore_loaded_datasets(self) -> None:
+        """Restore previously loaded datasets."""
+        try:
+            settings = QtCore.QSettings("SpectraApp", "DesktopPreview")
+            loaded_ids = settings.value("session/loaded_datasets", [])
+            if not loaded_ids or not isinstance(loaded_ids, list):
+                return
+
+            # Load each dataset from the store
+            if self.store is None:
+                return
+
+            entries = self.store.list_entries()
+            for sha in loaded_ids:
+                if sha not in entries:
+                    continue
+                try:
+                    record = entries[sha]
+                    stored_path = record.get("stored_path")
+                    if not stored_path or not Path(stored_path).exists():
+                        continue
+
+                    # Ingest the file
+                    result = self.ingest_service.ingest(Path(stored_path))
+                    if result and result.get("success"):
+                        spec_id = result.get("id")
+                        if spec_id:
+                            # Add to overlay and UI
+                            spec = self.overlay_service.get(spec_id)
+                            if spec:
+                                self._add_spectrum(spec)
+                except Exception:
+                    continue
+
+        except Exception:
+            pass
+
     # ------------------------------------------------------------------
     def _reset_reference_overlay_state(self) -> None:
         """Reset state used by reference/overlay features.
