@@ -1,9 +1,0 @@
-# Neptune UV sample (Voyager 2 UVS)
-# source: https://pds-atmospheres.nmsu.edu/data_and_services/atmospheres_data/catalog.htm
-wavelength_nm,brightness_au
-60,0.7
-80,0.8
-100,0.9
-120,0.85
-150,0.80
-180,0.75
