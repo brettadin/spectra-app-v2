@@ -58,6 +58,24 @@ def load_theme_definitions() -> Sequence[ThemeDefinition]:
             ),
         ),
         ThemeDefinition(
+            key="crypto",
+            label="Crypto Terminal",
+            description="Vibrant financial dashboard aesthetic with neon accents.",
+            palette=ThemePalette(
+                window="#0a0e1a",
+                panel="#0f1419",
+                panel_alt="#151b28",
+                raised="#1a2332",
+                text="#e2e8f0",
+                text_dim="#94a3b8",
+                border="#1e293b",
+                accent="#00ff88",  # Bright crypto green
+                accent_text="#000000",
+                plot_background="#0a0e1a",
+                plot_foreground="#e2e8f0",
+            ),
+        ),
+        ThemeDefinition(
             key="light",
             label="Light",
             description="Bright theme for daylight or print review sessions.",
@@ -99,7 +117,7 @@ def load_theme_definitions() -> Sequence[ThemeDefinition]:
 def default_theme_key() -> str:
     """Return the key of the theme used for new installations."""
 
-    return "dark"
+    return "crypto"
 
 
 def iter_theme_definitions() -> Iterable[ThemeDefinition]:
