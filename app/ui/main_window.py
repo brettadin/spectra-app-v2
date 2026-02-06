@@ -2963,19 +2963,40 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         if self.library_view is None:
             return
         self.library_view.clear()
-        
+
         # Prefer the main store
         effective_store = self.store
         if effective_store is None and hasattr(self, "remote_data_service"):
             effective_store = getattr(self.remote_data_service, "store", None)
-        
+
         entries = effective_store.list_entries() if effective_store is not None else {}
-        
+
+        # ALSO show currently loaded spectra (from overlay service) even if not in store
+        # This handles the case where persistence is disabled but files are loaded
+        loaded_specs: dict = {}
+        if self.overlay_service:
+            for spec_id in self._dataset_items.keys():
+                try:
+                    spec = self.overlay_service.get(spec_id)
+                    if spec and hasattr(spec, 'source_path') and spec.source_path:
+                        # Add to entries if not already there
+                        if spec_id not in entries:
+                            loaded_specs[spec_id] = {
+                                "filename": spec.source_path.name if hasattr(spec.source_path, 'name') else str(spec.source_path),
+                                "stored_path": str(spec.source_path),
+                                "source": {"local": True},  # Mark as local import
+                            }
+                except Exception:
+                    pass
+
+        # Merge loaded specs with store entries
+        all_entries = {**entries, **loaded_specs}
+
         # Organize entries by source type
         local_items: list = []
         remote_items: dict = {}  # provider -> target -> list of (name, record, sha)
-        
-        for _sha, record in entries.items():
+
+        for _sha, record in all_entries.items():
             name = str(record.get("filename") or Path(str(record.get("stored_path", ""))).name)
             src = record.get("source", {})
             
