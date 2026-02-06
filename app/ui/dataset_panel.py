@@ -29,7 +29,8 @@ class DatasetPanel(QtWidgets.QWidget):
       - moveToGroupRequested(indexes, group_id): Emitted when user wants to move datasets
       - renameGroupRequested(group_id, new_name): Emitted when user renames a group
       - deleteGroupRequested(group_id): Emitted when user deletes a group
-    
+      - normalizationLockChanged(indexes, is_locked): Emitted when user locks/unlocks normalization
+
     Public attributes:
       - dataset_filter: QLineEdit
       - dataset_view: QTreeView
@@ -46,6 +47,7 @@ class DatasetPanel(QtWidgets.QWidget):
     moveToGroupRequested = Signal(list, str)  # list of QModelIndex, target group_id
     renameGroupRequested = Signal(str, str)  # group_id, new_name
     deleteGroupRequested = Signal(str)  # group_id
+    normalizationLockChanged = Signal(list, bool)  # list of QModelIndex, is_locked
 
     def __init__(self, parent: Optional[QtWidgets.QWidget] = None) -> None:
         super().__init__(parent)
@@ -254,6 +256,17 @@ class DatasetPanel(QtWidgets.QWidget):
                     move_action.triggered.connect(
                         lambda checked=False, gid=group_id: self.moveToGroupRequested.emit(valid_indexes, gid)
                     )
+
+                # Lock/Unlock normalization
+                menu.addSeparator()
+                if len(valid_indexes) == 1:
+                    lock_action = menu.addAction("Lock Normalization")
+                    unlock_action = menu.addAction("Unlock Normalization")
+                else:
+                    lock_action = menu.addAction(f"Lock Normalization ({len(valid_indexes)} datasets)")
+                    unlock_action = menu.addAction(f"Unlock Normalization ({len(valid_indexes)} datasets)")
+                lock_action.triggered.connect(lambda: self.normalizationLockChanged.emit(valid_indexes, True))
+                unlock_action.triggered.connect(lambda: self.normalizationLockChanged.emit(valid_indexes, False))
 
         menu.exec(self.dataset_view.viewport().mapToGlobal(position))
     

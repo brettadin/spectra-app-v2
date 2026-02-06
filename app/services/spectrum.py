@@ -20,7 +20,7 @@ if TYPE_CHECKING:  # pragma: no cover - used only for typing
 @dataclass(frozen=True)
 class Spectrum:
     """Immutable spectral dataset with provenance and unit tracking.
-    
+
     Attributes:
         id: Unique identifier
         name: Human-readable name
@@ -34,6 +34,7 @@ class Spectrum:
         transforms: History of operations applied
         uncertainty: Standard deviation/error for each y point (optional)
         quality_flags: Bit flags marking data quality issues (optional)
+        normalization_locked: If True, prevents batch normalization operations (for reference data)
     """
 
     id: str
@@ -48,6 +49,7 @@ class Spectrum:
     transforms: Tuple[Dict[str, Any], ...] = field(default_factory=tuple)
     uncertainty: np.ndarray | None = None
     quality_flags: np.ndarray | None = None
+    normalization_locked: bool = False
 
     @staticmethod
     def create(

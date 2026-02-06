@@ -336,6 +336,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.dataset_panel.moveToGroupRequested.connect(self._on_move_to_group_requested)
         self.dataset_panel.renameGroupRequested.connect(self._on_rename_group_requested)
         self.dataset_panel.deleteGroupRequested.connect(self._on_delete_group_requested)
+        self.dataset_panel.normalizationLockChanged.connect(self._on_normalization_lock_changed)
         # Existing model signal (still needed for visibility checkbox changes)
         self.dataset_model.itemChanged.connect(self._on_dataset_item_changed)
 
@@ -730,6 +731,14 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.plot_toolbar.addSeparator()
         self.plot_toolbar.addWidget(QtWidgets.QLabel(" Normalize: "))
         self.plot_toolbar.addWidget(self.norm_combo)
+        # Normalize button (permanently apply normalization)
+        self.normalize_button = QtWidgets.QPushButton("Normalize")
+        self.normalize_button.setToolTip(
+            "Apply normalization to selected datasets (or all unlocked if none selected).\n"
+            "This permanently modifies the dataset. Locked datasets are skipped."
+        )
+        self.normalize_button.clicked.connect(self._on_normalize_datasets)
+        self.plot_toolbar.addWidget(self.normalize_button)
         # Y scale combo (to improve visibility across dynamic ranges)
         self.y_scale_combo = QtWidgets.QComboBox()
         self.y_scale_combo.addItems(["Linear", "Log10", "Asinh"])  # Safe scales; Log10 uses signed-log
@@ -3995,6 +4004,11 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         if metadata_parts:
             display_name = f"{spectrum.name} ({', '.join(metadata_parts)})"
 
+        # Add lock icon if normalization is locked
+        if spectrum.normalization_locked:
+            lock_icon = "\U0001F512 "  # 🔒
+            display_name = lock_icon + display_name
+
         alias_item = QtGui.QStandardItem(display_name)
         alias_item.setEditable(False)
         # Store spectrum ID directly in item data for O(1) lookup in event handlers
@@ -4407,6 +4421,162 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             self._log("Groups", f"Deleted group '{group.name}'")
         except Exception as e:
             self._log("Groups", f"Failed to delete group: {e}")
+
+    def _on_normalization_lock_changed(self, indexes: List[QtCore.QModelIndex], is_locked: bool) -> None:
+        """Handle request to lock/unlock normalization for selected datasets."""
+        try:
+            from dataclasses import replace
+
+            for index in indexes:
+                if not index.parent().isValid():
+                    continue  # Skip group items
+
+                # Get spectrum ID from the item
+                alias_item = self.dataset_model.itemFromIndex(index)
+                if not alias_item:
+                    continue
+
+                spec_id = alias_item.data(QtCore.Qt.ItemDataRole.UserRole)
+                if not spec_id:
+                    continue
+
+                # Get the spectrum and update its lock state
+                try:
+                    spectrum = self.overlay_service.get(spec_id)
+                    updated_spectrum = replace(spectrum, normalization_locked=is_locked)
+
+                    # Update in overlay service
+                    self.overlay_service.remove(spec_id)
+                    self.overlay_service.add(updated_spectrum)
+
+                    # Update the display name to show lock icon
+                    current_text = alias_item.text()
+                    lock_icon = "\U0001F512 "  # 🔒
+
+                    if is_locked:
+                        # Add lock icon if not already present
+                        if not current_text.startswith(lock_icon):
+                            alias_item.setText(lock_icon + current_text)
+                    else:
+                        # Remove lock icon if present
+                        if current_text.startswith(lock_icon):
+                            alias_item.setText(current_text[len(lock_icon):])
+
+                except Exception as e:
+                    self._log("Normalization", f"Failed to update lock state for {spec_id}: {e}")
+                    continue
+
+            lock_status = "locked" if is_locked else "unlocked"
+            count = len(indexes)
+            self._log("Normalization", f"{count} dataset(s) {lock_status}")
+
+        except Exception as e:
+            self._log("Normalization", f"Failed to change normalization lock: {e}")
+
+    def _on_normalize_datasets(self) -> None:
+        """Permanently normalize selected datasets (or all unlocked if none selected)."""
+        try:
+            # Get normalization mode from combo
+            norm_mode = self.norm_combo.currentText() if self.norm_combo else "None"
+            if norm_mode == "None":
+                QtWidgets.QMessageBox.information(
+                    self, "No Normalization Mode",
+                    "Please select a normalization mode (Max or Area) from the dropdown first."
+                )
+                return
+
+            # Determine which datasets to normalize
+            selected_indexes = self.dataset_view.selectionModel().selectedRows() if self.dataset_view.selectionModel() else []
+            dataset_indexes = [idx for idx in selected_indexes if idx.parent().isValid()]
+
+            # Get list of spectrum IDs to normalize
+            spec_ids_to_normalize = []
+
+            if dataset_indexes:
+                # Normalize only selected datasets
+                for index in dataset_indexes:
+                    alias_item = self.dataset_model.itemFromIndex(index)
+                    if alias_item:
+                        spec_id = alias_item.data(QtCore.Qt.ItemDataRole.UserRole)
+                        if spec_id:
+                            spec_ids_to_normalize.append(spec_id)
+            else:
+                # No selection - normalize all unlocked datasets
+                spec_ids_to_normalize = [
+                    spec.id for spec in self.overlay_service.list()
+                    if not spec.normalization_locked
+                ]
+
+            if not spec_ids_to_normalize:
+                QtWidgets.QMessageBox.information(
+                    self, "No Datasets to Normalize",
+                    "No unlocked datasets available to normalize."
+                )
+                return
+
+            # Count locked datasets that were skipped
+            locked_count = 0
+            normalized_count = 0
+
+            # Normalize each dataset
+            for spec_id in spec_ids_to_normalize:
+                try:
+                    spectrum = self.overlay_service.get(spec_id)
+
+                    # Skip if locked
+                    if spectrum.normalization_locked:
+                        locked_count += 1
+                        continue
+
+                    # Apply normalization to the data
+                    x_canonical = np.asarray(spectrum.x, dtype=np.float64)
+                    y_canonical = np.asarray(spectrum.y, dtype=np.float64)
+
+                    # Apply normalization using overlay service's method
+                    y_normalized, norm_meta = self.overlay_service._apply_normalization(
+                        x_canonical, y_canonical, norm_mode
+                    )
+
+                    # Check if normalization was actually applied
+                    if norm_meta and norm_meta.get("applied", False):
+                        # Create new spectrum with normalized data
+                        from dataclasses import replace
+                        normalized_spectrum = replace(
+                            spectrum,
+                            y=y_normalized,
+                            metadata={**spectrum.metadata, "normalization_applied": norm_meta}
+                        )
+
+                        # Update in overlay service
+                        self.overlay_service.remove(spec_id)
+                        self.overlay_service.add(normalized_spectrum)
+                        normalized_count += 1
+                    else:
+                        # Normalization couldn't be applied (e.g., no finite values)
+                        reason = norm_meta.get("reason", "unknown") if norm_meta else "unknown"
+                        self._log("Normalization", f"Skipped '{spectrum.name}': {reason}")
+
+                except Exception as e:
+                    self._log("Normalization", f"Failed to normalize '{spec_id}': {e}")
+                    continue
+
+            # Show summary
+            msg = f"Normalized {normalized_count} dataset(s) using {norm_mode} mode."
+            if locked_count > 0:
+                msg += f"\n{locked_count} locked dataset(s) were skipped."
+
+            self._log("Normalization", msg)
+            QtWidgets.QMessageBox.information(self, "Normalization Complete", msg)
+
+            # Refresh the plot to show updated data
+            self._schedule_refresh()
+
+        except Exception as e:
+            self._log("Normalization", f"Failed to normalize datasets: {e}")
+            QtWidgets.QMessageBox.critical(
+                self, "Normalization Error",
+                f"Failed to normalize datasets:\n{e}"
+            )
 
     def _on_max_points_changed(self, value: int) -> None:
         self._plot_max_points = int(value)
