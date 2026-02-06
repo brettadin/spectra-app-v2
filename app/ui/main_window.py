@@ -4956,7 +4956,8 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             # If IR tab is active, prefer wavenumber labelling for clarity
             is_ir = False
             try:
-                is_ir = (self.reference_tabs.currentIndex() == 1)
+                # Tab 0 = IR Functional Groups after consolidation
+                is_ir = (self.reference_tabs.currentIndex() == 0)
             except Exception:
                 is_ir = False
             if is_ir and unit == "cm⁻¹":
@@ -4977,13 +4978,13 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         # Also clear dedicated IR table if present
         if hasattr(self, 'ir_table') and isinstance(self.ir_table, QtWidgets.QTableWidget):
             self.ir_table.setRowCount(0)
+
+        # NEW tab order after consolidation:
+        # Tab 0: IR Functional Groups
+        # Tab 1: Reference Lines (curated spectral lines)
+        # Tab 2: NIST Spectral Lines (NIST ASD)
         current = self.reference_tabs.currentIndex()
         if current == 0:
-            # NIST: no automatic fetch; leave controls ready
-            self.reference_filter.setPlaceholderText("Filter IR groups…")
-            self.reference_overlay_checkbox.setEnabled(False)
-            self.reference_status_label.setText("Enter element and range, then Fetch")
-        elif current == 1:
             # IR functional groups
             self.reference_filter.setPlaceholderText("Filter IR groups…")
             groups = self.reference_library.ir_functional_groups()
@@ -4991,12 +4992,17 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             payload = self._build_overlay_for_ir(groups)
             self._update_reference_overlay_state(payload)
             self._preview_reference_payload(payload)
-        elif current == 2:
+        elif current == 1:
             # Reference Lines (curated spectral lines)
             self.reference_filter.setPlaceholderText("Use checkboxes to show lines…")
             self._refresh_reference_lines_table()
             self.reference_overlay_checkbox.setEnabled(False)
             self.reference_status_label.setText("Check elements to display lines on plot")
+        elif current == 2:
+            # NIST Spectral Lines: no automatic fetch; leave controls ready
+            self.reference_filter.setPlaceholderText("Filter spectral lines…")
+            self.reference_overlay_checkbox.setEnabled(False)
+            self.reference_status_label.setText("Enter element and range, then Fetch")
 
     def _populate_reference_table_ir(self, groups: Sequence[Mapping[str, Any]] | None) -> None:
         rows = list(groups or [])
