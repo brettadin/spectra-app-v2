@@ -280,40 +280,49 @@ class DatasetGroupService:
         self._save_config()
         return True
     
-    def assign_to_group(self, spectrum: Spectrum, target_group_id: Optional[str] = None) -> str:
+    def assign_to_group(self, spectrum_or_id: Spectrum | str, target_group_id: Optional[str] = None) -> str:
         """Assign a spectrum to a group.
-        
+
         Auto-categorizes if target_group_id not provided based on spectrum metadata.
-        
+
         Args:
-            spectrum: The spectrum to assign
+            spectrum_or_id: The spectrum object OR spectrum ID string to assign
             target_group_id: Explicit target group ID (optional)
-        
+
         Returns:
             The group ID the spectrum was assigned to
         """
+        # Get spectrum ID - accept both Spectrum objects and string IDs
+        if isinstance(spectrum_or_id, str):
+            spectrum_id = spectrum_or_id
+            spectrum = None  # We don't have the full object
+        else:
+            spectrum_id = spectrum_or_id.id
+            spectrum = spectrum_or_id
+
         if target_group_id:
             # Explicit assignment
-            self._assignments[spectrum.id] = target_group_id
+            self._assignments[spectrum_id] = target_group_id
             self._save_config()
             return target_group_id
         
-        # Auto-categorize based on metadata
-        group_type = self._infer_group_type(spectrum)
-        default_group = self.get_default_group(group_type)
-        
-        if default_group:
-            self._assignments[spectrum.id] = default_group.id
-            self._save_config()
-            return default_group.id
-        
+        # Auto-categorize based on metadata (only if we have the full spectrum object)
+        if spectrum:
+            group_type = self._infer_group_type(spectrum)
+            default_group = self.get_default_group(group_type)
+
+            if default_group:
+                self._assignments[spectrum_id] = default_group.id
+                self._save_config()
+                return default_group.id
+
         # Fallback to first available group
         groups = list(self._groups.values())
         if groups:
-            self._assignments[spectrum.id] = groups[0].id
+            self._assignments[spectrum_id] = groups[0].id
             self._save_config()
             return groups[0].id
-        
+
         return ""
     
     def _infer_group_type(self, spectrum: Spectrum) -> GroupType:

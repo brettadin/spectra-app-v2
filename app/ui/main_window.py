@@ -280,18 +280,14 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         """Save currently loaded datasets for session restore."""
         try:
             settings = QtCore.QSettings("SpectraApp", "DesktopPreview")
-            # Get all dataset IDs from the store
-            loaded_ids: list[str] = []
-            if self.store is not None:
-                entries = self.store.list_entries()
-                for sha, record in entries.items():
-                    # Only save datasets that are actually in the overlay service (loaded)
-                    try:
-                        if self.overlay_service.get(sha):
-                            loaded_ids.append(sha)
-                    except Exception:
-                        pass
-            settings.setValue("session/loaded_datasets", loaded_ids)
+            loaded_paths: list[str] = []
+
+            # Get all currently loaded spectra from overlay service
+            for spec in self.overlay_service.list():
+                if spec.source_path and spec.source_path.exists():
+                    loaded_paths.append(str(spec.source_path))
+
+            settings.setValue("session/loaded_datasets", loaded_paths)
         except Exception:
             pass
 
@@ -299,34 +295,21 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         """Restore previously loaded datasets."""
         try:
             settings = QtCore.QSettings("SpectraApp", "DesktopPreview")
-            loaded_ids = settings.value("session/loaded_datasets", [])
-            if not loaded_ids or not isinstance(loaded_ids, list):
+            loaded_paths = settings.value("session/loaded_datasets", [])
+            if not loaded_paths or not isinstance(loaded_paths, list):
                 return
 
-            # Load each dataset from the store
-            if self.store is None:
-                return
-
-            entries = self.store.list_entries()
-            for sha in loaded_ids:
-                if sha not in entries:
-                    continue
+            # Reload each file path
+            for path_str in loaded_paths:
                 try:
-                    record = entries[sha]
-                    stored_path = record.get("stored_path")
-                    if not stored_path or not Path(stored_path).exists():
+                    path = Path(path_str)
+                    if not path.exists():
                         continue
 
-                    # Ingest the file
-                    result = self.ingest_service.ingest(Path(stored_path))
-                    if result and result.get("success"):
-                        spec_id = result.get("id")
-                        if spec_id:
-                            # Add to overlay and UI
-                            spec = self.overlay_service.get(spec_id)
-                            if spec:
-                                self._add_spectrum(spec)
+                    # Ingest the file (automatically adds to overlay and UI)
+                    self.ingest_service.ingest(path)
                 except Exception:
+                    # Skip files that fail to load
                     continue
 
         except Exception:
@@ -3252,24 +3235,43 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         except Exception:
             path_str = None
             stored_path = None
-        
+
+        # Determine the actual file path to check
+        actual_path = None
+        if stored_path and Path(str(stored_path)).exists():
+            actual_path = Path(str(stored_path))
+        elif path_str and not path_str.startswith("sha") and Path(str(path_str)).exists():
+            actual_path = Path(str(path_str))
+
+        # Check if this file is already loaded (to prevent duplicates)
+        if actual_path:
+            for spec in self.overlay_service.list():
+                if spec.source_path and spec.source_path.resolve() == actual_path.resolve():
+                    # File already loaded - just ensure it's visible and selected
+                    if spec.id in self._dataset_items:
+                        dataset_item = self._dataset_items[spec.id]
+                        dataset_item.setCheckState(0, QtCore.Qt.CheckState.Checked)
+                        self.dataset_panel.dataset_tree.setCurrentItem(dataset_item)
+                        self._log("System", f"'{spec.name}' is already loaded")
+                    return
+
         # Determine which group to use based on source
         target_group_id = None
-        
+
         # Check if this is from MAST (remote)
         parent = item.parent()
         grandparent = parent.parent() if parent else None
         if parent:
             parent_text = parent.text(0).upper() if parent.text(0) else ""
             grandparent_text = grandparent.text(0).upper() if grandparent and grandparent.text(0) else ""
-            
+
             if "MAST" in parent_text or "MAST" in grandparent_text or "REMOTE" in parent_text:
                 # Route to Remote Data group
                 from app.services.dataset_group_service import GroupType
                 remote_group = self.group_service.get_default_group(GroupType.REMOTE)
                 if remote_group:
                     target_group_id = remote_group.id
-        
+
         # Try stored_path first (for cached remote files)
         if stored_path and Path(str(stored_path)).exists():
             try:
@@ -3277,7 +3279,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
                 return
             except Exception:
                 pass
-        
+
         # Fall back to direct path (for samples)
         if path_str and not path_str.startswith("sha") and Path(str(path_str)).exists():
             try:
