@@ -819,6 +819,10 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self._line_labels_visible = True  # Global toggle for all labels
         # Curated reference lines loaded from samples/reference_lines/
         self._reference_lines_data: List[Dict[str, str]] = []
+        # Track dataset panel items for reference lines and IR groups
+        self._refline_dataset_items: Dict[str, QtGui.QStandardItem] = {}  # element -> dataset panel item
+        self._ir_group_dataset_items: Dict[str, QtGui.QStandardItem] = {}  # group_name -> dataset panel item
+        self._ir_group_markers: Dict[str, List[Any]] = {}  # group_name -> list of plot items
 
     # ----------------------------- Merge / Math handlers -------------
     def _selected_dataset_ids(self) -> List[str]:
@@ -4132,7 +4136,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         row = index.row()
         alias_index = self.dataset_model.index(row, 0, parent)
         alias_item = self.dataset_model.itemFromIndex(alias_index)
-        
+
         # Use item's data role to store spec_id directly (avoids O(n) search)
         spec_id = alias_item.data(QtCore.Qt.ItemDataRole.UserRole)
         if spec_id is None:
@@ -4148,10 +4152,23 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         vis_item = self.dataset_model.itemFromIndex(vis_index)
         checked = vis_item.checkState() == QtCore.Qt.CheckState.Checked if vis_item else True
         self._visibility[spec_id] = checked
-        try:
-            self.plot.set_visible(spec_id, checked)
-        except Exception:
-            pass
+
+        # Handle different item types
+        if spec_id.startswith("refline_"):
+            # Reference line element visibility toggle
+            element = spec_id.replace("refline_", "")
+            self._set_reference_line_visibility(element, checked)
+        elif spec_id.startswith("ir_group_"):
+            # IR functional group visibility toggle
+            group_name = spec_id.replace("ir_group_", "")
+            self._set_ir_group_visibility(group_name, checked)
+        else:
+            # Regular dataset visibility
+            try:
+                self.plot.set_visible(spec_id, checked)
+            except Exception:
+                pass
+
         # Update merge preview to reflect visibility filtering
         try:
             self._mark_merge_preview_stale()
@@ -5170,17 +5187,25 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         except Exception:
             items = []
         if not items:
-            # No selection – preview all visible rows
-            rows = list(self._ir_rows)
+            # No selection – preview all visible rows (don't add to main plot)
+            return
         else:
             rows = []
             sel_rows = sorted({it.row() for it in items})
             for r in sel_rows:
                 if 0 <= r < len(self._ir_rows):
                     rows.append(self._ir_rows[r])
+
+        # Update preview
         payload = self._build_overlay_for_ir(rows)
         self._update_reference_overlay_state(payload)
         self._preview_reference_payload(payload)
+
+        # Add selected groups to main plot and dataset panel
+        for row in rows:
+            group_name = row.get("group", "")
+            if group_name:
+                self._add_ir_group_to_plot_and_panel(group_name, row)
 
     def _on_nist_fetch_from_panel(self, element: str, lower: float, upper: float) -> None:
         """Handle NIST fetch request from NistLinesPanel signal."""
@@ -5574,9 +5599,13 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         if visible:
             # Add lines for this element
             self._add_reference_lines_for_element(element)
+            # Add to Datasets panel under Spectral Lines group
+            self._add_reference_line_to_dataset_panel(element)
         else:
             # Remove lines for this element
             self._remove_reference_lines_for_element(element)
+            # Remove from Datasets panel
+            self._remove_reference_line_from_dataset_panel(element)
         # Refresh table
         self._refresh_reference_lines_table()
         # Reposition all markers
@@ -5662,6 +5691,213 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             except Exception:
                 pass
         self._line_markers_by_element.pop(element, None)
+
+    def _add_reference_line_to_dataset_panel(self, element: str) -> None:
+        """Add reference line element to Datasets panel under Spectral Lines group."""
+        try:
+            # Find or create the Spectral Lines group
+            group = self.group_service.get_group_by_type(GroupType.SPECTRAL_LINES)
+            if not group:
+                # Create the Spectral Lines group if it doesn't exist
+                group = self.group_service.create_group("Spectral Lines", group_type=GroupType.SPECTRAL_LINES)
+                self.dataset_panel.add_group(group.id, group.name)
+
+            group_item = self.dataset_panel.get_group_item(group.id)
+            if not group_item:
+                return
+
+            # Create a unique ID for this reference line element
+            refline_id = f"refline_{element}"
+
+            # Create dataset items (name and visibility checkbox)
+            alias_item = QtGui.QStandardItem(f"Ref Lines: {element}")
+            alias_item.setEditable(False)
+            alias_item.setData(refline_id, role=QtCore.Qt.ItemDataRole.UserRole)
+
+            visible_item = QtGui.QStandardItem("")
+            visible_item.setCheckable(True)
+            visible_item.setCheckState(QtCore.Qt.CheckState.Checked)
+            visible_item.setData(refline_id, role=QtCore.Qt.ItemDataRole.UserRole)
+
+            # Add to group
+            group_item.appendRow([alias_item, visible_item])
+
+            # Store the item for later removal
+            self._refline_dataset_items[element] = alias_item
+
+            # Initialize visibility state
+            self._visibility[refline_id] = True
+
+        except Exception:
+            import traceback
+            traceback.print_exc()
+
+    def _remove_reference_line_from_dataset_panel(self, element: str) -> None:
+        """Remove reference line element from Datasets panel."""
+        try:
+            if element in self._refline_dataset_items:
+                alias_item = self._refline_dataset_items.pop(element)
+                parent = alias_item.parent()
+                if parent:
+                    parent.removeRow(alias_item.row())
+
+                # Clean up visibility state
+                refline_id = f"refline_{element}"
+                self._visibility.pop(refline_id, None)
+        except Exception:
+            import traceback
+            traceback.print_exc()
+
+    def _set_reference_line_visibility(self, element: str, visible: bool) -> None:
+        """Show or hide reference line markers for a specific element."""
+        markers = self._line_markers_by_element.get(element, [])
+        for marker in markers:
+            try:
+                line_item = marker.get('line')
+                text_item = marker.get('text')
+                if line_item:
+                    line_item.setVisible(visible)
+                if text_item:
+                    text_item.setVisible(visible and self._line_labels_visible)
+            except Exception:
+                pass
+
+    def _set_ir_group_visibility(self, group_name: str, visible: bool) -> None:
+        """Show or hide IR functional group markers on the plot."""
+        markers = self._ir_group_markers.get(group_name, [])
+        for item in markers:
+            try:
+                item.setVisible(visible)
+            except Exception:
+                pass
+
+    def _add_ir_group_to_plot_and_panel(self, group_name: str, ir_data: dict) -> None:
+        """Add IR functional group to main plot and dataset panel."""
+        try:
+            # Skip if already added
+            if group_name in self._ir_group_dataset_items:
+                return
+
+            # Find or create the Spectral Lines group
+            group = self.group_service.get_group_by_type(GroupType.SPECTRAL_LINES)
+            if not group:
+                group = self.group_service.create_group("Spectral Lines", group_type=GroupType.SPECTRAL_LINES)
+                self.dataset_panel.add_group(group.id, group.name)
+
+            group_item = self.dataset_panel.get_group_item(group.id)
+            if not group_item:
+                return
+
+            # Create unique ID for this IR group
+            ir_id = f"ir_group_{group_name}"
+
+            # Create dataset items
+            alias_item = QtGui.QStandardItem(f"IR: {group_name}")
+            alias_item.setEditable(False)
+            alias_item.setData(ir_id, role=QtCore.Qt.ItemDataRole.UserRole)
+
+            visible_item = QtGui.QStandardItem("")
+            visible_item.setCheckable(True)
+            visible_item.setCheckState(QtCore.Qt.CheckState.Checked)
+            visible_item.setData(ir_id, role=QtCore.Qt.ItemDataRole.UserRole)
+
+            # Add to group
+            group_item.appendRow([alias_item, visible_item])
+
+            # Store the item
+            self._ir_group_dataset_items[group_name] = alias_item
+
+            # Initialize visibility state
+            self._visibility[ir_id] = True
+
+            # Draw on main plot
+            self._draw_ir_group_on_plot(group_name, ir_data)
+
+        except Exception:
+            import traceback
+            traceback.print_exc()
+
+    def _draw_ir_group_on_plot(self, group_name: str, ir_data: dict) -> None:
+        """Draw IR functional group range on the main plot."""
+        try:
+            min_wn = float(ir_data.get("min_wavenumber", 0))
+            max_wn = float(ir_data.get("max_wavenumber", 0))
+            if min_wn <= 0 or max_wn <= 0:
+                return
+
+            # Convert wavenumber to nm and then to display units
+            min_nm = 1e7 / min_wn if min_wn > 0 else 0
+            max_nm = 1e7 / max_wn if max_wn > 0 else 0
+
+            # Get current display unit
+            unit = self.unit_combo.currentText() if self.unit_combo is not None else "nm"
+            if unit == "nm":
+                x_min, x_max = min_nm, max_nm
+            elif unit == "Å":
+                x_min, x_max = min_nm * 10.0, max_nm * 10.0
+            elif unit == "µm":
+                x_min, x_max = min_nm / 1000.0, max_nm / 1000.0
+            elif unit == "cm⁻¹":
+                x_min, x_max = min_wn, max_wn
+            else:
+                x_min, x_max = min_nm, max_nm
+
+            # Create shaded region
+            import numpy as np
+            color = self._next_palette_color()
+            brush = pg.mkBrush(color=(*color.getRgb()[:3], 50))  # Semi-transparent
+            pen = pg.mkPen(color=color, width=1.5, style=QtCore.Qt.PenStyle.DashLine)
+
+            # Create LinearRegionItem for the IR range
+            region = pg.LinearRegionItem(
+                values=(x_min, x_max),
+                orientation='vertical',
+                brush=brush,
+                pen=pen,
+                movable=False
+            )
+
+            # Add to plot with ignoreBounds
+            try:
+                self.plot._plot.addItem(region, ignoreBounds=True)
+            except Exception:
+                self.plot._plot.addItem(region)
+
+            # Store the marker
+            if group_name not in self._ir_group_markers:
+                self._ir_group_markers[group_name] = []
+            self._ir_group_markers[group_name].append(region)
+
+        except Exception:
+            import traceback
+            traceback.print_exc()
+
+    def _remove_ir_group_from_plot_and_panel(self, group_name: str) -> None:
+        """Remove IR functional group from plot and dataset panel."""
+        try:
+            # Remove from plot
+            markers = self._ir_group_markers.pop(group_name, [])
+            for item in markers:
+                try:
+                    self.plot._plot.removeItem(item)
+                except Exception:
+                    pass
+
+            # Remove from dataset panel
+            if group_name in self._ir_group_dataset_items:
+                alias_item = self._ir_group_dataset_items.pop(group_name)
+                parent = alias_item.parent()
+                if parent:
+                    parent.removeRow(alias_item.row())
+
+                # Clean up visibility state
+                ir_id = f"ir_group_{group_name}"
+                self._visibility.pop(ir_id, None)
+
+        except Exception:
+            import traceback
+            traceback.print_exc()
+
 
     def _refresh_reference_overlay_geometry(self) -> None:
         """Re-apply overlay items with the current view's y-range.
