@@ -161,17 +161,30 @@ def search_mast(target_name: str, page: int = 1, page_size: int = 50,
                 if ptype in ('AUXILIARY', 'PREVIEW', 'INFO', 'THUMBNAIL'):
                     continue
 
-                # Check if it's a spectral product by filename pattern
+                # Skip imaging products (raw, flat-fielded, drizzled, etc.)
                 uri_lower = uri.lower()
+                imaging_patterns = (
+                    '_raw.fits',     # Raw detector images
+                    '_flt.fits',     # Flat-fielded images
+                    '_flc.fits',     # Flat-fielded, CTE-corrected images
+                    '_i2d.fits',     # 2D resampled images
+                    '_drz.fits',     # Drizzled images
+                    '_drc.fits',     # Drizzled, CTE-corrected images
+                    '_crj.fits',     # Cosmic ray rejected images
+                    '_c0m.fits',     # Uncalibrated images
+                    '_c1f.fits',     # Calibrated images
+                )
+
+                if any(pat in uri_lower for pat in imaging_patterns):
+                    continue
+
+                # Check if it's a spectral product by filename pattern
                 is_spectral = any(pat in uri_lower for pat in spectral_patterns)
 
                 # Also accept SCIENCE products even if pattern doesn't match
                 # (for newer missions like JWST with evolving naming conventions)
                 if not is_spectral and ptype == 'SCIENCE':
-                    # Check if it's likely a spectrum (not an image)
-                    # Skip common imaging suffixes
-                    if not any(img in uri_lower for img in ('_cal.fits', '_i2d.fits', '_drz.fits', '_drc.fits')):
-                        is_spectral = True
+                    is_spectral = True
 
                 if not is_spectral:
                     continue
