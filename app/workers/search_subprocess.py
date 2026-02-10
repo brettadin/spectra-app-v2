@@ -45,24 +45,25 @@ def search_mast(target_name: str, page: int = 1, page_size: int = 50) -> dict:
         for row in table:
             obsid = str(row.get('obsid', ''))
 
-            # Extract wavelength range from observations table (em_min/em_max in meters)
+            # Extract wavelength range from observations table
+            # MAST returns em_min/em_max in micrometers (despite docs saying meters)
             wavelength_range = ''
             try:
-                em_min = row.get('em_min')
-                em_max = row.get('em_max')
+                em_min = row.get('em_min')  # micrometers
+                em_max = row.get('em_max')  # micrometers
 
                 if em_min is not None and em_max is not None and em_min > 0 and em_max > 0:
-                    # Convert to nm
-                    wl_min_nm = float(em_min) * 1e9
-                    wl_max_nm = float(em_max) * 1e9
+                    # Convert µm to nm for display
+                    wl_min_nm = float(em_min) * 1000
+                    wl_max_nm = float(em_max) * 1000
 
-                    # Smart formatting
-                    if wl_max_nm < 1000:  # UV/Vis in nm
+                    # Smart formatting based on range
+                    if wl_max_nm < 1000:  # UV/Vis: display in nm
                         wavelength_range = f"{wl_min_nm:.0f}–{wl_max_nm:.0f} nm"
-                    elif wl_max_nm < 2500:  # Near-IR in µm
-                        wavelength_range = f"{wl_min_nm/1000:.2f}–{wl_max_nm/1000:.2f} µm"
-                    else:  # Mid/Far-IR in µm
-                        wavelength_range = f"{wl_min_nm/1000:.1f}–{wl_max_nm/1000:.1f} µm"
+                    elif wl_max_nm < 2500:  # Near-IR: display in µm
+                        wavelength_range = f"{em_min:.2f}–{em_max:.2f} µm"
+                    else:  # Mid/Far-IR: display in µm
+                        wavelength_range = f"{em_min:.1f}–{em_max:.1f} µm"
                 else:
                     # Try wavelength_region as fallback
                     wl_region = row.get('wavelength_region')
@@ -85,37 +86,57 @@ def search_mast(target_name: str, page: int = 1, page_size: int = 50) -> dict:
         if products is None or len(products) == 0:
             return []
         
-        # Filter to science products with known spectral file patterns
+        # Filter to science products with spectral file patterns
         results = []
         seen = set()
-        
-        spectral_patterns = ('_x1d.fits', '_sx1.fits', '_sx2.fits', '_s1d.fits', 
-                            '_spec.fits', '_vo.fits', '_cspec.fits', '_mxlo_vo.fits')
-        
+
+        # Expanded patterns to include HST, JWST, Spitzer, and other missions
+        spectral_patterns = (
+            # HST (COS, STIS, FOS, GHRS, etc.)
+            '_x1d.fits', '_sx1.fits', '_sx2.fits', '_s1d.fits',
+            '_spec.fits', '_vo.fits', '_cspec.fits', '_mxlo_vo.fits',
+            # JWST (NIRSpec, MIRI, NIRCam, NIRISS)
+            '_x1dints.fits', '_s2d.fits', '_s3d.fits', '_calints.fits',
+            '_x1d.fits', '_cal.fits', '_rate.fits', '_rateints.fits',
+            # Spitzer IRS
+            '_bcd.fits', '_cal.fits',
+            # Generic spectral indicators
+            'spec.fits', 'spectrum.fits', 'extracted.fits',
+        )
+
         for row in products:
             try:
                 uri = str(row.get('dataURI', ''))
                 if not uri:
                     continue
-                
-                # Skip non-FITS
+
+                # Only process FITS files
                 if not uri.lower().endswith('.fits'):
                     continue
-                
-                # Skip non-spectral files
-                uri_lower = uri.lower()
-                is_spectral = any(pat in uri_lower for pat in spectral_patterns)
-                if not is_spectral:
-                    continue
-                
+
                 # Skip duplicates
                 if uri in seen:
                     continue
                 seen.add(uri)
-                
-                # Skip auxiliary/preview
+
+                # Skip auxiliary/preview/metadata files
                 ptype = str(row.get('productType', '')).upper()
                 if ptype in ('AUXILIARY', 'PREVIEW', 'INFO', 'THUMBNAIL'):
+                    continue
+
+                # Check if it's a spectral product by filename pattern
+                uri_lower = uri.lower()
+                is_spectral = any(pat in uri_lower for pat in spectral_patterns)
+
+                # Also accept SCIENCE products even if pattern doesn't match
+                # (for newer missions like JWST with evolving naming conventions)
+                if not is_spectral and ptype == 'SCIENCE':
+                    # Check if it's likely a spectrum (not an image)
+                    # Skip common imaging suffixes
+                    if not any(img in uri_lower for img in ('_cal.fits', '_i2d.fits', '_drz.fits', '_drc.fits')):
+                        is_spectral = True
+
+                if not is_spectral:
                     continue
                 
                 filename = str(row.get('productFilename', '') or uri.split('/')[-1])
