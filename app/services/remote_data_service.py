@@ -705,6 +705,10 @@ class RemoteDataService:
                 cached=True,
             )
 
+        # Handle NASA Exoplanet Archive TAP queries (return CSV directly)
+        if record.provider == self.PROVIDER_EXOPLANET_ARCHIVE and 'TAP/sync' in record.download_url:
+            return self._download_tap_csv(record, progress=progress)
+
         fetch_path = self._fetch_remote(record, progress=progress)
 
         x_unit, y_unit = record.resolved_units()
@@ -1390,6 +1394,60 @@ class RemoteDataService:
             systems.append(system)
 
         return systems
+
+    def _download_tap_csv(self, record: RemoteRecord, progress: Callable[[RemoteRecord, int, int | None], None] | None = None) -> RemoteDownloadResult:
+        """Download CSV data from TAP query and store it."""
+        import requests
+        import tempfile
+
+        # Fetch CSV data
+        response = requests.get(record.download_url, timeout=30, stream=True)
+        response.raise_for_status()
+
+        # Get total size if available
+        total_size = int(response.headers.get('content-length', 0))
+
+        # Create temp CSV file
+        temp_dir = Path(tempfile.gettempdir()) / "spectra_cache"
+        temp_dir.mkdir(exist_ok=True, parents=True)
+
+        identifier = record.identifier.replace("/", "_").replace(":", "_")
+        csv_path = temp_dir / f"{identifier}.csv"
+
+        # Download with progress
+        downloaded = 0
+        with open(csv_path, 'wb') as f:
+            for chunk in response.iter_content(chunk_size=8192):
+                if chunk:
+                    f.write(chunk)
+                    downloaded += len(chunk)
+                    if progress and total_size > 0:
+                        progress(record, downloaded, total_size)
+
+        # Store in local store
+        x_unit, y_unit = record.resolved_units()
+        remote_metadata = {
+            "provider": record.provider,
+            "uri": record.download_url,
+            "identifier": record.identifier,
+            "fetched_at": self._timestamp(),
+            "metadata": self._json_safe(record.metadata),
+        }
+
+        store_entry = self.store.record(
+            csv_path,
+            x_unit=x_unit,
+            y_unit=y_unit,
+            source={"remote": remote_metadata},
+            alias=record.suggested_filename() or f"{identifier}.csv",
+        )
+
+        return RemoteDownloadResult(
+            record=record,
+            cache_entry=store_entry,
+            path=Path(store_entry["stored_path"]),
+            cached=False,
+        )
 
     def _download_exoplanet_archive_embedded(self, record: RemoteRecord) -> RemoteDownloadResult:
         """Handle exoplanet archive records with embedded array data.
