@@ -501,8 +501,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         # Right dock: inspector (tab widget placeholder)
         self.inspector_dock = QtWidgets.QDockWidget("Inspector", self)
         self.inspector_dock.setObjectName("dock-inspector")
-        # Set reasonable default width (not too huge)
-        self.inspector_dock.setMaximumWidth(600)
+        # No maximum width - let user resize freely
         self.inspector_tabs = QtWidgets.QTabWidget()
         # Refresh merge preview when Math tab is activated (lazy computation)
         self.inspector_tabs.currentChanged.connect(self._on_inspector_tab_changed)
