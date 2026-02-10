@@ -1,0 +1,28 @@
+{
+  "version": "1.0",
+  "dataset_id": "ca3bac9b-b783-4452-8126-99813f1c2922",
+  "annotations": [
+    {
+      "id": "26fea72f",
+      "dataset_id": "ca3bac9b-b783-4452-8126-99813f1c2922",
+      "text": "3550-3200 cm-1 O-H stretching",
+      "x_nm": 2814.5700221216466,
+      "x_max_nm": 3123.7400659614113,
+      "y_fraction": 0.3345526167698378,
+      "visible": false,
+      "color": "#55ff7f",
+      "vertical": false
+    },
+    {
+      "id": "fd971838",
+      "dataset_id": "ca3bac9b-b783-4452-8126-99813f1c2922",
+      "text": "1750-1500 cm-1 O-H bending",
+      "x_nm": 5707.65017087738,
+      "x_max_nm": 6675.3844711807715,
+      "y_fraction": 0.19808666291502502,
+      "visible": false,
+      "color": "#00ffff",
+      "vertical": false
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "version": "1.0",
+  "dataset_id": "f9d27ebb-5f4b-47e2-8037-6e910e9a5e87",
+  "annotations": [
+    {
+      "id": "7393a88e",
+      "dataset_id": "f9d27ebb-5f4b-47e2-8037-6e910e9a5e87",
+      "text": "3550-3200 cm-1 : O-H Stretching",
+      "x_nm": 2812.657030930547,
+      "x_max_nm": 3226.77091201652,
+      "y_fraction": 0.21864740643466818,
+      "visible": true,
+      "color": "#00ffff",
+      "vertical": false
+    }
+  ]
+}

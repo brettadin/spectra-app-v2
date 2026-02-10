@@ -1,0 +1,28 @@
+{
+  "version": "1.0",
+  "dataset_id": "056bce54-d0fd-4563-9a23-82f16ab468a9",
+  "annotations": [
+    {
+      "id": "1adc92fd",
+      "dataset_id": "056bce54-d0fd-4563-9a23-82f16ab468a9",
+      "text": "2400 - 2250 cm-1 : Doublet-like Asymmetric Stretching",
+      "x_nm": 4167.290528131097,
+      "x_max_nm": 4461.672985966014,
+      "y_fraction": 0.040517726505345984,
+      "visible": true,
+      "color": "#55ff7f",
+      "vertical": false
+    },
+    {
+      "id": "db329b76",
+      "dataset_id": "056bce54-d0fd-4563-9a23-82f16ab468a9",
+      "text": "3700 - 3860 cm-1 : Combination bands, Symmetric / Asymmetric stretching",
+      "x_nm": 2664.0194701707555,
+      "x_max_nm": 2790.7412835013633,
+      "y_fraction": 0.05036578503095102,
+      "visible": true,
+      "color": "#aaffff",
+      "vertical": false
+    }
+  ]
+}

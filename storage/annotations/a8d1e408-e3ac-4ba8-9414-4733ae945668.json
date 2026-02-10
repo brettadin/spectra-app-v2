@@ -1,0 +1,28 @@
+{
+  "version": "1.0",
+  "dataset_id": "a8d1e408-e3ac-4ba8-9414-4733ae945668",
+  "annotations": [
+    {
+      "id": "6e01e459",
+      "dataset_id": "a8d1e408-e3ac-4ba8-9414-4733ae945668",
+      "text": "1306 cm-1 : Triple Degenerate bending",
+      "x_nm": 7613.273878561702,
+      "x_max_nm": 7715.719443139096,
+      "y_fraction": 0.236703873933027,
+      "visible": false,
+      "color": "#00ffff",
+      "vertical": false
+    },
+    {
+      "id": "10786f4a",
+      "dataset_id": "a8d1e408-e3ac-4ba8-9414-4733ae945668",
+      "text": "3019 cm-1 : Triple degenerate asymmetrical C-H stretching",
+      "x_nm": 3308.6160123073537,
+      "x_max_nm": 3321.7180463165855,
+      "y_fraction": 0.2941562705187132,
+      "visible": false,
+      "color": "#55ff7f",
+      "vertical": false
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "version": "1.0",
+  "dataset_id": "45762f6f-2d26-4b2c-a67f-641f9db61ded",
+  "annotations": [
+    {
+      "id": "3fb2889a",
+      "dataset_id": "45762f6f-2d26-4b2c-a67f-641f9db61ded",
+      "text": "4000 - 1000 cm-1",
+      "x_nm": 2500.0,
+      "x_max_nm": 10000.0,
+      "y_fraction": 0.19105233539673583,
+      "visible": true,
+      "color": "#FFFF00",
+      "vertical": false
+    }
+  ]
+}
