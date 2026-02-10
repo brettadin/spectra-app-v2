@@ -8,24 +8,58 @@ import json
 import sys
 
 
-def search_mast(target_name: str, page: int = 1, page_size: int = 50) -> dict:
-    """Search MAST for spectra of a target. Returns dict with results and pagination info."""
+def search_mast(target_name: str, page: int = 1, page_size: int = 50,
+                wavelength_min: float = None, wavelength_max: float = None,
+                instruments: list = None) -> dict:
+    """Search MAST for spectra of a target. Returns dict with results and pagination info.
+
+    Args:
+        target_name: Target name to search for
+        page: Page number (1-indexed)
+        page_size: Number of results per page
+        wavelength_min: Minimum wavelength in nm (optional)
+        wavelength_max: Maximum wavelength in nm (optional)
+        instruments: List of instrument names to filter by (optional)
+    """
     try:
         from astroquery.mast import Observations
     except ImportError:
         return {'results': [], 'total': 0, 'page': 1, 'page_size': page_size, 'total_pages': 0}
 
     try:
-        # Single, simple query - no complex batching
-        table = Observations.query_criteria(
-            target_name=target_name,
-            dataproduct_type="spectrum",
-            intentType="science",
-            calib_level=[2, 3],
-        )
+        # Build query criteria
+        criteria = {
+            "target_name": target_name,
+            "dataproduct_type": "spectrum",
+            "intentType": "science",
+            "calib_level": [2, 3],
+        }
+
+        # Add wavelength filters (MAST uses meters for query, nm for results)
+        if wavelength_min is not None:
+            criteria["em_min"] = [wavelength_min * 1e-9, None]  # Convert nm to meters
+        if wavelength_max is not None:
+            criteria["em_max"] = [None, wavelength_max * 1e-9]  # Convert nm to meters
+
+        # Query MAST
+        table = Observations.query_criteria(**criteria)
 
         if table is None or len(table) == 0:
             return {'results': [], 'total': 0, 'page': 1, 'page_size': page_size, 'total_pages': 0}
+
+        # Apply instrument filter if specified (post-query filter)
+        if instruments:
+            mask = []
+            for row in table:
+                inst = str(row.get('instrument_name', '')).upper()
+                matches = any(inst.startswith(i.upper()) for i in instruments)
+                mask.append(matches)
+
+            if not any(mask):
+                return {'results': [], 'total': 0, 'page': 1, 'page_size': page_size, 'total_pages': 0}
+
+            # Filter table by mask
+            table = table[mask]
 
         total_observations = len(table)
         total_pages = (total_observations + page_size - 1) // page_size
@@ -46,24 +80,27 @@ def search_mast(target_name: str, page: int = 1, page_size: int = 50) -> dict:
             obsid = str(row.get('obsid', ''))
 
             # Extract wavelength range from observations table
-            # MAST returns em_min/em_max in micrometers (despite docs saying meters)
+            # MAST returns em_min/em_max in nanometers
             wavelength_range = ''
             try:
-                em_min = row.get('em_min')  # micrometers
-                em_max = row.get('em_max')  # micrometers
+                em_min = row.get('em_min')  # nanometers
+                em_max = row.get('em_max')  # nanometers
 
                 if em_min is not None and em_max is not None and em_min > 0 and em_max > 0:
-                    # Convert µm to nm for display
-                    wl_min_nm = float(em_min) * 1000
-                    wl_max_nm = float(em_max) * 1000
+                    wl_min_nm = float(em_min)
+                    wl_max_nm = float(em_max)
 
                     # Smart formatting based on range
                     if wl_max_nm < 1000:  # UV/Vis: display in nm
-                        wavelength_range = f"{wl_min_nm:.0f}–{wl_max_nm:.0f} nm"
-                    elif wl_max_nm < 2500:  # Near-IR: display in µm
-                        wavelength_range = f"{em_min:.2f}–{em_max:.2f} µm"
+                        wavelength_range = f"{wl_min_nm:.1f}–{wl_max_nm:.1f} nm"
+                    elif wl_max_nm < 2500:  # Near-IR: display in nm or µm
+                        wl_min_um = wl_min_nm / 1000
+                        wl_max_um = wl_max_nm / 1000
+                        wavelength_range = f"{wl_min_um:.2f}–{wl_max_um:.2f} µm"
                     else:  # Mid/Far-IR: display in µm
-                        wavelength_range = f"{em_min:.1f}–{em_max:.1f} µm"
+                        wl_min_um = wl_min_nm / 1000
+                        wl_max_um = wl_max_nm / 1000
+                        wavelength_range = f"{wl_min_um:.1f}–{wl_max_um:.1f} µm"
                 else:
                     # Try wavelength_region as fallback
                     wl_region = row.get('wavelength_region')
@@ -189,7 +226,24 @@ def main():
 
     target = sys.argv[1]
     page = int(sys.argv[2]) if len(sys.argv) > 2 else 1
-    results = search_mast(target, page=page)
+
+    # Parse optional filters from JSON in argv[3]
+    wavelength_min = None
+    wavelength_max = None
+    instruments = None
+    if len(sys.argv) > 3:
+        try:
+            filters = json.loads(sys.argv[3])
+            wavelength_min = filters.get('wavelength_min')
+            wavelength_max = filters.get('wavelength_max')
+            instruments = filters.get('instruments')
+        except:
+            pass
+
+    results = search_mast(target, page=page,
+                         wavelength_min=wavelength_min,
+                         wavelength_max=wavelength_max,
+                         instruments=instruments)
     print(json.dumps(results))
 
 

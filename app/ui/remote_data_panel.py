@@ -69,6 +69,7 @@ class RemoteDataPanel(QtWidgets.QWidget):
         self._total_pages = 0
         self._total_results = 0
         self._last_query = ""
+        self._last_filters = {}  # Store filter state
 
         self._setup_ui()
         self._initialize_providers()
@@ -100,9 +101,56 @@ class RemoteDataPanel(QtWidgets.QWidget):
         self.load_samples_button.setToolTip("Import all CSV spectra under samples/solar_system")
         self.load_samples_button.clicked.connect(self._on_load_solar_system_samples)
         controls.addWidget(self.load_samples_button)
-        
+
         layout.addLayout(controls)
-        
+
+        # Filter controls (MAST only)
+        filter_group = QtWidgets.QGroupBox("Filters (optional)")
+        filter_layout = QtWidgets.QHBoxLayout(filter_group)
+
+        # Wavelength range filters
+        filter_layout.addWidget(QtWidgets.QLabel("Wavelength:"))
+        self.wavelength_min_edit = QtWidgets.QLineEdit()
+        self.wavelength_min_edit.setPlaceholderText("Min (nm)")
+        self.wavelength_min_edit.setMaximumWidth(80)
+        self.wavelength_min_edit.setToolTip("Minimum wavelength in nanometers (e.g., 115 for UV)")
+        filter_layout.addWidget(self.wavelength_min_edit)
+
+        filter_layout.addWidget(QtWidgets.QLabel("–"))
+
+        self.wavelength_max_edit = QtWidgets.QLineEdit()
+        self.wavelength_max_edit.setPlaceholderText("Max (nm)")
+        self.wavelength_max_edit.setMaximumWidth(80)
+        self.wavelength_max_edit.setToolTip("Maximum wavelength in nanometers (e.g., 5000 for mid-IR)")
+        filter_layout.addWidget(self.wavelength_max_edit)
+
+        # Instrument filter
+        filter_layout.addWidget(QtWidgets.QLabel("Instrument:"))
+        self.instrument_combo = QtWidgets.QComboBox()
+        self.instrument_combo.addItem("All", None)
+        self.instrument_combo.addItem("HST/COS", "COS")
+        self.instrument_combo.addItem("HST/STIS", "STIS")
+        self.instrument_combo.addItem("HST/FOS", "FOS")
+        self.instrument_combo.addItem("IUE", "IUE")
+        self.instrument_combo.addItem("FUSE", "FUSE")
+        self.instrument_combo.addItem("JWST/NIRSpec", "NIRSPEC")
+        self.instrument_combo.addItem("JWST/MIRI", "MIRI")
+        self.instrument_combo.addItem("JWST/NIRISS", "NIRISS")
+        self.instrument_combo.addItem("JWST/NIRCam", "NIRCAM")
+        self.instrument_combo.addItem("Spitzer/IRS", "IRS")
+        self.instrument_combo.setMinimumWidth(150)
+        filter_layout.addWidget(self.instrument_combo)
+
+        filter_layout.addStretch()
+
+        # Clear filters button
+        self.clear_filters_button = QtWidgets.QPushButton("Clear Filters")
+        self.clear_filters_button.clicked.connect(self._on_clear_filters)
+        filter_layout.addWidget(self.clear_filters_button)
+
+        self.filter_group = filter_group
+        layout.addWidget(filter_group)
+
         # Results table - 7 columns of useful metadata
         self.results_table = QtWidgets.QTableWidget(0, 7)
         self.results_table.setHorizontalHeaderLabels([
@@ -116,6 +164,7 @@ class RemoteDataPanel(QtWidgets.QWidget):
         ])
         self.results_table.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectionBehavior.SelectRows)
         self.results_table.setSelectionMode(QtWidgets.QAbstractItemView.SelectionMode.ExtendedSelection)
+        self.results_table.setSortingEnabled(True)  # Enable column sorting
 
         # Configure column widths and resizing
         header = self.results_table.horizontalHeader()
@@ -196,15 +245,25 @@ class RemoteDataPanel(QtWidgets.QWidget):
         self._on_provider_changed()
     
     def _on_provider_changed(self) -> None:
-        """Update placeholder text based on selected provider."""
+        """Update placeholder text and filter visibility based on selected provider."""
         provider = self.provider_combo.currentText()
-        
+
+        # Show filters only for MAST
+        is_mast = provider == RemoteDataService.PROVIDER_MAST
+        self.filter_group.setVisible(is_mast)
+
         if provider == RemoteDataService.PROVIDER_MAST:
             self.search_edit.setPlaceholderText("MAST target name (e.g. NGC 7023, SN 1987A)…")
         elif provider == RemoteDataService.PROVIDER_EXOSYSTEMS:
             self.search_edit.setPlaceholderText("Planet, star, or solar system target (e.g. HD 189733 b, Jupiter)…")
         else:
             self.search_edit.setPlaceholderText("Target name or keyword…")
+
+    def _on_clear_filters(self) -> None:
+        """Clear all filter inputs."""
+        self.wavelength_min_edit.clear()
+        self.wavelength_max_edit.clear()
+        self.instrument_combo.setCurrentIndex(0)
     
     def _on_search(self) -> None:
         """Initiate search using subprocess (never freezes UI)."""
@@ -221,25 +280,80 @@ class RemoteDataPanel(QtWidgets.QWidget):
             self.status_label.setText("Enter a search term")
             return
 
+        # Build filter dict
+        filters = self._get_current_filters()
+
         # Reset UI and pagination for new search
         self._records = []
         self.results_table.setRowCount(0)
         self.import_button.setEnabled(False)
         self._current_page = 1
         self._last_query = query_text
-        self.status_label.setText(f"Searching MAST for '{query_text}'…")
+        self._last_filters = filters
+
+        filter_desc = self._format_filter_description(filters)
+        status_text = f"Searching MAST for '{query_text}'{filter_desc}…"
+        self.status_label.setText(status_text)
         self.search_button.setText("Cancel")
 
         # Find Python executable and search script
         python_exe = sys.executable
         script_path = Path(__file__).parent.parent / "workers" / "search_subprocess.py"
 
-        # Start subprocess with page number
+        # Start subprocess with page number and filters
         self._search_process = QtCore.QProcess(self)
         self._search_process.finished.connect(self._on_search_process_finished)
         self._search_process.setProgram(python_exe)
-        self._search_process.setArguments([str(script_path), query_text, str(self._current_page)])
+
+        args = [str(script_path), query_text, str(self._current_page)]
+        if filters:
+            args.append(json.dumps(filters))
+
+        self._search_process.setArguments(args)
         self._search_process.start()
+
+    def _get_current_filters(self) -> dict:
+        """Get current filter values as a dict."""
+        filters = {}
+
+        # Wavelength filters
+        wl_min_text = self.wavelength_min_edit.text().strip()
+        wl_max_text = self.wavelength_max_edit.text().strip()
+
+        if wl_min_text:
+            try:
+                filters['wavelength_min'] = float(wl_min_text)
+            except ValueError:
+                pass
+
+        if wl_max_text:
+            try:
+                filters['wavelength_max'] = float(wl_max_text)
+            except ValueError:
+                pass
+
+        # Instrument filter
+        inst_data = self.instrument_combo.currentData()
+        if inst_data:
+            filters['instruments'] = [inst_data]
+
+        return filters
+
+    def _format_filter_description(self, filters: dict) -> str:
+        """Format filter dict into human-readable description."""
+        if not filters:
+            return ""
+
+        parts = []
+        if 'wavelength_min' in filters or 'wavelength_max' in filters:
+            wl_min = filters.get('wavelength_min', '?')
+            wl_max = filters.get('wavelength_max', '?')
+            parts.append(f"{wl_min}–{wl_max} nm")
+
+        if 'instruments' in filters and filters['instruments']:
+            parts.append(f"{filters['instruments'][0]}")
+
+        return f" ({', '.join(parts)})" if parts else ""
     
     def _on_search_process_finished(self, exit_code: int, exit_status: int) -> None:
         """Handle search subprocess completion."""
@@ -599,7 +713,7 @@ class RemoteDataPanel(QtWidgets.QWidget):
             self._load_page()
 
     def _load_page(self) -> None:
-        """Load the current page of results."""
+        """Load the current page of results using the last query and filters."""
         if not self._last_query:
             return
 
@@ -613,9 +727,14 @@ class RemoteDataPanel(QtWidgets.QWidget):
         python_exe = sys.executable
         script_path = Path(__file__).parent.parent / "workers" / "search_subprocess.py"
 
-        # Start subprocess with current page
+        # Start subprocess with current page and last filters
         self._search_process = QtCore.QProcess(self)
         self._search_process.finished.connect(self._on_search_process_finished)
         self._search_process.setProgram(python_exe)
-        self._search_process.setArguments([str(script_path), self._last_query, str(self._current_page)])
+
+        args = [str(script_path), self._last_query, str(self._current_page)]
+        if self._last_filters:
+            args.append(json.dumps(self._last_filters))
+
+        self._search_process.setArguments(args)
         self._search_process.start()
