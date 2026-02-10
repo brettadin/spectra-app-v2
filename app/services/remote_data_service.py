@@ -696,10 +696,6 @@ class RemoteDataService:
         force: bool = False,
         progress: Callable[[RemoteRecord, int, int | None], None] | None = None,
     ) -> RemoteDownloadResult:
-        # Handle exoplanet-archive:// synthetic URLs with embedded data
-        if record.download_url.startswith("exoplanet-archive://"):
-            return self._download_exoplanet_archive_embedded(record)
-
         cached = None if force else self._find_cached(record.download_url)
         if cached is not None:
             return RemoteDownloadResult(
@@ -1484,42 +1480,93 @@ class RemoteDataService:
     def _search_exoplanet_archive_spectra(self, query: Mapping[str, Any]) -> List[RemoteRecord]:
         """Search NASA Exoplanet Archive for atmospheric spectra (transmission/emission).
 
-        Returns clean CSV spectra that are guaranteed to load correctly.
+        Uses TAP (Table Access Protocol) endpoint with ADQL queries.
         """
+        import requests
+
         text = str(query.get("text") or query.get("target_name") or "").strip()
         if not text:
             raise ValueError("NASA Exoplanet Archive searches require a planet or star name.")
 
-        if not self._has_exoplanet_archive():
-            return []
-
-        archive = self._ensure_exoplanet_archive()
-
-        # Search the atmospheres table for transmission/emission spectra
-        # This table was created by consolidating transit_spec and eclipse_spec tables
-        token = text.replace("'", "''")
-        if "%" not in token and "_" not in token:
-            like_token = f"%{token}%"
-        else:
-            like_token = token
-
         records: List[RemoteRecord] = []
+        search_term = text.strip().upper().replace("'", "''")
 
+        # TAP sync endpoint
+        tap_url = "https://exoplanetarchive.ipac.caltech.edu/TAP/sync"
+
+        # Try transmission spectra (transitspec table)
+        # Columns: centralwavelng, plnratror (Rp/Rs), plnratrorerr1/2, plntname
         try:
-            # Query atmospheres table
-            table = archive.query_criteria(
-                table="atmospheres",
-                select="pl_name,hostname,spect_type,refname,wav,wav_units,spectra,spectra_units,spectra_error_max,spectra_error_min",
-                where=f"(pl_name like '{like_token}' OR hostname like '{like_token}')",
-            )
-        except Exception:
-            # If atmospheres table fails, return empty
-            return []
+            trans_query = f"SELECT centralwavelng,plnratror,plnratrorerr1,plnratrorerr2,plntname FROM transitspec WHERE UPPER(plntname) LIKE '%{search_term}%'"
+            trans_params = {
+                'query': trans_query,
+                'format': 'csv'
+            }
+            response = requests.get(tap_url, params=trans_params, timeout=10)
 
-        if table is None or len(table) == 0:
-            return []
+            if response.ok and len(response.text) > 100:  # Has data
+                # Create a download record using this query URL
+                identifier = f"{text.replace(' ', '_')}_transmission"
+                title = f"{text} Transmission Spectrum"
 
-        rows = self._table_to_records(table)
+                download_url = f"{tap_url}?query={requests.utils.quote(trans_query)}&format=csv"
+
+                record = RemoteRecord(
+                    provider=self.PROVIDER_EXOPLANET_ARCHIVE,
+                    identifier=identifier,
+                    title=title,
+                    download_url=download_url,
+                    metadata={
+                        "target": text,
+                        "spectrum_type": "transmission",
+                        "data_format": "csv",
+                        "source_table": "transitspec",
+                        "x_column": "centralwavelng",
+                        "y_column": "plnratror",
+                    },
+                    units={"x": "um", "y": "Rp/Rs"},
+                )
+                records.append(record)
+
+        except Exception as e:
+            pass  # Continue to emission
+
+        # Try emission spectra (emissionspec table)
+        try:
+            emis_query = f"SELECT centralwavelng,plnecldep,plnecldeperr1,plnecldeperr2,plntname FROM emissionspec WHERE UPPER(plntname) LIKE '%{search_term}%'"
+            emis_params = {
+                'query': emis_query,
+                'format': 'csv'
+            }
+            response = requests.get(tap_url, params=emis_params, timeout=10)
+
+            if response.ok and len(response.text) > 100:
+                identifier = f"{text.replace(' ', '_')}_emission"
+                title = f"{text} Emission Spectrum"
+
+                download_url = f"{tap_url}?query={requests.utils.quote(emis_query)}&format=csv"
+
+                record = RemoteRecord(
+                    provider=self.PROVIDER_EXOPLANET_ARCHIVE,
+                    identifier=identifier,
+                    title=title,
+                    download_url=download_url,
+                    metadata={
+                        "target": text,
+                        "spectrum_type": "emission",
+                        "data_format": "csv",
+                        "source_table": "emissionspec",
+                        "x_column": "centralwavelng",
+                        "y_column": "plnecldep",
+                    },
+                    units={"x": "um", "y": "Fp/Fs"},
+                )
+                records.append(record)
+
+        except Exception as e:
+            pass
+
+        return records
 
         for row in rows:
             pl_name = self._first_text(row, ["pl_name"])
