@@ -163,7 +163,8 @@ class RemoteDataService:
 
     PROVIDER_NIST = "NIST ASD"
     PROVIDER_MAST = "MAST"
-    PROVIDER_EXOSYSTEMS = "MAST ExoSystems"
+    PROVIDER_EXOSYSTEMS = "MAST ExoSystems"  # Deprecated
+    PROVIDER_EXOPLANET_ARCHIVE = "NASA Exoplanet Archive"
 
     _DEFAULT_REGION_RADIUS = "0.02 deg"
     _SAMPLES_ROOT = Path(__file__).resolve().parents[2] / "samples"
@@ -643,6 +644,9 @@ class RemoteDataService:
         providers: List[str] = []
         if self._has_nist_support():
             providers.append(self.PROVIDER_NIST)
+        if self._has_exosystem_support():
+            # NASA Exoplanet Archive - transmission/emission spectra
+            providers.append(self.PROVIDER_EXOPLANET_ARCHIVE)
         if self._has_mast_support():
             # Removed PROVIDER_EXOSYSTEMS - redundant with MAST
             providers.append(self.PROVIDER_MAST)
@@ -660,7 +664,10 @@ class RemoteDataService:
             reasons[self.PROVIDER_MAST] = (
                 "Install the 'astroquery' and 'pandas' packages to enable MAST searches."
             )
-            # Removed EXOSYSTEMS provider - now integrated with MAST
+        if not self._has_exosystem_support():
+            reasons[self.PROVIDER_EXOPLANET_ARCHIVE] = (
+                "Install 'requests' package to enable NASA Exoplanet Archive atmospheric spectra."
+            )
         return reasons
 
     # ------------------------------------------------------------------
@@ -674,6 +681,8 @@ class RemoteDataService:
     ) -> List[RemoteRecord]:
         if provider == self.PROVIDER_NIST:
             return self._search_nist(query)
+        if provider == self.PROVIDER_EXOPLANET_ARCHIVE:
+            return self._search_exoplanet_archive_spectra(query)
         if provider == self.PROVIDER_MAST:
             return self._search_mast(query, include_imaging=include_imaging)
         # Removed EXOSYSTEMS routing - now use MAST directly
@@ -687,6 +696,10 @@ class RemoteDataService:
         force: bool = False,
         progress: Callable[[RemoteRecord, int, int | None], None] | None = None,
     ) -> RemoteDownloadResult:
+        # Handle exoplanet-archive:// synthetic URLs with embedded data
+        if record.download_url.startswith("exoplanet-archive://"):
+            return self._download_exoplanet_archive_embedded(record)
+
         cached = None if force else self._find_cached(record.download_url)
         if cached is not None:
             return RemoteDownloadResult(
@@ -1381,6 +1394,199 @@ class RemoteDataService:
             systems.append(system)
 
         return systems
+
+    def _download_exoplanet_archive_embedded(self, record: RemoteRecord) -> RemoteDownloadResult:
+        """Handle exoplanet archive records with embedded array data.
+
+        Converts array data to CSV format and stores it.
+        """
+        import csv
+        import tempfile
+
+        metadata = record.metadata
+        wavelength = metadata.get("wavelength", [])
+        spectra = metadata.get("spectra", [])
+
+        if not wavelength or not spectra:
+            raise ValueError("No wavelength or spectra data in record")
+
+        # Create temp CSV file
+        temp_dir = Path(tempfile.gettempdir()) / "spectra_cache"
+        temp_dir.mkdir(exist_ok=True, parents=True)
+
+        identifier = record.identifier.replace("/", "_").replace(":", "_")
+        csv_path = temp_dir / f"{identifier}.csv"
+
+        # Get units
+        x_unit, y_unit = record.resolved_units()
+        wav_units = metadata.get("wav_units", "um")
+        spectra_units = metadata.get("spectra_units", y_unit)
+
+        # Write CSV
+        with open(csv_path, 'w', newline='') as f:
+            writer = csv.writer(f)
+
+            # Header with metadata
+            writer.writerow([f"# {record.title}"])
+            writer.writerow([f"# Planet: {metadata.get('planet_name', '')}"])
+            writer.writerow([f"# Host: {metadata.get('host_name', '')}"])
+            writer.writerow([f"# Type: {metadata.get('spectrum_type', 'transmission')}"])
+            writer.writerow([f"# Reference: {metadata.get('reference', '')}"])
+            writer.writerow([f"# X-axis: Wavelength ({wav_units})"])
+            writer.writerow([f"# Y-axis: {spectra_units}"])
+            writer.writerow([])
+
+            # Column headers
+            headers = [f"wavelength_{wav_units}", spectra_units]
+            error_max = metadata.get("spectra_error_max")
+            error_min = metadata.get("spectra_error_min")
+
+            if error_max is not None:
+                headers.append("error_max")
+            if error_min is not None:
+                headers.append("error_min")
+
+            writer.writerow(headers)
+
+            # Data rows
+            for i, (w, s) in enumerate(zip(wavelength, spectra)):
+                row = [w, s]
+                if error_max is not None and i < len(error_max):
+                    row.append(error_max[i])
+                if error_min is not None and i < len(error_min):
+                    row.append(error_min[i])
+                writer.writerow(row)
+
+        # Store in local store
+        remote_metadata = {
+            "provider": record.provider,
+            "uri": record.download_url,
+            "identifier": record.identifier,
+            "fetched_at": self._timestamp(),
+            "metadata": self._json_safe(record.metadata),
+        }
+
+        store_entry = self.store.record(
+            csv_path,
+            x_unit=x_unit,
+            y_unit=y_unit,
+            source={"remote": remote_metadata},
+            alias=record.suggested_filename() or f"{identifier}.csv",
+        )
+
+        return RemoteDownloadResult(
+            record=record,
+            cache_entry=store_entry,
+            path=Path(store_entry["stored_path"]),
+            cached=False,
+        )
+
+    def _search_exoplanet_archive_spectra(self, query: Mapping[str, Any]) -> List[RemoteRecord]:
+        """Search NASA Exoplanet Archive for atmospheric spectra (transmission/emission).
+
+        Returns clean CSV spectra that are guaranteed to load correctly.
+        """
+        text = str(query.get("text") or query.get("target_name") or "").strip()
+        if not text:
+            raise ValueError("NASA Exoplanet Archive searches require a planet or star name.")
+
+        if not self._has_exoplanet_archive():
+            return []
+
+        archive = self._ensure_exoplanet_archive()
+
+        # Search the atmospheres table for transmission/emission spectra
+        # This table was created by consolidating transit_spec and eclipse_spec tables
+        token = text.replace("'", "''")
+        if "%" not in token and "_" not in token:
+            like_token = f"%{token}%"
+        else:
+            like_token = token
+
+        records: List[RemoteRecord] = []
+
+        try:
+            # Query atmospheres table
+            table = archive.query_criteria(
+                table="atmospheres",
+                select="pl_name,hostname,spect_type,refname,wav,wav_units,spectra,spectra_units,spectra_error_max,spectra_error_min",
+                where=f"(pl_name like '{like_token}' OR hostname like '{like_token}')",
+            )
+        except Exception:
+            # If atmospheres table fails, return empty
+            return []
+
+        if table is None or len(table) == 0:
+            return []
+
+        rows = self._table_to_records(table)
+
+        for row in rows:
+            pl_name = self._first_text(row, ["pl_name"])
+            hostname = self._first_text(row, ["hostname"])
+            spect_type = self._first_text(row, ["spect_type"]) or "transmission"
+            refname = self._first_text(row, ["refname"]) or "NASA Exoplanet Archive"
+
+            # Get wavelength and spectra data
+            wav = row.get("wav")
+            wav_units = self._first_text(row, ["wav_units"]) or "um"
+            spectra = row.get("spectra")
+            spectra_units = self._first_text(row, ["spectra_units"]) or "Rp/Rs"
+            spectra_error_max = row.get("spectra_error_max")
+            spectra_error_min = row.get("spectra_error_min")
+
+            if wav is None or spectra is None:
+                continue
+
+            # Create identifier and title
+            identifier = f"{pl_name}_{spect_type}"
+            title = f"{pl_name} {spect_type.capitalize()} Spectrum"
+
+            # Build metadata
+            metadata = {
+                "planet_name": pl_name,
+                "host_name": hostname,
+                "spectrum_type": spect_type,
+                "reference": refname,
+                "wav_units": wav_units,
+                "spectra_units": spectra_units,
+                "data_format": "arrays",
+                "wavelength": wav if isinstance(wav, list) else [wav],
+                "spectra": spectra if isinstance(spectra, list) else [spectra],
+            }
+
+            if spectra_error_max is not None:
+                metadata["spectra_error_max"] = spectra_error_max if isinstance(spectra_error_max, list) else [spectra_error_max]
+            if spectra_error_min is not None:
+                metadata["spectra_error_min"] = spectra_error_min if isinstance(spectra_error_min, list) else [spectra_error_min]
+
+            # Convert units for display
+            x_unit = "um" if wav_units.lower() in ["um", "micron", "microns"] else "nm"
+
+            # Determine y-unit based on spectrum type and units
+            if "rp/rs" in spectra_units.lower() or "radius" in spectra_units.lower():
+                y_unit = "Rp/Rs"
+            elif "fp/fs" in spectra_units.lower() or "flux" in spectra_units.lower():
+                y_unit = "Fp/Fs"
+            elif "ppm" in spectra_units.lower():
+                y_unit = "ppm"
+            else:
+                y_unit = spectra_units
+
+            # Create download URL (synthetic - data is embedded)
+            download_url = f"exoplanet-archive://{identifier}"
+
+            record = RemoteRecord(
+                provider=self.PROVIDER_EXOPLANET_ARCHIVE,
+                identifier=identifier,
+                title=title,
+                download_url=download_url,
+                metadata=metadata,
+                units={"x": x_unit, "y": y_unit},
+            )
+            records.append(record)
+
+        return records
 
     def _build_system_metadata(self, system: Mapping[str, Any]) -> Dict[str, Any]:
         metadata: Dict[str, Any] = {}

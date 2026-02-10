@@ -254,6 +254,8 @@ class RemoteDataPanel(QtWidgets.QWidget):
 
         if provider == RemoteDataService.PROVIDER_MAST:
             self.search_edit.setPlaceholderText("MAST target name (e.g. NGC 7023, SN 1987A)…")
+        elif provider == RemoteDataService.PROVIDER_EXOPLANET_ARCHIVE:
+            self.search_edit.setPlaceholderText("Exoplanet or host star name (e.g. WASP-39 b, HD 189733 b)…")
         elif provider == RemoteDataService.PROVIDER_EXOSYSTEMS:
             self.search_edit.setPlaceholderText("Planet, star, or solar system target (e.g. HD 189733 b, Jupiter)…")
         else:
@@ -266,7 +268,7 @@ class RemoteDataPanel(QtWidgets.QWidget):
         self.instrument_combo.setCurrentIndex(0)
     
     def _on_search(self) -> None:
-        """Initiate search using subprocess (never freezes UI)."""
+        """Initiate search - uses subprocess for MAST, direct call for other providers."""
         # Handle cancel if search is in progress
         if self._search_process is not None:
             self._search_process.kill()
@@ -274,21 +276,33 @@ class RemoteDataPanel(QtWidgets.QWidget):
             self.status_label.setText("Search cancelled")
             self.search_button.setText("Search")
             return
-        
+
         query_text = self.search_edit.text().strip()
         if not query_text:
             self.status_label.setText("Enter a search term")
             return
 
-        # Build filter dict
-        filters = self._get_current_filters()
+        provider = self.provider_combo.currentText()
 
-        # Reset UI and pagination for new search
+        # Reset UI for new search
         self._records = []
         self.results_table.setRowCount(0)
         self.import_button.setEnabled(False)
         self._current_page = 1
         self._last_query = query_text
+
+        # Route to appropriate search method based on provider
+        if provider == RemoteDataService.PROVIDER_MAST:
+            self._search_mast_subprocess(query_text)
+        elif provider == RemoteDataService.PROVIDER_EXOPLANET_ARCHIVE:
+            self._search_exoplanet_archive_direct(query_text)
+        else:
+            self.status_label.setText(f"Provider '{provider}' not yet supported")
+
+    def _search_mast_subprocess(self, query_text: str) -> None:
+        """Search MAST using subprocess (non-blocking)."""
+        # Build filter dict
+        filters = self._get_current_filters()
         self._last_filters = filters
 
         filter_desc = self._format_filter_description(filters)
@@ -311,6 +325,43 @@ class RemoteDataPanel(QtWidgets.QWidget):
 
         self._search_process.setArguments(args)
         self._search_process.start()
+
+    def _search_exoplanet_archive_direct(self, query_text: str) -> None:
+        """Search NASA Exoplanet Archive directly (synchronous but fast)."""
+        self.status_label.setText(f"Searching NASA Exoplanet Archive for '{query_text}'…")
+        self.search_button.setText("Searching...")
+        self.search_button.setEnabled(False)
+
+        try:
+            # Direct service call (exoplanet archive is fast, no subprocess needed)
+            query = {"text": query_text}
+            results = self.remote_service.search(
+                RemoteDataService.PROVIDER_EXOPLANET_ARCHIVE,
+                query
+            )
+
+            # Convert RemoteRecord to dict format for populate_results
+            result_dicts = []
+            for record in results:
+                result_dicts.append({
+                    'identifier': record.identifier,
+                    'title': record.title,
+                    'download_url': record.download_url,
+                    'target': record.metadata.get('planet_name', query_text),
+                    'telescope': 'NASA Exoplanet Archive',
+                    'instrument': record.metadata.get('spectrum_type', 'transmission'),
+                    'wavelength_range': f"{record.metadata.get('wav_units', 'um')} spectra",
+                })
+
+            self._populate_results(result_dicts)
+            self.status_label.setText(f"Found {len(results)} spectrum/spectra")
+
+        except Exception as e:
+            self.status_label.setText(f"Search error: {e}")
+
+        finally:
+            self.search_button.setText("Search")
+            self.search_button.setEnabled(True)
 
     def _get_current_filters(self) -> dict:
         """Get current filter values as a dict."""
