@@ -35,19 +35,18 @@ def search_mast(target_name: str, page: int = 1, page_size: int = 50,
             "calib_level": [2, 3],
         }
 
-        # Add wavelength filters (MAST uses meters for query, nm for results)
+        # Add wavelength filters (MAST uses NANOMETERS for both query and results)
         # To find observations overlapping the user's wavelength range:
         # - Obs must start (em_min) at or before user's max wavelength
         # - Obs must end (em_max) at or after user's min wavelength
         if wavelength_min is not None and wavelength_max is not None:
-            min_meters = wavelength_min * 1e-9
-            max_meters = wavelength_max * 1e-9
-            criteria["em_min"] = [0, max_meters]  # Obs starts at or before user's max
-            criteria["em_max"] = [min_meters, 1.0]  # Obs ends at or after user's min (1m = radio)
+            # NO conversion needed - MAST uses nm directly!
+            criteria["em_min"] = [0, wavelength_max]  # Obs starts at or before user's max (nm)
+            criteria["em_max"] = [wavelength_min, 100000]  # Obs ends at or after user's min (nm, up to 100µm)
         elif wavelength_min is not None:
-            criteria["em_max"] = [wavelength_min * 1e-9, 1.0]  # Obs includes at least this wavelength
+            criteria["em_max"] = [wavelength_min, 100000]  # Obs includes at least this wavelength
         elif wavelength_max is not None:
-            criteria["em_min"] = [0, wavelength_max * 1e-9]  # Obs starts before this wavelength
+            criteria["em_min"] = [0, wavelength_max]  # Obs starts before this wavelength
 
         # Query MAST
         table = Observations.query_criteria(**criteria)
