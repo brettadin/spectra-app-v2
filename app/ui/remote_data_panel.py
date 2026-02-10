@@ -254,6 +254,8 @@ class RemoteDataPanel(QtWidgets.QWidget):
 
         if provider == RemoteDataService.PROVIDER_MAST:
             self.search_edit.setPlaceholderText("MAST target name (e.g. NGC 7023, SN 1987A)…")
+        elif provider == RemoteDataService.PROVIDER_EXOMAST:
+            self.search_edit.setPlaceholderText("Exoplanet name (e.g. WASP-39 b, HAT-P-11 b)…")
         elif provider == RemoteDataService.PROVIDER_EXOPLANET_ARCHIVE:
             self.search_edit.setPlaceholderText("Exoplanet or host star name (e.g. WASP-39 b, HD 189733 b)…")
         elif provider == RemoteDataService.PROVIDER_EXOSYSTEMS:
@@ -294,6 +296,8 @@ class RemoteDataPanel(QtWidgets.QWidget):
         # Route to appropriate search method based on provider
         if provider == RemoteDataService.PROVIDER_MAST:
             self._search_mast_subprocess(query_text)
+        elif provider == RemoteDataService.PROVIDER_EXOMAST:
+            self._search_exomast_direct(query_text)
         elif provider == RemoteDataService.PROVIDER_EXOPLANET_ARCHIVE:
             self._search_exoplanet_archive_direct(query_text)
         else:
@@ -351,6 +355,43 @@ class RemoteDataPanel(QtWidgets.QWidget):
                     'telescope': 'NASA Exoplanet Archive',
                     'instrument': record.metadata.get('spectrum_type', 'transmission'),
                     'wavelength_range': f"{record.metadata.get('wav_units', 'um')} spectra",
+                })
+
+            self._populate_results(result_dicts)
+            self.status_label.setText(f"Found {len(results)} spectrum/spectra")
+
+        except Exception as e:
+            self.status_label.setText(f"Search error: {e}")
+
+        finally:
+            self.search_button.setText("Search")
+            self.search_button.setEnabled(True)
+
+    def _search_exomast_direct(self, query_text: str) -> None:
+        """Search Exo.MAST directly (synchronous, fast, curated spectra)."""
+        self.status_label.setText(f"Searching Exo.MAST for '{query_text}'…")
+        self.search_button.setText("Searching...")
+        self.search_button.setEnabled(False)
+
+        try:
+            # Direct service call (Exo.MAST is fast, no subprocess needed)
+            query = {"text": query_text}
+            results = self.remote_service.search(
+                RemoteDataService.PROVIDER_EXOMAST,
+                query
+            )
+
+            # Convert RemoteRecord to dict format for populate_results
+            result_dicts = []
+            for record in results:
+                result_dicts.append({
+                    'identifier': record.identifier,
+                    'title': record.title,
+                    'download_url': record.download_url,
+                    'target': record.metadata.get('target', query_text),
+                    'telescope': 'Exo.MAST',
+                    'instrument': record.metadata.get('reference', 'Publication'),
+                    'wavelength_range': f"{record.metadata.get('spectrum_type', 'spectrum')}",
                 })
 
             self._populate_results(result_dicts)

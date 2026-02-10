@@ -46,6 +46,11 @@ _INTENSITY_LABEL_HINTS = {
     "trandep",
     "depth",
     "y",
+    "rp",  # Exoplanet: planet radius
+    "rs",  # Exoplanet: star radius
+    "ratio",  # Exoplanet: planet/star ratio
+    "fp",  # Exoplanet: planet flux
+    "fs",  # Exoplanet: star flux
 }
 _WAVELENGTH_UNIT_HINTS = {
     "nm",

@@ -165,6 +165,7 @@ class RemoteDataService:
     PROVIDER_MAST = "MAST"
     PROVIDER_EXOSYSTEMS = "MAST ExoSystems"  # Deprecated
     PROVIDER_EXOPLANET_ARCHIVE = "NASA Exoplanet Archive"
+    PROVIDER_EXOMAST = "Exo.MAST"  # Curated exoplanet spectra
 
     _DEFAULT_REGION_RADIUS = "0.02 deg"
     _SAMPLES_ROOT = Path(__file__).resolve().parents[2] / "samples"
@@ -645,6 +646,8 @@ class RemoteDataService:
         if self._has_nist_support():
             providers.append(self.PROVIDER_NIST)
         if self._has_exosystem_support():
+            # Exo.MAST - Curated exoplanet spectra (BEST for exoplanets!)
+            providers.append(self.PROVIDER_EXOMAST)
             # NASA Exoplanet Archive - transmission/emission spectra
             providers.append(self.PROVIDER_EXOPLANET_ARCHIVE)
         if self._has_mast_support():
@@ -665,6 +668,9 @@ class RemoteDataService:
                 "Install the 'astroquery' and 'pandas' packages to enable MAST searches."
             )
         if not self._has_exosystem_support():
+            reasons[self.PROVIDER_EXOMAST] = (
+                "Install 'requests' package to enable Exo.MAST curated exoplanet spectra."
+            )
             reasons[self.PROVIDER_EXOPLANET_ARCHIVE] = (
                 "Install 'requests' package to enable NASA Exoplanet Archive atmospheric spectra."
             )
@@ -681,6 +687,8 @@ class RemoteDataService:
     ) -> List[RemoteRecord]:
         if provider == self.PROVIDER_NIST:
             return self._search_nist(query)
+        if provider == self.PROVIDER_EXOMAST:
+            return self._search_exomast(query)
         if provider == self.PROVIDER_EXOPLANET_ARCHIVE:
             return self._search_exoplanet_archive_spectra(query)
         if provider == self.PROVIDER_MAST:
@@ -708,6 +716,10 @@ class RemoteDataService:
         # Handle NASA Exoplanet Archive TAP queries (return CSV directly)
         if record.provider == self.PROVIDER_EXOPLANET_ARCHIVE and 'TAP/sync' in record.download_url:
             return self._download_tap_csv(record, progress=progress)
+
+        # Handle Exo.MAST TSV files (tab-separated with comments)
+        if record.provider == self.PROVIDER_EXOMAST:
+            return self._download_exomast_tsv(record, progress=progress)
 
         fetch_path = self._fetch_remote(record, progress=progress)
 
@@ -1449,6 +1461,116 @@ class RemoteDataService:
             cached=False,
         )
 
+    def _download_exomast_tsv(self, record: RemoteRecord, progress: Callable[[RemoteRecord, int, int | None], None] | None = None) -> RemoteDownloadResult:
+        """Download TSV data from Exo.MAST and convert to CSV for easier import."""
+        import requests
+        import tempfile
+        import csv
+
+        # Fetch TSV data
+        response = requests.get(record.download_url, timeout=30, stream=True)
+        response.raise_for_status()
+
+        # Get total size if available
+        total_size = int(response.headers.get('content-length', 0))
+
+        # Download to temp file
+        downloaded = 0
+        lines = []
+        for chunk in response.iter_content(chunk_size=8192, decode_unicode=True):
+            if chunk:
+                lines.append(chunk)
+                downloaded += len(chunk.encode('utf-8'))
+                if progress and total_size > 0:
+                    progress(record, downloaded, total_size)
+
+        # Parse TSV and convert to CSV
+        content = ''.join(lines)
+        tsv_lines = content.split('\n')
+
+        # Find header line (first non-comment line)
+        data_lines = []
+        header_line = None
+        for line in tsv_lines:
+            line = line.strip()
+            if not line or line.startswith('#'):
+                continue
+            if header_line is None:
+                header_line = line
+            else:
+                data_lines.append(line)
+
+        if not header_line:
+            raise ValueError("No data found in Exo.MAST file")
+
+        # Parse header and data (whitespace-separated)
+        header_parts = header_line.split()
+
+        # Create CSV file
+        temp_dir = Path(tempfile.gettempdir()) / "spectra_cache"
+        temp_dir.mkdir(exist_ok=True, parents=True)
+
+        identifier = record.identifier.replace("/", "_").replace(":", "_")
+        csv_path = temp_dir / f"{identifier}.csv"
+
+        with open(csv_path, 'w', newline='', encoding='utf-8') as f:
+            writer = csv.writer(f)
+
+            # Write simplified header (remove units for CSV compatibility)
+            # Map Exo.MAST columns to standard names
+            simple_header = []
+            for i, part in enumerate(header_parts):
+                # Remove parenthetical units like "(microns)"
+                clean_name = part.split('(')[0].strip()
+
+                # Standardize column names for importer
+                if 'wavelength' in clean_name.lower() and 'delta' not in clean_name.lower():
+                    simple_header.append('Wavelength')
+                elif 'rp/rs' in part.lower() and '+/-' not in part.lower():
+                    simple_header.append('Rp_Rs_squared')
+                elif '+/-' in part.lower() or 'uncertainty' in clean_name.lower():
+                    simple_header.append('Uncertainty')
+                elif 'delta' in clean_name.lower() and 'wavelength' in clean_name.lower():
+                    simple_header.append('Delta_Wavelength')
+                elif 'fp/fs' in part.lower():
+                    simple_header.append('Fp_Fs')
+                else:
+                    simple_header.append(clean_name)
+            writer.writerow(simple_header)
+
+            # Write data rows
+            for line in data_lines:
+                if not line.strip():
+                    continue
+                values = line.split()
+                if len(values) == len(simple_header):
+                    writer.writerow(values)
+
+        # Store in local store
+        x_unit, y_unit = record.resolved_units()
+        remote_metadata = {
+            "provider": record.provider,
+            "uri": record.download_url,
+            "identifier": record.identifier,
+            "fetched_at": self._timestamp(),
+            "metadata": self._json_safe(record.metadata),
+        }
+
+        store_entry = self.store.record(
+            csv_path,
+            x_unit=x_unit,
+            y_unit=y_unit,
+            source={"remote": remote_metadata},
+            alias=record.suggested_filename() or f"{identifier}.csv",
+        )
+
+        return RemoteDownloadResult(
+            record=record,
+            cache_entry=store_entry,
+            path=Path(store_entry["stored_path"]),
+            cached=False,
+        )
+
     def _download_exoplanet_archive_embedded(self, record: RemoteRecord) -> RemoteDownloadResult:
         """Handle exoplanet archive records with embedded array data.
 
@@ -1625,6 +1747,85 @@ class RemoteDataService:
             pass
 
         return records
+
+    def _search_exomast(self, query: Mapping[str, Any]) -> List[RemoteRecord]:
+        """Search Exo.MAST for curated exoplanet spectra.
+
+        Uses the Exo.MAST API to find publication-quality transmission and emission spectra.
+        Much more reliable than general MAST searches.
+        """
+        import requests
+
+        text = str(query.get("text") or query.get("target_name") or "").strip()
+        if not text:
+            raise ValueError("Exo.MAST searches require a planet name.")
+
+        base_url = "https://exo.mast.stsci.edu/api/v0.1"
+
+        # Get file list for this planet
+        try:
+            filelist_url = f"{base_url}/spectra/{text}/filelist/"
+            response = requests.get(filelist_url, timeout=10)
+            response.raise_for_status()
+
+            data = response.json()
+            filenames = data.get("filenames", [])
+
+            if not filenames:
+                return []
+
+            # Create RemoteRecord for each file
+            records = []
+            for filename in filenames:
+                # Parse filename to extract info
+                # Format: "PLANET_type_Author2023.txt"
+                parts = filename.replace(".txt", "").split("_")
+                if len(parts) >= 3:
+                    spectrum_type = parts[1]  # "transmission" or "emission"
+                    reference = parts[2] if len(parts) > 2 else "Unknown"
+                else:
+                    spectrum_type = "transmission"
+                    reference = "Unknown"
+
+                identifier = filename.replace(".txt", "")
+                title = f"{text} {spectrum_type.capitalize()} ({reference})"
+
+                # Direct download URL
+                download_url = f"{base_url}/spectra/{text}/file/{filename}"
+
+                # Determine units based on spectrum type
+                if "transmission" in spectrum_type.lower():
+                    y_unit = "(Rp/Rs)^2"
+                elif "emission" in spectrum_type.lower():
+                    y_unit = "Fp/Fs"
+                else:
+                    y_unit = "ratio"
+
+                record = RemoteRecord(
+                    provider=self.PROVIDER_EXOMAST,
+                    identifier=identifier,
+                    title=title,
+                    download_url=download_url,
+                    metadata={
+                        "target": text,
+                        "spectrum_type": spectrum_type,
+                        "reference": reference,
+                        "data_format": "tsv",
+                        "filename": filename,
+                    },
+                    units={"x": "um", "y": y_unit},
+                )
+                records.append(record)
+
+            return records
+
+        except requests.HTTPError as e:
+            if e.response.status_code == 404:
+                # Planet not found in Exo.MAST
+                return []
+            raise RuntimeError(f"Exo.MAST query failed: {e}")
+        except Exception as e:
+            raise RuntimeError(f"Exo.MAST error: {e}")
 
         for row in rows:
             pl_name = self._first_text(row, ["pl_name"])

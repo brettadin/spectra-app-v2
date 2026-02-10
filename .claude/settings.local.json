@@ -18,7 +18,8 @@
       "Bash(tail:*)",
       "WebFetch(domain:jwst-docs.stsci.edu)",
       "WebFetch(domain:outerspace.stsci.edu)",
-      "WebFetch(domain:jwst-pipeline.readthedocs.io)"
+      "WebFetch(domain:jwst-pipeline.readthedocs.io)",
+      "WebFetch(domain:exo.mast.stsci.edu)"
     ]
   }
 }
