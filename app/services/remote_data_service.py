@@ -713,6 +713,10 @@ class RemoteDataService:
                 cached=True,
             )
 
+        print(f"[Download] record.provider = '{record.provider}'")
+        print(f"[Download] PROVIDER_EXOMAST = '{self.PROVIDER_EXOMAST}'")
+        print(f"[Download] Match? {record.provider == self.PROVIDER_EXOMAST}")
+
         # Handle NASA Exoplanet Archive TAP queries (return CSV directly)
         if record.provider == self.PROVIDER_EXOPLANET_ARCHIVE and 'TAP/sync' in record.download_url:
             return self._download_tap_csv(record, progress=progress)
