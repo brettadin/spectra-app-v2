@@ -82,7 +82,7 @@ class ExoplanetCsvImporter:
         
         # Find flux column (optional)
         flux_col = None
-        for candidate in ["FLAM", "FLUX", "INTENSITY", "F_LAMBDA", "SPECTRUM", "TRANDEP", "PL_TRANDEP", "TRANSIT_DEPTH", "TRANSITDEPTH"]:
+        for candidate in ["PLNRATROR", "PLNECLDEP", "FLAM", "FLUX", "INTENSITY", "F_LAMBDA", "SPECTRUM", "TRANDEP", "PL_TRANDEP", "TRANSIT_DEPTH", "TRANSITDEPTH"]:
             if candidate in field_map:
                 flux_col = field_map[candidate]
                 break
@@ -164,7 +164,13 @@ class ExoplanetCsvImporter:
         # Y unit depends on what column we found
         if flux_col:
             flux_upper = flux_col.upper()
-            if "FLAM" in flux_upper:
+            if "PLNRATROR" in flux_upper:
+                # Planet/star radius ratio (transmission spectra)
+                y_unit = "Rp/Rs"
+            elif "PLNECLDEP" in flux_upper:
+                # Eclipse depth = planet/star flux ratio (emission spectra)
+                y_unit = "Fp/Fs"
+            elif "FLAM" in flux_upper:
                 # FLAM = erg/s/cm²/Å or similar flux density
                 y_unit = "flux_density"
             elif "TRANDEP" in flux_upper or "TRANSIT" in flux_upper:

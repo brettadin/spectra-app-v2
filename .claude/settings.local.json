@@ -14,7 +14,8 @@
       "Bash(python:*)",
       "Bash(pytest:*)",
       "Bash(in the inspector tab. nothing in the dock is scalable\"\n\nRoot cause: main_window.py line 505 had setMaximumWidth\\(600\\) on the \nInspector dock, preventing user resizing beyond 600px.\n\nFix: Removed the maximum width restriction. All QDockWidgets are now \nfreely resizable by the user.\n\nImpact:\n✅ Inspector dock can be resized to any width\n✅ Users can expand panels to see full content\n✅ Better multi-monitor support\n\nCo-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
-      "Bash(git checkout:*)"
+      "Bash(git checkout:*)",
+      "Bash(tail:*)"
     ]
   }
 }

@@ -458,6 +458,10 @@ class RemoteDataPanel(QtWidgets.QWidget):
         """Populate the results table from search results."""
         self.results_table.setUpdatesEnabled(False)
         try:
+            # Clear existing results first (important for pagination)
+            self._records = []
+            self.results_table.setRowCount(0)
+
             for r in results:
                 # Create a RemoteRecord-like object
                 record = RemoteRecord(

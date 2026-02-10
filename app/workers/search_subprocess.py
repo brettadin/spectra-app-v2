@@ -87,7 +87,9 @@ def search_mast(target_name: str, page: int = 1, page_size: int = 50,
             obsid = str(row.get('obsid', ''))
 
             # Extract wavelength range from observations table
-            # MAST returns em_min/em_max in nanometers
+            # MAST returns em_min/em_max in nanometers (usually)
+            # NOTE: Some instruments (e.g. EUVE) report in Angstroms instead!
+            # The actual FITS files have correct wavelengths; this is just display metadata.
             wavelength_range = ''
             try:
                 em_min = row.get('em_min')  # nanometers
