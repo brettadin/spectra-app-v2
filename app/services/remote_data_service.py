@@ -644,8 +644,7 @@ class RemoteDataService:
         if self._has_nist_support():
             providers.append(self.PROVIDER_NIST)
         if self._has_mast_support():
-            if self._has_exosystem_support():
-                providers.append(self.PROVIDER_EXOSYSTEMS)
+            # Removed PROVIDER_EXOSYSTEMS - redundant with MAST
             providers.append(self.PROVIDER_MAST)
         return providers
 
@@ -661,13 +660,7 @@ class RemoteDataService:
             reasons[self.PROVIDER_MAST] = (
                 "Install the 'astroquery' and 'pandas' packages to enable MAST searches."
             )
-            reasons[self.PROVIDER_EXOSYSTEMS] = (
-                "Install the 'astroquery', 'pandas', and 'requests' packages to enable Exoplanet Archive lookups."
-            )
-        elif not self._has_exosystem_support():
-            reasons[self.PROVIDER_EXOSYSTEMS] = (
-                "Install the 'requests' package to enable Exoplanet Archive and Exo.MAST queries."
-            )
+            # Removed EXOSYSTEMS provider - now integrated with MAST
         return reasons
 
     # ------------------------------------------------------------------
@@ -683,8 +676,7 @@ class RemoteDataService:
             return self._search_nist(query)
         if provider == self.PROVIDER_MAST:
             return self._search_mast(query, include_imaging=include_imaging)
-        if provider == self.PROVIDER_EXOSYSTEMS:
-            return self._search_exosystems(query, include_imaging=include_imaging, cancel_check=cancel_check)
+        # Removed EXOSYSTEMS routing - now use MAST directly
         raise ValueError(f"Unsupported provider: {provider}")
 
     # ------------------------------------------------------------------
