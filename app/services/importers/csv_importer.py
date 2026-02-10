@@ -931,7 +931,15 @@ class CsvImporter:
         if not np.isfinite(median):
             return False
         span = float(np.nanmax(data) - np.nanmin(data))
+        # Low intensity values (normalized, counts, etc.)
         if median <= 10.0 and span <= 200.0:
+            return True
+        # Percentage values (transmittance, reflectance, absorbance)
+        # Typical range: 0-100% or 0-1 normalized
+        min_val = float(np.nanmin(data))
+        max_val = float(np.nanmax(data))
+        if 0 <= min_val <= 150 and 0 <= max_val <= 150 and span > 0.01:
+            # Looks like percentage or normalized intensity data
             return True
         return False
 
