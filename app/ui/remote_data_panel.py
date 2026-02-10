@@ -103,12 +103,13 @@ class RemoteDataPanel(QtWidgets.QWidget):
         
         layout.addLayout(controls)
         
-        # Results table - 6 columns of useful metadata
-        self.results_table = QtWidgets.QTableWidget(0, 6)
+        # Results table - 7 columns of useful metadata
+        self.results_table = QtWidgets.QTableWidget(0, 7)
         self.results_table.setHorizontalHeaderLabels([
             "ID",
             "Title",
             "Target",
+            "Wavelength Range",
             "Telescope",
             "Instrument",
             "Product",
@@ -308,21 +309,27 @@ class RemoteDataPanel(QtWidgets.QWidget):
                 item = QtWidgets.QTableWidgetItem(r.get('target', ''))
                 item.setFlags(item.flags() & ~QtCore.Qt.ItemFlag.ItemIsEditable)
                 self.results_table.setItem(row, 2, item)
-                
+
+                # Wavelength Range
+                wavelength_range = r.get('wavelength_range', '')
+                item = QtWidgets.QTableWidgetItem(wavelength_range)
+                item.setFlags(item.flags() & ~QtCore.Qt.ItemFlag.ItemIsEditable)
+                self.results_table.setItem(row, 3, item)
+
                 # Telescope
                 item = QtWidgets.QTableWidgetItem(r.get('telescope', ''))
                 item.setFlags(item.flags() & ~QtCore.Qt.ItemFlag.ItemIsEditable)
-                self.results_table.setItem(row, 3, item)
-                
+                self.results_table.setItem(row, 4, item)
+
                 # Instrument
                 item = QtWidgets.QTableWidgetItem(r.get('instrument', ''))
                 item.setFlags(item.flags() & ~QtCore.Qt.ItemFlag.ItemIsEditable)
-                self.results_table.setItem(row, 4, item)
-                
+                self.results_table.setItem(row, 5, item)
+
                 # Product type
                 item = QtWidgets.QTableWidgetItem('spectrum')
                 item.setFlags(item.flags() & ~QtCore.Qt.ItemFlag.ItemIsEditable)
-                self.results_table.setItem(row, 5, item)
+                self.results_table.setItem(row, 6, item)
         finally:
             self.results_table.setUpdatesEnabled(True)
     
