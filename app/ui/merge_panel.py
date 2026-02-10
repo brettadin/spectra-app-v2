@@ -57,6 +57,7 @@ class MergePanel(QtWidgets.QWidget):
     merge_smooth_button: QtWidgets.QPushButton
     merge_derivative_button: QtWidgets.QPushButton
     merge_integral_button: QtWidgets.QPushButton
+    merge_ftir_convert_button: QtWidgets.QPushButton
     merge_status_label: QtWidgets.QLabel
     # Range selection widgets
     range_enabled: QtWidgets.QCheckBox
@@ -222,7 +223,12 @@ class MergePanel(QtWidgets.QWidget):
         self.merge_integral_button.setEnabled(False)
         self.merge_integral_button.setToolTip("Compute cumulative integral or total area")
         merge_buttons_layout.addWidget(self.merge_integral_button, 1, 2)
-        
+
+        self.merge_ftir_convert_button = QtWidgets.QPushButton("FTIR→τ")
+        self.merge_ftir_convert_button.setEnabled(False)
+        self.merge_ftir_convert_button.setToolTip("Convert FTIR (cm⁻¹ + %T) to wavelength (µm) + optical depth (τ)")
+        merge_buttons_layout.addWidget(self.merge_ftir_convert_button, 1, 3)
+
         layout.addLayout(merge_buttons_layout)
 
         # Status

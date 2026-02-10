@@ -571,6 +571,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.merge_smooth_button = self.merge_panel.merge_smooth_button
         self.merge_derivative_button = self.merge_panel.merge_derivative_button
         self.merge_integral_button = self.merge_panel.merge_integral_button
+        self.merge_ftir_convert_button = self.merge_panel.merge_ftir_convert_button
         self.merge_status_label = self.merge_panel.merge_status_label
 
         # Wire existing handlers
@@ -582,6 +583,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
         self.merge_smooth_button.clicked.connect(self._on_merge_smooth)
         self.merge_derivative_button.clicked.connect(self._on_merge_derivative)
         self.merge_integral_button.clicked.connect(self._on_merge_integral)
+        self.merge_ftir_convert_button.clicked.connect(self._on_merge_ftir_convert)
 
         # Wire range selection signals
         self.merge_panel.rangeToggled.connect(self._on_range_selection_toggled)
@@ -6361,6 +6363,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             self.merge_smooth_button.setEnabled(False)
             self.merge_derivative_button.setEnabled(False)
             self.merge_integral_button.setEnabled(False)
+            self.merge_ftir_convert_button.setEnabled(False)
         elif len(selected_specs) == 1:
             spec = selected_specs[0]
             self.merge_preview_label.setText(
@@ -6375,6 +6378,7 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             self.merge_smooth_button.setEnabled(True)
             self.merge_derivative_button.setEnabled(True)
             self.merge_integral_button.setEnabled(True)
+            self.merge_ftir_convert_button.setEnabled(True)
         elif len(selected_specs) == 2:
             # Two spectra: enable subtract/ratio, check for average
             spec_a, spec_b = selected_specs
@@ -6411,7 +6415,8 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             self.merge_smooth_button.setEnabled(False)
             self.merge_derivative_button.setEnabled(False)
             self.merge_integral_button.setEnabled(False)
-            
+            self.merge_ftir_convert_button.setEnabled(False)
+
             # Check for overlapping range for average
             overlap_min = max(spec_a.x.min(), spec_b.x.min())
             overlap_max = min(spec_a.x.max(), spec_b.x.max())
@@ -6434,7 +6439,8 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
             self.merge_smooth_button.setEnabled(False)
             self.merge_derivative_button.setEnabled(False)
             self.merge_integral_button.setEnabled(False)
-            
+            self.merge_ftir_convert_button.setEnabled(False)
+
             if bool(overlap_min >= overlap_max):
                 self.merge_preview_label.setText(
                     f"{len(selected_specs)} datasets selected\n"
@@ -6805,6 +6811,94 @@ class SpectraMainWindow(QtWidgets.QMainWindow):
 
                 self.merge_status_label.setText(f"✓ Total integral: {total_val:.6g} {unit}")
                 
+        except Exception as exc:
+            self.merge_status_label.setText(f"❌ Error: {exc}")
+            import traceback
+            traceback.print_exc()
+
+    def _on_merge_ftir_convert(self) -> None:
+        """Convert FTIR spectrum (cm⁻¹ + %T) to wavelength (µm) + optical depth (τ)."""
+        if not hasattr(self, 'merge_status_label'):
+            return
+
+        self.merge_status_label.setText("Processing...")
+        try:
+            spectra = self._get_merge_candidates()
+            if len(spectra) != 1:
+                self.merge_status_label.setText("⚠️ Select exactly 1 dataset for FTIR conversion")
+                return
+
+            spec = spectra[0]
+
+            # Show options dialog
+            dialog = QtWidgets.QDialog(self)
+            dialog.setWindowTitle("FTIR Conversion Options")
+            dialog.setMinimumWidth(400)
+
+            layout = QtWidgets.QVBoxLayout(dialog)
+
+            # Info text
+            info_label = QtWidgets.QLabel(
+                "Convert FTIR data (cm⁻¹ + %T) to wavelength (µm) + optical depth (τ).\n\n"
+                "Input requirements:\n"
+                "  • X-axis: wavenumber in cm⁻¹\n"
+                "  • Y-axis: transmittance in %\n\n"
+                "Output:\n"
+                "  • X-axis: wavelength in µm (sorted ascending)\n"
+                "  • Y-axis: optical depth τ = -ln(T)"
+            )
+            info_label.setWordWrap(True)
+            layout.addWidget(info_label)
+
+            # Baseline correction checkbox
+            baseline_checkbox = QtWidgets.QCheckBox("Apply baseline correction (subtract 10th percentile)")
+            baseline_checkbox.setChecked(False)
+            baseline_checkbox.setToolTip(
+                "Baseline correction removes instrument offset by subtracting the 10th percentile\n"
+                "of optical depth from all values. Use this to compare spectral shapes."
+            )
+            layout.addWidget(baseline_checkbox)
+
+            # Button box
+            button_box = QtWidgets.QDialogButtonBox(
+                QtWidgets.QDialogButtonBox.StandardButton.Ok |
+                QtWidgets.QDialogButtonBox.StandardButton.Cancel
+            )
+            button_box.accepted.connect(dialog.accept)
+            button_box.rejected.connect(dialog.reject)
+            layout.addWidget(button_box)
+
+            if dialog.exec() != QtWidgets.QDialog.DialogCode.Accepted:
+                self.merge_status_label.setText("Cancelled")
+                return
+
+            baseline_correct = baseline_checkbox.isChecked()
+
+            # Perform conversion
+            result, metadata = self.math_service.convert_ftir_to_optical_depth(
+                spec,
+                baseline_correct=baseline_correct
+            )
+
+            # Add to overlay
+            self.overlay_service.add(result)
+            self._add_spectrum(result)
+
+            bc_suffix = " (baseline corrected)" if baseline_correct else ""
+            self.merge_status_label.setText(f"✓ Created '{result.name}'{bc_suffix}")
+
+            if hasattr(self, 'merge_name_edit'):
+                self.merge_name_edit.clear()
+
+            self.plot.autoscale()
+            self._refresh_history_view()
+
+            # Log the conversion
+            self._log(
+                "FTIR Conversion",
+                f"Converted '{spec.name}' from cm⁻¹ + %T to µm + τ{bc_suffix}"
+            )
+
         except Exception as exc:
             self.merge_status_label.setText(f"❌ Error: {exc}")
             import traceback

@@ -982,5 +982,127 @@ class MathService:
         
         if min_nm >= max_nm:
             raise ValueError('Spectra have no overlapping wavelength range')
-        
+
         return (min_nm, max_nm)
+
+    def convert_ftir_to_optical_depth(
+        self,
+        spec: Spectrum,
+        *,
+        baseline_correct: bool = False
+    ) -> Tuple[Spectrum, Dict[str, object]]:
+        """Convert FTIR spectrum (cm⁻¹ + %T) to wavelength (µm) + optical depth (τ).
+
+        This produces a canonical output suitable for comparing lab FTIR data with
+        exoplanet reference spectra in wavelength space.
+
+        Input assumptions:
+            - X-axis is wavenumber in cm⁻¹ (can be descending, typical for FTIR)
+            - Y-axis is transmittance in % (0-100+)
+
+        Output format:
+            - X-axis: wavelength in µm, sorted ascending
+            - Y-axis: optical depth τ = -ln(T) where T is fractional transmittance
+            - Metadata contains all derived quantities
+
+        Args:
+            spec: Input spectrum with x in cm⁻¹ and y in %T
+            baseline_correct: If True, subtract 10th percentile from optical depth
+
+        Returns:
+            Tuple of (converted_spectrum, metadata_dict)
+        """
+        # Get wavenumber (cm⁻¹) and transmittance (%)
+        wavenumber_cm1 = spec.x.copy()
+        transmittance_percent = spec.y.copy()
+
+        # Convert wavenumber to wavelength (µm)
+        # λ(µm) = 10000 / ν(cm⁻¹)
+        with np.errstate(divide='ignore', invalid='ignore'):
+            wavelength_um = 10000.0 / wavenumber_cm1
+
+        # Convert %T to fractional transmittance
+        transmittance_frac = transmittance_percent / 100.0
+
+        # Clamp values <= 0 to small epsilon to avoid log errors
+        epsilon = 1e-12
+        transmittance_frac = np.where(
+            transmittance_frac <= 0,
+            epsilon,
+            transmittance_frac
+        )
+
+        # Allow values > 1 (baseline above 100%) - will yield slightly negative τ
+        # This is intentional for proper baseline handling
+
+        # Calculate optical depth: τ = -ln(T)
+        with np.errstate(divide='ignore', invalid='ignore'):
+            optical_depth = -np.log(transmittance_frac)
+
+        # Calculate absorbance: A = -log10(T)
+        with np.errstate(divide='ignore', invalid='ignore'):
+            absorbance = -np.log10(transmittance_frac)
+
+        # Baseline correction (optional)
+        optical_depth_bc = None
+        absorbance_bc = None
+        baseline_tau = None
+
+        if baseline_correct:
+            # Use 10th percentile as baseline
+            baseline_tau = float(np.nanpercentile(optical_depth, 10))
+            optical_depth_bc = optical_depth - baseline_tau
+
+            baseline_abs = float(np.nanpercentile(absorbance, 10))
+            absorbance_bc = absorbance - baseline_abs
+
+        # Sort by wavelength ascending (FTIR is typically descending in wavenumber)
+        sort_idx = np.argsort(wavelength_um)
+        wavelength_um_sorted = wavelength_um[sort_idx]
+        optical_depth_sorted = optical_depth[sort_idx]
+
+        # Store all derived quantities in metadata
+        metadata = dict(spec.metadata)
+        metadata['ftir_conversion'] = {
+            'wavenumber_cm1': wavenumber_cm1[sort_idx].tolist(),
+            'transmittance_percent': transmittance_percent[sort_idx].tolist(),
+            'transmittance_frac': transmittance_frac[sort_idx].tolist(),
+            'absorbance': absorbance[sort_idx].tolist(),
+            'optical_depth': optical_depth_sorted.tolist(),
+            'baseline_corrected': baseline_correct,
+        }
+
+        if baseline_correct and optical_depth_bc is not None:
+            metadata['ftir_conversion']['baseline_tau'] = baseline_tau
+            metadata['ftir_conversion']['optical_depth_bc'] = optical_depth_bc[sort_idx].tolist()
+            metadata['ftir_conversion']['absorbance_bc'] = absorbance_bc[sort_idx].tolist()
+
+        # Create new spectrum with wavelength (µm) and optical depth
+        result = Spectrum.create(
+            name=f"{spec.name} (µm + τ)",
+            x=wavelength_um_sorted,
+            y=optical_depth_sorted,
+            x_unit="µm",
+            y_unit="optical_depth",
+            metadata=metadata,
+            source_path=spec.source_path,
+            parents=(spec.id,),
+            transforms=spec.transforms + ({
+                'operation': 'ftir_conversion',
+                'baseline_correct': baseline_correct,
+            },),
+        )
+
+        return result, {
+            'operation': 'ftir_conversion',
+            'status': 'success',
+            'parent_id': spec.id,
+            'result_id': result.id,
+            'baseline_corrected': baseline_correct,
+            'original_x_unit': spec.x_unit,
+            'original_y_unit': spec.y_unit,
+            'output_x_unit': 'µm',
+            'output_y_unit': 'optical_depth',
+            'original_points': int(spec.x.size),
+            'output_points': int(result.x.size),
+        }
