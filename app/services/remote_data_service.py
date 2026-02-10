@@ -1467,8 +1467,11 @@ class RemoteDataService:
         import tempfile
         import csv
 
+        print(f"[Exo.MAST Download] Starting download: {record.download_url}")
+
         # Fetch TSV data
         response = requests.get(record.download_url, timeout=30, stream=True)
+        print(f"[Exo.MAST Download] Response status: {response.status_code}")
         response.raise_for_status()
 
         # Get total size if available
@@ -1548,6 +1551,9 @@ class RemoteDataService:
 
         # Store in local store
         x_unit, y_unit = record.resolved_units()
+        print(f"[Exo.MAST Download] CSV created at: {csv_path}")
+        print(f"[Exo.MAST Download] Units: x={x_unit}, y={y_unit}")
+
         remote_metadata = {
             "provider": record.provider,
             "uri": record.download_url,
@@ -1563,6 +1569,7 @@ class RemoteDataService:
             source={"remote": remote_metadata},
             alias=record.suggested_filename() or f"{identifier}.csv",
         )
+        print(f"[Exo.MAST Download] Stored at: {store_entry['stored_path']}")
 
         return RemoteDownloadResult(
             record=record,
@@ -1770,11 +1777,17 @@ class RemoteDataService:
         # Get file list for this planet
         try:
             filelist_url = f"{base_url}/spectra/{text}/filelist/"
+            print(f"[Exo.MAST] Searching for: '{text}'")
+            print(f"[Exo.MAST] URL: {filelist_url}")
+
             response = requests.get(filelist_url, timeout=10)
+            print(f"[Exo.MAST] Response status: {response.status_code}")
+
             response.raise_for_status()
 
             data = response.json()
             filenames = data.get("filenames", [])
+            print(f"[Exo.MAST] Found {len(filenames)} file(s)")
 
             if not filenames:
                 return []
