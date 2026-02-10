@@ -1070,6 +1070,7 @@ class MathService:
             'absorbance': absorbance[sort_idx].tolist(),
             'optical_depth': optical_depth_sorted.tolist(),
             'baseline_corrected': baseline_correct,
+            'parent_id': spec.id,
         }
 
         if baseline_correct and optical_depth_bc is not None:
@@ -1086,11 +1087,6 @@ class MathService:
             y_unit="optical_depth",
             metadata=metadata,
             source_path=spec.source_path,
-            parents=(spec.id,),
-            transforms=spec.transforms + ({
-                'operation': 'ftir_conversion',
-                'baseline_correct': baseline_correct,
-            },),
         )
 
         return result, {
