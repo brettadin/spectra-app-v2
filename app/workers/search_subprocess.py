@@ -8,13 +8,13 @@ import json
 import sys
 
 
-def search_mast(target_name: str) -> list[dict]:
-    """Search MAST for spectra of a target. Returns list of record dicts."""
+def search_mast(target_name: str, page: int = 1, page_size: int = 50) -> dict:
+    """Search MAST for spectra of a target. Returns dict with results and pagination info."""
     try:
         from astroquery.mast import Observations
     except ImportError:
-        return []
-    
+        return {'results': [], 'total': 0, 'page': 1, 'page_size': page_size, 'total_pages': 0}
+
     try:
         # Single, simple query - no complex batching
         table = Observations.query_criteria(
@@ -23,13 +23,22 @@ def search_mast(target_name: str) -> list[dict]:
             intentType="science",
             calib_level=[2, 3],
         )
-        
+
         if table is None or len(table) == 0:
-            return []
-        
-        # Limit to 50 observations max
-        if len(table) > 50:
-            table = table[:50]
+            return {'results': [], 'total': 0, 'page': 1, 'page_size': page_size, 'total_pages': 0}
+
+        total_observations = len(table)
+        total_pages = (total_observations + page_size - 1) // page_size
+
+        # Calculate slice for current page
+        start_idx = (page - 1) * page_size
+        end_idx = min(start_idx + page_size, total_observations)
+
+        # Slice table for current page
+        if start_idx >= total_observations:
+            return {'results': [], 'total': total_observations, 'page': page, 'page_size': page_size, 'total_pages': total_pages}
+
+        table = table[start_idx:end_idx]
         
         # Build lookup of observation metadata by obsid
         obs_meta = {}
@@ -104,28 +113,31 @@ def search_mast(target_name: str) -> list[dict]:
                     'telescope': telescope,
                     'instrument': instrument,
                 })
-                
-                # Limit results
-                if len(results) >= 100:
-                    break
-                    
+
             except Exception:
                 continue
-        
-        return results
-        
+
+        return {
+            'results': results,
+            'total': total_observations,
+            'page': page,
+            'page_size': page_size,
+            'total_pages': total_pages
+        }
+
     except Exception as e:
         # Return error as special result
-        return [{'error': str(e)}]
+        return {'results': [{'error': str(e)}], 'total': 0, 'page': 1, 'page_size': page_size, 'total_pages': 0}
 
 
 def main():
     if len(sys.argv) < 2:
         print(json.dumps({'error': 'No target specified'}))
         sys.exit(1)
-    
+
     target = sys.argv[1]
-    results = search_mast(target)
+    page = int(sys.argv[2]) if len(sys.argv) > 2 else 1
+    results = search_mast(target, page=page)
     print(json.dumps(results))
 
 

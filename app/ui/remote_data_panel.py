@@ -65,7 +65,11 @@ class RemoteDataPanel(QtWidgets.QWidget):
         self._download_total = 0
         self._download_completed = 0
         self._download_errors: list[str] = []
-        
+        self._current_page = 1
+        self._total_pages = 0
+        self._total_results = 0
+        self._last_query = ""
+
         self._setup_ui()
         self._initialize_providers()
     
@@ -115,7 +119,25 @@ class RemoteDataPanel(QtWidgets.QWidget):
         header.setSectionResizeMode(QtWidgets.QHeaderView.ResizeMode.Stretch)
         self.results_table.itemSelectionChanged.connect(self._on_selection_changed)
         layout.addWidget(self.results_table, 1)
-        
+
+        # Pagination controls
+        pagination_layout = QtWidgets.QHBoxLayout()
+        self.prev_button = QtWidgets.QPushButton("← Previous")
+        self.prev_button.setEnabled(False)
+        self.prev_button.clicked.connect(self._on_prev_page)
+        pagination_layout.addWidget(self.prev_button)
+
+        self.page_label = QtWidgets.QLabel("Page 1 of 1")
+        self.page_label.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+        pagination_layout.addWidget(self.page_label, 1)
+
+        self.next_button = QtWidgets.QPushButton("Next →")
+        self.next_button.setEnabled(False)
+        self.next_button.clicked.connect(self._on_next_page)
+        pagination_layout.addWidget(self.next_button)
+
+        layout.addLayout(pagination_layout)
+
         # Import button
         self.import_button = QtWidgets.QPushButton("Download && Import Selected")
         self.import_button.setEnabled(False)
@@ -180,23 +202,25 @@ class RemoteDataPanel(QtWidgets.QWidget):
         if not query_text:
             self.status_label.setText("Enter a search term")
             return
-        
-        # Reset UI
+
+        # Reset UI and pagination for new search
         self._records = []
         self.results_table.setRowCount(0)
         self.import_button.setEnabled(False)
+        self._current_page = 1
+        self._last_query = query_text
         self.status_label.setText(f"Searching MAST for '{query_text}'…")
         self.search_button.setText("Cancel")
-        
+
         # Find Python executable and search script
         python_exe = sys.executable
         script_path = Path(__file__).parent.parent / "workers" / "search_subprocess.py"
-        
-        # Start subprocess
+
+        # Start subprocess with page number
         self._search_process = QtCore.QProcess(self)
         self._search_process.finished.connect(self._on_search_process_finished)
         self._search_process.setProgram(python_exe)
-        self._search_process.setArguments([str(script_path), query_text])
+        self._search_process.setArguments([str(script_path), query_text, str(self._current_page)])
         self._search_process.start()
     
     def _on_search_process_finished(self, exit_code: int, exit_status: int) -> None:
@@ -211,19 +235,41 @@ class RemoteDataPanel(QtWidgets.QWidget):
         # Read output
         try:
             output = bytes(process.readAllStandardOutput()).decode('utf-8', errors='replace')
-            results = json.loads(output) if output.strip() else []
+            data = json.loads(output) if output.strip() else {'results': [], 'total': 0, 'page': 1, 'total_pages': 0}
         except Exception as e:
             self.status_label.setText(f"Search failed: {e}")
             return
-        
+
+        # Handle old format (list) for backwards compatibility
+        if isinstance(data, list):
+            data = {'results': data, 'total': len(data), 'page': 1, 'total_pages': 1}
+
+        results = data.get('results', [])
+
         # Check for error
         if results and isinstance(results, list) and len(results) == 1 and 'error' in results[0]:
             self.status_label.setText(f"Search error: {results[0]['error']}")
             return
-        
+
+        # Update pagination info
+        self._total_results = data.get('total', len(results))
+        self._total_pages = data.get('total_pages', 1)
+        self._current_page = data.get('page', 1)
+
         # Populate table
         self._populate_results(results)
-        self.status_label.setText(f"Found {len(results)} result(s)")
+
+        # Update pagination UI
+        self._update_pagination_ui()
+
+        # Update status
+        if self._total_results > len(results):
+            self.status_label.setText(
+                f"Showing {len(results)} of {self._total_results} result(s) "
+                f"(Page {self._current_page} of {self._total_pages})"
+            )
+        else:
+            self.status_label.setText(f"Found {self._total_results} result(s)")
     
     def _populate_results(self, results: list[dict]) -> None:
         """Populate the results table from search results."""
@@ -505,3 +551,47 @@ class RemoteDataPanel(QtWidgets.QWidget):
         if unit == 0:
             return f"{int(size)} {units[unit]}"
         return f"{size:.1f} {units[unit]}"
+
+    def _update_pagination_ui(self) -> None:
+        """Update pagination button states and label."""
+        self.prev_button.setEnabled(self._current_page > 1)
+        self.next_button.setEnabled(self._current_page < self._total_pages)
+
+        if self._total_pages > 0:
+            self.page_label.setText(f"Page {self._current_page} of {self._total_pages} ({self._total_results} total)")
+        else:
+            self.page_label.setText("No results")
+
+    def _on_prev_page(self) -> None:
+        """Go to previous page of results."""
+        if self._current_page > 1:
+            self._current_page -= 1
+            self._load_page()
+
+    def _on_next_page(self) -> None:
+        """Go to next page of results."""
+        if self._current_page < self._total_pages:
+            self._current_page += 1
+            self._load_page()
+
+    def _load_page(self) -> None:
+        """Load the current page of results."""
+        if not self._last_query:
+            return
+
+        # Reset UI
+        self._records = []
+        self.results_table.setRowCount(0)
+        self.import_button.setEnabled(False)
+        self.status_label.setText(f"Loading page {self._current_page}…")
+
+        # Find Python executable and search script
+        python_exe = sys.executable
+        script_path = Path(__file__).parent.parent / "workers" / "search_subprocess.py"
+
+        # Start subprocess with current page
+        self._search_process = QtCore.QProcess(self)
+        self._search_process.finished.connect(self._on_search_process_finished)
+        self._search_process.setProgram(python_exe)
+        self._search_process.setArguments([str(script_path), self._last_query, str(self._current_page)])
+        self._search_process.start()
