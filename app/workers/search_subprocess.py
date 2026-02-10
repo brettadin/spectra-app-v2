@@ -136,14 +136,14 @@ def search_mast(target_name: str, page: int = 1, page_size: int = 50,
         results = []
         seen = set()
 
-        # Expanded patterns to include HST, JWST, Spitzer, and other missions
+        # Patterns for simple 1D spectra (our importer can handle these)
         spectral_patterns = (
-            # HST (COS, STIS, FOS, GHRS, etc.)
+            # HST (COS, STIS, FOS, GHRS, etc.) - 1D extracted spectra
             '_x1d.fits', '_sx1.fits', '_sx2.fits', '_s1d.fits',
             '_spec.fits', '_vo.fits', '_cspec.fits', '_mxlo_vo.fits',
-            # JWST (NIRSpec, MIRI, NIRCam, NIRISS)
-            '_x1dints.fits', '_s2d.fits', '_s3d.fits', '_calints.fits',
-            '_x1d.fits', '_cal.fits', '_rate.fits', '_rateints.fits',
+            # JWST - Only 1D extracted spectra (Stage 2)
+            '_x1d.fits',     # 1D extracted spectrum (good!)
+            '_cal.fits',     # Calibrated 2D image (some may work if they're really 1D)
             # Spitzer IRS
             '_bcd.fits', '_cal.fits',
             # Generic spectral indicators
@@ -170,9 +170,10 @@ def search_mast(target_name: str, page: int = 1, page_size: int = 50,
                 if ptype in ('AUXILIARY', 'PREVIEW', 'INFO', 'THUMBNAIL'):
                     continue
 
-                # Skip imaging products (raw, flat-fielded, drizzled, etc.)
+                # Skip imaging products and complex multi-dimensional data
                 uri_lower = uri.lower()
-                imaging_patterns = (
+                unsupported_patterns = (
+                    # HST/Generic imaging products
                     '_raw.fits',     # Raw detector images
                     '_flt.fits',     # Flat-fielded images
                     '_flc.fits',     # Flat-fielded, CTE-corrected images
@@ -182,9 +183,15 @@ def search_mast(target_name: str, page: int = 1, page_size: int = 50,
                     '_crj.fits',     # Cosmic ray rejected images
                     '_c0m.fits',     # Uncalibrated images
                     '_c1f.fits',     # Calibrated images
+                    # JWST complex spectral products (our importer expects simple 1D)
+                    '_s2d.fits',     # 2D rectified spectra (spectral images)
+                    '_s3d.fits',     # 3D spectral cubes
+                    '_x1dints.fits', # 1D time-series spectra (multiple exposures)
+                    '_calints.fits', # Calibrated integration time-series
+                    '_rateints.fits',# Count-rate time-series
                 )
 
-                if any(pat in uri_lower for pat in imaging_patterns):
+                if any(pat in uri_lower for pat in unsupported_patterns):
                     continue
 
                 # Check if it's a spectral product by filename pattern
