@@ -141,11 +141,10 @@ def search_mast(target_name: str, page: int = 1, page_size: int = 50,
             # HST (COS, STIS, FOS, GHRS, etc.) - 1D extracted spectra
             '_x1d.fits', '_sx1.fits', '_sx2.fits', '_s1d.fits',
             '_spec.fits', '_vo.fits', '_cspec.fits', '_mxlo_vo.fits',
-            # JWST - Only 1D extracted spectra (Stage 2)
-            '_x1d.fits',     # 1D extracted spectrum (good!)
-            '_cal.fits',     # Calibrated 2D image (some may work if they're really 1D)
+            # JWST - Only 1D extracted spectra (Stage 3 combined products)
+            '_x1d.fits',     # 1D extracted spectrum - PRIMARY SCIENCE PRODUCT ✓
             # Spitzer IRS
-            '_bcd.fits', '_cal.fits',
+            '_bcd.fits',
             # Generic spectral indicators
             'spec.fits', 'spectrum.fits', 'extracted.fits',
         )
@@ -185,10 +184,13 @@ def search_mast(target_name: str, page: int = 1, page_size: int = 50,
                     '_c1f.fits',     # Calibrated images
                     # JWST complex spectral products (our importer expects simple 1D)
                     '_s2d.fits',     # 2D rectified spectra (spectral images)
-                    '_s3d.fits',     # 3D spectral cubes
-                    '_x1dints.fits', # 1D time-series spectra (multiple exposures)
-                    '_calints.fits', # Calibrated integration time-series
-                    '_rateints.fits',# Count-rate time-series
+                    '_s3d.fits',     # 3D spectral cubes (IFU)
+                    '_x1dints.fits', # 1D time-series spectra (multiple integrations)
+                    '_calints.fits', # Calibrated integration time-series (TSO)
+                    '_rateints.fits',# Count-rate time-series (Stage 1)
+                    '_cal.fits',     # Calibrated unrectified (Stage 2 intermediate)
+                    '_rate.fits',    # Count-rate images (Stage 1 output)
+                    '_uncal.fits',   # Uncalibrated raw (Stage 0)
                 )
 
                 if any(pat in uri_lower for pat in unsupported_patterns):
