@@ -44,12 +44,40 @@ def search_mast(target_name: str, page: int = 1, page_size: int = 50) -> dict:
         obs_meta = {}
         for row in table:
             obsid = str(row.get('obsid', ''))
+
+            # Extract wavelength range from observations table (em_min/em_max in meters)
+            wavelength_range = ''
+            try:
+                em_min = row.get('em_min')
+                em_max = row.get('em_max')
+
+                if em_min is not None and em_max is not None and em_min > 0 and em_max > 0:
+                    # Convert to nm
+                    wl_min_nm = float(em_min) * 1e9
+                    wl_max_nm = float(em_max) * 1e9
+
+                    # Smart formatting
+                    if wl_max_nm < 1000:  # UV/Vis in nm
+                        wavelength_range = f"{wl_min_nm:.0f}–{wl_max_nm:.0f} nm"
+                    elif wl_max_nm < 2500:  # Near-IR in µm
+                        wavelength_range = f"{wl_min_nm/1000:.2f}–{wl_max_nm/1000:.2f} µm"
+                    else:  # Mid/Far-IR in µm
+                        wavelength_range = f"{wl_min_nm/1000:.1f}–{wl_max_nm/1000:.1f} µm"
+                else:
+                    # Try wavelength_region as fallback
+                    wl_region = row.get('wavelength_region')
+                    if wl_region:
+                        wavelength_range = str(wl_region)
+            except Exception:
+                wavelength_range = ''
+
             obs_meta[obsid] = {
                 'instrument': str(row.get('instrument_name', '')),
                 'target': str(row.get('target_name', target_name)),
                 'telescope': str(row.get('obs_collection', '')),
                 't_min': row.get('t_min'),
                 't_max': row.get('t_max'),
+                'wavelength_range': wavelength_range,
             }
         
         # Get products for these observations
@@ -93,47 +121,19 @@ def search_mast(target_name: str, page: int = 1, page_size: int = 50) -> dict:
                 filename = str(row.get('productFilename', '') or uri.split('/')[-1])
                 obsid = str(row.get('obsID', ''))
 
-                # Get observation metadata
+                # Get observation metadata (including wavelength range)
                 meta = obs_meta.get(obsid, {})
                 telescope = str(row.get('obs_collection', '')) or meta.get('telescope', '')
                 instrument = meta.get('instrument', '')
                 target = meta.get('target', target_name)
+                wavelength_range = meta.get('wavelength_range', '')
                 description = str(row.get('description', ''))
 
-                # Extract wavelength range (em_min/em_max are in meters)
-                wavelength_range = ''
-                try:
-                    em_min = row.get('em_min')  # meters
-                    em_max = row.get('em_max')  # meters
-
-                    if em_min is not None and em_max is not None and em_min > 0 and em_max > 0:
-                        # Convert to nm for display
-                        wl_min_nm = float(em_min) * 1e9
-                        wl_max_nm = float(em_max) * 1e9
-
-                        # Smart formatting based on range
-                        if wl_max_nm < 1000:  # Stay in nm
-                            wavelength_range = f"{wl_min_nm:.0f}–{wl_max_nm:.0f} nm"
-                        elif wl_max_nm < 2500:  # Still nm but show µm option
-                            wl_min_um = wl_min_nm / 1000
-                            wl_max_um = wl_max_nm / 1000
-                            wavelength_range = f"{wl_min_um:.2f}–{wl_max_um:.2f} µm"
-                        else:  # Infrared, use µm
-                            wl_min_um = wl_min_nm / 1000
-                            wl_max_um = wl_max_nm / 1000
-                            wavelength_range = f"{wl_min_um:.1f}–{wl_max_um:.1f} µm"
-                    else:
-                        # Try wavelength_region as fallback
-                        wl_region = row.get('wavelength_region')
-                        if wl_region:
-                            wavelength_range = str(wl_region)
-                except Exception:
-                    wavelength_range = ''
-
-                # Build a useful title
+                # Build a useful title with filename instead of truncated description
+                filename_base = filename.replace('.fits', '').replace('_', ' ')
                 title = f"{telescope} / {instrument}" if instrument else telescope
-                if description:
-                    title = description[:60]
+                if len(filename_base) < 40:
+                    title = filename_base
 
                 results.append({
                     'identifier': filename,

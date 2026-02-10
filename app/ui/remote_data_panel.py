@@ -116,8 +116,25 @@ class RemoteDataPanel(QtWidgets.QWidget):
         ])
         self.results_table.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectionBehavior.SelectRows)
         self.results_table.setSelectionMode(QtWidgets.QAbstractItemView.SelectionMode.ExtendedSelection)
+
+        # Configure column widths and resizing
         header = self.results_table.horizontalHeader()
-        header.setSectionResizeMode(QtWidgets.QHeaderView.ResizeMode.Stretch)
+        header.setSectionResizeMode(0, QtWidgets.QHeaderView.ResizeMode.ResizeToContents)  # ID
+        header.setSectionResizeMode(1, QtWidgets.QHeaderView.ResizeMode.Stretch)  # Title
+        header.setSectionResizeMode(2, QtWidgets.QHeaderView.ResizeMode.ResizeToContents)  # Target
+        header.setSectionResizeMode(3, QtWidgets.QHeaderView.ResizeMode.ResizeToContents)  # Wavelength Range
+        header.setSectionResizeMode(4, QtWidgets.QHeaderView.ResizeMode.ResizeToContents)  # Telescope
+        header.setSectionResizeMode(5, QtWidgets.QHeaderView.ResizeMode.ResizeToContents)  # Instrument
+        header.setSectionResizeMode(6, QtWidgets.QHeaderView.ResizeMode.ResizeToContents)  # Product
+
+        # Enable user column resizing by dragging
+        header.setSectionsMovable(False)
+        header.setStretchLastSection(False)
+
+        # Word wrap and text eliding
+        self.results_table.setWordWrap(False)
+        self.results_table.setTextElideMode(QtCore.Qt.TextElideMode.ElideMiddle)
+
         self.results_table.itemSelectionChanged.connect(self._on_selection_changed)
         layout.addWidget(self.results_table, 1)
 
