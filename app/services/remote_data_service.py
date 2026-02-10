@@ -1755,10 +1755,15 @@ class RemoteDataService:
         Much more reliable than general MAST searches.
         """
         import requests
+        import re
 
         text = str(query.get("text") or query.get("target_name") or "").strip()
         if not text:
             raise ValueError("Exo.MAST searches require a planet name.")
+
+        # Normalize planet name: Exo.MAST expects "WASP-39 b" not "WASP-39b"
+        # Add space before lowercase letter if missing (handles WASP-39b -> WASP-39 b)
+        text = re.sub(r'(\d)([a-z])', r'\1 \2', text)
 
         base_url = "https://exo.mast.stsci.edu/api/v0.1"
 
