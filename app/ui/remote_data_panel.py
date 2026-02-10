@@ -503,10 +503,13 @@ class RemoteDataPanel(QtWidgets.QWidget):
             self._records = []
             self.results_table.setRowCount(0)
 
+            # Get current provider to set correctly on RemoteRecords
+            current_provider = self.provider_combo.currentText()
+
             for r in results:
                 # Create a RemoteRecord-like object
                 record = RemoteRecord(
-                    provider=RemoteDataService.PROVIDER_MAST,
+                    provider=current_provider,  # Use actual provider, not hardcoded MAST
                     identifier=r.get('identifier', ''),
                     title=r.get('title', ''),
                     download_url=r.get('download_url', ''),
