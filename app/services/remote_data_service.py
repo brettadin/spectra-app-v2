@@ -1571,7 +1571,7 @@ class RemoteDataService:
             x_unit=x_unit,
             y_unit=y_unit,
             source={"remote": remote_metadata},
-            alias=record.suggested_filename() or f"{identifier}.csv",
+            alias=f"{identifier}.csv",  # Force .csv extension for import compatibility
         )
         print(f"[Exo.MAST Download] Stored at: {store_entry['stored_path']}")
 

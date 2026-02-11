@@ -392,6 +392,7 @@ class RemoteDataPanel(QtWidgets.QWidget):
                     'telescope': 'Exo.MAST',
                     'instrument': record.metadata.get('reference', 'Publication'),
                     'wavelength_range': f"{record.metadata.get('spectrum_type', 'spectrum')}",
+                    'units': record.units,  # Preserve units for import
                 })
 
             self._populate_results(result_dicts)
@@ -508,6 +509,8 @@ class RemoteDataPanel(QtWidgets.QWidget):
 
             for r in results:
                 # Create a RemoteRecord-like object
+                # Preserve units from search results if available
+                units = r.get('units', None)
                 record = RemoteRecord(
                     provider=current_provider,  # Use actual provider, not hardcoded MAST
                     identifier=r.get('identifier', ''),
@@ -518,7 +521,7 @@ class RemoteDataPanel(QtWidgets.QWidget):
                         'obs_collection': r.get('telescope', ''),
                         'instrument_name': r.get('instrument', ''),
                     },
-                    units=None,
+                    units=units,  # Pass through units from search
                 )
                 self._records.append(record)
                 
